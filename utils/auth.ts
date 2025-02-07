@@ -1,4 +1,4 @@
-import axiosInstance from '@/utils/services/axiosInstance';
+import axiosInstance from '@/utils/axiosInstance';
 
 // Funzione per leggere il valore di un cookie (ad es. "csrftoken")
 export function getCookie(name: string): string | null {

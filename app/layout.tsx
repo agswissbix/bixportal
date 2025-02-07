@@ -1,19 +1,16 @@
-// app/layout.tsx
+'use client';
+
 import './globals.css';
+import { AppContext, AppProvider } from '@/context/appContext';
 
-export const metadata = {
-  title: 'My Next.js App',
-  description: 'Frontend per autenticazione Django',
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body>
+        <AppProvider>
+          {children}
+        </AppProvider>
+      </body>
     </html>
   );
 }
