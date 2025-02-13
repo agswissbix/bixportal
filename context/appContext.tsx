@@ -33,7 +33,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     verifyAuth();
   }, [router]);
-*/
+*/ 
 
   // --- Ecco la funzione di logout
   const handleLogout = async () => {
