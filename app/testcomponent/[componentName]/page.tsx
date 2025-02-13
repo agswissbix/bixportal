@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import React, { use } from 'react';
 import ExampleComponentWithData from '@/components/exampleComponentWithData';
 import { Sidebar } from 'lucide-react';
+import RecordCard from '@/components/recordCard';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -13,6 +14,9 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     navbar: dynamic(() => import('@/components/navbar')),
     sidebar: dynamic(() => import('@/components/sidebar')),
     sidebarMenu: dynamic(() => import('@/components/sidebarMenu')),
+    standardContent : dynamic(() => import('@/components/standardContent')),
+    recordsTable : dynamic(() => import('@/components/recordsTable')),
+    recordCard : dynamic(() => import('@/components/recordCard')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

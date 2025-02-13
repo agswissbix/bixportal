@@ -15,6 +15,12 @@ interface RecordsStore {
     resetCardsList: () => void;
 
     handleRowClick: (recordid: string, tableid: string, context: string) => Promise<void>; // Aggiungi quia
+
+    searchTerm: string;
+    handleSearchChange: (searchTerm: string) => void;
+    
+    selectedMenu: string;
+    setSelectedMenu: (menuName: string) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -55,4 +61,10 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
             addCard(tableid, recordid, tableType);
         }
     },
+
+    searchTerm: '',
+    handleSearchChange: (searchTerm: string) => set({ searchTerm }),
+
+    selectedMenu: 'Home',
+    setSelectedMenu: (menuName: string) => set({ selectedMenu: menuName }),
 }));

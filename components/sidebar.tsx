@@ -9,10 +9,9 @@ import SidebarMenu from './sidebarMenu';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
-    setSelectedMenu: (item: string) => void;
 }
 
-export default function SideBar({ setSelectedMenu }: PropsInterface) {
+export default function SideBar({  }: PropsInterface) {
   return (
     <div className="w-1/12 h-full"> 
            <SidebarMenu ></SidebarMenu>

@@ -7,14 +7,13 @@ import { Toaster, toast } from 'sonner';
 import Navbar from '@/components/navbar';
 import { getCsrfToken } from '@/utils/auth';
 import Sidebar from '@/components/sidebar';
+import StandardContent from '@/components/standardContent';
+import { useRecordsStore } from '@/components/records/recordsStore';
 
 export default function Home() {
-  const [selectedMenu, setSelectedMenu] = useState<string>('Home');
+  const {selectedMenu} = useRecordsStore();
   const router = useRouter();
 
-  const handleMenuClick = (menuName: string): void => {
-    setSelectedMenu(menuName);
-  };
   
 
   return (    
@@ -22,7 +21,11 @@ export default function Home() {
       <Toaster richColors />
       <Navbar />
       <div className="w-full flex-1 flex">
-        <Sidebar setSelectedMenu={(item) => setSelectedMenu(item)} />
+        <Sidebar />
+        <div className="relative h-full w-11/12 bg-gray-100">
+          {<StandardContent tableid={selectedMenu} />}
+
+        </div>
       </div>
 
     </div>
