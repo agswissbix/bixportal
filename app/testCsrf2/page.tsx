@@ -2,6 +2,8 @@
 // CsrfTest.tsx
 import React, { useEffect, useState } from 'react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 // Interfaccia per la risposta dell'API
 interface ApiResponse {
   message: string;
@@ -30,7 +32,7 @@ const CsrfTest: React.FC = () => {
 
   useEffect(() => {
     // Effettua la GET per ottenere il cookie CSRF
-    fetch('http://localhost:8000//csrf-test/', {
+    fetch(`${API_BASE_URL}/csrf-test/`, {
       method: 'GET',
       credentials: 'include', // importante per inviare/ricevere i cookie
     })
@@ -42,7 +44,7 @@ const CsrfTest: React.FC = () => {
   const handlePost = () => {
     const csrftoken = getCookie('csrftoken'); // Assicurarsi che il nome corrisponda a quello usato da Django
 
-    fetch('http://localhost:8000/csrf-test/', {
+    fetch(`${API_BASE_URL}/csrf-test/`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -65,6 +67,7 @@ const CsrfTest: React.FC = () => {
   return (
     <div>
       <h1>Test CSRF</h1>
+      <p>Server: {API_BASE_URL}</p>
       <section>
         <h2>Risposta GET</h2>
         <pre>{JSON.stringify(getResponse, null, 2)}</pre>
