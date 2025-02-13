@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+
+// Recupera la base URL dall'ambiente
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function CsrfInitializer() {
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
 
@@ -10,7 +14,7 @@ export default function CsrfInitializer() {
     const fetchCsrf = async () => {
       try {
         // Esegui la GET verso il tuo endpoint Django per impostare il cookie csrftoken
-        await axios.get('http://localhost:8002/auth/csrf/', {
+        await axios.get('${API_BASE_URL}/auth/csrf/', {
           withCredentials: true, // Assicura che il cookie venga inviato/ricevuto se cross-site
         });
 

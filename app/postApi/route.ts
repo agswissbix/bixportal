@@ -46,6 +46,10 @@ export async function POST(request: Request) {
             case 'examplepost':
               djangoUrl='/commonapp/examplepost/'
               break;
+            case 'get_sidebarmenu_items':
+                djangoUrl='/commonapp/get_sidebarmenu_items/'
+                break;
+              
       
             default:
               return NextResponse.json(

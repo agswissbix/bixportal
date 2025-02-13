@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react';
 
-interface ExampleComponentProps {
-  propExample?: string; // Prop ora è opzionale
+// INTERFACCIA PROPS
+interface PropsInterface {
+  propExampleValue?: string;
 }
 
-const ExampleComponent: React.FC<ExampleComponentProps> = ({ propExample }) => {
+export default function ExampleComponent({ propExampleValue }: PropsInterface) {
   return (
     <div>
-        
+        Contenuto di esempio
     </div>
   );
 };
 
-export default ExampleComponent;
+
