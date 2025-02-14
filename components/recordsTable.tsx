@@ -170,7 +170,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     {response.columns.map((column) => (
-                                        <th scope="" className="px-6 py-3">
+                                        <th scope="" className="px-6 py-3" key={column.desc}>
                                             {column.desc}
                                         </th>
                                     ))}
@@ -178,9 +178,9 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                             </thead>
                             <tbody>
                                 {response.rows.map((row) => (
-                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer" onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
+                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
                                         {row.fields.map((field) => (
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4" key={field.value}>
                                                 {field.value}
                                             </td>
                                         ))}

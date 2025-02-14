@@ -26,7 +26,12 @@ export default function Login() {
     // Effettua la chiamata per il login
     const result = await loginUser(username, password);
     if (result.success) {
-      router.push('/home');
+        if (username === 'alessandro.galli' || username === 'marco.garganigo') {
+          router.push('/testcomponent/standardContent'); 
+        }
+        else {
+          router.push('/home');
+        }
     } else {
       setError(result.detail || 'Errore durante il login');
     }

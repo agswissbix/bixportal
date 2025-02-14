@@ -1,7 +1,7 @@
 :root {
     --sidebar-background: linear-gradient(180deg, #074048 90%, #ede4e4 200%);
     --navbar-background: #ffffff; /* #3b3c3f */
-    --background: #0080ff;
+    --background: white;
     --color-primary: #ff5b5b;
     --color-secondary: #074048;
     --foreground: 0 0% 3.9%;
@@ -28,7 +28,7 @@
   .theme-test {
     --sidebar-background: linear-gradient(180deg, #ffd900 90%, #ede4e4 200%);
     --navbar-background: #ff0000;
-    --background: #0080ff;
+    --background: white;
     --color-primary: #ff00d496;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
