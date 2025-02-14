@@ -42,7 +42,7 @@ export default function DynamicComponentPage({ params }: { params: Promise<{ com
 
     return (
         <div>
-            <h1 className='text-red-600'>Componente: {componentName}</h1><br/><br/>
+            {/*<h1 className='text-red-600'>Componente: {componentName}</h1><br/><br/> */}
             <Component /> {/* Renderizza il componente senza passare props */}
         </div>
     );

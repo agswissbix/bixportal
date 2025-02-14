@@ -44,7 +44,7 @@ export default function Login() {
             <div className=" block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto ">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <Image
-                        src="/bixdata/logos/swissbix.png"
+                        src="/bixdata/logos/telamico.png"
                         alt="BixData"
                         width={1000}
                         height={1000}
@@ -52,7 +52,7 @@ export default function Login() {
                         priority
                     />
                     <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
-                        Accedi a BixData
+                        Gestionale Telefono Amico
                     </h2>
                 </div>
 

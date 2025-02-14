@@ -30,14 +30,15 @@ const ScheduleCalendarTelefono = () => {
   ];
 
   const volunteers = [
-    'MARINELLA', 'JACQUELINE', 'MANUELA L.', 'NADIA D.',
-    'MARIA', 'NADA', 'CLAUDIA R.', 'SILVIA', 'DOLORES'
+    'Alessandro Galli', 'Mariangela Rosa'
   ].sort();
 
   const shifts = [
-    { value: 'L', label: 'Lugano' },
     { value: 'B', label: 'Bellinzona' },
-    { value: 'C', label: 'Chiasso' }
+    { value: 'C', label: 'Casa' },
+    { value: 'L', label: 'Lugano' },
+    { value: 'M', label: 'Monti' },
+    { value: 'S', label: 'Stabio' }
   ];
 
   interface Slot {
@@ -74,7 +75,8 @@ const ScheduleCalendarTelefono = () => {
         dayName,
         dayType,
         slots: Array(6).fill(null).map((_, index) => {
-          if (Math.random() > 0.5) {
+          //if (Math.random() > 0.5) {
+            if (false) {
             return {
               id: `${day}-${index}`,
               name: volunteers[Math.floor(Math.random() * volunteers.length)],
@@ -282,23 +284,26 @@ const ScheduleCalendarTelefono = () => {
           {isModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
-                <h2 className="text-lg font-bold mb-4">Modifica Sede</h2>
+                <h2 className="text-lg font-bold mb-4">TURNO</h2>
                 <div className="mb-4 text-sm text-gray-600">
                   Fascia oraria: {activeSlot ? activeSlot.timeSlot : ''}
                 </div>
                 <div className="mb-4">
                   <label className="block mb-2">Nome Volontario</label>
                   <select
-                    name="name"
-                    className="border rounded px-3 py-2 w-full"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Seleziona volontario</option>
-                    {volunteers.map(volunteer => (
-                      <option key={volunteer} value={volunteer}>{volunteer}</option>
-                    ))}
-                  </select>
+  name="name"
+  className="border rounded px-3 py-2 w-full"
+  value={formData.name || (volunteers.includes("Alessandro Galli") ? "Alessandro Galli" : "")}
+  onChange={handleInputChange}
+>
+  <option value="">Seleziona volontario</option>
+  {volunteers.map(volunteer => (
+    <option key={volunteer} value={volunteer}>
+      {volunteer}
+    </option>
+  ))}
+</select>
+
                 </div>
                 <div className="mb-4">
                   <label className="block mb-2">Sede</label>
