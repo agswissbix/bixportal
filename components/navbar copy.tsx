@@ -89,7 +89,7 @@ export default function NavBar() {
                     <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                         <div className="flex flex-shrink-0 items-center">
                             <Image
-                                src="/bixdata/logos/bixdata.png"
+                                src="/bixdata/logos/telamico.png"
                                 alt="BixData"
                                 width={1000}
                                 height={1000}

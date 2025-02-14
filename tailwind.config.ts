@@ -13,6 +13,10 @@ export default {
 			sidebar: 'var(--sidebar-background)',
 		},
   		colors: {
+			bixcolor: {
+				default: '#074048',
+				light: '#006664'
+			},
 			navbar: 'var(--navbar-background)',
 			primary: 'var(--color-primary)',
 			secondary: 'var(--color-secondary)',
@@ -48,6 +52,7 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
+
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

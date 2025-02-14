@@ -1,6 +1,6 @@
 :root {
     --sidebar-background: linear-gradient(180deg, #074048 90%, #ede4e4 200%);
-    --navbar-background: #3b3c3f;
+    --navbar-background: #ffffff; /* #3b3c3f */
     --background: #0080ff;
     --color-primary: #ff5b5b;
     --color-secondary: #074048;

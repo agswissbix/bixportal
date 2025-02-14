@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { loginUser, getCsrfToken } from '@/utils/auth';
 import { Toaster, toast } from 'sonner';
 import Image from 'next/image';
+import '../globals.css';
 
 export default function Login() {
   const [username, setUsername] = useState<string>('');
@@ -38,11 +39,11 @@ export default function Login() {
             <div className=" block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto ">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <Image
-                        src="/bixdata/logos/bixdata.png"
+                        src="/bixdata/logos/swissbix.png"
                         alt="BixData"
                         width={1000}
                         height={1000}
-                        className="h-14 w-auto ml-14 bg-black"
+                        className="h-14 w-auto mx-auto  bg-white"
                         priority
                     />
                     <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
@@ -94,8 +95,8 @@ export default function Login() {
                         <div>
                             <button
                                 type="submit"
-                                className="flex w-full justify-center rounded-md bg-bixcolor-default px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-bixcolor-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bixcolor-default text-black"
-                            >
+                                className="flex w-full justify-center rounded-md bg-bixcolor-default px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-bixcolor-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bixcolor-default"
+                                >
                                 Accedi
                             </button>
                         </div>
