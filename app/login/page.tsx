@@ -27,7 +27,7 @@ export default function Login() {
     const result = await loginUser(username, password);
     if (result.success) {
         if (username === 'alessandro.galli' || username === 'marco.garganigo') {
-          router.push('/testcomponent/standardContent'); 
+          router.push('/testcomponent/scheduleCalendar'); 
         }
         else {
           router.push('/home');

@@ -24,8 +24,9 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     recordCard : dynamic(() => import('@/components/recordCard')),
     cardTabs : dynamic(() => import('@/components/cardTabs')),
     cardBadge : dynamic(() => import('@/components/cardBadge')),
-    CardFields : dynamic(() => import('@/components/cardFields')),
-    CardLinked : dynamic(() => import('@/components/cardLinked')),
+    cardFields : dynamic(() => import('@/components/cardFields')),
+    cardLinked : dynamic(() => import('@/components/cardLinked')),
+    scheduleCalendar : dynamic(() => import('@/components/scheduleCalendar')),
 
 };
 
