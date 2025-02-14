@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 
 const ScheduleCalendarTelefono = () => {
   const [currentYear, setCurrentYear] = useState(2024);
@@ -154,12 +154,16 @@ const ScheduleCalendarTelefono = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100">
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg">
-        <div className="w-full h-[90vh] p-4">
+      <div className="w-full h-5 bg-red-500 rounded-md"></div>
+        <div className="w-full h-[85vh] p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
             <div className="flex flex-wrap items-center gap-2">
-              <select
+            <div className="inline-flex items-center gap-2 bg-white text-red-500 px-4 py-2 rounded-lg">
+              <Phone size={30} />
+            </div>              
+            <select
                 className="border rounded px-2 py-1 bg-white"
                 value={currentYear}
                 onChange={(e) => setCurrentYear(parseInt(e.target.value))}

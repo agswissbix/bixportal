@@ -54,7 +54,7 @@ const AppLayout = () => {
               onClick={() => setActiveTab('phone')}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === 'phone'
-                  ? 'bg-white text-blue-600 shadow-sm'
+                  ? 'bg-white text-red-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -65,7 +65,7 @@ const AppLayout = () => {
               onClick={() => setActiveTab('chat')}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === 'chat'
-                  ? 'bg-white text-blue-600 shadow-sm'
+                  ? 'bg-white text-green-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -87,7 +87,7 @@ const AppLayout = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="w-full p-6">
         {activeTab === 'phone' ? <ScheduleCalendarTelefono /> : <ScheduleCalendarChat />}
       </main>
     </div>
