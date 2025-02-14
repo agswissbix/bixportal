@@ -9,6 +9,10 @@ import { getCsrfToken } from '@/utils/auth';
 import Sidebar from '@/components/sidebar';
 import StandardContent from '@/components/standardContent';
 import { useRecordsStore } from '@/components/records/recordsStore';
+import ScheduleCalendar from '@/components/scheduleCalendar';
+import Agenda from '@/components/agenda';
+import PitCalendar from '@/components/pitCalendar';
+import CalendarComponent from '@/components/calendarComponent';
 
 export default function Home() {
   const {selectedMenu} = useRecordsStore();
@@ -23,7 +27,23 @@ export default function Home() {
       <div className="w-full flex-1 flex">
         <Sidebar />
         <div className="relative h-full w-11/12 bg-gray-100">
-          {<StandardContent tableid={selectedMenu} />}
+        {
+              selectedMenu === 'TelAmicoCalendario' ? (
+                <ScheduleCalendar />
+              )
+              : selectedMenu === 'TelAmicoAgenda' ? (
+                <Agenda />
+              ) 
+              : selectedMenu === 'PitCalendar' ? (
+                <PitCalendar />
+              ) 
+              : selectedMenu === 'Calendario' ? (
+                <CalendarComponent />
+              ) 
+              : (
+                <StandardContent tableid={selectedMenu} />
+              )
+              }
 
         </div>
       </div>
