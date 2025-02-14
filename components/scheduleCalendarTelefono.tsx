@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const ScheduleCalendar = () => {
+const ScheduleCalendarTelefono = () => {
   const [currentYear, setCurrentYear] = useState(2024);
   const [currentMonth, setCurrentMonth] = useState(11);
   const [selectedVolunteer, setSelectedVolunteer] = useState('');
@@ -333,4 +333,4 @@ const ScheduleCalendar = () => {
   );
 };
 
-export default ScheduleCalendar;
+export default ScheduleCalendarTelefono;

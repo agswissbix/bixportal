@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LogOut, User, Calendar, Phone, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import ScheduleCalendarTelefono from './scheduleCalendarTelefono';
+import ScheduleCalendarChat from './scheduleCalendarChat';
 
 const CalendarioTelefono = () => (
   <Card className="p-6">
@@ -29,6 +30,7 @@ const CalendarioChat = () => (
 );
 
 const AppLayout = () => {
+  const [activeTab, setActiveTab] = useState('chat');
   const username = "Mario Rossi";
 
   const handleLogout = () => {
@@ -46,19 +48,31 @@ const AppLayout = () => {
             <span className="font-medium text-gray-700">{username}</span>
           </div>
 
-          {/* Tabs Navigation */}
-          <Tabs defaultValue="chat" className="w-[400px]">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="phone" className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span>Telefono</span>
-              </TabsTrigger>
-              <TabsTrigger value="chat" className="flex items-center space-x-2">
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {/* Custom Tabs */}
+          <div className="flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+            <button
+              onClick={() => setActiveTab('phone')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                activeTab === 'phone'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Phone className="w-4 h-4" />
+              <span>Telefono</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                activeTab === 'chat'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Chat</span>
+            </button>
+          </div>
 
           {/* Logout Button */}
           <Button
@@ -74,14 +88,7 @@ const AppLayout = () => {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto p-6">
-        <Tabs defaultValue="chat" className="w-full">
-          <TabsContent value="phone">
-            <CalendarioTelefono />
-          </TabsContent>
-          <TabsContent value="chat">
-            <CalendarioChat />
-          </TabsContent>
-        </Tabs>
+        {activeTab === 'phone' ? <ScheduleCalendarTelefono /> : <ScheduleCalendarChat />}
       </main>
     </div>
   );
