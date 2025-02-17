@@ -43,7 +43,8 @@ const CsrfTest: React.FC = () => {
 
   const handlePost = () => {
     const csrftoken = getCookie('csrftoken'); // Assicurarsi che il nome corrisponda a quello usato da Django
-
+    console.log('Valore del cookie CSRFToken:', csrftoken);
+    
     fetch(`${API_BASE_URL}/csrf-test/`, {
       method: 'POST',
       credentials: 'include',
