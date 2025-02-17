@@ -9,8 +9,10 @@ import https from 'https';
 export async function POST(request: Request) {
   // Recupera il CSRF token dai cookie della richiesta (lato server)
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('sessionid')?.value;
   const csrfToken = cookieStore.get('csrftoken')?.value;
+  console.log('csrfToken:', csrfToken);
+  const sessionId = cookieStore.get('sessionid')?.value;
+  console.log('sessionId:', sessionId);
   const postData = await request.json();
 
   // Controlla che ci sia 'apiRoute' nel payload
