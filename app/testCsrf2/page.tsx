@@ -13,6 +13,7 @@ interface ApiResponse {
 // Funzione per leggere il valore di un cookie
 function getCookie(name: string): string | null {
   let cookieValue: string | null = null;
+  console.info("document coookie: "+document.cookie)
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
@@ -44,7 +45,7 @@ const CsrfTest: React.FC = () => {
   const handlePost = () => {
     const csrftoken = getCookie('csrftoken'); // Assicurarsi che il nome corrisponda a quello usato da Django
     console.log('Valore del cookie CSRFToken:', csrftoken);
-    
+
     fetch(`${API_BASE_URL}/csrf-test/`, {
       method: 'POST',
       credentials: 'include',
