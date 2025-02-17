@@ -67,7 +67,7 @@ export default function TestConnection() {
 
       setResponseData(response.data); 
       console.log(response);
-    } catch (error) {
+    } catch (error) { 
       if (axios.isAxiosError(error)) {
         setError(error.message);
       } else {
