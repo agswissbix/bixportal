@@ -44,15 +44,16 @@ export default function TestConnection() {
     }
   };
 
-  const fetchCsrf = async () => {
+  async function fetchCsrf() {
     try {
-      const resp = await axios.get('/getCsrf');
-      setMsg(JSON.stringify(resp.data));
+      const resp = await axios.post('/postApi', {
+        apiRoute: 'getCsrf',
+      });
+      console.log('CSRF Response:', resp.data);
     } catch (error) {
-      setMsg('Errore nel recupero CSRF');
-      console.error(error);
+      console.error('Errore nel recupero CSRF', error);
     }
-  };
+  }
 
   const handleTestPost = async () => {
     setLoading(true); 

@@ -75,6 +75,16 @@ export async function loginUser(
   }
 }
 
+async function fetchCsrfApi() {
+  try {
+    const resp = await axios.post('/postApi', {
+      apiRoute: 'getCsrf',
+    });
+    console.log('CSRF Response:', resp.data);
+  } catch (error) {
+    console.error('Errore nel recupero CSRF', error);
+  }
+}
 
 // Nuova funzione per login
 // Usando fetch o axios, basta puntare a /postApi e passare { apiRoute: 'login', ... }
@@ -83,6 +93,8 @@ export async function loginUserApi(
   password: string
 ): Promise<LoginResponse> {
   try {
+    await fetchCsrfApi();
+
     const response = await axios.post('/postApi', {
       apiRoute: 'login',
       username,
@@ -98,6 +110,8 @@ export async function loginUserApi(
     };
   }
 }
+
+
 
 
 export interface CheckAuthResponse {
