@@ -7,33 +7,27 @@ export default function TestConnection() {
   // Stato per memorizzare la risposta
   const [responseData, setResponseData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const handleTestConnection = async () => {
-    setLoading(true); 
-    setError(null);
+  const handleTestConnection = () => {
+    setLoading(true); // Impostare lo stato di caricamento a true
+    setError(null);    // Resettare eventuali errori precedenti
 
-    try {
-      // Invio di una richiesta POST verso la route interna di Next.js
-      const response = await axios.post("/postApi", {
-        apiRoute: "test_connection",
-        // ... qui si possono aggiungere eventuali altri dati ...
+    axios
+      .get(`${apiBaseUrl}/commonapp/test_connection/`)
+      .then((response) => {
+        setResponseData(response.data); // Salvare la risposta nel state
+        console.log(response);           // Mostrare la risposta in console
+      })
+      .catch((error) => {
+        setError(error.message);         // Gestire eventuali errori
+        console.log(error);              // Mostrare l'errore in console
+      })
+      .finally(() => {
+        setLoading(false);               // Impostare lo stato di caricamento a false
       });
-
-      setResponseData(response.data); 
-      console.log(response);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (

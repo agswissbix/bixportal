@@ -49,6 +49,9 @@ export async function POST(request: Request) {
             case 'get_sidebarmenu_items':
                 djangoUrl='/commonapp/get_sidebarmenu_items/'
                 break;
+            case 'test_connection':
+              djangoUrl='/commonapp/test_connection/'
+              break;
               
       
             default:
