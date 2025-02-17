@@ -23,10 +23,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // 2. Creazione di un https.Agent con la verifica disabilitata
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false,
-    });
+
 
     // Prepara la configurazione di Axios includendo l’header X-CSRFToken
     const axiosConfig = {
@@ -37,7 +34,6 @@ export async function POST(request: Request) {
       },
       withCredentials: true,
       // 3. Assegna l'agent ad Axios
-      httpsAgent,
     };
 
     try {

@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   // Qui chiami l'endpoint Django che imposta il token CSRF
-  const djangoUrl = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/csrf/';
-  console.log('Django URL:', djangoUrl);
+  const djangoUrl = process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/csrf';
+
   // Effettui una richiesta con fetch (oppure axios),
   // includendo le credenziali per far transitare eventuali cookie
   const djangoResponse = await fetch(djangoUrl, {
