@@ -55,10 +55,14 @@ export async function POST(request: Request) {
           djangoUrl = '/commonapp/test_connection/';
           break;
           case 'checkCsrf':
-            // Se vuoi mappare la stessa rotta del test_connection in Django
-            djangoUrl = '/csrf-test/';
-            break;
-        default:
+          // Se vuoi mappare la stessa rotta del test_connection in Django
+          djangoUrl = '/csrf-test/';
+          break;
+        case 'login':
+          // Nuovo caso per il login
+          djangoUrl = '/auth/login/';
+          break;
+    default:
           return NextResponse.json(
             { error: `apiRoute ${apiRoute} non gestito.` },
             { status: 400 }

@@ -1,4 +1,5 @@
 import axiosInstance from '@/utils/axiosInstance';
+import axios from 'axios';
 
 // Funzione per leggere il valore di un cookie (ad es. "csrftoken")
 export function getCookie(name: string): string | null {
@@ -49,14 +50,12 @@ export async function loginUser(
   // Ottieni il CSRF token dal cookie
   //const csrfToken = getCookie('csrftoken');
   const csrfToken = (await fetchCsrfToken()) ?? '';
-
   // Crea i form data
   const formData = new URLSearchParams();
   formData.append('username', username);
   formData.append('password', password);
 
   try {
-    console.info("csrfToken: "+csrfToken);
     const response = await axiosInstance.post('/auth/login/', formData, {
       headers: {
         'X-CSRFToken': csrfToken || '',
@@ -75,6 +74,31 @@ export async function loginUser(
     return { success: false, detail: 'Errore di rete' };
   }
 }
+
+
+// Nuova funzione per login
+// Usando fetch o axios, basta puntare a /postApi e passare { apiRoute: 'login', ... }
+export async function loginUserApi(
+  username: string,
+  password: string
+): Promise<LoginResponse> {
+  try {
+    const response = await axios.post('/postApi', {
+      apiRoute: 'login',
+      username,
+      password,
+    });
+    return response.data; // Deve ritornare { success: boolean, detail?: string }
+  } catch (error: any) {
+    // Se il server restituisce 401 (credenziali errate) o altri errori
+    const detail = error.response?.data?.error || 'Errore di rete';
+    return {
+      success: false,
+      detail,
+    };
+  }
+}
+
 
 export interface CheckAuthResponse {
   isAuthenticated: boolean;
