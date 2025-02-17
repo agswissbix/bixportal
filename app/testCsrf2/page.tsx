@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const PORTAL_BASE_URL = process.env.NEXT_PUBLIC_PORTAL_BASE_URL;
 
 // Interfaccia per la risposta dell'API
 interface ApiResponse {
