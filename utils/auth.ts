@@ -9,6 +9,21 @@ export function getCookie(name: string): string | null {
   return null;
 }
 
+
+export async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const response = await axiosInstance.get('/auth/csrf/');
+    // Se il backend risponde col token, lo recuperiamo
+    if (response.status === 200 && response.data?.csrftoken) {
+      return response.data.csrftoken;
+    }
+    return null;
+  } catch (error) {
+    console.error('Errore durante il recupero del CSRF token', error);
+    return null;
+  }
+}
+
 // Richiede il CSRF token dal backend (endpoint: /auth/csrf/)
 export async function getCsrfToken(): Promise<boolean> {
   try {
@@ -32,7 +47,8 @@ export async function loginUser(
   password: string
 ): Promise<LoginResponse> {
   // Ottieni il CSRF token dal cookie
-  const csrfToken = getCookie('csrftoken');
+  //const csrfToken = getCookie('csrftoken');
+  const csrfToken = (await fetchCsrfToken()) ?? '';
 
   // Crea i form data
   const formData = new URLSearchParams();
@@ -40,6 +56,7 @@ export async function loginUser(
   formData.append('password', password);
 
   try {
+    console.info("csrfToken: "+csrfToken);
     const response = await axiosInstance.post('/auth/login/', formData, {
       headers: {
         'X-CSRFToken': csrfToken || '',
