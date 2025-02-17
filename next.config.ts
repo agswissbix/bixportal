@@ -12,8 +12,8 @@ const nextConfig: NextConfig = {
       //Eventualmente, aggiungi altri pattern per un dominio di produzione:
       {
          protocol: 'https',
-         hostname: 'localhost:3002',
-         port: '',
+         hostname: 'localhost',
+         port: '3002',
          pathname: '/**',
        },
     ],
