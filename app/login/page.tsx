@@ -26,7 +26,7 @@ export default function Login() {
     // Effettua la chiamata per il login
     const result = await loginUser(username, password);
     if (result.success) {
-        if (username === 'alessandro.galli' || username === 'marco.garganigo') {
+        if (username === 'develop' || username === 'marco.garganigo') {
           router.push('/testcomponent/scheduleCalendar'); 
         }
         else {
