@@ -20,7 +20,7 @@ export default function Login() {
     const result = await loginUserApi(username, password);
     if (result.success) {
       // Routing in base allo user
-      if (username === 'alessandro.galli' || username === 'marco.garganigo') {
+      if (username === 'utente.test' || username === 'marco.garganigo') {
         router.push('/testcomponent/scheduleCalendar');
       } else {
         router.push('/home');
