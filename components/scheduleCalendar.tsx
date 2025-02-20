@@ -62,7 +62,7 @@ const AppLayout = () => {
                           priority
                         />
             <User className="w-5 h-5 text-gray-500" />
-            <span className="font-medium text-gray-700">              {user ? user : "Caricamento..."}            </span>
+            <span className="font-medium text-gray-700">              {user }            </span>
           </div>
 
           {/* Custom Tabs */}
