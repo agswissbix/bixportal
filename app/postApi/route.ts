@@ -52,6 +52,22 @@ export async function POST(request: Request) {
         // Nuovo caso per il login
         djangoUrl = '/auth/login/';
         break;
+      case 'get_shifts_and_volunteers':
+        // Nuovo caso per il login
+        djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers/';
+        break;
+      case 'get_volunteers_list':
+          // Nuovo caso per il login
+          djangoUrl = '/customapp_telefonoamico/get_volunteers_list/';
+          break;
+      case 'save_shift':
+          // Nuovo caso per il login
+          djangoUrl = '/customapp_telefonoamico/save_shift/';
+          break;
+      case 'delete_shift':
+        // Nuovo caso per il login
+        djangoUrl = '/customapp_telefonoamico/delete_shift/';
+        break;
       case 'getCsrf':
         // In questo caso, facciamo una GET al backend Django su /auth/csrf/
         // (gli altri casi faranno POST)

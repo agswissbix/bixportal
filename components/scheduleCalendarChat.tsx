@@ -75,8 +75,7 @@ const ScheduleCalendarChat = () => {
         dayName,
         dayType,
         slots: Array(6).fill(null).map((_, index) => {
-          //if (Math.random() > 0.5) {
-            if (false) {
+          if (Math.random() > 0.5) {
             return {
               id: `${day}-${index}`,
               name: volunteers[Math.floor(Math.random() * volunteers.length)],

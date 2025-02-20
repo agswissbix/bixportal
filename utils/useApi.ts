@@ -6,6 +6,7 @@ import axios from 'axios';
 export const useApi = <T>(
   payload: Record<string, any>
 ) => {
+  console.info('useApi'); 
   const [response, setResponse] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

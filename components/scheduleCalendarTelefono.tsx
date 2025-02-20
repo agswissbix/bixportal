@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo  } from 'react';
 import { ChevronLeft, ChevronRight, Phone } from 'lucide-react';
+import { useApi } from '@/utils/useApi';
+import axios from 'axios';
 
 const ScheduleCalendarTelefono = () => {
   const [currentYear, setCurrentYear] = useState(2024);
@@ -18,22 +20,20 @@ const ScheduleCalendarTelefono = () => {
 
   const [activeSlot, setActiveSlot] = useState<ActiveSlot | null>(null);
   const [formData, setFormData] = useState({ name: '', shift: '', dev: '' });
+  const [shiftError, setShiftError] = useState<string | null>(null);
+
 
   const months = [
     'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
     'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
   ];
 
-  const timeSlots = [
-    '07.30-11.30', '11.30-15.30', '15.30-19.30',
-    '19.30-23.30', '23.30-03.30', '03.30-7.30'
-  ];
 
-  const volunteers = [
+  const volunteersDEV = [
     'Alessandro Galli', 'Mariangela Rosa'
   ].sort();
 
-  const shifts = [
+  const shiftsDEV = [
     { value: 'B', label: 'Bellinzona' },
     { value: 'C', label: 'Casa' },
     { value: 'L', label: 'Lugano' },
@@ -41,12 +41,53 @@ const ScheduleCalendarTelefono = () => {
     { value: 'S', label: 'Stabio' }
   ];
 
-  interface Slot {
-    id: string;
-    name: string;
-    shift: string;
-    dev: string;
+// Stato per memorizzare shifts, volunteers, slots e timeSlots
+const [shifts, setShifts] = useState<{ value: string; label: string }[]>([]);
+const [volunteers, setVolunteers] = useState<string[]>([]);
+const [slots, setSlots] = useState<{ date: string; timeSlot: string; name: string; shift: string; dev: string; access: "edit" | "view" | "delete" }[]>([]);
+const [timeSlots, setTimeSlots] = useState<string[]>([]);
+
+    // Variabile di controllo ambiente sviluppo
+  const isDev = false
+
+  // Payload per le chiamate API
+  const payload = useMemo(() => (!isDev ? { apiRoute: 'get_shifts_and_volunteers' } : null), []);
+
+// Chiamata API unica per ottenere shifts, volunteers, slots e timeSlots
+const { response, loading } = !isDev && payload 
+  ? useApi<{ 
+      shifts: { value: string; label: string }[]; 
+      volunteers: string[]; 
+      slots: { date: string; timeSlot: string; name: string; shift: string; dev: string;access: string }[];
+      timeSlots: string[];
+    }>(payload) 
+  : { response: null, loading: false };
+
+
+// Aggiornamento dello stato quando la risposta arriva
+useEffect(() => {
+  if (!isDev && response) {
+    if (response.shifts) setShifts(response.shifts);
+    if (response.volunteers) setVolunteers(response.volunteers.sort());
+    if (response.slots) {
+      setSlots(response.slots.map(slot => ({
+        ...slot,
+        access: ["edit", "view", "delete"].includes(slot.access) ? slot.access as "edit" | "view" | "delete" : "view"
+      })));
+    }
+    if (response.timeSlots) setTimeSlots(response.timeSlots);
   }
+}, [response]);
+
+
+interface Slot {
+  id: string;
+  name: string;
+  shift: string;
+  dev: string;
+  access: "edit" | "view" | "delete";
+}
+
   
   interface Day {
     day: number;
@@ -61,53 +102,93 @@ const ScheduleCalendarTelefono = () => {
     loadMonthData(currentYear, currentMonth);
   }, [currentYear, currentMonth]);
 
+
+  useEffect(() => {
+    if (shifts.length > 0 && volunteers.length > 0) {
+      loadMonthData(currentYear, currentMonth);
+    }
+  }, [currentYear, currentMonth, shifts, volunteers]);
+
   const loadMonthData = (year: number, month: number) => {
+    if (shifts.length === 0 || volunteers.length === 0) {
+      return; // Evita di generare dati fino a quando non sono disponibili
+    }
+
+
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const newScheduleData = [];
 
+    // Verifica che shifts e volunteers abbiano dati validi
+    const safeVolunteers = volunteers && volunteers.length > 0 ? volunteers : ["Default Volunteer"];
+    const safeShifts = shifts && shifts.length > 0 ? shifts : [{ value: "D", label: "Default Shift" }];
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
       const dayName = date.toLocaleDateString('it-IT', { weekday: 'short' });
       const dayType = [0, 6].includes(date.getDay()) ? 'weekend' : 'weekday';
+
+      // Creazione di uno schema vuoto per gli slot della giornata
+      const daySlots: (Slot | null)[] = Array(timeSlots.length).fill(null);
+      
+      // Inserimento degli slot nella giusta posizione in base alla data e alla fascia oraria
+      slots.forEach(slot => {
+        if (slot.date === dateStr) {
+          const timeIndex = timeSlots.indexOf(slot.timeSlot);
+          if (timeIndex !== -1) {
+            daySlots[timeIndex] = {
+              id: `${day}-${timeIndex}`,
+              name: slot.name,
+              shift: slot.shift,
+              dev: slot.dev,
+              access: slot.access
+            };
+          }
+        }
+      });
+
+      // Generazione degli slot casuali con controllo di sicurezza
+      const randomSlots: (Slot | null)[] = Array(6).fill(null).map((_, index) => {
+        if (Math.random() > 0.5) {
+          return {
+            id: `${day}-${index}`,
+            name: safeVolunteers[Math.floor(Math.random() * safeVolunteers.length)],
+            shift: safeShifts[Math.floor(Math.random() * safeShifts.length)].value,
+            dev: Math.random() > 0.5 ? 'X' : '',
+            access: "view"
+          };
+        }
+        return null;
+      });
 
       newScheduleData.push({
         day,
         dayName,
         dayType,
-        slots: Array(6).fill(null).map((_, index) => {
-          //if (Math.random() > 0.5) {
-            if (false) {
-            return {
-              id: `${day}-${index}`,
-              name: volunteers[Math.floor(Math.random() * volunteers.length)],
-              shift: shifts[Math.floor(Math.random() * shifts.length)].value,
-              dev: Math.random() > 0.5 ? 'X' : ''
-            };
-          }
-          return null;
-        })
+        slots: daySlots
       });
     }
+    
 
     setScheduleData(newScheduleData);
   };
 
   const openModal = (slot: Slot | null, dayIndex: number, slotIndex: number) => {
     setActiveSlot({ dayIndex, slotIndex, slot, timeSlot: timeSlots[slotIndex] });
-    setFormData(slot ? { 
-      name: slot.name, 
-      shift: slot.shift,
-      dev: slot.dev || ''
-    } : { 
-      name: '', 
-      shift: '',
-      dev: ''
+  
+    setFormData({
+      name: slot ? slot.name : volunteers.length > 0 ? volunteers[0] : '',
+      shift: slot ? slot.shift : '',
+      dev: slot ? slot.dev || '' : ''
     });
+  
     setIsModalOpen(true);
   };
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
+    console.log(`Cambiamento input - Nome: ${name}, Valore: ${value}`); // Debug
     setFormData({ ...formData, [name]: value });
   };
 
@@ -118,19 +199,112 @@ const ScheduleCalendarTelefono = () => {
     }));
   };
 
-  const handleFormSubmit = () => {
-    const newSchedule = [...scheduleData];
+  const handleFormSubmit = async () => {
     if (!activeSlot) return;
+  
+    // Controlla se la sede è stata selezionata
+    if (!formData.shift) {
+      setShiftError("Seleziona una sede prima di salvare.");
+      return;
+    } else {
+      setShiftError(null); // Rimuove l'errore se la selezione è valida
+    }
+  
     const { dayIndex, slotIndex } = activeSlot;
-
-    newSchedule[dayIndex].slots[slotIndex] = {
-      id: `${dayIndex}-${slotIndex}`,
-      ...formData
+    const newSlot = {
+      date: `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${(dayIndex + 1).toString().padStart(2, '0')}`,
+      timeSlot: timeSlots[slotIndex],
+      name: formData.name,
+      shift: formData.shift,
+      dev: formData.dev || '',
+      access: "edit" as "edit" | "view" | "delete" // Assicura che abbia un valore valido per TypeScript
     };
-
-    setScheduleData(newSchedule);
+  
+    const payload = {
+      apiRoute: "save_shift",
+      ...newSlot,
+    };
+  
+    try {
+      const res = await axios.post('/postApi/', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
+  
+      console.log("Turno salvato con successo:", res.data);
+  
+      // Aggiornare lo stato locale con il nuovo turno
+      setSlots(prevSlots => [...prevSlots, newSlot]);
+  
+      setScheduleData(prevData =>
+        prevData.map((day, index) => {
+          if (index !== dayIndex) return day;
+          const updatedSlots = [...day.slots];
+          updatedSlots[slotIndex] = {
+            id: `${dayIndex}-${slotIndex}`,
+            name: formData.name,
+            shift: formData.shift,
+            dev: formData.dev || '',
+            access: "edit"
+          };
+          return { ...day, slots: updatedSlots };
+        })
+      );
+  
+    } catch (error) {
+      console.error('Errore nel salvataggio del turno:', error);
+    }
+  
     setIsModalOpen(false);
   };
+  
+  
+
+  const handleDeleteShift = async () => {
+    if (!activeSlot) return;
+    const { dayIndex, slotIndex } = activeSlot;
+  
+    const payload = {
+      apiRoute: "delete_shift",
+      date: `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${(dayIndex + 1).toString().padStart(2, '0')}`,
+      timeSlot: timeSlots[slotIndex]
+    };
+  
+    try {
+      const res = await axios.post('/postApi/', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
+  
+      console.log("Turno eliminato con successo:", res.data);
+  
+      // 1. Rimuovere il turno dallo stato `slots`
+      setSlots(prevSlots => prevSlots.filter(slot =>
+        !(slot.date === payload.date && slot.timeSlot === payload.timeSlot)
+      ));
+  
+      // 2. Aggiornare il calendario rimuovendo lo slot eliminato
+      setScheduleData(prevData =>
+        prevData.map((day, index) => {
+          if (index !== dayIndex) return day;
+          const updatedSlots = [...day.slots];
+          updatedSlots[slotIndex] = null; // Rimuove il turno dallo slot
+          return { ...day, slots: updatedSlots };
+        })
+      );
+  
+    } catch (error) {
+      console.error("Errore nell'eliminazione del turno:", error);
+    }
+  
+    setIsModalOpen(false);
+  };
+  
+  
 
   const isFullyBooked = (slots: (Slot | null)[]) => {
     return slots.every(slot => slot !== null);
@@ -208,7 +382,7 @@ const ScheduleCalendarTelefono = () => {
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium">Filtra per Volontario:</label>
+                <label className="text-sm font-medium">Filtra per Volontario 2:</label>
                 <select
                   className="border rounded px-2 py-1 bg-white min-w-[200px]"
                   value={selectedVolunteer}
@@ -282,60 +456,84 @@ const ScheduleCalendarTelefono = () => {
           </div>
 
           {isModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
-                <h2 className="text-lg font-bold mb-4">TURNO</h2>
-                <div className="mb-4 text-sm text-gray-600">
-                  Fascia oraria: {activeSlot ? activeSlot.timeSlot : ''}
-                </div>
-                <div className="mb-4">
-                  <label className="block mb-2">Nome Volontario</label>
-                  <select
-  name="name"
-  className="border rounded px-3 py-2 w-full"
-  value={formData.name || (volunteers.includes("Alessandro Galli") ? "Alessandro Galli" : "")}
-  onChange={handleInputChange}
->
-  <option value="">Seleziona volontario</option>
-  {volunteers.map(volunteer => (
-    <option key={volunteer} value={volunteer}>
-      {volunteer}
-    </option>
-  ))}
-</select>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
+      <h2 className="text-lg font-bold mb-4">TURNO</h2>
+      <div className="mb-4 text-sm text-gray-600">
+        Fascia oraria: {activeSlot ? activeSlot.timeSlot : ''}
+      </div>
 
-                </div>
-                <div className="mb-4">
-                  <label className="block mb-2">Sede</label>
-                  <select
-                    name="shift"
-                    className="border rounded px-3 py-2 w-full"
-                    value={formData.shift}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Seleziona sede</option>
-                    {shifts.map(shift => (
-                      <option key={shift.value} value={shift.value}>{shift.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <button
-                    className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    onClick={handleFormSubmit}
-                  >
-                    Salva
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Nome Volontario */}
+      <div className="mb-4">
+        <label className="block mb-2">Nome Volontario</label>
+        <select
+          name="name"
+          className="border rounded px-3 py-2 w-full"
+          value={formData.name || (volunteers.includes("Alessandro Galli") ? "Alessandro Galli" : "")}
+          onChange={handleInputChange}
+          disabled={activeSlot?.slot?.access === "view"}
+        >
+          <option value="">Seleziona volontario</option>
+          {volunteers.map(volunteer => (
+            <option key={volunteer} value={volunteer}>
+              {volunteer}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Sede */}
+      <div className="mb-4">
+        <label className="block mb-2">Sede</label>
+        <select
+          name="shift"
+          className={`border rounded px-3 py-2 w-full ${shiftError ? 'border-red-500' : ''}`}
+          value={formData.shift}
+          onChange={handleInputChange}
+          disabled={activeSlot?.slot?.access === "view"}
+        >
+          <option value="">Seleziona sede</option>
+          {shifts.map(shift => (
+            <option key={shift.value} value={shift.value}>{shift.label}</option>
+          ))}
+        </select>
+        {shiftError && <p className="text-red-500 text-sm mt-1">{shiftError}</p>}
+      </div>
+
+      {/* Pulsanti */}
+      <div className="flex justify-end gap-2">
+        <button
+          className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+          onClick={() => setIsModalOpen(false)}
+        >
+          Annulla
+        </button>
+
+        {/* Pulsante "Elimina" visibile solo se access === "delete" o "edit" */}
+        {activeSlot?.slot && (activeSlot.slot.access === "delete" || activeSlot.slot.access === "edit") && (
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            onClick={handleDeleteShift}
+          >
+            Elimina
+          </button>
+        )}
+
+        {/* Pulsante "Salva" visibile solo se access === "edit" */}
+        {activeSlot?.slot?.access === "edit" && (
+          <button
+            className={`px-4 py-2 rounded ${formData.shift ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+            onClick={handleFormSubmit}
+            disabled={!formData.shift}
+          >
+            Salva
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
     </div>
