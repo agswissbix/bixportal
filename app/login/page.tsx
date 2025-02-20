@@ -44,9 +44,6 @@ export default function Login() {
               className="h-14 w-auto mx-auto bg-white"
               priority
             />
-            <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
-              Gestionale Telefono Amico
-            </h2>
           </div>
 
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
