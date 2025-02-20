@@ -1,11 +1,109 @@
-import React, { useState, useEffect, useMemo  } from 'react';
+import React, { useState,useContext, useEffect, useMemo  } from 'react';
 import { ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { useApi } from '@/utils/useApi';
 import axios from 'axios';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { AppContext } from '@/context/appContext'; // Importa il contesto
+
 
 const ScheduleCalendarTelefono = () => {
-  const [currentYear, setCurrentYear] = useState(2024);
-  const [currentMonth, setCurrentMonth] = useState(11);
+  const { user } = useContext(AppContext);
+  const exportToPDF = async () => {
+    const calendarElement = document.getElementById("calendar-table");
+    if (!calendarElement) return;
+  
+    try {
+      // Save original styling
+      const originalStyle = {
+        maxHeight: calendarElement.style.maxHeight,
+        height: calendarElement.style.height,
+        overflow: calendarElement.style.overflow
+      };
+  
+      // Temporarily modify the element to capture full content
+      calendarElement.style.height = 'auto';
+      calendarElement.style.maxHeight = 'none';
+      calendarElement.style.overflow = 'visible';
+  
+      // Get scroll dimensions before modifying
+      const originalScrollHeight = calendarElement.scrollHeight;
+      const originalScrollWidth = calendarElement.scrollWidth;
+  
+      // Capture the full calendar
+      const canvas = await html2canvas(calendarElement, {
+        scale: 2, // Higher quality
+        height: originalScrollHeight,
+        width: originalScrollWidth,
+        windowHeight: originalScrollHeight,
+        windowWidth: originalScrollWidth,
+        useCORS: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('calendar-table');
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.overflow = 'visible';
+          }
+        }
+      });
+  
+      // Restore original styling
+      calendarElement.style.maxHeight = originalStyle.maxHeight;
+      calendarElement.style.height = originalStyle.height;
+      calendarElement.style.overflow = originalStyle.overflow;
+  
+      const imgData = canvas.toDataURL('image/png');
+  
+      // Create PDF in landscape orientation
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+  
+      // Calculate dimensions to fit the page with margins
+      const margin = 10;
+      const availableWidth = pageWidth - (2 * margin);
+      const availableHeight = pageHeight - (2 * margin);
+  
+      // Calculate scaling to fit width while maintaining aspect ratio
+      const aspectRatio = canvas.height / canvas.width;
+      const imgWidth = availableWidth;
+      const imgHeight = imgWidth * aspectRatio;
+  
+      // If image height exceeds page height, we need multiple pages
+      if (imgHeight <= availableHeight) {
+        // Single page
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      } else {
+        // Multiple pages
+        let heightLeft = imgHeight;
+        let position = 0;
+        let page = 1;
+  
+        while (heightLeft > 0) {
+          pdf.addImage(imgData, 'PNG', margin, page === 1 ? margin : -position + margin, imgWidth, imgHeight);
+          heightLeft -= availableHeight;
+          position += availableHeight;
+  
+          if (heightLeft > 0) {
+            pdf.addPage();
+            page++;
+          }
+        }
+      }
+  
+      // Save the PDF
+      pdf.save(`Calendario_${currentYear}_${months[currentMonth]}.pdf`);
+  
+    } catch (error) {
+      console.error('Errore nella generazione del PDF:', error);
+    }
+  };
+  
+
+  const [currentYear, setCurrentYear] = useState(2025);
+  const [currentMonth, setCurrentMonth] = useState(1);
   const [selectedVolunteer, setSelectedVolunteer] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
   const [draggedItem, setDraggedItem] = useState(null);
@@ -407,10 +505,18 @@ interface Slot {
                   ))}
                 </select>
               </div>
+              <div className="flex items-center gap-4">
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                onClick={exportToPDF}
+              >
+                Esporta PDF
+              </button>
+            </div>
             </div>
           </div>
 
-          <div className="border rounded overflow-auto h-[70vh]">
+          <div id="calendar-table" className="border rounded overflow-auto h-[70vh]">
             <table className="w-full min-w-[1000px]">
               <thead>
                 <tr className="bg-blue-600 text-white">

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { LogOut, User, Calendar, Phone, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ScheduleCalendarTelefono from './scheduleCalendarTelefono';
 import ScheduleCalendarChat from './scheduleCalendarChat';
+import { useRouter } from "next/navigation";
+import { AppContext } from '@/context/appContext'; // Importa il contesto
+import Image from 'next/image';
 
 const CalendarioTelefono = () => (
   <Card className="p-6">
@@ -30,12 +33,13 @@ const CalendarioChat = () => (
 );
 
 const AppLayout = () => {
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('phone');
+  const router = useRouter();
+  const { user, handleLogout } = useContext(AppContext);
   const username = "Alessandro Galli";
+ 
 
-  const handleLogout = () => {
-    console.log('Logging out...');
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,8 +48,16 @@ const AppLayout = () => {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* User Info */}
           <div className="flex items-center space-x-3">
+            <Image
+                          src="/bixdata/logos/logo_tabellone2.png"
+                          alt="BixData"
+                          width={1000}
+                          height={1000}
+                          className="h-14 w-auto mx-auto bg-white"
+                          priority
+                        />
             <User className="w-5 h-5 text-gray-500" />
-            <span className="font-medium text-gray-700">{username}</span>
+            <span className="font-medium text-gray-700">              {user ? user : "Caricamento..."}            </span>
           </div>
 
           {/* Custom Tabs */}

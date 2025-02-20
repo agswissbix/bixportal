@@ -20,7 +20,7 @@ export default function Login() {
     const result = await loginUserApi(username, password);
     if (result.success) {
       // Routing in base allo user
-      if (username === 'ta.test' || username === 'marco.garganigo') {
+      if (username === 'ta.test' || username === 'mariangela.rosa') {
         router.push('/testcomponent/scheduleCalendar');
       } else {
         router.push('/home');
@@ -37,7 +37,7 @@ export default function Login() {
         <div className="block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <Image
-              src="/bixdata/logos/telamico.png"
+              src="/bixdata/logos/logo_tabellone2.png"
               alt="BixData"
               width={1000}
               height={1000}
