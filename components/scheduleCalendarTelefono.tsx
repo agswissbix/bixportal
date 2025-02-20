@@ -4,11 +4,10 @@ import { useApi } from '@/utils/useApi';
 import axios from 'axios';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { AppContext } from '@/context/appContext'; // Importa il contesto
 
 
 const ScheduleCalendarTelefono = () => {
-  const { user } = useContext(AppContext);
+  //const { user } = useContext(AppContext);
   const exportToPDF = async () => {
     const calendarElement = document.getElementById("calendar-table");
     if (!calendarElement) return;

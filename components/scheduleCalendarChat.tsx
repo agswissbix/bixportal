@@ -1,9 +1,8 @@
 import React, { useState,useContext, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
-import { AppContext } from '@/context/appContext'; // Importa il contesto
 
 const ScheduleCalendarChat = () => {
-  const { user } = useContext(AppContext);
+  //const { user } = useContext(AppContext);
   const [currentYear, setCurrentYear] = useState(2024);
   const [currentMonth, setCurrentMonth] = useState(11);
   const [selectedVolunteer, setSelectedVolunteer] = useState('');

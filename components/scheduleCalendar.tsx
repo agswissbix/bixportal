@@ -5,8 +5,8 @@ import { Card } from '@/components/ui/card';
 import ScheduleCalendarTelefono from './scheduleCalendarTelefono';
 import ScheduleCalendarChat from './scheduleCalendarChat';
 import { useRouter } from "next/navigation";
-import { AppContext } from '@/context/appContext'; // Importa il contesto
 import Image from 'next/image';
+
 
 const CalendarioTelefono = () => (
   <Card className="p-6">
@@ -35,11 +35,16 @@ const CalendarioChat = () => (
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState('phone');
   const router = useRouter();
-  const { user, handleLogout } = useContext(AppContext);
+  const user='';
+  //const { user, handleLogout } = useContext(AppContext);
   const username = "Alessandro Galli";
  
 
 
+  const handleLogout = () => {
+    console.log('Logging out...');
+    router.push("/login"); // Reindirizza alla pagina di login
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
