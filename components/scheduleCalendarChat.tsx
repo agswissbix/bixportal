@@ -1,4 +1,4 @@
-import React, { useState,useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 
 const ScheduleCalendarChat = () => {
