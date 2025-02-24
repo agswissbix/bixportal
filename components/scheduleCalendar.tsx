@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { LogOut, User, Calendar, Phone, MessageCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { LogOut, User, Calendar, Phone, MessageCircle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ScheduleCalendarTelefono from './scheduleCalendarTelefono';
 import ScheduleCalendarChat from './scheduleCalendarChat';
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
-
 
 const CalendarioTelefono = () => (
   <Card className="p-6">
@@ -34,38 +33,48 @@ const CalendarioChat = () => (
 
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState('phone');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const user='';
-  //const { user, handleLogout } = useContext(AppContext);
   const username = "Alessandro Galli";
- 
-
 
   const handleLogout = () => {
     console.log('Logging out...');
-    router.push("/login"); // Reindirizza alla pagina di login
+    router.push("/login");
   };
+
+  const handleChangePassword = () => {
+    router.push("/change-password");
+  }
+
+  // Chiudi il dropdown quando si clicca fuori
+  useEffect(() => {
+    const handleClickOutside = (event: { target: any; }) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="w-full bg-slate-200 border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          {/* User Info */}
           <div className="flex items-center space-x-3">
             <Image
-                          src="/bixdata/logos/logo_tabellone3.png"
-                          alt="BixData"
-                          width={1000}
-                          height={1000}
-                          className="h-14 w-auto mx-auto"
-                          priority
-                        />
-            <User className="w-5 h-5 text-gray-500" />
-            <span className="font-medium text-gray-700">              {user }            </span>
+              src="/bixdata/logos/logo_tabellone3.png"
+              alt="BixData"
+              width={1000}
+              height={1000}
+              className="h-14 w-auto mx-auto"
+              priority
+            />
           </div>
 
-          {/* Custom Tabs */}
           <div className="flex rounded-lg border border-gray-200 p-1 bg-gray-50">
             <button
               onClick={() => setActiveTab('phone')}
@@ -91,19 +100,50 @@ const AppLayout = () => {
             </button>
           </div>
 
-          {/* Logout Button */}
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Logout
-          </Button>
+          <div className="flex items-center space-x-2">            
+            <div className="relative" ref={dropdownRef}>
+              <Button 
+                variant="ghost" 
+                className="text-gray-600 hover:text-gray-900"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <User className="w-5 h-5 mr-2 text-gray-500" />
+                {username}
+              </Button>
+              
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                  <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                    Il mio account
+                  </div>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={() => {/* Handle profile click */}}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profilo
+                  </button>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </button>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={handleChangePassword}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Cambia Password
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="w-full p-6">
         {activeTab === 'phone' ? <ScheduleCalendarTelefono /> : <ScheduleCalendarChat />}
       </main>
