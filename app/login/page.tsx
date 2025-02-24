@@ -22,16 +22,23 @@ export default function Login() {
     const result = await loginUserApi(username, password);
     if (result.success) {
       // Routing in base allo user
-      if (username === 'ta.test' || username === 'mariangela.rosa') {
-        router.push('/verify-2fa');
-        //router.push('/testcomponent/scheduleCalendar');
+      if (password === 'BixTA25!') {
+        router.push('/change-password');
+        setTimeout(() => {
+          toast.warning('Password scaduta, si prega di cambiarla');
+        }, 400);
       } else {
-        router.push('/home');
+        if (username === 'ta.test' || username === 'mariangela.rosa') {
+          router.push('/verify-2fa');
+          //router.push('/testcomponent/scheduleCalendar');
+          } else {
+          router.push('/home');
+          }
       }
     } else {
       setIsLoading(false);
       toast.error(result.detail || 'Errore durante il login');
-    }
+  }
   };
 
   return (
