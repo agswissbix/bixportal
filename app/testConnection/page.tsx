@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import axios from "axios";
+import axiosInstanceClient from "@/utils/axiosInstanceClient";
+
 // Interfaccia per la risposta dell'API
 interface ApiResponse {
   message: string;
@@ -25,7 +27,7 @@ export default function TestConnection() {
 
     try {
       // Invio di una richiesta POST verso la route interna di Next.js
-      const response = await axios.post("/postApi", {
+      const response = await axiosInstanceClient.post("/postApi", {
         apiRoute: "test_connection",
         // ... qui si possono aggiungere eventuali altri dati ...
       });
@@ -44,10 +46,10 @@ export default function TestConnection() {
     }
   };
 
-  async function fetchCsrf() {
+  async function test_connection_get_csrf() {
     try {
-      const resp = await axios.post('/postApi', {
-        apiRoute: 'getCsrf',
+      const resp = await axiosInstanceClient.post('/postApi', {
+        apiRoute: 'test_connection_get_csrf',
       });
       console.log('CSRF Response:', resp.data);
     } catch (error) {
@@ -61,8 +63,8 @@ export default function TestConnection() {
 
     try {
       // Invio di una richiesta POST verso la route interna di Next.js
-      const response = await axios.post("/postApi", {
-        apiRoute: "checkCsrf",
+      const response = await axiosInstanceClient.post("/postApi", {
+        apiRoute: "test_connection_post",
         // ... qui si possono aggiungere eventuali altri dati ...
       });
 
@@ -90,7 +92,7 @@ export default function TestConnection() {
       </button>
       <br/>
       <p>Server da contattare: {apiBaseUrl}</p>
-      <button onClick={fetchCsrf}>Ottieni CSRF</button>
+      <button onClick={test_connection_get_csrf}>Ottieni CSRF</button>
       <p>{msg}</p>
       <section>
         <h2>Risposta POST</h2>

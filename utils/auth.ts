@@ -75,7 +75,7 @@ export async function loginUser(
   }
 }
 
-async function fetchCsrfApi() {
+async function getCsrf() {
   try {
     const resp = await axios.post('/postApi', {
       apiRoute: 'getCsrf',
@@ -93,7 +93,7 @@ export async function loginUserApi(
   password: string
 ): Promise<LoginResponse> {
   try {
-    await fetchCsrfApi();
+    await getCsrf();
 
     const response = await axios.post('/postApi', {
       apiRoute: 'login',

@@ -22,11 +22,17 @@ export default function Login() {
     const result = await loginUserApi(username, password);
     if (result.success) {
       // Routing in base allo user
-      if (username === 'ta.test' || username === 'mariangela.rosa') {
+      if (username === 'mariangela.rosa' || username === 'jacqueline' || username === 'marsal') {
         router.push('/verify-2fa');
         //router.push('/testcomponent/scheduleCalendar');
       } else {
-        router.push('/home');
+        if (username === 'ta.test'){
+          router.push('/testcomponent/scheduleCalendar');
+        }
+        else{
+          router.push('/home');
+        }
+        
       }
     } else {
       setIsLoading(false);

@@ -45,9 +45,15 @@ export async function POST(request: Request) {
       case 'test_connection':
         djangoUrl = '/commonapp/test_connection/';
         break;
-      case 'checkCsrf':
-        djangoUrl = '/csrf-test/';
+      case 'test_connection_get_csrf':
+          djangoUrl = '/commonapp/test_connection_get_csrf';
+          break;
+      case 'test_connection_post':
+        djangoUrl = '/commonapp/test_connection_post/';
         break;
+        case 'getCsrf':
+          djangoUrl = '/commonapp/get_csrf';
+          break;
       case 'login':
         // Nuovo caso per il login
         djangoUrl = '/auth/login/';
@@ -67,11 +73,6 @@ export async function POST(request: Request) {
       case 'delete_shift':
         // Nuovo caso per il login
         djangoUrl = '/customapp_telefonoamico/delete_shift/';
-        break;
-      case 'getCsrf':
-        // In questo caso, facciamo una GET al backend Django su /auth/csrf/
-        // (gli altri casi faranno POST)
-        djangoUrl = '/auth/csrf/';
         break;
       case 'enable_2fa':
           // In questo caso, facciamo una GET al backend Django su /auth/csrf/
