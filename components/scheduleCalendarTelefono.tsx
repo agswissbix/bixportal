@@ -649,7 +649,6 @@ const ScheduleCalendarTelefono = () => {
                         </button>
                       )}
 
-                    {activeSlot?.slot?.access === "edit" && (
                       <button
                         className={`px-4 py-2 rounded ${
                           formData.shift
@@ -661,7 +660,6 @@ const ScheduleCalendarTelefono = () => {
                       >
                         Salva
                       </button>
-                    )}
                   </div>
                 </div>
               </div>

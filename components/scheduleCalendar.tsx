@@ -54,11 +54,11 @@ const AppLayout = () => {
           {/* User Info */}
           <div className="flex items-center space-x-3">
             <Image
-                          src="/bixdata/logos/logo_tabellone2.png"
+                          src="/bixdata/logos/logo_tabellone3.png"
                           alt="BixData"
                           width={1000}
                           height={1000}
-                          className="h-14 w-auto mx-auto bg-white"
+                          className="h-14 w-auto mx-auto"
                           priority
                         />
             <User className="w-5 h-5 text-gray-500" />
