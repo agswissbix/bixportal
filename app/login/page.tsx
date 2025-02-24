@@ -32,7 +32,8 @@ export default function Login() {
           router.push('/verify-2fa');
           //router.push('/testcomponent/scheduleCalendar');
           } else {
-          router.push('/home');
+            router.push('/testcomponent/scheduleCalendar');
+          
           }
       }
     } else {
