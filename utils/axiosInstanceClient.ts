@@ -8,13 +8,14 @@ const axiosInstanceClient = axios.create({
   withCredentials: true,
 });
 
-// Interceptor per loggare l'URL della richiesta
+// Interceptor per loggare l'URL della richiesta e apiRoute se presente
 axiosInstanceClient.interceptors.request.use((config) => {
-    console.log(`[AxiosInstanceClient Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-    return config;
+  const apiRoute = config.data?.apiRoute ? ` | apiRoute: ${config.data.apiRoute}` : "";
+  console.log(`[AxiosInstanceClient Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}${apiRoute}`);
+  return config;
 }, (error) => {
-    console.error("[AxiosInstanceClient Request Error]", error);
-    return Promise.reject(error);
+  console.error("[AxiosInstanceClient Request Error]", error);
+  return Promise.reject(error);
 });
 
 // Interceptor di risposta per gestire eventuali errori di autenticazione (401)

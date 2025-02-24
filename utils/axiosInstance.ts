@@ -12,12 +12,13 @@ const axiosInstance = axios.create({
 
   
 
-// Interceptor per loggare l'URL della richiesta
+// Interceptor per loggare l'URL della richiesta e apiRoute se presente
 axiosInstance.interceptors.request.use((config) => {
-    console.log(`[AxiosInstanceServer Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    const apiRoute = config.data?.apiRoute ? ` | apiRoute: ${config.data.apiRoute}` : "";
+    console.log(`[AxiosInstanceClient Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}${apiRoute}`);
     return config;
 }, (error) => {
-    console.error("[AxiosInstanceServer Request Error]", error);
+    console.error("[AxiosInstanceClient Request Error]", error);
     return Promise.reject(error);
 });
 
