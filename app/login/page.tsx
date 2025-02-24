@@ -2,20 +2,22 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import Image from 'next/image';
 import '../globals.css';
 import { loginUserApi } from '@/utils/auth';
+import LoadingComp from '@/components/loading';
 
 export default function Login() {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setIsLoading(true);
     // Eseguiamo la chiamata al nostro proxy su /postApi
     const result = await loginUserApi(username, password);
     if (result.success) {
@@ -27,13 +29,14 @@ export default function Login() {
         router.push('/home');
       }
     } else {
-      setError(result.detail || 'Errore durante il login');
+      setIsLoading(false);
+      toast.error(result.detail || 'Errore durante il login');
     }
   };
 
   return (
     <>
-      <Toaster richColors />
+      <Toaster richColors position='top-center' />
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white">
         <div className="block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -112,7 +115,12 @@ export default function Login() {
                 </button>
               </div>
             </form>
+            <div>
+            </div>
           </div>
+        </div>
+        <div className="mt-6">
+        {isLoading && <LoadingComp />}
         </div>
       </div>
     </>
