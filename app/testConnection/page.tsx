@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import {toast, Toaster} from 'sonner';
+import axiosInstanceClient from "@/utils/axiosInstanceClient";
 
 // Interfaccia per la risposta dell'API
 interface ApiResponse {
@@ -50,24 +51,18 @@ export default function TestConnection() {
   const makeApiRequest = async (apiRoute: string, method: string = 'POST') => {
     setLoading(true);
     setError(null);
-
+ 
     try {
-      const response = await fetch('/postApi', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          apiRoute: apiRoute,
-        }),
-        credentials: 'include', // Include i cookie nella richiesta
+      const response = await axiosInstanceClient.post("/postApi", {
+        apiRoute: apiRoute,
+        // ... qui si possono aggiungere eventuali altri dati ...
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(`Errore HTTP: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = response.data;
       
       // Aggiorna i cookie dopo la risposta
       const event = new Event('cookieChanged');

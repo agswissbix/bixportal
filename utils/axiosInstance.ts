@@ -12,4 +12,13 @@ const axiosInstance = axios.create({
 
   
 
+// Interceptor per loggare l'URL della richiesta
+axiosInstance.interceptors.request.use((config) => {
+    console.log(`[AxiosInstanceServer Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    return config;
+}, (error) => {
+    console.error("[AxiosInstanceServer Request Error]", error);
+    return Promise.reject(error);
+});
+
 export default axiosInstance;

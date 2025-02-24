@@ -8,12 +8,21 @@ const axiosInstanceClient = axios.create({
   withCredentials: true,
 });
 
+// Interceptor per loggare l'URL della richiesta
+axiosInstanceClient.interceptors.request.use((config) => {
+    console.log(`[AxiosInstanceClient Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    return config;
+}, (error) => {
+    console.error("[AxiosInstanceClient Request Error]", error);
+    return Promise.reject(error);
+});
+
 // Interceptor di risposta per gestire eventuali errori di autenticazione (401)
 axiosInstanceClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      console.log('Sessione non valida o scaduta. Redirect al login...');
+      console.log('AxiosInstanceClient: Sessione non valida o scaduta. Redirect al login...');
       // "window" esiste, perché saremo in un Client Component o in un contesto browser
       window.location.href = '/login';
     }
