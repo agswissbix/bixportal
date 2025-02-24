@@ -28,7 +28,7 @@ export default function Login() {
           toast.warning('Password scaduta, si prega di cambiarla');
         }, 400);
       } else {
-        if (username === 'ta.test' || username === 'mariangela.rosa') {
+        if (username === 'mariangela.rosa') {
           router.push('/verify-2fa');
           //router.push('/testcomponent/scheduleCalendar');
           } else {
