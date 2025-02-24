@@ -2,10 +2,13 @@
 import { useState } from "react";
 import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
+import { useRouter } from 'next/navigation';
 
 const Verify2FA = () => {
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter();
+
 
   const verifyOTP = async () => {
     try {
@@ -16,6 +19,7 @@ const Verify2FA = () => {
         }
       );
       setMessage(response.data.message);
+      router.push('/testcomponent/scheduleCalendar');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setMessage("Errore nella verifica del codice OTP: " + error.response?.data?.message);

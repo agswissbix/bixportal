@@ -21,7 +21,8 @@ export default function Login() {
     if (result.success) {
       // Routing in base allo user
       if (username === 'ta.test' || username === 'mariangela.rosa') {
-        router.push('/testcomponent/scheduleCalendar');
+        router.push('/verify-2fa');
+        //router.push('/testcomponent/scheduleCalendar');
       } else {
         router.push('/home');
       }
