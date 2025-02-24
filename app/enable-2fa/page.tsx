@@ -14,7 +14,10 @@ const Enable2FA = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axiosInstance.post('/commonapp/enable_2fa/');
+        const response = await axios.post("/postApi", {
+          apiRoute: "enable_2fa",
+          // ... qui si possono aggiungere eventuali altri dati ...
+        });
         setQrCodeUrl(response.data.qr_code); // usa il base64 dal backend
       } catch (error) {
         if (axios.isAxiosError(error)) {

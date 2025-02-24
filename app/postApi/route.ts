@@ -73,6 +73,11 @@ export async function POST(request: Request) {
         // (gli altri casi faranno POST)
         djangoUrl = '/auth/csrf/';
         break;
+      case 'enable_2fa':
+          // In questo caso, facciamo una GET al backend Django su /auth/csrf/
+          // (gli altri casi faranno POST)
+          djangoUrl = '/commonapp/enable_2fa/';
+          break;
       default:
         return NextResponse.json(
           { error: `apiRoute ${apiRoute} non gestito.` },
