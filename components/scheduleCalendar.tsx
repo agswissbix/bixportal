@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { LogOut, User, Calendar, Phone, MessageCircle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,6 +6,9 @@ import ScheduleCalendarTelefono from './scheduleCalendarTelefono';
 import ScheduleCalendarChat from './scheduleCalendarChat';
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
+import { AppContext } from '@/context/appContext';
+
+
 
 const CalendarioTelefono = () => (
   <Card className="p-6">
@@ -36,8 +39,9 @@ const AppLayout = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const user='';
-  const username = "Alessandro Galli";
+  // DATI DEL CONTESTO
+const { user } = useContext(AppContext);
+  const username = user;
 
   const handleLogout = () => {
     console.log('Logging out...');
