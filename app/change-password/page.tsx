@@ -8,6 +8,7 @@ import { toast, Toaster } from 'sonner';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import LoadingComp from '@/components/loading';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 
 const ChangePasswordForm = () => {
@@ -42,12 +43,11 @@ const ChangePasswordForm = () => {
 
   const changePassword = async () => {
     try {
-      const response = await axiosInstance.post('/commonapp/change_password/', 
-        { old_password: oldPassword, new_password: newPassword},
-        { 
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        }
-      );
+      const response = await axiosInstanceClient.post("/postApi", {
+        apiRoute: 'changePassword',
+        old_password: oldPassword,
+        new_password: newPassword
+      });
       toast.success(response.data.message);
       setTimeout(() => {
         router.push('/login');
