@@ -4,6 +4,8 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { checkAuth, logoutUser } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+
 
 interface AppContextType {
   user: string | null;
@@ -21,9 +23,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<string | null>(null);
   const router = useRouter();
 
-  /*
+  const pathname = usePathname();
+
   useEffect(() => {
+    if (pathname === '/login') {
+      return;  // Evita il controllo se siamo già in /login
+    }
     async function verifyAuth() {
+      console.info('Verifica autenticazione...verifyAuth');
       const result = await checkAuth();
       if (!result.isAuthenticated || !result.username) {
         router.push('/login');
@@ -32,7 +39,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     verifyAuth();
-  }, [router]);*/
+  }, [router]);
 
 
   // --- Ecco la funzione di logout

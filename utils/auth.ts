@@ -122,6 +122,7 @@ export interface CheckAuthResponse {
 // Funzione per controllare se l'utente è autenticato (endpoint: /auth/user/)
 export async function checkAuth(): Promise<CheckAuthResponse> {
   try {
+    console.info('Verifica autenticazione...checkAuth');
     const response = await axiosInstance.get('/auth/user/');
     return {
       isAuthenticated: response.data.isAuthenticated,
