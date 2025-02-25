@@ -198,9 +198,11 @@ const ScheduleCalendarTelefono = () => {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const dateStr = date.toISOString().split("T")[0];
       const dayName = date.toLocaleDateString('it-IT', { weekday: 'short' });
       const dayType = [0, 6].includes(date.getDay()) ? 'weekend' : 'weekday';
+      const dateStr = `${year.toString().padStart(4, '0')}-${(month + 1)
+        .toString()
+        .padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
       const daySlots: (Slot | null)[] = Array(timeSlots.length).fill(null);
 
