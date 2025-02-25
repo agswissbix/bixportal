@@ -4,6 +4,7 @@ import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
+import axiosInstanceClient from "@/utils/axiosInstanceClient";
 
 
 const Verify2FA = () => {
@@ -13,22 +14,26 @@ const Verify2FA = () => {
 
 
   const verifyOTP = async () => {
+
     try {
-      const response = await axiosInstance.post('/commonapp/verify_2fa/', 
-        { otp: otp }, // Aggiungi il codice OTP nel body
-        { 
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        }
-      );
-      toast.success(response.data.message);
-      router.push('/testcomponent/scheduleCalendar');
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.message);
-      } else {
-        toast.error("Errore nella verifica del codice OTP");
-      }
+      const response = await axiosInstanceClient.post("/postApi", {
+        apiRoute: "verify_2fa",
+        otp: otp,
+        
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+
+      } 
+    );
+    toast.success(response.data.message);
+    router.push('/custom');
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.message);
+    } else {
+      toast.error("Errore nella verifica del codice OTP");
     }
+
+  }
   };
 
   return (
