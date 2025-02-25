@@ -62,6 +62,10 @@ export async function POST(request: Request) {
           // Nuovo caso per il login
           djangoUrl = '/auth/user/';
           break;
+      case 'verify_2fa':
+        // Nuovo caso per il login
+        djangoUrl = '/commonapp/verify_2fa/';
+        break;
       case 'get_shifts_and_volunteers':
         // Nuovo caso per il login
         djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers/';
