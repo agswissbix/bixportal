@@ -21,7 +21,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<string | null>(null);
   const router = useRouter();
 
-  /*
+  
   useEffect(() => {
     async function verifyAuth() {
       const result = await checkAuth();
@@ -32,7 +32,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     verifyAuth();
-  }, [router]);*/
+  }, [router]);
 
 
   // --- Ecco la funzione di logout
