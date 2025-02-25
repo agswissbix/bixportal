@@ -43,11 +43,17 @@ const ChangePasswordForm = () => {
 
   const changePassword = async () => {
     try {
-      const response = await axiosInstanceClient.post("/postApi", {
-        apiRoute: 'changePassword',
-        old_password: oldPassword,
-        new_password: newPassword
-      });
+      console.info('Cambio password in corso...');
+      
+        const response = await axiosInstanceClient.post("/postApi", {
+          apiRoute: "changePassword",
+          old_password: oldPassword,
+          new_password: newPassword,
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  
+        } 
+      );
+    
       toast.success(response.data.message);
       setTimeout(() => {
         router.push('/login');

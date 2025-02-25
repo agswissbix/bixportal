@@ -10,17 +10,22 @@ import { usePathname } from 'next/navigation';
 interface AppContextType {
   user: string | null;
   setUser: React.Dispatch<React.SetStateAction<string | null>>;
+  role: string | null;  // <--- Aggiunto role
+  setRole: React.Dispatch<React.SetStateAction<string | null>>;
   handleLogout: () => void;            // <--- aggiunto qui
 }
 
 export const AppContext = createContext<AppContextType>({
   user: null,
   setUser: () => {},
+  role: null, // <--- Default null
+  setRole: () => {},
   handleLogout: () => {},
 });
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const router = useRouter();
 
   const pathname = usePathname();
@@ -39,6 +44,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         router.push('/login');
       } else {
         setUser(result.username);
+        setRole(result.role || null);
       }
     }
     verifyAuth();
@@ -50,6 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const result = await logoutUser();
     if (result.success) {
       setUser(null);        // <--- Aggiornamento stato locale
+      setRole(null);
       router.push('/login');
     } else {
       console.error('Logout fallito:', result.detail);
@@ -57,7 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ user, setUser, handleLogout }}>
+    <AppContext.Provider value={{ user, setUser, role, setRole, handleLogout }}>
       {children}
     </AppContext.Provider>
   );

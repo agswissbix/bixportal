@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         // Nuovo caso per il login
         djangoUrl = '/commonapp/verify_2fa/';
         break;
-      case 'change_password':
+      case 'changePassword':
         // Nuovo caso per il login
         djangoUrl = '/commonapp/change_password/';
         break;

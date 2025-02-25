@@ -117,6 +117,7 @@ export async function loginUserApi(
 export interface CheckAuthResponse {
   isAuthenticated: boolean;
   username?: string;
+  role?: string | null; // Add the role property
 }
 
 // Funzione per controllare se l'utente è autenticato (endpoint: /auth/user/)
@@ -129,6 +130,7 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
     return {
       isAuthenticated: response.data.isAuthenticated,
       username: response.data.username,
+      role: response.data.role,
     };
   } catch (error: any) {
     if (error.response && error.response.status === 401) {

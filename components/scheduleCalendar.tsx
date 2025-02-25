@@ -40,8 +40,7 @@ const AppLayout = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   // DATI DEL CONTESTO
-const { user } = useContext(AppContext);
-  const username = user;
+const { user, role } = useContext(AppContext);
 
   const handleLogout = () => {
     console.log('Logging out...');
@@ -112,7 +111,7 @@ const { user } = useContext(AppContext);
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <User className="w-5 h-5 mr-2 text-gray-500" />
-                {username}
+                {user} - { role }
               </Button>
               
               {isDropdownOpen && (
