@@ -7,15 +7,12 @@ import Image from 'next/image';
 import '../globals.css';
 import { loginUserApi } from '@/utils/auth';
 import LoadingComp from '@/components/loading';
-import AppLayout from '@/components/scheduleCalendar';
-import ComponentLoader from '@/utils/componentLoader';
 
 export default function Login() {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const  [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -36,7 +33,7 @@ export default function Login() {
           router.push('/verify-2fa');
           //router.push('/testcomponent/scheduleCalendar');
           } else {
-            setIsLoggedIn(true);
+            router.push('/custom');
           
           }
       }
@@ -45,10 +42,6 @@ export default function Login() {
       toast.error(result.detail || 'Errore durante il login');
   }
   };
-
-  if (isLoggedIn) {
-    return <AppLayout />;
-  }
 
   return (
     <>
