@@ -595,7 +595,7 @@ const ScheduleCalendarTelefono = () => {
                       className="border rounded px-3 py-2 w-full"
                       value={
                         formData.name ||
-                        (volunteers.includes("Alessandro Galli") ? "Alessandro Galli" : "")
+                        (volunteers.includes("test") ? "test" : "")
                       }
                       onChange={handleInputChange}
                       disabled={activeSlot?.slot?.access === "view"}
