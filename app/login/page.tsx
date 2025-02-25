@@ -88,6 +88,7 @@ export default function Login() {
                   >
                     Password
                   </label>
+                  {/*
                   <div className="text-sm">
                     <a
                       href="#"
@@ -95,7 +96,9 @@ export default function Login() {
                     >
                       Password dimenticata?
                     </a>
+
                   </div>
+                  */}
                 </div>
                 <div className="mt-2">
                   <input
