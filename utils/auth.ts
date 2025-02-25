@@ -123,7 +123,9 @@ export interface CheckAuthResponse {
 export async function checkAuth(): Promise<CheckAuthResponse> {
   try {
     console.info('Verifica autenticazione...checkAuth');
-    const response = await axiosInstance.get('/auth/user/');
+    const response = await axios.post('/postApi', {
+      apiRoute: 'checkAuth',
+    });
     return {
       isAuthenticated: response.data.isAuthenticated,
       username: response.data.username,

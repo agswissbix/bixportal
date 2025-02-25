@@ -29,6 +29,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (pathname === '/login') {
       return;  // Evita il controllo se siamo già in /login
     }
+    if (pathname === '/testConnection') {
+      return;  // Evita il controllo se siamo già in /login
+    }
     async function verifyAuth() {
       console.info('Verifica autenticazione...verifyAuth');
       const result = await checkAuth();
