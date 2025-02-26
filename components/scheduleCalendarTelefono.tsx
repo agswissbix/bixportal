@@ -273,6 +273,7 @@ const ScheduleCalendarTelefono = () => {
       name: formData.name,
       shift: formData.shift,
       dev: formData.dev || '',
+      type: 'telefono',
       access: "edit" as "edit" | "view" | "delete"
     };
 

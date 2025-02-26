@@ -74,6 +74,10 @@ export async function POST(request: Request) {
         // Nuovo caso per il login
         djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers/';
         break;
+      case 'get_shifts_and_volunteers_chat':
+        // Nuovo caso per il login
+        djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers_chat/';
+        break;
       case 'get_volunteers_list':
           // Nuovo caso per il login
           djangoUrl = '/customapp_telefonoamico/get_volunteers_list/';
