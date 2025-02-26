@@ -108,7 +108,7 @@ const ScheduleCalendarTelefono = () => {
   const [shiftError, setShiftError] = useState<string | null>(null);
 
   const months = [
-    'Febbraio', 'Marzo', 'Aprile'
+    'Gennaio','Febbraio', 'Marzo', 'Aprile'
   ];
 
   const volunteersDEV = [
@@ -504,7 +504,10 @@ const ScheduleCalendarTelefono = () => {
                 <thead>
                   <tr className="bg-blue-600 text-white">
                     <th className="py-2 px-2 text-left w-8">STATO</th>
-                    <th className="py-2 px-4 text-left">DIC</th>
+                    <th className="py-2 px-4 text-left">
+                      {new Date(currentYear, currentMonth, 1).toLocaleDateString("it-IT", { month: "short" }).toUpperCase()}
+                    </th>
+
                     {timeSlots.map((slot, index) => (
                       <React.Fragment key={`header-${index}`}>
                         <th className="py-2 px-4 text-center border-l border-blue-500 w-12 bg-yellow-50">
