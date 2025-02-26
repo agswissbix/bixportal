@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useMemo  } from 'react';
+import React, { useState, useEffect, useMemo , useContext } from 'react';
 import { ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { useApi } from '@/utils/useApi';
 import axios from 'axios';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { AppContext } from '@/context/appContext';
 
 
 const ScheduleCalendarTelefono = () => {
+  const { user, role, userName = '' } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
   
   const exportToPDF = async () => {
@@ -237,7 +239,7 @@ const ScheduleCalendarTelefono = () => {
   const openModal = (slot: Slot | null, dayIndex: number, slotIndex: number) => {
     setActiveSlot({ dayIndex, slotIndex, slot, timeSlot: timeSlots[slotIndex] });
     setFormData({
-      name: slot ? slot.name : volunteers.length > 0 ? volunteers[0] : '',
+      name: slot ? slot.name : (userName || ''),
       shift: slot ? slot.shift : '',
       dev: slot ? slot.dev || '' : ''
     });
@@ -592,18 +594,14 @@ const ScheduleCalendarTelefono = () => {
 
                   {/* Nome Volontario */}
                   <div className="mb-4">
-                    <label className="block mb-2">Nome Volontario</label>
+                    <label className="block mb-2">Nome Volontario {user} {userName} {role}</label>
                     <select
                       name="name"
                       className="border rounded px-3 py-2 w-full"
-                      value={
-                        formData.name ||
-                        (volunteers.includes("test") ? "test" : "")
-                      }
+                      value={formData.name}
                       onChange={handleInputChange}
-                      disabled={activeSlot?.slot?.access === "view"}
+                      disabled={role !== "Amministratore"} // Disabilita la select se il ruolo non è "Amministratore"
                     >
-                      <option value="">Seleziona volontario</option>
                       {volunteers.map((volunteer) => (
                         <option key={volunteer} value={volunteer}>
                           {volunteer}

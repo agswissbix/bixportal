@@ -1,4 +1,3 @@
-// AppContext.tsx (o come l'hai chiamato)
 'use client';
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
@@ -6,37 +5,45 @@ import { checkAuth, logoutUser } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 
-
 interface AppContextType {
   user: string | null;
   setUser: React.Dispatch<React.SetStateAction<string | null>>;
-  role: string | null;  // <--- Aggiunto role
+  role: string | null;
   setRole: React.Dispatch<React.SetStateAction<string | null>>;
-  handleLogout: () => void;            // <--- aggiunto qui
+  userName: string | null;
+  setUserName: React.Dispatch<React.SetStateAction<string | null>>;
+  handleLogout: () => void;
 }
 
 export const AppContext = createContext<AppContextType>({
   user: null,
   setUser: () => {},
-  role: null, // <--- Default null
+  role: null,
   setRole: () => {},
+  userName: '',
+  setUserName: () => {},
   handleLogout: () => {},
 });
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const router = useRouter();
+  const [userName, setUserName] = useState<string | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true); // <--- stato di caricamento
 
+  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (pathname === '/login') {
-      return;  // Evita il controllo se siamo già in /login
+      setLoadingAuth(false); 
+      return; // Evita il controllo se siamo già in /login
     }
     if (pathname === '/testConnection') {
-      return;  // Evita il controllo se siamo già in /login
+      setLoadingAuth(false);
+      return; // Evita il controllo se siamo in /testConnection
     }
+
     async function verifyAuth() {
       console.info('Verifica autenticazione...verifyAuth');
       const result = await checkAuth();
@@ -45,26 +52,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(result.username);
         setRole(result.role || null);
+        setUserName(result.name ?? null);
       }
+      setLoadingAuth(false); // <--- Fine verifica
     }
     verifyAuth();
-  }, [router]);
+  }, [router, pathname]);
 
-
-  // --- Ecco la funzione di logout
+  // Funzione di logout
   const handleLogout = async () => {
     const result = await logoutUser();
     if (result.success) {
-      setUser(null);        // <--- Aggiornamento stato locale
+      setUser(null);
       setRole(null);
+      setUserName(null);
       router.push('/login');
     } else {
       console.error('Logout fallito:', result.detail);
     }
   };
 
+  // Se sto ancora verificando l'autenticazione, mostro un caricamento
+  if (loadingAuth) {
+    return <div>Caricamento in corso...</div>;
+  }
+
   return (
-    <AppContext.Provider value={{ user, setUser, role, setRole, handleLogout }}>
+    <AppContext.Provider 
+      value={{ user, setUser, role, setRole, userName, setUserName, handleLogout }}
+    >
       {children}
     </AppContext.Provider>
   );

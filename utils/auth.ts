@@ -117,6 +117,7 @@ export async function loginUserApi(
 export interface CheckAuthResponse {
   isAuthenticated: boolean;
   username?: string;
+  name?: string;
   role?: string | null; // Add the role property
 }
 
@@ -130,6 +131,7 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
     return {
       isAuthenticated: response.data.isAuthenticated,
       username: response.data.username,
+      name: response.data.name,
       role: response.data.role,
     };
   } catch (error: any) {

@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useMemo  } from 'react';
+import React, { useState, useEffect, useMemo, useContext  } from 'react';
 import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { useApi } from '@/utils/useApi';
 import axios from 'axios';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { AppContext } from '@/context/appContext';
 
 
 const ScheduleCalendarTelefono = () => {
+  const { user, role, userName } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
   
   const exportToPDF = async () => {
