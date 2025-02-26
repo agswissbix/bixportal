@@ -108,8 +108,7 @@ const ScheduleCalendarTelefono = () => {
   const [shiftError, setShiftError] = useState<string | null>(null);
 
   const months = [
-    'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+    'Febbraio', 'Marzo', 'Aprile'
   ];
 
   const volunteersDEV = [
@@ -414,7 +413,7 @@ const ScheduleCalendarTelefono = () => {
                   value={currentYear}
                   onChange={(e) => setCurrentYear(parseInt(e.target.value))}
                 >
-                  {[2023, 2024, 2025].map((year) => (
+                  {[ 2025].map((year) => (
                     <option key={year} value={year}>
                       {year}
                     </option>
@@ -640,9 +639,7 @@ const ScheduleCalendarTelefono = () => {
                       Annulla
                     </button>
 
-                    {activeSlot?.slot &&
-                      (activeSlot.slot.access === "delete" ||
-                        activeSlot.slot.access === "edit") && (
+                    {activeSlot?.slot && (activeSlot.slot.access === "view" || activeSlot.slot.access === "edit") && (
                         <button
                           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                           onClick={handleDeleteShift}
