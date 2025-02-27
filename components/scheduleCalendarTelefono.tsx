@@ -442,7 +442,7 @@ const ScheduleCalendarTelefono = () => {
   };
 
   return (
-    <div className=" bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg">
 
         {/* Barra per selezionare Calendario o Agenda */}
@@ -463,7 +463,7 @@ const ScheduleCalendarTelefono = () => {
 
         {/* Contenuto variabile in base a viewMode */}
         {viewMode === "calendar" ? (
-          <div className="w-full lg:h-[85vh] p-4">
+          <div className="w-full h-[85vh] p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 bg-white text-red-500 px-4 py-2 rounded-lg">
@@ -542,7 +542,7 @@ const ScheduleCalendarTelefono = () => {
               </div>
             </div>
 
-            <div id="calendar-table" className="border rounded overflow-auto lg:h-[70vh]">
+            <div id="calendar-table" className="border rounded overflow-auto h-[70vh]">
               <table className="w-full min-w-[1000px]">
                 <thead>
                   <tr className="bg-blue-600 text-white">
@@ -656,7 +656,7 @@ const ScheduleCalendarTelefono = () => {
                 <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
                   <h2 className="text-lg font-bold mb-4">TURNO</h2>
                   <div className="mb-4 text-sm text-gray-600">
-                    Fascia oraria: {activeSlot ? activeSlot.timeSlot+" Giorno:"+activeSlot.dayIndex : ""}
+                    Fascia oraria: {activeSlot ? activeSlot.timeSlot + " Giorno: " +scheduleData[activeSlot.dayIndex].day : ""}
                   </div>
 
                   {/* Nome Volontario */}
@@ -737,7 +737,7 @@ const ScheduleCalendarTelefono = () => {
           </div>
         ) : (
           /* Contenuto alternativo (Agenda) */
-          <div className="w-full lg:h-[85vh] p-4">
+          <div className="w-full h-[85vh] p-4">
             {/* Barra di controllo: filtri e selettori, adattali alle tue necessità */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <label className="text-sm font-semibold">Da:</label>

@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { AppContext } from '@/context/appContext';
 
+
+
 const CalendarioTelefono = () => (
   <Card className="p-6">
     <div className="flex items-center space-x-3 mb-4">
@@ -62,8 +64,8 @@ const AppLayout = () => {
   }, []);
 
   return (
-    // Aggiunta la classe "overflow-y-auto" per consentire lo scroll dell'intera pagina
-    <div className="min-h-screen bg-gray-50 lg:overflow-y-auto">
+    // Modifica: forzata l’altezza allo schermo e sempre scrollabile
+    <div className="h-screen overflow-y-scroll bg-gray-50">
       <header className="w-full bg-slate-200 border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -104,8 +106,8 @@ const AppLayout = () => {
 
           <div className="flex items-center space-x-2">
             <div className="relative" ref={dropdownRef}>
-              <Button
-                variant="ghost"
+              <Button 
+                variant="ghost" 
                 className="text-gray-600 hover:text-gray-900"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
