@@ -63,7 +63,7 @@ const AppLayout = () => {
 
   return (
     // Aggiunta la classe "overflow-y-auto" per consentire lo scroll dell'intera pagina
-    <div className="min-h-screen bg-gray-50 md:overflow-y-auto">
+    <div className="min-h-screen bg-gray-50 lg:overflow-y-auto">
       <header className="w-full bg-slate-200 border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">

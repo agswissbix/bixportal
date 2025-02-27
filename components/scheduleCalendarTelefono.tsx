@@ -463,7 +463,7 @@ const ScheduleCalendarTelefono = () => {
 
         {/* Contenuto variabile in base a viewMode */}
         {viewMode === "calendar" ? (
-          <div className="w-full md:h-[85vh] p-4">
+          <div className="w-full lg:h-[85vh] p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 bg-white text-red-500 px-4 py-2 rounded-lg">
@@ -542,7 +542,7 @@ const ScheduleCalendarTelefono = () => {
               </div>
             </div>
 
-            <div id="calendar-table" className="border rounded overflow-auto md:h-[70vh]">
+            <div id="calendar-table" className="border rounded overflow-auto lg:h-[70vh]">
               <table className="w-full min-w-[1000px]">
                 <thead>
                   <tr className="bg-blue-600 text-white">
@@ -737,7 +737,7 @@ const ScheduleCalendarTelefono = () => {
           </div>
         ) : (
           /* Contenuto alternativo (Agenda) */
-          <div className="w-full md:h-[85vh] p-4">
+          <div className="w-full lg:h-[85vh] p-4">
             {/* Barra di controllo: filtri e selettori, adattali alle tue necessità */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <label className="text-sm font-semibold">Da:</label>
