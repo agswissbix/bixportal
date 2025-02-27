@@ -8,8 +8,6 @@ import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { AppContext } from '@/context/appContext';
 
-
-
 const CalendarioTelefono = () => (
   <Card className="p-6">
     <div className="flex items-center space-x-3 mb-4">
@@ -40,7 +38,7 @@ const AppLayout = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   // DATI DEL CONTESTO
-const { user, role } = useContext(AppContext);
+  const { user, role } = useContext(AppContext);
 
   const handleLogout = () => {
     console.log('Logging out...');
@@ -64,7 +62,8 @@ const { user, role } = useContext(AppContext);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    // Aggiunta la classe "overflow-y-auto" per consentire lo scroll dell'intera pagina
+    <div className="min-h-screen bg-gray-50 md:overflow-y-auto">
       <header className="w-full bg-slate-200 border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -103,10 +102,10 @@ const { user, role } = useContext(AppContext);
             </button>
           </div>
 
-          <div className="flex items-center space-x-2">            
+          <div className="flex items-center space-x-2">
             <div className="relative" ref={dropdownRef}>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="text-gray-600 hover:text-gray-900"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
