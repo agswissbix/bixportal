@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext  } from 'react';
+import React, { useState, useEffect, useMemo , useContext } from 'react';
 import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { useApi } from '@/utils/useApi';
 import axios from 'axios';
@@ -6,29 +6,29 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { AppContext } from '@/context/appContext';
 
-
 const ScheduleCalendarTelefono = () => {
-  const { user, role, userName } = useContext(AppContext);
+  const { user, role, userName = '' } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
-  
+
+  // Funzione per esportare in PDF
   const exportToPDF = async () => {
     const calendarElement = document.getElementById("calendar-table");
     if (!calendarElement) return;
-  
+
     try {
       const originalStyle = {
         maxHeight: calendarElement.style.maxHeight,
         height: calendarElement.style.height,
         overflow: calendarElement.style.overflow
       };
-  
+
       calendarElement.style.height = 'auto';
       calendarElement.style.maxHeight = 'none';
       calendarElement.style.overflow = 'visible';
-  
+
       const originalScrollHeight = calendarElement.scrollHeight;
       const originalScrollWidth = calendarElement.scrollWidth;
-  
+
       const canvas = await html2canvas(calendarElement, {
         scale: 2,
         height: originalScrollHeight,
@@ -46,51 +46,51 @@ const ScheduleCalendarTelefono = () => {
           }
         }
       });
-  
+
       calendarElement.style.maxHeight = originalStyle.maxHeight;
       calendarElement.style.height = originalStyle.height;
       calendarElement.style.overflow = originalStyle.overflow;
-  
+
       const imgData = canvas.toDataURL('image/png');
-  
+
       const pdf = new jsPDF('landscape', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-  
+
       const margin = 10;
       const availableWidth = pageWidth - 2 * margin;
       const availableHeight = pageHeight - 2 * margin;
-  
+
       const aspectRatio = canvas.height / canvas.width;
       const imgWidth = availableWidth;
       const imgHeight = imgWidth * aspectRatio;
-  
+
       if (imgHeight <= availableHeight) {
         pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
       } else {
         let heightLeft = imgHeight;
         let position = 0;
         let page = 1;
-  
+
         while (heightLeft > 0) {
           pdf.addImage(imgData, 'PNG', margin, page === 1 ? margin : -position + margin, imgWidth, imgHeight);
           heightLeft -= availableHeight;
           position += availableHeight;
-  
+
           if (heightLeft > 0) {
             pdf.addPage();
             page++;
           }
         }
       }
-  
+
       pdf.save(`Calendario_${currentYear}_${months[currentMonth]}.pdf`);
-  
+
     } catch (error) {
       console.error('Errore nella generazione del PDF:', error);
     }
   };
-  
+
   const [currentYear, setCurrentYear] = useState(2025);
   const [currentMonth, setCurrentMonth] = useState(1);
   const [selectedVolunteer, setSelectedVolunteer] = useState('');
@@ -98,6 +98,7 @@ const ScheduleCalendarTelefono = () => {
   const [draggedItem, setDraggedItem] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   interface ActiveSlot {
     dayIndex: number;
     slotIndex: number;
@@ -223,9 +224,6 @@ const ScheduleCalendarTelefono = () => {
         }
       });
 
-      // Aggiunta eventuale generazione di slot casuali (se ti serve ancora)
-      // ...
-
       newScheduleData.push({
         day,
         dayName,
@@ -236,21 +234,77 @@ const ScheduleCalendarTelefono = () => {
     setScheduleData(newScheduleData);
   };
 
+  // Funzione per aprire il modal
   const openModal = (slot: Slot | null, dayIndex: number, slotIndex: number) => {
     setActiveSlot({ dayIndex, slotIndex, slot, timeSlot: timeSlots[slotIndex] });
     setFormData({
-      name: slot ? slot.name : volunteers.length > 0 ? volunteers[0] : '',
+      name: slot ? slot.name : (userName || ''),
       shift: slot ? slot.shift : '',
       dev: slot ? slot.dev || '' : ''
     });
     setIsModalOpen(true);
   };
 
+  // Funzione chiamata al click sulla cella: gestisce i permessi
+  const handleCellClick = (dayIndex: number, slotIndex: number) => {
+    const dayInfo = scheduleData[dayIndex];
+    const slot = dayInfo.slots[slotIndex];
+    const dayDate = new Date(currentYear, currentMonth, dayInfo.day);
+
+    // Normalizziamo le date (solo anno-mese-giorno) per i confronti
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const twoWeeksFromToday = new Date();
+    twoWeeksFromToday.setDate(twoWeeksFromToday.getDate() + 21);
+    twoWeeksFromToday.setHours(0,0,0,0);
+
+    // Se sei Amministratore, puoi sempre aprire il modal
+    if (role === 'Amministratore') {
+      openModal(slot, dayIndex, slotIndex);
+      return;
+    }
+
+    // Se sei Utente, gestiamo le restrizioni
+    if (role === 'Utente') {
+      // 1) Se la data è oggi o antecedente, non fai nulla
+      if (dayDate <= today) {
+        return;
+      }
+      // 2) Se la data è entro le prossime 2 settimane
+      if (dayDate > today && dayDate <= twoWeeksFromToday) {
+        // Puoi solo aggiungere in slot vuoti
+        if (!slot) {
+          // Slot vuoto, apri il modal per inserire
+          openModal(null, dayIndex, slotIndex);
+        }
+        // Altrimenti (slot esistente), non fai nulla
+        return;
+      }
+      // 3) Se la data è oltre le 2 settimane
+      // puoi inserire/modificare/eliminare, ma se lo slot è già occupato
+      // devi essere lo stesso utente che lo ha inserito (slot.name === userName)
+      if (dayDate > twoWeeksFromToday) {
+        if (!slot) {
+          // slot vuoto => puoi inserire
+          openModal(null, dayIndex, slotIndex);
+        } else {
+          // slot esistente => verifica se corrisponde al tuo userName
+          if (slot.name === userName) {
+            openModal(slot, dayIndex, slotIndex);
+          }
+        }
+      }
+    }
+  };
+
+  // Gestione onChange select nel modal
   const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  // Eventuale toggle del DEV
   const handleDevToggle = () => {
     setFormData(prev => ({
       ...prev,
@@ -258,10 +312,16 @@ const ScheduleCalendarTelefono = () => {
     }));
   };
 
+  // Salvataggio del turno (POST)
   const handleFormSubmit = async () => {
     if (!activeSlot) return;
 
-    
+    if (!formData.shift) {
+      setShiftError("Seleziona una sede prima di salvare.");
+      return;
+    } else {
+      setShiftError(null);
+    }
 
     const { dayIndex, slotIndex } = activeSlot;
     const newSlot = {
@@ -313,6 +373,7 @@ const ScheduleCalendarTelefono = () => {
     setIsModalOpen(false);
   };
 
+  // Eliminazione del turno
   const handleDeleteShift = async () => {
     if (!activeSlot) return;
     const { dayIndex, slotIndex } = activeSlot;
@@ -320,7 +381,8 @@ const ScheduleCalendarTelefono = () => {
     const payload = {
       apiRoute: "delete_shift",
       date: `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${(dayIndex + 1).toString().padStart(2, '0')}`,
-      timeSlot: timeSlots[slotIndex]
+      timeSlot: timeSlots[slotIndex],
+      type: 'chat'
     };
 
     try {
@@ -359,6 +421,7 @@ const ScheduleCalendarTelefono = () => {
     return slots.every(slot => slot !== null);
   };
 
+  // Classe base per le celle
   const getCellClassName = (slot: Slot | null) => {
     const baseClasses = 'py-2 px-4 border-l cursor-pointer';
     if (!slot) return baseClasses;
@@ -370,7 +433,7 @@ const ScheduleCalendarTelefono = () => {
       return `${baseClasses} opacity-25`;
     }
 
-    // Se è stato selezionato un filtro e la cella corrisponde, aggiungi sfondo verde e grassetto
+    // Se è stato selezionato un filtro e la cella corrisponde
     if ((selectedVolunteer || selectedShift) && matchesVolunteer && matchesShift) {
       return `${baseClasses} bg-green-50 font-bold`;
     }
@@ -383,15 +446,15 @@ const ScheduleCalendarTelefono = () => {
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg">
 
         {/* Barra per selezionare Calendario o Agenda */}
-        <div className="w-full h-12 bg-red-500 rounded-md flex items-center gap-4 p-2">
+        <div className="w-full h-12 bg-green-500 rounded-md flex items-center gap-4 p-2">
           <button
-            className="bg-white text-red-500 px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100"
+            className="bg-white text-green-500 px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100"
             onClick={() => setViewMode("calendar")}
           >
             Calendario
           </button>
           <button
-            className="bg-white text-red-500 px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100"
+            className="bg-white text-green-500 px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100"
             onClick={() => setViewMode("agenda")}
           >
             Agenda
@@ -419,16 +482,7 @@ const ScheduleCalendarTelefono = () => {
                 </select>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded"
-                    onClick={() =>
-                      currentMonth === 0
-                        ? (setCurrentMonth(11), setCurrentYear((prev) => prev - 1))
-                        : setCurrentMonth((prev) => prev - 1)
-                    }
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
+                 
 
                   <select
                     className="border rounded px-2 py-1 bg-white"
@@ -442,16 +496,7 @@ const ScheduleCalendarTelefono = () => {
                     ))}
                   </select>
 
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded"
-                    onClick={() =>
-                      currentMonth === 11
-                        ? (setCurrentMonth(0), setCurrentYear((prev) => prev + 1))
-                        : setCurrentMonth((prev) => prev + 1)
-                    }
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+                
                 </div>
               </div>
 
@@ -519,62 +564,89 @@ const ScheduleCalendarTelefono = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {/** 
-                   * Filtro le righe (i giorni) per il volontario selezionato.
-                   * Se "selectedVolunteer" è vuoto, mostro tutti i giorni.
-                   * Altrimenti, mostro solo i giorni che hanno almeno uno slot con quel volontario.
+                  {/**
+                   * Mostriamo tutti i giorni oppure solo quelli che hanno almeno uno slot
+                   * con il volontario selezionato se `selectedVolunteer` non è vuoto.
                    */}
                   {scheduleData
                     .filter((day) => {
                       if (!selectedVolunteer) return true;
-                      // Restituisci true se in "day.slots" c'è almeno uno slot con name === selectedVolunteer
                       return day.slots.some((slot) => slot && slot.name === selectedVolunteer);
                     })
-                    .map((day, dayIndex) => (
-                      <tr key={day.day} className="border-t bg-white">
-                        <td
-                          className={`py-2 px-2 border-r text-center w-8 ${
-                            isFullyBooked(day.slots) ? "bg-green-100" : "bg-red-100"
-                          }`}
-                        ></td>
-                        <td
-                          className={`py-2 px-4 border-r font-bold ${
-                            day.dayType === "weekend"
-                              ? "bg-yellow-100"
-                              : isFullyBooked(day.slots)
-                              ? "bg-green-100"
-                              : "bg-blue-100"
-                          }`}
-                        >
-                          <div className="text-2xl">{day.day}</div>
-                          <div className="text-sm">{day.dayName}</div>
-                        </td>
-                        {day.slots.map((slot, slotIndex) => (
-                          <React.Fragment key={`slot-${dayIndex}-${slotIndex}`}>
-                            <td
-                              className={`border-l text-center font-bold bg-yellow-50 ${
-                                (!selectedVolunteer || slot?.name === selectedVolunteer) &&
-                                (!selectedShift || slot?.shift === selectedShift)
-                                  ? ""
-                                  : "opacity-25"
-                              }`}
-                            >
-                              {slot?.shift}
-                            </td>
-                            <td
-                              className={getCellClassName(slot)}
-                              onClick={() => openModal(slot, dayIndex, slotIndex)}
-                            >
-                              {slot && (
-                                <div className="text-center">
-                                  <div>{slot.name}</div>
-                                </div>
-                              )}
-                            </td>
-                          </React.Fragment>
-                        ))}
-                      </tr>
-                    ))}
+                    .map((day, dayIndex) => {
+                      // Calcolo se il giorno rientra nelle prossime 2 settimane
+                      const today = new Date();
+                      today.setHours(0,0,0,0);
+
+                      const twoWeeksFromToday = new Date();
+                      twoWeeksFromToday.setDate(twoWeeksFromToday.getDate() + 21);
+                      twoWeeksFromToday.setHours(0,0,0,0);
+
+                      const dayDate = new Date(currentYear, currentMonth, day.day);
+                      dayDate.setHours(0,0,0,0);
+
+                      const isInNextTwoWeeks = (dayDate >= today && dayDate <= twoWeeksFromToday);
+
+                      // Scegliamo il colore di sfondo per la cella del giorno
+                      let dayBackground = '';
+                      if (isInNextTwoWeeks) {
+                        dayBackground = 'bg-red-100';
+                      } else {
+                        dayBackground = day.dayType === "weekend"
+                          ? "bg-yellow-100"
+                          : isFullyBooked(day.slots)
+                          ? "bg-green-100"
+                          : "bg-blue-100";
+                      }
+
+                      return (
+                        <tr key={day.day} className="border-t bg-white">
+                          <td
+                            className={`py-2 px-2 border-r text-center w-8 ${
+                              isFullyBooked(day.slots) ? "bg-green-100" : "bg-red-100"
+                            }`}
+                          ></td>
+                          <td
+                            className={`py-2 px-4 border-r font-bold ${dayBackground}`}
+                          >
+                            <div className="text-2xl">{day.day}</div>
+                            <div className="text-sm">{day.dayName}</div>
+                          </td>
+
+                          {day.slots.map((slot, slotIndex) => (
+                            <React.Fragment key={`slot-${dayIndex}-${slotIndex}`}>
+                              {/* Colonna "Dev" (shift) */}
+                              <td
+                                className={`border-l text-center font-bold ${
+                                  isInNextTwoWeeks ? "bg-red-100" : "bg-yellow-50"
+                                } ${
+                                  (!selectedVolunteer || slot?.name === selectedVolunteer) &&
+                                  (!selectedShift || slot?.shift === selectedShift)
+                                    ? ""
+                                    : "opacity-25"
+                                }`}
+                              >
+                                {slot?.shift}
+                              </td>
+
+                              {/* Colonna "Volontario" */}
+                              <td
+                                className={`${getCellClassName(slot)} ${
+                                  isInNextTwoWeeks ? "bg-red-100" : ""
+                                }`}
+                                onClick={() => handleCellClick(dayIndex, slotIndex)}
+                              >
+                                {slot && (
+                                  <div className="text-center">
+                                    <div>{slot.name}</div>
+                                  </div>
+                                )}
+                              </td>
+                            </React.Fragment>
+                          ))}
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
@@ -584,23 +656,21 @@ const ScheduleCalendarTelefono = () => {
                 <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
                   <h2 className="text-lg font-bold mb-4">TURNO</h2>
                   <div className="mb-4 text-sm text-gray-600">
-                    Fascia oraria: {activeSlot ? activeSlot.timeSlot : ""}
+                    Fascia oraria: {activeSlot ? activeSlot.timeSlot+" Giorno:"+activeSlot.dayIndex : ""}
                   </div>
 
                   {/* Nome Volontario */}
                   <div className="mb-4">
-                    <label className="block mb-2">Nome Volontario</label>
+                    <label className="block mb-2">
+                      Nome Volontario {user} {userName} {role}
+                    </label>
                     <select
                       name="name"
                       className="border rounded px-3 py-2 w-full"
-                      value={
-                        formData.name ||
-                        (volunteers.includes("test") ? "test" : "")
-                      }
+                      value={formData.name}
                       onChange={handleInputChange}
-                      disabled={activeSlot?.slot?.access === "view"}
+                      disabled={role !== "Amministratore"} // Disabilita la select se il ruolo non è "Amministratore"
                     >
-                      <option value="">Seleziona volontario</option>
                       {volunteers.map((volunteer) => (
                         <option key={volunteer} value={volunteer}>
                           {volunteer}
@@ -617,7 +687,7 @@ const ScheduleCalendarTelefono = () => {
                       className={`border rounded px-3 py-2 w-full ${
                         shiftError ? "border-red-500" : ""
                       }`}
-                      value='C'
+                      value={formData.shift}
                       onChange={handleInputChange}
                       disabled={activeSlot?.slot?.access === "view"}
                     >
@@ -641,21 +711,25 @@ const ScheduleCalendarTelefono = () => {
                     </button>
 
                     {activeSlot?.slot && (activeSlot.slot.access === "view" || activeSlot.slot.access === "edit") && (
-                        <button
-                          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                          onClick={handleDeleteShift}
-                        >
-                          Elimina
-                        </button>
-                      )}
+                      <button
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        onClick={handleDeleteShift}
+                      >
+                        Elimina
+                      </button>
+                    )}
 
-                          <button
-                            className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
-                            onClick={handleFormSubmit}
-                          >
-                            Salva
-                          </button>
-
+                    <button
+                      className={`px-4 py-2 rounded ${
+                        formData.shift
+                          ? "bg-blue-500 text-white hover:bg-blue-600"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      onClick={handleFormSubmit}
+                      disabled={!formData.shift}
+                    >
+                      Salva
+                    </button>
                   </div>
                 </div>
               </div>
