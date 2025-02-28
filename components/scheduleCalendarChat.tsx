@@ -7,8 +7,17 @@ import html2canvas from "html2canvas";
 import { AppContext } from '@/context/appContext';
 
 const ScheduleCalendarTelefono = () => {
-  const { user, role, userName = '' } = useContext(AppContext);
+  const { user, role, userName } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
+  const isAdmin = role === 'Amministratore';
+    // All’interno del componente, aggiungi lo state per i filtri dell'agenda:
+  const [agendaFilters, setAgendaFilters] = useState({
+    startDate: '',
+    endDate: '',
+    volunteer: role === 'Utente' ? (userName || '') : '',
+    shift: ''
+  });
+
 
   // Funzione per esportare in PDF
   const exportToPDF = async () => {
@@ -53,7 +62,7 @@ const ScheduleCalendarTelefono = () => {
 
       const imgData = canvas.toDataURL('image/png');
 
-      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const pdf = new jsPDF('portrait', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
@@ -185,6 +194,10 @@ const ScheduleCalendarTelefono = () => {
       loadMonthData(currentYear, currentMonth);
     }
   }, [currentYear, currentMonth, shifts, volunteers]);
+
+  useEffect(() => {
+    setSelectedVolunteer(''); // Imposta "Tutti" come default per tutti gli utenti
+  }, [role, userName]);
 
   const loadMonthData = (year: number, month: number) => {
     if (shifts.length === 0 || volunteers.length === 0) {
@@ -442,7 +455,7 @@ const ScheduleCalendarTelefono = () => {
   };
 
   return (
-    <div className=" bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg">
 
         {/* Barra per selezionare Calendario o Agenda */}
@@ -463,7 +476,7 @@ const ScheduleCalendarTelefono = () => {
 
         {/* Contenuto variabile in base a viewMode */}
         {viewMode === "calendar" ? (
-          <div className="w-full md:h-[85vh] p-4">
+          <div className="w-full h-[85vh] p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 bg-white text-green-500 px-4 py-2 rounded-lg">
@@ -500,20 +513,26 @@ const ScheduleCalendarTelefono = () => {
                 </div>
               </div>
 
+              
+
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Filtra per Volontario 2:</label>
+                  <label className="text-sm font-medium">Filtra per Volontario:</label>
                   <select
                     className="border rounded px-2 py-1 bg-white min-w-[200px]"
                     value={selectedVolunteer}
                     onChange={(e) => setSelectedVolunteer(e.target.value)}
                   >
                     <option value="">Tutti</option>
-                    {volunteers.map((volunteer) => (
+                  {isAdmin ? (
+                    volunteers.map((volunteer) => (
                       <option key={volunteer} value={volunteer}>
                         {volunteer}
                       </option>
-                    ))}
+                    ))
+                  ) : (
+                    <option value={userName || ''}>{userName || ''}</option>
+                  )}
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
