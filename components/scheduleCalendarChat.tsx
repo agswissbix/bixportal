@@ -119,9 +119,10 @@ const ScheduleCalendarTelefono = () => {
   const [formData, setFormData] = useState({ name: '', shift: '', dev: '' });
   const [shiftError, setShiftError] = useState<string | null>(null);
 
-  const months = [
-    'Gennaio','Febbraio', 'Marzo', 'Aprile'
-  ];
+  const months = role === 'Amministratore'
+  ? ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+  : ['Gennaio', 'Febbraio', 'Marzo', 'Aprile'];
+
 
   const volunteersDEV = [
     'Alessandro Galli', 'Mariangela Rosa'
