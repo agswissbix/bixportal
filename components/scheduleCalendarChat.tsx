@@ -122,7 +122,7 @@ const ScheduleCalendarTelefono = () => {
   const months = useMemo(() => 
     role === 'Amministratore'
       ? ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
-      : ['Gennaio', 'Febbraio', 'Marzo', 'Aprile']
+      : ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio']
   , [role]);
   
 
