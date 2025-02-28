@@ -119,6 +119,8 @@ export interface CheckAuthResponse {
   username?: string;
   name?: string;
   role?: string | null; // Add the role property
+  chat?: string | null;
+  telefono?: string | null;
 }
 
 // Funzione per controllare se l'utente è autenticato (endpoint: /auth/user/)
@@ -128,11 +130,14 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
     const response = await axios.post('/postApi', {
       apiRoute: 'checkAuth',
     });
+    console.info(response);
     return {
       isAuthenticated: response.data.isAuthenticated,
       username: response.data.username,
       name: response.data.name,
       role: response.data.role,
+      chat: response.data.chat,
+      telefono: response.data.telefono,
     };
   } catch (error: any) {
     if (error.response && error.response.status === 401) {

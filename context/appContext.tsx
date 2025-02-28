@@ -10,6 +10,10 @@ interface AppContextType {
   setUser: React.Dispatch<React.SetStateAction<string | null>>;
   role: string | null;
   setRole: React.Dispatch<React.SetStateAction<string | null>>;
+  chat: string | null;
+  setChat: React.Dispatch<React.SetStateAction<string | null>>;
+  telefono: string | null;
+  setTelefono: React.Dispatch<React.SetStateAction<string | null>>;
   userName: string | null;
   setUserName: React.Dispatch<React.SetStateAction<string | null>>;
   handleLogout: () => void;
@@ -20,6 +24,10 @@ export const AppContext = createContext<AppContextType>({
   setUser: () => {},
   role: null,
   setRole: () => {},
+  chat: null,
+  setChat: () => {},
+  telefono: null,
+  setTelefono: () => {},
   userName: '',
   setUserName: () => {},
   handleLogout: () => {},
@@ -28,6 +36,8 @@ export const AppContext = createContext<AppContextType>({
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [chat, setChat] = useState<string | null>(null);
+  const [telefono, setTelefono] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true); // <--- stato di caricamento
 
@@ -52,6 +62,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(result.username);
         setRole(result.role || null);
+        setChat(result.chat || null);
+        setTelefono(result.telefono || null);
         setUserName(result.name ?? null);
       }
       setLoadingAuth(false); // <--- Fine verifica
@@ -79,7 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider 
-      value={{ user, setUser, role, setRole, userName, setUserName, handleLogout }}
+      value={{ user, setUser, role, setRole, chat, setChat, telefono, setTelefono, userName, setUserName, handleLogout }}
     >
       {children}
     </AppContext.Provider>

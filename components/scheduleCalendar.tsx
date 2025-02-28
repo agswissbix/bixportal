@@ -35,12 +35,14 @@ const CalendarioChat = () => (
 );
 
 const AppLayout = () => {
-  const [activeTab, setActiveTab] = useState('phone');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   // DATI DEL CONTESTO
-  const { user, role } = useContext(AppContext);
+  const { user, role, chat, telefono } = useContext(AppContext);
+  // Determina il tab predefinito
+  const defaultTab = telefono === 'Si' ? 'phone' : chat === 'Si' ? 'chat' : null;
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   const handleLogout = () => {
     console.log('Logging out...');
@@ -79,29 +81,35 @@ const AppLayout = () => {
             />
           </div>
 
+          {/* Navbar con tab */}
           <div className="flex rounded-lg border border-gray-200 p-1 bg-gray-50">
-            <button
-              onClick={() => setActiveTab('phone')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'phone'
-                  ? 'bg-white text-red-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Phone className="w-4 h-4" />
-              <span>Telefono</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'chat'
-                  ? 'bg-white text-green-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Chat</span>
-            </button>
+            {telefono === 'Si' && (
+              <button
+                onClick={() => setActiveTab('phone')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                  activeTab === 'phone'
+                    ? 'bg-white text-red-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Phone className="w-4 h-4" />
+                <span>Telefono </span>
+              </button>
+            )}
+
+            {chat === 'Si' && (
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                  activeTab === 'chat'
+                    ? 'bg-white text-green-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat </span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -112,7 +120,7 @@ const AppLayout = () => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <User className="w-5 h-5 mr-2 text-gray-500" />
-                {user} - { role }
+                {user} - { role } 
               </Button>
               
               {isDropdownOpen && (
@@ -149,7 +157,8 @@ const AppLayout = () => {
       </header>
 
       <main className="w-full p-6">
-        {activeTab === 'phone' ? <ScheduleCalendarTelefono /> : <ScheduleCalendarChat />}
+        {activeTab === 'phone' && telefono === 'Si' ? <ScheduleCalendarTelefono /> : null}
+        {activeTab === 'chat' && chat === 'Si' ? <ScheduleCalendarChat /> : null}
       </main>
     </div>
   );
