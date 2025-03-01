@@ -41,8 +41,19 @@ const AppLayout = () => {
   // DATI DEL CONTESTO
   const { user, role, chat, telefono } = useContext(AppContext);
   // Determina il tab predefinito
-  const defaultTab = telefono === 'Si' ? 'phone' : chat === 'Si' ? 'chat' : null;
-  const [activeTab, setActiveTab] = useState(defaultTab);
+    // Effetto che si occupa di impostare la tab iniziale (o aggiornarla) 
+  // ogni volta che telefono o chat cambiano
+  // State che controlla quale tab è attivo
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  useEffect(() => {
+    if (telefono === 'Si') {
+      setActiveTab('phone');
+    } else if (chat === 'Si') {
+      setActiveTab('chat');
+    } else {
+      setActiveTab(null);
+    }
+  }, [telefono, chat]);
 
   const handleLogout = () => {
     console.log('Logging out...');
