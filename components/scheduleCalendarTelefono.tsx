@@ -7,6 +7,11 @@ import html2canvas from "html2canvas";
 import { AppContext } from '@/context/appContext';
 
 const ScheduleCalendarTelefono = () => {
+  const now = new Date();
+  const realCurrentYear = now.getFullYear();
+  const realCurrentMonth = now.getMonth(); // 0 = Gennaio, 11 = Dicembre
+
+  
   const { user, role, userName } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
   const isAdmin = role === 'Amministratore';
@@ -100,8 +105,9 @@ const ScheduleCalendarTelefono = () => {
     }
   };
 
-  const [currentYear, setCurrentYear] = useState(2025);
-  const [currentMonth, setCurrentMonth] = useState(1);
+
+  const [currentYear, setCurrentYear] = useState(realCurrentYear);
+  const [currentMonth, setCurrentMonth] = useState(realCurrentMonth);
   const [selectedVolunteer, setSelectedVolunteer] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
   const [draggedItem, setDraggedItem] = useState(null);
