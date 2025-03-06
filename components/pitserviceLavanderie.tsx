@@ -19,20 +19,27 @@ const isDev = true;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
-            rows: Array<{
-                recordid: string;
-                css: string;
-                fields: Array<{
-                    recordid?: string;
+            groups: {
+                rows: {
+                    recordid: string;
                     css: string;
-                    type: string;
+                    fields: {
+                        recordid: string;
+                        css: string;
+                        type: string;
+                        value: string;
+                    }[];
+                }[];
+                fields: {
+                    fieldid: string;
                     value: string;
-                }>
-            }>;
-            columns: Array<{
+                    css: string;
+                }[];
+            }[];
+            columns: {
                 fieldtypeid: string;
                 desc: string;
-            }>;
+            }[];
         }
 
 export default function RecordsTable({ tableid,searchTerm,filters,context }: PropsInterface) {
@@ -42,125 +49,105 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
-                rows: [],
-                columns: [],
-              };
+                groups: [],
+                columns: []
+            };
+            
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
-                rows: [
+                groups: [
                     {
-                        recordid: "1",
-                        css: "#",
+                        rows: [
+                            {
+                                recordid: "1",
+                                css: "#",
+                                fields: [
+                                    { recordid: "", css: "bg-blue-200", type: "standard", value: "Casa Sirio Via Giuseppe Stabile 3" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" }
+                                ]
+                            },
+                            {
+                                recordid: "2",
+                                css: "#",
+                                fields: [
+                                    { recordid: "", css: "", type: "standard", value: "Condominio San Giorgio" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" }
+                                ]
+                            }
+                        ],
+
                         fields: [
+                            { fieldid: "1", value: "Marvel Gestioni e Immobili Sagl",  css:"" },
+                            { fieldid: "2", value: "indirizzo 1", css:"bg-green-500" }
+
+                        ],
+                    },
+                    {
+                        rows: [
                             {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "Res. sole"
+                                recordid: "3",
+                                css: "#",
+                                fields: [
+                                    { recordid: "", css: "", type: "standard", value: "Agenzia Immobiliare Ceresio SA" }
+                                ]
                             },
                             {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "Pregassona"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "Cofis"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "x"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "x"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: ""
-                            },
+                                recordid: "4",
+                                css: "#",
+                                fields: [
+                                    { recordid: "", css: "", type: "standard", value: "Residenza Salice Via Frontini 8" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "4050" }
+                                ]
+                            }
+                        ],
+                        fields: [
+                            { fieldid: "1", value: "Agenzia Immobiliare Ceresio SA", css: ""},
+                            { fieldid: "2", value: "indirizzo2", css:""  }
+
                         ]
                     },
                     {
-                        recordid: "2",
-                        css: "#",
+                        rows: [
+                            {
+                                recordid: "5",
+                                css: "#",
+                                fields: [
+                                    { recordid: "", css: "", type: "standard", value: "Aggestioni Sagl" }
+                                ]
+                            },
+                            {
+                                recordid: "6",
+                                css: "#",
+                                fields: [
+                                    { recordid: "", css: "", type: "standard", value: "Condominio Liberty Via Domenico Fontana 6" },
+                                    { recordid: "", css: "", type: "standard", value: "2025" },
+                                    { recordid: "", css: "", type: "standard", value: "4050" },
+                                    { recordid: "", css: "", type: "standard", value: "12150" }
+                                ]
+                            }
+                        ],
                         fields: [
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "Via rava 11"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "Viganello"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "Cofis"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "x"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "x"
-                            },
-                            {
-                                recordid: "",
-                                css: "",
-                                type: "standard",
-                                value: "x"
-                            },
+                            { fieldid: "1", value: "Aggestioni Sagl", css:"" },
+                            { fieldid: "2", value: "indirizzo3", css:""  }
+
                         ]
-                    },
+                    }
                 ],
                 columns: [
-                    {
-                        fieldtypeid: "Parola",
-                        desc: ''
-                    },
-                    {
-                        fieldtypeid: "Parola",
-                        desc: '  '
-                    },
-                    {
-                        fieldtypeid: "Parola",
-                        desc: '   '
-                    },
-                    {
-                        fieldtypeid: "Parola",
-                        desc: 'Gennaio'
-                    },
-                    {
-                        fieldtypeid: "Parola",
-                        desc: 'Febbraio'
-                    },
-                    {
-                        fieldtypeid: "Parola",
-                        desc: 'Marzo'
-                    },
-                ],
-              };
+                    { fieldtypeid: "Parola", desc: "Nome" },
+                    { fieldtypeid: "Parola", desc: "Totale" },
+                    { fieldtypeid: "Parola", desc: "Gennaio" },
+                    { fieldtypeid: "Parola", desc: "Febbraio" },
+                    { fieldtypeid: "Parola", desc: "Totale Complessivo" }
+                ]
+            };
 
             // DATI DEL CONTESTO
             const { user } = useContext(AppContext);
@@ -169,6 +156,8 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
     const {refreshTable,handleRowClick} = useRecordsStore();
+
+    
 
 
     // PAYLOAD (solo se non in sviluppo)
@@ -201,25 +190,40 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    {response.columns.map((column) => (
-                                        <th scope="" className="px-6 py-3" key={column.desc}>
+                                    {response.columns.map((column, index) => (
+                                        <th scope="" className="px-6 py-3" key={`${column.desc}-${index}`}>
                                             {column.desc}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {response.rows.map((row) => (
-                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
-                                        {row.fields.map((field) => (
-                                            <td className="px-6 py-4" key={field.value}>
+                            {response.groups.map((group, groupIndex) => (
+                                <React.Fragment key={groupIndex}>
+                                    {/* Main group row */}
+                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        {group.fields.map((field, fieldIndex) => (
+                                            <td className={`px-6 py-4 font-bold ${field.css}`} key={`${field.value}-${fieldIndex}`}>
                                                 {field.value}
                                             </td>
                                         ))}
                                     </tr>
-                                ))}
+
+                                    {/* Child rows with different styling */}
+                                    {group.rows.map((row, rowIndex) => (
+                                        <tr className="bg-red-50 dark:bg-red-900/20" key={`${rowIndex}`}>
+                                            {row.fields.map((field, fieldIndex) => (
+                                                <td className={`px-6 py-4 pl-10 ${field.css}`} key={`${field.value}-${fieldIndex}`}>
+                                                    {field.value}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
+                            ))}
                             </tbody>
                         </table>
+
                     </div>
 
                     <nav aria-label="Page navigation example" className="text-center">

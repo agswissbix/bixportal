@@ -18,8 +18,6 @@ export default function Home() {
   const {selectedMenu} = useRecordsStore();
   const router = useRouter();
 
-  
-
   return (    
     <div className="w-full h-full flex flex-col">
       <Toaster richColors />
