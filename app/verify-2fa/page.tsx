@@ -26,14 +26,13 @@ const Verify2FA = () => {
     );
     toast.success(response.data.message);
     router.push('/custom');
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.message);
-    } else {
-      toast.error("Errore nella verifica del codice OTP");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.message);
+      } else {
+        toast.error("Errore nella verifica del codice OTP");
+      }
     }
-
-  }
   };
 
   return (
