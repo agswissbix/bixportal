@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import Image from 'next/image';
 import '../globals.css';
-import { loginUserApi } from '@/utils/auth';
+import { loginUserApi, getActiveServer } from '@/utils/auth';
 import LoadingComp from '@/components/loading';
 
 export default function Login() {
@@ -15,28 +15,43 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const [activeServer, setActiveServer] = useState<string>('');
+
+  useEffect(() => {
+    const fetchActiveServer = async () => {
+      const server = await getActiveServer();
+      setActiveServer(server.activeServer);
+    };
+    fetchActiveServer();
+  }, []);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     // Eseguiamo la chiamata al nostro proxy su /postApi
     const result = await loginUserApi(username, password);
     if (result.success) {
-
-      // Routing in base allo user
-      if (password === 'BixTA25!') {
-        router.push('/change-password');
-        setTimeout(() => {
-          toast.warning('Password scaduta, si prega di cambiarla');
-        }, 400);
+    
+      if (activeServer === 'telefonoamico') {
+        // Routing in base allo user
+        if (password === 'BixTA25!') {
+          router.push('/change-password');
+          setTimeout(() => {
+            toast.warning('Password scaduta, si prega di cambiarla');
+          }, 400);
+        } else {
+          if (username === 'mariangela' || username === 'jacqueline' || username === 'marsal') {
+            router.push('/verify-2fa');
+            //router.push('/testcomponent/scheduleCalendar');
+            } else {
+              router.push('/custom');
+            
+            }
+        }
       } else {
-        if (username === 'mariangela' || username === 'jacqueline' || username === 'marsal') {
-          router.push('/verify-2fa');
-          //router.push('/testcomponent/scheduleCalendar');
-          } else {
-            router.push('/custom');
-          
-          }
+        router.push('/home');
       }
+
     } else {
       setIsLoading(false);
       toast.error(result.detail || 'Errore durante il login');
@@ -50,8 +65,8 @@ export default function Login() {
         <div className="block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <Image
-              src="/bixdata/logos/logo_tabellone3.png"
-              alt="BixData"
+              src={`/bixdata/logos/${activeServer}.png`}
+              alt={activeServer}
               width={1000}
               height={1000}
               className="h-14 w-auto mx-auto bg-white"

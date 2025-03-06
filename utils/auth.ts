@@ -111,7 +111,22 @@ export async function loginUserApi(
   }
 }
 
+export interface GetActiveServerResponse {
+  activeServer: string;
+}
 
+export async function getActiveServer(): Promise<GetActiveServerResponse> {
+  try {
+    const response = await axios.post('/postApi', {
+      apiRoute: 'getActiveServer',
+    });
+    const activeServer = response.data.activeServer;
+    return { activeServer };
+  } catch (error: any) {
+    console.error('Errore durante il recupero del server attivo', error);
+    return { activeServer: '' };
+  }
+}
 
 
 export interface CheckAuthResponse {
@@ -121,6 +136,7 @@ export interface CheckAuthResponse {
   role?: string | null; // Add the role property
   chat?: string | null;
   telefono?: string | null;
+  activeServer?: string;
 }
 
 // Funzione per controllare se l'utente è autenticato (endpoint: /auth/user/)
@@ -131,6 +147,8 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
       apiRoute: 'checkAuth',
     });
     console.info(response);
+    const { activeServer } = await getActiveServer();
+
     return {
       isAuthenticated: response.data.isAuthenticated,
       username: response.data.username,
@@ -138,6 +156,7 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
       role: response.data.role,
       chat: response.data.chat,
       telefono: response.data.telefono,
+      activeServer: activeServer,
     };
   } catch (error: any) {
     if (error.response && error.response.status === 401) {

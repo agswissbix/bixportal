@@ -95,6 +95,9 @@ export async function POST(request: Request) {
           // (gli altri casi faranno POST)
           djangoUrl = '/commonapp/enable_2fa/';
           break;
+      case 'getActiveServer':
+          djangoUrl = '/commonapp/get_active_server/';
+          break;
       default:
         return NextResponse.json(
           { error: `apiRoute ${apiRoute} non gestito.` },

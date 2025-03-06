@@ -21,6 +21,9 @@ interface RecordsStore {
     
     selectedMenu: string;
     setSelectedMenu: (menuName: string) => void;
+
+    activeServer: string;
+    setActiveServer: (activeServer: string) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -67,4 +70,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     selectedMenu: 'Home',
     setSelectedMenu: (menuName: string) => set({ selectedMenu: menuName }),
+
+    activeServer: '',
+    setActiveServer: (activeServer: string) => set({ activeServer }),
 }));

@@ -17,6 +17,8 @@ interface AppContextType {
   userName: string | null;
   setUserName: React.Dispatch<React.SetStateAction<string | null>>;
   handleLogout: () => void;
+  activeServer: string | null;
+  setActiveServer: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const AppContext = createContext<AppContextType>({
@@ -31,6 +33,8 @@ export const AppContext = createContext<AppContextType>({
   userName: '',
   setUserName: () => {},
   handleLogout: () => {},
+  activeServer: '',
+  setActiveServer: () => {},
 });
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -39,6 +43,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [chat, setChat] = useState<string | null>(null);
   const [telefono, setTelefono] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [activeServer, setActiveServer] = useState<string | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true); // <--- stato di caricamento
 
   const router = useRouter();
@@ -65,6 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setChat(result.chat || null);
         setTelefono(result.telefono || null);
         setUserName(result.name ?? null);
+        setActiveServer(result.activeServer ?? null);
       }
       setLoadingAuth(false); // <--- Fine verifica
     }
@@ -78,6 +84,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setRole(null);
       setUserName(null);
+      setActiveServer(null);
       router.push('/login');
     } else {
       console.error('Logout fallito:', result.detail);
@@ -91,7 +98,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider 
-      value={{ user, setUser, role, setRole, chat, setChat, telefono, setTelefono, userName, setUserName, handleLogout }}
+      value={{ user, setUser, role, setRole, chat, setChat, telefono, setTelefono, userName, setUserName, handleLogout, activeServer, setActiveServer }}
     >
       {children}
     </AppContext.Provider>

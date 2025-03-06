@@ -32,7 +32,7 @@ export default function NavBar() {
                     };
 
                     // DATI DEL CONTESTO
-                    const { user, handleLogout } = useContext(AppContext);
+                    const { user, handleLogout, activeServer } = useContext(AppContext);
 
                     interface NavigationItem {
                         name: string;
@@ -88,9 +88,9 @@ export default function NavBar() {
                     </div>
                     <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                         <div className="flex flex-shrink-0 items-center">
-                            <Image
-                                src="/bixdata/logos/telamico.png"
-                                alt="BixData"
+                            <Image                                
+                                src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer}.png`}
+                                alt={activeServer ?? ''}
                                 width={1000}
                                 height={1000}
                                 className="h-14 w-auto ml-14"
