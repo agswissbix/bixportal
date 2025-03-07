@@ -13,6 +13,7 @@ import ScheduleCalendar from '@/components/scheduleCalendar';
 import Agenda from '@/components/agenda';
 import PitCalendar from '@/components/pitCalendar';
 import CalendarComponent from '@/components/calendarComponent';
+import Dashboard from '@/components/dashboard';
 
 export default function Home() {
   const {selectedMenu} = useRecordsStore();
@@ -38,10 +39,13 @@ export default function Home() {
               : selectedMenu === 'Calendario' ? (
                 <CalendarComponent />
               ) 
+              : selectedMenu === 'Dashboard' ? (
+                <Dashboard />
+              )
               : (
                 <StandardContent tableid={selectedMenu} />
               )
-              }
+        }
 
         </div>
       </div>

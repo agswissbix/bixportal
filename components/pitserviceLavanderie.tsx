@@ -154,11 +154,19 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    
+    // Stato per tenere traccia dei gruppi espansi/collassati
+    const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
+
+    // Funzione per gestire il toggle dei gruppi
+    const toggleGroup = (groupIndex: number) => {
+        setExpandedGroups(prev => ({
+            ...prev,
+            [groupIndex]: !prev[groupIndex]
+        }));
+    };
 
     const {refreshTable,handleRowClick} = useRecordsStore();
-
-    
-
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -182,6 +190,17 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
         }
     }, [response, responseData]);
 
+    // Inizializza tutti i gruppi come espansi all'inizio
+    useEffect(() => {
+        if (responseData.groups.length > 0) {
+            const initialExpandedState: Record<number, boolean> = {};
+            responseData.groups.forEach((_, index) => {
+                initialExpandedState[index] = true; // true significa espanso
+            });
+            setExpandedGroups(initialExpandedState);
+        }
+    }, [responseData.groups.length]);
+
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
@@ -200,20 +219,28 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                             <tbody>
                             {response.groups.map((group, groupIndex) => (
                                 <React.Fragment key={groupIndex}>
-                                    {/* Main group row */}
-                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                    {/* Main group row  */}
+                                    <tr 
+                                        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50"
+                                        onClick={() => toggleGroup(groupIndex)}
+                                    >
                                         {group.fields.map((field, fieldIndex) => (
                                             <td className={`px-6 py-4 font-bold ${field.css}`} key={`${field.value}-${fieldIndex}`}>
                                                 {field.value}
+                                                {fieldIndex === 0 && (
+                                                    <span className="ml-2 text-xs">
+                                                        {expandedGroups[groupIndex] ? '▼' : '►'}
+                                                    </span>
+                                                )}
                                             </td>
                                         ))}
                                     </tr>
 
-                                    {/* Child rows with different styling */}
-                                    {group.rows.map((row, rowIndex) => (
+                                    {/* Child rows - conditionally rendered based on expanded state */}
+                                    {expandedGroups[groupIndex] && group.rows.map((row, rowIndex) => (
                                         <tr className="bg-red-50 dark:bg-red-900/20" key={`${rowIndex}`}>
                                             {row.fields.map((field, fieldIndex) => (
-                                                <td className={`px-6 py-4 pl-10 ${field.css}`} key={`${field.value}-${fieldIndex}`}>
+                                                <td className={`px-6 py-4 pl-12 ${field.css}`} key={`${field.value}-${fieldIndex}`}>
                                                     {field.value}
                                                 </td>
                                             ))}
