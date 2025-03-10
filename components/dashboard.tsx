@@ -5,7 +5,10 @@ import { AppContext } from '@/context/appContext';
 import { GridStack } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
 import BarChart from './charts/barChart';
-
+import LineChart from './charts/lineChart';
+import HorizontalBarChart from './charts/horizontalBarChart';
+import PieChart from './charts/pieChart';
+import DonutChart from './charts/donutChart';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -70,7 +73,7 @@ export default function Dashboard({ propExampleValue }: PropsInterface) {
                     {
                         id: 306,
                         dashboardBlockId: 20,
-                        type: "barchart",
+                        type: "piechart",
                         gsx: 0,
                         gsy: 0,
                         gsw: 2,
@@ -101,6 +104,9 @@ export default function Dashboard({ propExampleValue }: PropsInterface) {
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    
+    const [gridReady, setGridReady] = useState(false);
+
 
 
     // PAYLOAD (solo se non in sviluppo)
@@ -117,22 +123,32 @@ export default function Dashboard({ propExampleValue }: PropsInterface) {
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
+        
         const grid = GridStack.init();
+        setTimeout(() => {
+            setGridReady(true);
+        }, 300);
+
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
         }
+
     }, [response, responseData]);
 
     
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                 <div>
+                 <div className="bg-gray-50 h-full w-full">
                     <p>Dashboard</p>
                     <div className="grid-stack">
                         {response.blocks.map((block) => (
-                            <div key={block.id} className="grid-stack-item" gs-x={block.gsx} gs-y={block.gsy} gs-w={block.gsw} gs-h={block.gsh}>
-                                {block.type === 'barchart' && <BarChart dashboardBlockId={block.dashboardBlockId} blockId={block.id} />}
+                            <div key={block.id} className="grid-stack-item !p-2" gs-x={block.gsx} gs-y={block.gsy} gs-w={block.gsw} gs-h={block.gsh}>
+                                {block.type === 'barchart' && <BarChart dashboardBlockId={block.dashboardBlockId} blockId={block.id} gridReady={gridReady} />}
+                                {block.type == 'linechart' && <LineChart dashboardBlockId={block.dashboardBlockId} blockId={block.id} gridReady={gridReady} />}
+                                {block.type == 'horizontalbarchart' && <HorizontalBarChart dashboardBlockId={block.dashboardBlockId} blockId={block.id} gridReady={gridReady} />}
+                                {block.type == 'piechart' && <PieChart dashboardBlockId={block.dashboardBlockId} blockId={block.id} gridReady={gridReady} />}
+                                {block.type == 'donutchart' && <DonutChart dashboardBlockId={block.dashboardBlockId} blockId={block.id} gridReady={gridReady} />}
                             </div>
                         ))}
                     </div>
