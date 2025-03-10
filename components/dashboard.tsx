@@ -135,6 +135,7 @@ export default function Dashboard({ propExampleValue }: PropsInterface) {
 
     }, [response, responseData]);
 
+    
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (

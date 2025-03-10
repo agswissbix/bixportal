@@ -98,6 +98,10 @@ export async function POST(request: Request) {
       case 'getActiveServer':
           djangoUrl = '/commonapp/get_active_server/';
           break;
+      case 'winteler_wip_barcode_scan':
+            djangoUrl = '/customapp_winteler/winteler_wip_barcode_scan/';
+            break;
+          
       default:
         return NextResponse.json(
           { error: `apiRoute ${apiRoute} non gestito.` },
