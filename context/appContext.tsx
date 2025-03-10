@@ -4,6 +4,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { checkAuth, logoutUser } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
+import LoadingComp from '@/components/loading';
 
 interface AppContextType {
   user: string | null;
@@ -93,7 +94,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Se sto ancora verificando l'autenticazione, mostro un caricamento
   if (loadingAuth) {
-    return <div>Caricamento in corso...</div>;
+    return <LoadingComp />;
   }
 
   return (

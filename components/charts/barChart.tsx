@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import ReactApexChart from 'react-apexcharts';
+import LoadingComp from '../loading';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -13,6 +14,7 @@ const isDev = true;
 interface PropsInterface {
     dashboardBlockId: number;
     blockId: number;
+    gridReady: boolean;
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
@@ -23,7 +25,8 @@ interface ResponseInterface {
     fields: string[]
 }
 
-export default function BarChart({ dashboardBlockId, blockId }: PropsInterface) {
+export default function BarChart({ dashboardBlockId, blockId, gridReady }: PropsInterface) {
+
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : dashboardBlockId;
@@ -97,18 +100,23 @@ export default function BarChart({ dashboardBlockId, blockId }: PropsInterface) 
           },
         },
       };
+    if (!gridReady) {
+      return <LoadingComp />;
+    } else {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="h-auto w-auto">
+                <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2">
                  <ReactApexChart
                    options={chartData.options}
                    series={chartData.series}
                    type="bar"
-                   height={350}
+                   height='100%'
+                   width='100%'
                  />
                </div>
             )}  
         </GenericComponent>
     );
+  }
 };
