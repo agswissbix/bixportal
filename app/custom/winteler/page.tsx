@@ -1,16 +1,18 @@
 'use client'
 import React, { use, useMemo } from 'react';
 import AppLayout from '@/components/scheduleCalendar';
+import WipBarcodeScan from './components/wipBarcodeScan';
 // INTERFACCIA PROPS
 interface PropsInterface {
   tableid?: string;
-  searchTerm?: string;
 }
 
-export default function Custom({ tableid, searchTerm }: PropsInterface) {
+export default function CustomWinteler({ tableid }: PropsInterface) {
 
   return (
-    <AppLayout />
+    <div>
+      <WipBarcodeScan></WipBarcodeScan>
+    </div>
   );
 };
 
