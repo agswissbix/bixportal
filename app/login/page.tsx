@@ -43,14 +43,16 @@ export default function Login() {
           if (username === 'mariangela' || username === 'jacqueline' || username === 'marsal') {
             router.push('/verify-2fa');
             //router.push('/testcomponent/scheduleCalendar');
-            } else if (username === 'wip') {
-              router.push('https://10.0.0.89:3022/custom/winteler');
             } else {
-              router.push('/custom/winteler');
+              router.push('/custom');
             }
         }
       } else {
-        router.push('/home');
+        if (username === 'wip') {
+          router.push('/custom/winteler');
+        } else {
+          router.push('/home');
+        }
       }
 
     } else {
