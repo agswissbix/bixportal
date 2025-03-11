@@ -54,23 +54,33 @@ const removeBarcodeWip = (index: number): void => {
       return;
     }
 
+
     setShowSavingModal(true);
 
     // Simuliamo un caricamento di 2 secondi prima della chiamata
     setTimeout(async () => {
-      try {
-        const response = await axiosInstanceClient.post("/postApi", {
-            apiRoute: "winteler_wip_barcode_scan",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        setShowSavingModal(false);
-        setShowSuccessModal(true);
-      } catch (error) {
-        setShowSavingModal(false);
-        setErrorMessage('Errore durante il salvataggio.');
-        setShowErrorModal(true);
-      }
-    }, 0);
+        try {
+          const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+              apiRoute: "winteler_wip_barcode_scan",
+              barcodeLotto: barcodeLotto,
+              barcodeWipList: barcodeWipList
+            },
+            {
+              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            }
+          );
+          setShowSavingModal(false);
+          setShowSuccessModal(true);
+          console.info('Risposta:')
+          console.info(response)
+        } catch (error) {
+          setShowSavingModal(false);
+          setErrorMessage('Errore durante il salvataggio.');
+          setShowErrorModal(true);
+        }
+      }, 0);
   };
 
   return (
