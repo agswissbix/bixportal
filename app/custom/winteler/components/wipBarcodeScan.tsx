@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import {
   Card,
   CardHeader,
@@ -10,9 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from 'framer-motion';
-import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 export default function QuadroBarcodeComponent() {
   const [barcodeLotto, setBarcodeLotto] = useState("");
@@ -73,6 +72,8 @@ const removeBarcodeWip = (index: number): void => {
           );
           setShowSavingModal(false);
           setShowSuccessModal(true);
+          setBarcodeLotto("");
+          setBarcodeWipList([]);
           console.info('Risposta:')
           console.info(response)
         } catch (error) {
@@ -140,6 +141,38 @@ const removeBarcodeWip = (index: number): void => {
           </Button>
         </CardFooter>
       </Card>
+
+            {/* Modale di Salvataggio */}
+            <Dialog open={showSavingModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Salvataggio in corso...</DialogTitle>
+          </DialogHeader>
+          <p>Attendere, stiamo salvando i dati.</p>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modale di Successo */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Salvataggio riuscito!</DialogTitle>
+          </DialogHeader>
+          <p>I dati sono stati salvati con successo.</p>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modale di Errore */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Errore</DialogTitle>
+          </DialogHeader>
+          <p>{errorMessage}</p>
+          <Button className="bg-red-500 text-white" onClick={() => setShowErrorModal(false)}>Chiudi</Button>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
