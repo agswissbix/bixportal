@@ -107,6 +107,9 @@ export async function POST(request: Request) {
       case 'get_table_records':
             djangoUrl = '/commonapp/get_table_records/';
             break;
+      case 'set_column_order':
+            djangoUrl = '/commonapp/set_column_order/';
+            break;
           
       default:
         return NextResponse.json(

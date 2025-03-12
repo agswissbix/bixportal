@@ -4,6 +4,8 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useRecordsStore } from './records/recordsStore';
 import { ArrowUp, ArrowDown } from 'lucide-react';
+import axiosInstance from '@/utils/axiosInstance';
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -143,10 +145,10 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
 
     // STATO PER L'ORDINAMENTO (solo parte grafica)
     const [sortConfig, setSortConfig] = useState<{
-        columnIndex: number | null;
+        columnDesc: string | null;
         direction: SortDirection;
     }>({
-        columnIndex: null,
+        columnDesc: null,
         direction: null
     });
 
@@ -174,10 +176,10 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
     }, [response, responseData]);
 
     // FUNZIONE PER GESTIRE IL CLICK SULL'INTESTAZIONE DELLA COLONNA (solo parte grafica)
-    const handleSort = (columnIndex: number) => {
+    const handleSort = (columnDesc: string) => {
         let direction: SortDirection = 'asc';
         
-        if (sortConfig.columnIndex === columnIndex) {
+        if (sortConfig.columnDesc === columnDesc) {
             if (sortConfig.direction === 'asc') {
                 direction = 'desc';
             } else if (sortConfig.direction === 'desc') {
@@ -186,13 +188,25 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
         }
         
         setSortConfig({
-            columnIndex: direction === null ? null : columnIndex,
+            columnDesc: direction === null ? null : columnDesc,
             direction
         });
         
         // Qui in futuro potresti aggiungere la chiamata al backend per il vero ordinamento
-        console.log(`Ordinamento colonna ${columnIndex} in direzione ${direction}`);
+        console.log(`Ordinamento colonna ${columnDesc} in direzione ${direction}`);
+        setOrderColumn(columnDesc, direction);
     };
+
+
+    const setOrderColumn = async (columnDesc: string, direction: SortDirection ) => {
+        try {
+            await axiosInstance.post('/commonapp/set_column_order/', { columnDesc, direction});
+            toast.success('ordinamento cambiato');
+        } catch (error) {
+            console.error('Errore durante l\'eliminazione del record', error);
+            toast.error('Errore durante l\'eliminazione del record');
+        }
+    }
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
@@ -202,24 +216,24 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    {response.columns.map((column, index) => (
+                                    {response.columns.map((column) => (
                                         <th 
                                             scope="" 
                                             className="px-6 py-3 cursor-pointer select-none" 
                                             key={column.desc}
-                                            onClick={() => handleSort(index)}
+                                            onClick={() => handleSort(column.desc)}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <span>{column.desc}</span>
                                                 <div className="w-4 h-4 ml-1">
-                                                    {sortConfig.columnIndex === index && sortConfig.direction === 'asc' && (
+                                                    {sortConfig.columnDesc === column.desc && sortConfig.direction === 'asc' && (
                                                         <ArrowUp className="h-4 w-4" />
                                                     )}
-                                                    {sortConfig.columnIndex === index && sortConfig.direction === 'desc' && (
+                                                    {sortConfig.columnDesc === column.desc && sortConfig.direction === 'desc' && (
                                                         <ArrowDown className="h-4 w-4" />
                                                     )}
                                                     {/* Placeholder invisibile per mantenere lo spazio costante */}
-                                                    {(sortConfig.columnIndex !== index || sortConfig.direction === null) && (
+                                                    {(sortConfig.columnDesc !== column.desc || sortConfig.direction === null) && (
                                                         <span className="invisible h-4 w-4">
                                                             <ArrowUp className="h-4 w-4" />
                                                         </span>
