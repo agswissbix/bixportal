@@ -6,7 +6,7 @@ import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -172,7 +172,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'get_table_records', // riferimento api per il backend
+            apiRoute: 'getPitservicePivotLavanderie', // riferimento api per il backend
             tableid: tableid,
             searchTerm: searchTerm,
 

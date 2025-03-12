@@ -110,6 +110,10 @@ export async function POST(request: Request) {
       case 'set_column_order':
             djangoUrl = '/commonapp/set_column_order/';
             break;
+      case 'getPitservicePivotLavanderie':
+            djangoUrl = '/commonapp/get_pitservice_pivot_lavanderia/';
+            break;
+            
           
       default:
         return NextResponse.json(
