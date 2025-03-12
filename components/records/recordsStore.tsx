@@ -17,13 +17,16 @@ interface RecordsStore {
     handleRowClick: (recordid: string, tableid: string, context: string) => Promise<void>; // Aggiungi quia
 
     searchTerm: string;
-    handleSearchChange: (searchTerm: string) => void;
+    setSearchTerm: (searchTerm: string) => void;
     
     selectedMenu: string;
     setSelectedMenu: (menuName: string) => void;
 
     activeServer: string;
     setActiveServer: (activeServer: string) => void;
+
+    tableView: string;
+    setTableView: (tableView: string) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -66,11 +69,15 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     },
 
     searchTerm: '',
-    handleSearchChange: (searchTerm: string) => set({ searchTerm }),
+    setSearchTerm: (searchTerm: string) => set({ searchTerm }),
 
-    selectedMenu: 'Home',
+    selectedMenu: 'Dashboard',
     setSelectedMenu: (menuName: string) => set({ selectedMenu: menuName }),
 
     activeServer: '',
     setActiveServer: (activeServer: string) => set({ activeServer }),
+
+    tableView: '',
+    setTableView: (tableView: string) => set({ tableView }),
 }));
+

@@ -66,7 +66,7 @@ export default function Dashboard({ propExampleValue }: PropsInterface) {
                 blocks: []
               };
 
-            // DATI RESPONSE PER LO SVILUPPO 
+            // DATI RESPONSE PER LO SVILUPPO
             const responseDataDEV: ResponseInterface = {
                 blockList: [],
                 blocks: [
@@ -99,8 +99,8 @@ export default function Dashboard({ propExampleValue }: PropsInterface) {
                 ],
             };
 
-            // DATI DEL CONTESTO
-            const { user } = useContext(AppContext);
+    // DATI DEL CONTESTO
+    const { user } = useContext(AppContext);
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);

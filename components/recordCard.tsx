@@ -1,8 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
-import { CircleX, Maximize2, Info } from 'lucide-react';
+import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardTabs from './cardTabs';
+import { toast, Toaster } from 'sonner';
+import axiosInstance from '@/utils/axiosInstance';
+
 
 
 // INTERFACCIA PROPS
@@ -32,6 +35,29 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
         removeCard(tableid, recordid);
     }, 300);
   };
+
+  const deleteRecord = async (tableid: string, recordid: string) => {
+        try {
+            await axiosInstance.post('/commonapp/delete_record/', { tableid, recordid });
+            handleRemoveCard();
+            toast.success('Record eliminato con successo');
+        } catch (error) {
+            console.error('Errore durante l\'eliminazione del record', error);
+            toast.error('Errore durante l\'eliminazione del record');
+        }
+    }
+
+  const handleTrashClick = () => {
+    toast.warning(
+        "Sei sicuro di voler eliminare questo record?", 
+        {
+            action: {
+                label: "Conferma",
+                onClick: () => deleteRecord(tableid, recordid),
+            },
+        }
+    );
+};
   
   {/*
         const handleGeneratePDF = async () => {
@@ -95,8 +121,12 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                             <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                         </button>
 
+                        <button className="cursor-pointer w-6 h-6 flex items-center justify-center transition-colors" onClick={handleTrashClick}>
+                            <Trash2 className="w-6 h-6 text-red-500 hover:text-red-700" />
+                        </button>
+
                         <button className="cursor-pointer w-6 h-6 flex items-center justify-center transition-colors" onClick={handleRemoveCard}>
-                            <CircleX className="w-6 h-6 text-red-500 hover:text-red-700" />
+                            <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                         </button>
                     </div>
                 </div>

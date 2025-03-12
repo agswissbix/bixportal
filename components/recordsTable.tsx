@@ -3,10 +3,11 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useRecordsStore } from './records/recordsStore';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -14,6 +15,7 @@ const isDev = true;
           tableid?: string;
           searchTerm?: string;
           filters?: string;
+          view?: string;
           context?: string;
         }
 
@@ -35,7 +37,10 @@ const isDev = true;
             }>;
         }
 
-export default function RecordsTable({ tableid,searchTerm,filters,context }: PropsInterface) {
+// TIPO DI ORDINAMENTO
+type SortDirection = 'asc' | 'desc' | null;
+
+export default function RecordsTable({ tableid, searchTerm, filters, view, context }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
@@ -43,7 +48,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
                 rows: [],
-                columns: [],
+                columns: []
               };
 
             // DATI RESPONSE PER LO SVILUPPO 
@@ -136,8 +141,16 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
-    const {refreshTable,handleRowClick} = useRecordsStore();
+    // STATO PER L'ORDINAMENTO (solo parte grafica)
+    const [sortConfig, setSortConfig] = useState<{
+        columnIndex: number | null;
+        direction: SortDirection;
+    }>({
+        columnIndex: null,
+        direction: null
+    });
 
+    const {refreshTable, handleRowClick} = useRecordsStore();
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -146,8 +159,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
             apiRoute: 'get_table_records', // riferimento api per il backend
             tableid: tableid,
             searchTerm: searchTerm,
-
-
+            view: view,
         };
     }, [refreshTable, tableid]);
 
@@ -157,28 +169,70 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response);
+            setResponseData(response.data);
         }
     }, [response, responseData]);
+
+    // FUNZIONE PER GESTIRE IL CLICK SULL'INTESTAZIONE DELLA COLONNA (solo parte grafica)
+    const handleSort = (columnIndex: number) => {
+        let direction: SortDirection = 'asc';
+        
+        if (sortConfig.columnIndex === columnIndex) {
+            if (sortConfig.direction === 'asc') {
+                direction = 'desc';
+            } else if (sortConfig.direction === 'desc') {
+                direction = null;
+            }
+        }
+        
+        setSortConfig({
+            columnIndex: direction === null ? null : columnIndex,
+            direction
+        });
+        
+        // Qui in futuro potresti aggiungere la chiamata al backend per il vero ordinamento
+        console.log(`Ordinamento colonna ${columnIndex} in direzione ${direction}`);
+    };
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
                 <div className="h-full">
-                    <div className="w-full h-full relative overflow-auto">
+                    <div className="w-full h-full relative overflow-auto rounded-lg drop-shadow-sm ">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    {response.columns.map((column) => (
-                                        <th scope="" className="px-6 py-3" key={column.desc}>
-                                            {column.desc}
+                                    {response.columns.map((column, index) => (
+                                        <th 
+                                            scope="" 
+                                            className="px-6 py-3 cursor-pointer select-none" 
+                                            key={column.desc}
+                                            onClick={() => handleSort(index)}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span>{column.desc}</span>
+                                                <div className="w-4 h-4 ml-1">
+                                                    {sortConfig.columnIndex === index && sortConfig.direction === 'asc' && (
+                                                        <ArrowUp className="h-4 w-4" />
+                                                    )}
+                                                    {sortConfig.columnIndex === index && sortConfig.direction === 'desc' && (
+                                                        <ArrowDown className="h-4 w-4" />
+                                                    )}
+                                                    {/* Placeholder invisibile per mantenere lo spazio costante */}
+                                                    {(sortConfig.columnIndex !== index || sortConfig.direction === null) && (
+                                                        <span className="invisible h-4 w-4">
+                                                            <ArrowUp className="h-4 w-4" />
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {response.rows.map((row) => (
-                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
+                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
                                         {row.fields.map((field) => (
                                             <td className="px-6 py-4" key={field.value}>
                                                 {field.value}
@@ -189,7 +243,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                             </tbody>
                         </table>
 
-                        <nav aria-label="Page navigation example" className="text-center">
+                        <nav aria-label="Page navigation example" className="text-center mt-4">
                         <ul className="inline-flex text-sm">
                         <li>
                             <a href="#" className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
@@ -215,7 +269,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                         </ul>
                     </nav>
                     </div>
-            </div>
+                </div>
             )}
         </GenericComponent>
     );

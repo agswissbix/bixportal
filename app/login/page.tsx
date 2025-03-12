@@ -49,7 +49,7 @@ export default function Login() {
         }
       } else {
         if (username === 'wip') {
-          router.push('/custom/winteler');
+          router.push('/custom/winteler');  
         } else {
           router.push('/home');
         }

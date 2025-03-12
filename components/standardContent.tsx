@@ -14,7 +14,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
   const [recordid, setRecordid] = useState('')
 
 
-  const [searchTerm, setSearchTerm] = useState(''); // Stato per il valore di ricerca
+
   const {refreshTable, setRefreshTable} = useRecordsStore(); // Stato per il valore di ricerca
 
   const {cardsList, addCard, removeCard, resetCardsList, handleRowClick} = useRecordsStore(); // Stato per il valore di ricerca
@@ -59,7 +59,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
         ))}
 
 
-      <div><RecordTabs tableid={tableid} searchTerm={searchTerm}></RecordTabs></div>
+      <div><RecordTabs tableid={tableid}></RecordTabs></div>
 
     </div>
   );
