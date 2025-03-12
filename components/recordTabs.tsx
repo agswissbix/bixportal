@@ -1,46 +1,62 @@
-import React, { use, useMemo } from 'react';
+import React, { use, useMemo, useState } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import RecordsTable from './recordsTable';
+import Kanban from './kanban';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
   tableid?: string;
-  searchTerm?: string;
 }
 
-export default function ExampleComponent({ tableid, searchTerm }: PropsInterface) {
+export default function ExampleComponent({ tableid }: PropsInterface) {
 
-  const {handleRowClick} = useRecordsStore();
+  const {handleRowClick, searchTerm,tableView} = useRecordsStore();
+  const [activeTab, setActiveTab] = useState('Table');
   return (
     <div className="h-full w-full">
       <div>
-        <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400">
+        <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
           <li className="me-2">
-            <a
-              href="#"
-              aria-current="page"
-              className="inline-block p-4 text-primary bg-gray-100 rounded-t-lg active dark:bg-gray-800 dark:text-blue-500"
+          <button
+              className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                activeTab === 'Table'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab('Table')}
             >
-              Tabella
-            </a>
+              Campi
+            </button>
           </li>
           <li className="me-2">
-            <a
-              href="#"
-              className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          <button
+              className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                activeTab === 'Kanban'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab('Kanban')}
             >
               Kanban
-            </a>
+            </button>
           </li>
         </ul>
       </div>
-      <div id="records-tab-content">
-        {/* Passa la funzione handleRowClick */}
-        <RecordsTable
-          tableid={tableid}
-          searchTerm={searchTerm}
-          context='standard'
-        />
+      <div id="records-tab-content" className="mt-2">
+        {activeTab === 'Table' ? (
+            <RecordsTable
+              tableid={tableid}
+              searchTerm={searchTerm}
+              view={tableView}
+              context='standard'
+            />
+        ) : activeTab === 'Kanban' ? (
+          <Kanban />
+        ): null
+        }
+  
+      
+
       </div>
     </div>
   );

@@ -13,16 +13,17 @@ import ScheduleCalendar from '@/components/scheduleCalendar';
 import Agenda from '@/components/agenda';
 import PitCalendar from '@/components/pitCalendar';
 import CalendarComponent from '@/components/calendarComponent';
+import Dashboard from '@/components/dashboard';
+import { set } from 'lodash';
 
 export default function Home() {
   const {selectedMenu} = useRecordsStore();
   const router = useRouter();
 
-  
 
   return (    
     <div className="w-full h-full flex flex-col">
-      <Toaster richColors />
+      <Toaster richColors position='top-right' />
       <Navbar />
       <div className="w-full flex-1 flex">
         <Sidebar />
@@ -40,10 +41,13 @@ export default function Home() {
               : selectedMenu === 'Calendario' ? (
                 <CalendarComponent />
               ) 
+              : selectedMenu === 'Dashboard' ? (
+                <Dashboard />
+              )
               : (
                 <StandardContent tableid={selectedMenu} />
               )
-              }
+        }
 
         </div>
       </div>

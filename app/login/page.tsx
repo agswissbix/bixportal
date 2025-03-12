@@ -45,11 +45,14 @@ export default function Login() {
             //router.push('/testcomponent/scheduleCalendar');
             } else {
               router.push('/custom');
-            
             }
         }
       } else {
-        router.push('/home');
+        if (username === 'wip') {
+          router.push('/custom/winteler');  
+        } else {
+          router.push('/home');
+        }
       }
 
     } else {

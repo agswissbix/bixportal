@@ -86,7 +86,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     const {setSelectedMenu,selectedMenu} = useRecordsStore();
 
     // DATI DEL CONTESTO
-    const { user } = useContext(AppContext);
+    const { user, activeServer } = useContext(AppContext);
 
     //FUNZIONI DEL COMPONENTE
     const handleMouseEnter = (section: string) => {
@@ -127,17 +127,29 @@ export default function SidebarMenu({  }: PropsInterface) {
             {(data) => (
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300">
                     <ul className="list-none p-0 m-0">
-                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('TelAmicoCalendario')}> 
-                            Calendario TelAmico
-                        </span>
-                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('TelAmicoAgenda')}> 
-                            Agenda TelAmico
-                        </span>
-                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Calendario')}> 
-                            Agenda TelAmico
-                        </span>
-                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('PitCalendar')}> 
-                            PitCalendar
+                    {activeServer === 'telamico' ? (
+                        <>
+                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('TelAmicoCalendario')}> 
+                                Calendario TelAmico
+                            </span>
+
+                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('TelAmicoAgenda')}> 
+                                Agenda TelAmico
+                            </span>
+
+                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Calendario')}> 
+                                Agenda TelAmico
+                            </span>
+                        </>
+                    ) : activeServer === 'pitservice' ? (
+                        <>
+                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('PitCalendar')}> 
+                                PitCalendar
+                            </span>
+                        </>
+                    ) : null}
+                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
+                            Dashboard
                         </span>
                         {Object.entries(data['menuItems']).map(([key, item]) => {
                             const Icon = iconMap[item.icon] || HelpCircle;

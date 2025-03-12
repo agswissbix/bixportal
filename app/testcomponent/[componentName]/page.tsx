@@ -28,6 +28,8 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     cardLinked : dynamic(() => import('@/components/cardLinked')),
     scheduleCalendar : dynamic(() => import('@/components/scheduleCalendar')),
     pitserviceLavanderie : dynamic(() => import('@/components/pitserviceLavanderie')),
+    dashboard: dynamic(() => import('@/components/dashboard')),
+    scanner: dynamic(() => import('@/components/scannerTest')),
 
 };
 

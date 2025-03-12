@@ -98,6 +98,20 @@ export async function POST(request: Request) {
       case 'getActiveServer':
           djangoUrl = '/commonapp/get_active_server/';
           break;
+      case 'winteler_wip_barcode_scan':
+            djangoUrl = '/customapp_winteler/winteler_wip_barcode_scan/';
+            break;
+      case 'delete_record':
+            djangoUrl = '/commonapp/delete_record/';
+            break;
+      case 'get_table_records':
+            djangoUrl = '/commonapp/get_table_records/';
+            break;
+      case 'getPitservicePivotLavanderie':
+            djangoUrl = '/commonapp/get_pitservice_pivot_lavanderia/';
+            break;
+            
+          
       default:
         return NextResponse.json(
           { error: `apiRoute ${apiRoute} non gestito.` },
