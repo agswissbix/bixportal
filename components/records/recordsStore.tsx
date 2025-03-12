@@ -27,6 +27,9 @@ interface RecordsStore {
 
     tableView: string;
     setTableView: (tableView: string) => void;
+
+    columnOrder: string[];
+    setColumnOrder: (column_order: string[]) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -79,5 +82,8 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     tableView: '',
     setTableView: (tableView: string) => set({ tableView }),
+
+    columnOrder: [],
+    setColumnOrder: (column_order: string[]) => set({ column_order }),
 }));
 

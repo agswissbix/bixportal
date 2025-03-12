@@ -18,6 +18,7 @@ const isDev = false;
           searchTerm?: string;
           filters?: string;
           view?: string;
+          order?: string[];
           context?: string;
         }
 
@@ -33,7 +34,7 @@ const isDev = false;
                     value: string;
                 }>
             }>;
-            columns: Array<{
+            columns: Array<{    
                 fieldtypeid: string;
                 desc: string;
             }>;
