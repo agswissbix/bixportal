@@ -84,6 +84,6 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     setTableView: (tableView: string) => set({ tableView }),
 
     columnOrder: [],
-    setColumnOrder: (column_order: string[]) => set({ column_order }),
+    setColumnOrder: (columnOrder: string[]) => set({ columnOrder }),
 }));
 

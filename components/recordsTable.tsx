@@ -18,7 +18,6 @@ const isDev = false;
           searchTerm?: string;
           filters?: string;
           view?: string;
-          order?: string[];
           context?: string;
         }
 
@@ -34,7 +33,7 @@ const isDev = false;
                     value: string;
                 }>
             }>;
-            columns: Array<{    
+            columns: Array<{
                 fieldtypeid: string;
                 desc: string;
             }>;
@@ -153,7 +152,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
         direction: null
     });
 
-    const {refreshTable, handleRowClick} = useRecordsStore();
+    const {refreshTable, handleRowClick, selectedMenu} = useRecordsStore();
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -172,7 +171,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response.data);
+            setResponseData(response);
         }
     }, [response, responseData]);
 
@@ -214,6 +213,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
             {(response: ResponseInterface) => (
                 <div className="h-full">
                     <div className="w-full h-full relative overflow-auto rounded-lg drop-shadow-sm ">
+                        {selectedMenu}
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>

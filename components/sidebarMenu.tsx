@@ -8,7 +8,7 @@ import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
 interface PropsInterface {
@@ -16,6 +16,12 @@ interface PropsInterface {
 
 interface ResponseInterface {
     menuItems: Record<string, MenuItem>;
+}
+
+interface SubItem {
+    id: string;
+    title: string;
+    href: string;
 }
 
 interface MenuItem {
@@ -26,11 +32,7 @@ interface MenuItem {
     subItems?: SubItem[];
 }
 
-interface SubItem {
-    id: string;
-    title: string;
-    href: string;
-}
+
 
 // Mappa delle icone
 const iconMap: Record<string, LucideIcon> = {
