@@ -35,6 +35,7 @@ const isDev = false;
             }>;
             columns: Array<{
                 fieldtypeid: string;
+                fieldid: string[];
                 desc: string;
             }>;
         }
@@ -42,7 +43,7 @@ const isDev = false;
 // TIPO DI ORDINAMENTO
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function RecordsTable({ tableid, searchTerm, filters, view, context }: PropsInterface) {
+export default function RecordsTable({ tableid, searchTerm, filters, view, order, context }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
@@ -120,6 +121,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
                 columns: [
                     {
                         fieldtypeid: "Numero",
+                        fieldid: "product_name",
                         desc: 'Product name'
                     },
                     {
