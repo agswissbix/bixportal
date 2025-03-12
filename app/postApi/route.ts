@@ -107,6 +107,10 @@ export async function POST(request: Request) {
       case 'get_table_records':
             djangoUrl = '/commonapp/get_table_records/';
             break;
+      case 'getPitservicePivotLavanderie':
+            djangoUrl = '/commonapp/get_pitservice_pivot_lavanderia/';
+            break;
+            
           
       default:
         return NextResponse.json(
