@@ -139,20 +139,12 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
 
             // DATI DEL CONTESTO
             const { user } = useContext(AppContext);
+            const {refreshTable, handleRowClick, selectedMenu} = useRecordsStore();
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
-    // STATO PER L'ORDINAMENTO (solo parte grafica)
-    const [sortConfig, setSortConfig] = useState<{
-        columnDesc: string | null;
-        direction: SortDirection;
-    }>({
-        columnDesc: null,
-        direction: null
-    });
 
-    const {refreshTable, handleRowClick, selectedMenu} = useRecordsStore();
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -174,6 +166,16 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, conte
             setResponseData(response);
         }
     }, [response, responseData]);
+
+    // STATO PER L'ORDINAMENTO (solo parte grafica)
+    const [sortConfig, setSortConfig] = useState<{
+        columnDesc: string | null;
+        direction: SortDirection;
+    }>({
+        columnDesc: null,
+        direction: null
+    });
+
 
     // FUNZIONE PER GESTIRE IL CLICK SULL'INTESTAZIONE DELLA COLONNA (solo parte grafica)
     const handleSort = (columnDesc: string) => {
