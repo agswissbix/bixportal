@@ -238,7 +238,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
 
                                     {/* Child rows - conditionally rendered based on expanded state */}
                                     {expandedGroups[groupIndex] && group.rows.map((row, rowIndex) => (
-                                        <tr className="bg-red-50 dark:bg-red-900/20" key={`${rowIndex}`}>
+                                        <tr className="" key={`${rowIndex}`}>
                                             {row.fields.map((field, fieldIndex) => (
                                                 <td className={`px-6 py-4 pl-12 ${field.css}`} key={`${field.value}-${fieldIndex}`}>
                                                     {field.value}
