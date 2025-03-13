@@ -106,13 +106,13 @@ export default function SidebarMenu({  }: PropsInterface) {
     // IMPOSTAZIONE DELLA RESPONSE
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
-    // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
             apiRoute: 'get_sidebarmenu_items',
         };
-    }, [selectedMenu]);
+    }, []); // Dipendenza vuota: viene eseguito solo al primo rendering
+    
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
