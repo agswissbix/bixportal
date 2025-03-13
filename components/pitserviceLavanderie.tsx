@@ -207,7 +207,11 @@ export default function Pivot({ tableid, searchTerm, filters, context }: PropsIn
                             <thead className="text-xs sticky top-0 z-10">
                                 <tr className="bg-gray-100 dark:from-gray-700 dark:to-gray-800">
                                     {response.columns.map((column, index) => (
-                                        <th scope="col" className="px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-300" key={`${column.desc}-${index}`}>
+                                        <th
+                                            scope="col"
+                                            className={`px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-300 ${index === 0 ? 'w-1/3' : ''}`} // Add conditional class for the first column
+                                            key={`${column.desc}-${index}`}
+                                        >
                                             {column.desc}
                                         </th>
                                     ))}
@@ -218,7 +222,7 @@ export default function Pivot({ tableid, searchTerm, filters, context }: PropsIn
                                 <React.Fragment key={groupIndex}>
                                     {/* Main group row */}
                                     <tr 
-                                        className={`border-b border-gray-100 dark:border-gray-700 transition-all duration-200 ease-in-out hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
+                                        className={`border-b border-gray-100 dark:border-gray-700 transition-all duration-200 ease-in-out  hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
                                             expandedGroups[groupIndex] 
                                                 ? 'bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200' 
                                                 : 'bg-white dark:bg-gray-800'

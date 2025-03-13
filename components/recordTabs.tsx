@@ -3,6 +3,7 @@ import { useRecordsStore } from './records/recordsStore';
 import RecordsTable from './recordsTable';
 import Kanban from './kanban';
 import Pivot from './pitserviceLavanderie'
+import PitCalendar from './pitCalendar';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -54,6 +55,19 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
               Pivot
             </button>
           </li>
+
+          <li className="me-2">
+          <button
+              className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                activeTab === 'Calendar'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab('Calendar')}
+            >
+              Calendario
+            </button>
+          </li>
         </ul>
       </div>
       <div id="records-tab-content" className="mt-2">
@@ -68,6 +82,8 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
           <Kanban />
         ): activeTab === 'Pivot' ? (
           <Pivot />
+        ): activeTab === 'Calendar' ? (
+          <PitCalendar />
         ): null
         }
   
