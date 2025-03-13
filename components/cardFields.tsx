@@ -146,6 +146,20 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
+
+    const handleInputChange = (fieldid: string, newValue: string | string[]) => {
+        setUpdatedFields(prev => ({
+          ...prev,
+          [fieldid]: newValue
+        }));
+      };
+    
+      const handleSave = () => {
+        console.log("Campi modificati:", updatedFields);
+        // Qui potresti fare una chiamata API per salvare i dati
+        // es: api.post('/updateFields', { tableid, recordid, fields: updatedFields })
+      };
 
 
     // PAYLOAD (solo se non in sviluppo)
@@ -161,13 +175,6 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
-    const handleInputChange = (fieldid: string, newValue: string | string[]) => {
-        //setComponentData(prevState => ({
-          //  fields: prevState.fields.map(field =>
-            //    field.fieldid === fieldid ? { ...field, value: newValue } : field
-           // )
-        //}));
-    };
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
@@ -245,8 +252,9 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
 
                     </div>
                 </div>
-                <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Salva</button>
-                
+                <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">
+                    Salva
+                </button>                
             </div>
             )}
         </GenericComponent>
