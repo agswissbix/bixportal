@@ -42,7 +42,7 @@ const isDev = false;
             }[];
         }
 
-export default function RecordsTable({ tableid,searchTerm,filters,context }: PropsInterface) {
+export default function Pivot({ tableid, searchTerm, filters, context }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
@@ -53,7 +53,6 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                 columns: []
             };
             
-
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
                 groups: [
@@ -63,7 +62,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                                 recordid: "1",
                                 css: "#",
                                 fields: [
-                                    { recordid: "", css: "bg-blue-200", type: "standard", value: "Casa Sirio Via Giuseppe Stabile 3" },
+                                    { recordid: "", css: "bg-gray-200", type: "standard", value: "Casa Sirio Via Giuseppe Stabile 3" },
                                     { recordid: "", css: "", type: "standard", value: "2025" },
                                     { recordid: "", css: "", type: "standard", value: "2025" },
                                     { recordid: "", css: "", type: "standard", value: "2025" }
@@ -166,7 +165,7 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
         }));
     };
 
-    const {refreshTable,handleRowClick} = useRecordsStore();
+    const {refreshTable, handleRowClick} = useRecordsStore();
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -175,8 +174,6 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
             apiRoute: 'getPitservicePivotLavanderie', // riferimento api per il backend
             tableid: tableid,
             searchTerm: searchTerm,
-
-
         };
     }, [refreshTable, tableid]);
 
@@ -204,13 +201,13 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="h-full">
-                    <div className="w-full h-full relative overflow-auto">
-                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                <tr>
+                <div className="h-full flex flex-col space-y-4">
+                    <div className="w-full flex-grow relative overflow-auto rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
+                        <table className="w-full text-sm text-left text-gray-600 dark:text-gray-300 table-fixed">
+                            <thead className="text-xs sticky top-0 z-10">
+                                <tr className="bg-gray-100 dark:from-gray-700 dark:to-gray-800">
                                     {response.columns.map((column, index) => (
-                                        <th scope="" className="px-6 py-3" key={`${column.desc}-${index}`}>
+                                        <th scope="col" className="px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-300" key={`${column.desc}-${index}`}>
                                             {column.desc}
                                         </th>
                                     ))}
@@ -219,29 +216,64 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                             <tbody>
                             {response.groups.map((group, groupIndex) => (
                                 <React.Fragment key={groupIndex}>
-                                    {/* Main group row  */}
+                                    {/* Main group row */}
                                     <tr 
-                                        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50"
+                                        className={`border-b border-gray-100 dark:border-gray-700 transition-all duration-200 ease-in-out hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
+                                            expandedGroups[groupIndex] 
+                                                ? 'bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200' 
+                                                : 'bg-white dark:bg-gray-800'
+                                        }`}
                                         onClick={() => toggleGroup(groupIndex)}
                                     >
                                         {group.fields.map((field, fieldIndex) => (
-                                            <td className={`px-6 py-4 font-bold ${field.css}`} key={`${field.value}-${fieldIndex}`}>
-                                                {field.value}
-                                                {fieldIndex === 0 && (
-                                                    <span className="ml-2 text-xs">
-                                                        {expandedGroups[groupIndex] ? '▼' : '►'}
-                                                    </span>
+                                            <td 
+                                                className={`px-4 py-3 ${
+                                                    fieldIndex === 0 ? 'flex items-center' : ''
+                                                } ${field.css}`} 
+                                                key={`${field.value}-${fieldIndex}`}
+                                            >
+                                                {fieldIndex === 0 ? (
+                                                    <>
+                                                        <span className={`mr-2 inline-flex items-center justify-center ${
+                                                            expandedGroups[groupIndex] 
+                                                                ? 'text-gray-600 dark:text-gray-400' 
+                                                                : 'text-gray-400 dark:text-gray-500'
+                                                        }`}>
+                                                            <svg className={`w-4 h-4 transition-transform duration-300 ${
+                                                                expandedGroups[groupIndex] ? 'transform rotate-90' : ''
+                                                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                                            </svg>
+                                                        </span>
+                                                        <span className="truncate font-semibold">{field.value}</span>
+                                                    </>
+                                                ) : (
+                                                    <span className="truncate">{field.value}</span>
                                                 )}
                                             </td>
                                         ))}
                                     </tr>
 
-                                    {/* Child rows - conditionally rendered based on expanded state */}
+                                    {/* Child rows */}
                                     {expandedGroups[groupIndex] && group.rows.map((row, rowIndex) => (
-                                        <tr className="" key={`${rowIndex}`}>
+                                        <tr 
+                                            className={`border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 ${
+                                                rowIndex % 2 === 0 
+                                                    ? 'bg-white dark:bg-gray-800' 
+                                                    : 'bg-white dark:bg-gray-750'
+                                            } hover:bg-blue-50/50 dark:hover:bg-gray-700/80 transition-all duration-200 ease-in-out`} 
+                                            key={`${rowIndex}`}
+                                        >
                                             {row.fields.map((field, fieldIndex) => (
-                                                <td className={`px-6 py-4 pl-12 ${field.css}`} key={`${field.value}-${fieldIndex}`}>
-                                                    {field.value}
+                                                <td 
+                                                    className={`px-4 py-2.5 ${
+                                                        fieldIndex === 0 
+                                                            ? 'pl-10 border-l-2 border-gray-300 dark:border-gray-600' 
+                                                            : ''
+                                                    } ${field.css}`} 
+                                                    key={`${field.value}-${fieldIndex}`}
+                                                >
+                                                    <div className="truncate">{field.value}</div>
                                                 </td>
                                             ))}
                                         </tr>
@@ -250,35 +282,44 @@ export default function RecordsTable({ tableid,searchTerm,filters,context }: Pro
                             ))}
                             </tbody>
                         </table>
-
                     </div>
 
-                    <nav aria-label="Page navigation example" className="text-center">
-                        <ul className="inline-flex text-sm">
+                    <nav aria-label="Page navigation" className="flex justify-center">
+                        <ul className="inline-flex text-xs rounded-lg shadow-sm overflow-hidden">
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-600 bg-white border border-e-0 border-gray-200 rounded-s-lg hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                Prev
+                            </a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 text-white border border-gray-200 bg-blue-500 hover:bg-blue-600 transition-colors duration-150 dark:border-gray-700 dark:bg-blue-600 dark:hover:bg-blue-700">3</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-600 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-50 hover:text-blue-600 transition-colors duration-150 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                Next
+                                <svg className="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
                         </li>
                         </ul>
                     </nav>
-            </div>
+                </div>
             )}
         </GenericComponent>
     );
