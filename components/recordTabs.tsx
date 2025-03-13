@@ -12,7 +12,7 @@ interface PropsInterface {
 
 export default function ExampleComponent({ tableid }: PropsInterface) {
 
-  const {handleRowClick, searchTerm,tableView} = useRecordsStore();
+  const {handleRowClick, searchTerm, tableView, currentPage, pageLimit } = useRecordsStore();
   const [activeTab, setActiveTab] = useState('Table');
   return (
     <div className="h-full w-full">
@@ -76,6 +76,8 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
               tableid={tableid}
               searchTerm={searchTerm}
               view={tableView}
+              pagination={{ page: currentPage, limit: pageLimit }}
+
               context='standard'
             />
         ) : activeTab === 'Kanban' ? (

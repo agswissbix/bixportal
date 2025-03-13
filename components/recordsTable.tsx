@@ -6,6 +6,7 @@ import { useRecordsStore } from './records/recordsStore';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
+import { set } from 'lodash';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -18,7 +19,12 @@ const isDev = false;
           searchTerm?: string;
           filters?: string;
           view?: string;
+          order?: string[];
           context?: string;
+          pagination: {
+            page: number;
+            limit: number;
+          }
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -33,9 +39,8 @@ const isDev = false;
                     value: string;
                 }>
             }>;
-            columns: Array<{
+            columns: Array<{    
                 fieldtypeid: string;
-                fieldid: string[];
                 desc: string;
             }>;
         }
@@ -43,7 +48,7 @@ const isDev = false;
 // TIPO DI ORDINAMENTO
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function RecordsTable({ tableid, searchTerm, filters, view, order, context }: PropsInterface) {
+export default function RecordsTable({ tableid, searchTerm, filters, view, order, context, pagination }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
@@ -121,7 +126,6 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                 columns: [
                     {
                         fieldtypeid: "Numero",
-                        fieldid: "product_name",
                         desc: 'Product name'
                     },
                     {
@@ -141,33 +145,9 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
 
             // DATI DEL CONTESTO
             const { user } = useContext(AppContext);
-            const {refreshTable, handleRowClick, selectedMenu} = useRecordsStore();
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
-
-
-
-    // PAYLOAD (solo se non in sviluppo)
-    const payload = useMemo(() => {
-        if (isDev) return null;
-        return {
-            apiRoute: 'get_table_records', // riferimento api per il backend
-            tableid: tableid,
-            searchTerm: searchTerm,
-            view: view,
-        };
-    }, [refreshTable, tableid]);
-
-    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
-
-    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
-    useEffect(() => {
-        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response);
-        }
-    }, [response, responseData]);
 
     // STATO PER L'ORDINAMENTO (solo parte grafica)
     const [sortConfig, setSortConfig] = useState<{
@@ -178,6 +158,28 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         direction: null
     });
 
+    const {refreshTable, setRefreshTable, handleRowClick, setCurrentPage} = useRecordsStore();
+
+    // PAYLOAD (solo se non in sviluppo)
+    const payload = useMemo(() => {
+        if (isDev) return null;
+        return {
+            apiRoute: 'get_table_records', // riferimento api per il backend
+            tableid: tableid,
+            searchTerm: searchTerm,
+            view: view,
+        };
+    }, [refreshTable, tableid, pagination.page]);
+
+    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
+    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
+    useEffect(() => {
+        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+            setResponseData(response.data);
+        }
+    }, [response, responseData]);
 
     // FUNZIONE PER GESTIRE IL CLICK SULL'INTESTAZIONE DELLA COLONNA (solo parte grafica)
     const handleSort = (columnDesc: string) => {
@@ -203,13 +205,11 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
 
 
     const setOrderColumn = async (columnDesc: string, direction: SortDirection ) => {
-        try {
-            await axiosInstance.post('/commonapp/set_column_order/', { columnDesc, direction});
-            toast.success('ordinamento cambiato');
-        } catch (error) {
-            console.error('Errore durante l\'eliminazione del record', error);
-            toast.error('Errore durante l\'eliminazione del record');
-        }
+        
+    }
+
+    const setTablePage = async (page: number) => {
+        setCurrentPage(page);        
     }
 
     return (
@@ -217,7 +217,6 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             {(response: ResponseInterface) => (
                 <div className="h-full">
                     <div className="w-full h-full relative overflow-auto rounded-lg drop-shadow-sm ">
-                        {selectedMenu}
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
@@ -259,7 +258,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                         ))}
                                     </tr>
                                 ))}
-                            </tbody>
+                            </tbody>    
                         </table>
 
                         <nav aria-label="Page navigation example" className="text-center mt-4">
@@ -274,13 +273,13 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">{pagination.page}</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
+                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">...</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
+                            <button   onClick={() => setTablePage(pagination.page)} className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">{pagination.limit}</button>
                         </li>
                         <li>
                             <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>

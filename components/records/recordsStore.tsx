@@ -30,6 +30,12 @@ interface RecordsStore {
 
     columnOrder: string[];
     setColumnOrder: (column_order: string[]) => void;
+
+    currentPage: number;
+    setCurrentPage: (currentPage: number) => void;
+
+    pageLimit: number;
+    setPageLimit: (pageLimit: number) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -85,5 +91,13 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     columnOrder: [],
     setColumnOrder: (columnOrder: string[]) => set({ columnOrder }),
+
+    currentPage: 1,
+    setCurrentPage: (currentPage: number) => set({ currentPage }),
+
+    pageLimit: 10,
+    setPageLimit: (pageLimit: number) => set({ pageLimit }),
+    
+
 }));
 
