@@ -169,7 +169,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             searchTerm: searchTerm,
             view: view,
         };
-    }, [refreshTable, tableid, pagination.page]);
+    }, [refreshTable, tableid,]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -177,7 +177,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response.data);
+            setResponseData(response);
         }
     }, [response, responseData]);
 
@@ -209,7 +209,14 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     }
 
     const setTablePage = async (page: number) => {
-        setCurrentPage(page);        
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > pagination.limit) {
+            page = pagination.limit;
+        }
+        setCurrentPage(page);       
+        setRefreshTable(refreshTable + 1); 
     }
 
     return (
@@ -222,7 +229,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 <tr>
                                     {response.columns.map((column) => (
                                         <th 
-                                            scope="" 
+                                            scope=""
                                             className="px-6 py-3 cursor-pointer select-none" 
                                             key={column.desc}
                                             onClick={() => handleSort(column.desc)}
@@ -264,7 +271,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                         <nav aria-label="Page navigation example" className="text-center mt-4">
                         <ul className="inline-flex text-sm">
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
+                            <button onClick={() => setTablePage(pagination.page - 1)} className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</button>
                         </li>
                         <li>
                             <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
@@ -279,10 +286,10 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">...</a>
                         </li>
                         <li>
-                            <button   onClick={() => setTablePage(pagination.page)} className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">{pagination.limit}</button>
+                            <button onClick={() => setTablePage(pagination.limit)} className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">{pagination.limit}</button>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
+                            <button onClick={() => setTablePage(pagination.page + 1)}  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</button>
                         </li>
                         </ul>
                     </nav>
