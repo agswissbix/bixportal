@@ -25,7 +25,7 @@ const Verify2FA = () => {
       } 
     );
     toast.success(response.data.message);
-    router.push('/custom');
+    router.push('/custom/ta');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.message);
