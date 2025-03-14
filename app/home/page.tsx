@@ -9,7 +9,7 @@ import { getCsrfToken } from '@/utils/auth';
 import Sidebar from '@/components/sidebar';
 import StandardContent from '@/components/standardContent';
 import { useRecordsStore } from '@/components/records/recordsStore';
-import ScheduleCalendar from '@/app/custom/telefonoamico/components/scheduleCalendar';
+import ScheduleCalendar from '@/app/custom/ta/components/scheduleCalendar';
 import Agenda from '@/components/agenda';
 import PitCalendar from '@/components/pitCalendar';
 import CalendarComponent from '@/components/calendarComponent';

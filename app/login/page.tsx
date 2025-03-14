@@ -44,7 +44,7 @@ export default function Login() {
             router.push('/verify-2fa');
             //router.push('/testcomponent/scheduleCalendar');
             } else {
-              router.push('/custom/telefonoamico');
+              router.push('/custom/ta');
             }
         }
       } else {
