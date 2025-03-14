@@ -21,7 +21,7 @@ export default function InputDate({ initialValue = '',onChange }: PropsInterface
       <div className="mt-2">
         <div className="flex items-center mb-4">
         <input
-            name="word"
+            name="input-checkbox"
             type="checkbox"
             value={value}
             onChange={(e) => setValue(e.target.value)} // Aggiorna lo stato locale
