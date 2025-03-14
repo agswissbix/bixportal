@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { LogOut, User, Calendar, Phone, MessageCircle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import ScheduleCalendarTelefono from './scheduleCalendarTelefono';
+import ScheduleCalendarContent from './scheduleCalendarContent';
 import ScheduleCalendarChat from './scheduleCalendarChat';
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
@@ -168,8 +168,8 @@ const AppLayout = () => {
       </header>
 
       <main className="w-full p-6">
-        {activeTab === 'phone' && telefono === 'Si' ? <ScheduleCalendarTelefono /> : null}
-        {activeTab === 'chat' && chat === 'Si' ? <ScheduleCalendarChat /> : null}
+        {activeTab === 'phone' && telefono === 'Si' ? <ScheduleCalendarContent tipologia="telefono"  /> : null}
+        {activeTab === 'chat' && chat === 'Si' ? <ScheduleCalendarContent tipologia="chat"  /> : null}
       </main>
     </div>
   );

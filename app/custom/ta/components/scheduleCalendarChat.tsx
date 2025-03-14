@@ -5,6 +5,7 @@ import axios from 'axios';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { AppContext } from '@/context/appContext';
+const borderClass = "border border-red-400";
 
 const ScheduleCalendarTelefono = () => {
   const now = new Date();
@@ -444,7 +445,7 @@ const ScheduleCalendarTelefono = () => {
 
   // Classe base per le celle
   const getCellClassName = (slot: Slot | null) => {
-    const baseClasses = 'py-2 px-4 border-l cursor-pointer';
+    const baseClasses = 'py-2 px-4 border '+borderClass+' cursor-pointer';
     if (!slot) return baseClasses;
 
     const matchesVolunteer = !selectedVolunteer || slot.name === selectedVolunteer;
@@ -487,7 +488,7 @@ const ScheduleCalendarTelefono = () => {
           <div className="w-full h-[85vh] p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 bg-white text-green-500 px-4 py-2 rounded-lg">
+                <div className="inline-flex items-center gap-2 bg-white text-red-500 px-4 py-2 rounded-lg">
                   <MessageCircle size={30} />
                 </div>
                 <select
@@ -527,11 +528,11 @@ const ScheduleCalendarTelefono = () => {
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium">Filtra per Volontario:</label>
                   <select
-                    className="border rounded px-2 py-1 bg-white min-w-[200px]"
-                    value={selectedVolunteer}
-                    onChange={(e) => setSelectedVolunteer(e.target.value)}
-                  >
-                    <option value="">Tutti</option>
+                  className="border rounded px-2 py-1 bg-white min-w-[200px]"
+                  value={selectedVolunteer}
+                  onChange={(e) => setSelectedVolunteer(e.target.value)}
+                >
+                  <option value="">Tutti</option>
                   {isAdmin ? (
                     volunteers.map((volunteer) => (
                       <option key={volunteer} value={volunteer}>
@@ -541,7 +542,7 @@ const ScheduleCalendarTelefono = () => {
                   ) : (
                     <option value={userName || ''}>{userName || ''}</option>
                   )}
-                  </select>
+                </select>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium">Filtra per Sede:</label>
@@ -571,7 +572,7 @@ const ScheduleCalendarTelefono = () => {
 
             <div id="calendar-table" className="border rounded overflow-auto h-[70vh]">
               <table className="w-full min-w-[1000px]">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   <tr className="bg-blue-600 text-white">
                     <th className="py-2 px-2 text-left w-8">STATO</th>
                     <th className="py-2 px-4 text-left">
@@ -580,10 +581,10 @@ const ScheduleCalendarTelefono = () => {
 
                     {timeSlots.map((slot, index) => (
                       <React.Fragment key={`header-${index}`}>
-                        <th className="py-2 px-4 text-center border-l border-blue-500 w-12 bg-yellow-50">
+                        <th className="py-2 px-4 text-center border ${borderClass} w-12 bg-yellow-50">
                           Dev
                         </th>
-                        <th className="py-2 px-4 text-center border-l border-blue-500">
+                        <th className="py-2 px-4 text-center border ${borderClass}">
                           {slot}
                         </th>
                       </React.Fragment>
@@ -644,7 +645,7 @@ const ScheduleCalendarTelefono = () => {
                             <React.Fragment key={`slot-${dayIndex}-${slotIndex}`}>
                               {/* Colonna "Dev" (shift) */}
                               <td
-                                className={`border-l text-center font-bold ${
+                                className={`border ${borderClass} text-center font-bold ${
                                   isInNextTwoWeeks ? "bg-red-100" : "bg-yellow-50"
                                 } ${
                                   (!selectedVolunteer || slot?.name === selectedVolunteer) &&
@@ -683,7 +684,7 @@ const ScheduleCalendarTelefono = () => {
                 <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
                   <h2 className="text-lg font-bold mb-4">TURNO</h2>
                   <div className="mb-4 text-sm text-gray-600">
-                  Fascia oraria: {activeSlot ? activeSlot.timeSlot + " Giorno: " +scheduleData[activeSlot.dayIndex].day : ""}
+                    Fascia oraria: {activeSlot ? activeSlot.timeSlot + " Giorno: " +scheduleData[activeSlot.dayIndex].day : ""}
                   </div>
 
                   {/* Nome Volontario */}
@@ -810,7 +811,7 @@ const ScheduleCalendarTelefono = () => {
                         </td>
                         <td className="py-2 px-4 w-1/4 align-top">
                           {timeSlots[slotIndex] || "Orario Non Definito"}
-                          <div className="text-xs text-gray-400 mt-1">{slot.shift}</div>
+                          <div className="text-xs ${borderClass} mt-1">{slot.shift}</div>
                         </td>
                         <td className="py-2 px-4 align-top">
                           {slot.name}

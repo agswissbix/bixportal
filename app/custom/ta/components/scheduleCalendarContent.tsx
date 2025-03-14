@@ -5,8 +5,13 @@ import axios from 'axios';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { AppContext } from '@/context/appContext';
+const borderClass = "border border-gray-400";
 
-const ScheduleCalendarTelefono = () => {
+interface ScheduleCalendarContentProps {
+  tipologia: string;
+}
+
+const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) => {
   const now = new Date();
   const realCurrentYear = now.getFullYear();
   const realCurrentMonth = now.getMonth(); // 0 = Gennaio, 11 = Dicembre
@@ -151,7 +156,7 @@ const ScheduleCalendarTelefono = () => {
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
 
   const isDev = false;
-  const payload = useMemo(() => (!isDev ? { apiRoute: 'get_shifts_and_volunteers' } : null), []);
+  const payload = useMemo(() => (!isDev ? { apiRoute: `get_shifts_and_volunteers_${tipologia}` } : null), [isDev, tipologia]);
 
   const { response, loading } = !isDev && payload 
     ? useApi<{ 
@@ -353,7 +358,7 @@ const ScheduleCalendarTelefono = () => {
       name: formData.name,
       shift: formData.shift,
       dev: formData.dev || '',
-      type: 'telefono',
+      type: tipologia,
       access: "edit" as "edit" | "view" | "delete"
     };
 
@@ -405,7 +410,7 @@ const ScheduleCalendarTelefono = () => {
       apiRoute: "delete_shift",
       date: `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${(dayIndex + 1).toString().padStart(2, '0')}`,
       timeSlot: timeSlots[slotIndex],
-      type: 'telefono'
+      type: tipologia
     };
 
     try {
@@ -446,7 +451,7 @@ const ScheduleCalendarTelefono = () => {
 
   // Classe base per le celle
   const getCellClassName = (slot: Slot | null) => {
-    const baseClasses = 'py-2 px-4 border-l cursor-pointer';
+    const baseClasses = 'py-2 px-4 border '+borderClass+' cursor-pointer';
     if (!slot) return baseClasses;
 
     const matchesVolunteer = !selectedVolunteer || slot.name === selectedVolunteer;
@@ -469,15 +474,15 @@ const ScheduleCalendarTelefono = () => {
       <div className="w-full mx-auto bg-white rounded-lg shadow-lg">
 
         {/* Barra per selezionare Calendario o Agenda */}
-        <div className="w-full h-12 bg-red-500 rounded-md flex items-center gap-4 p-2">
+        <div className={`w-full h-12 ${tipologia === 'telefono' && 'bg-red-500'} ${tipologia === 'chat' && 'bg-green-500'} rounded-md flex items-center gap-4 p-2`}>
           <button
-            className="bg-white text-red-500 px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100"
+            className={`bg-white ${tipologia === 'telefono' && 'text-red-500'} ${tipologia === 'chat' && 'text-green-500'} px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100`}
             onClick={() => setViewMode("calendar")}
           >
             Calendario
           </button>
           <button
-            className="bg-white text-red-500 px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100"
+            className={`bg-white ${tipologia === 'telefono' && 'text-red-500'} ${tipologia === 'chat' && 'text-green-500'} px-4 py-2 rounded-md text-sm font-medium shadow hover:bg-gray-100`}
             onClick={() => setViewMode("agenda")}
           >
             Agenda
@@ -573,19 +578,19 @@ const ScheduleCalendarTelefono = () => {
 
             <div id="calendar-table" className="border rounded overflow-auto h-[70vh]">
               <table className="w-full min-w-[1000px]">
-                <thead>
+                <thead className="sticky top-0 z-10">
                   <tr className="bg-blue-600 text-white">
-                    <th className="py-2 px-2 text-left w-8">STATO</th>
-                    <th className="py-2 px-4 text-left">
+                    <th className={`py-2 px-2 text-left w-0 ${borderClass}`}></th>
+                    <th className={`py-2 px-4 text-left ${borderClass}`}>
                       {new Date(currentYear, currentMonth, 1).toLocaleDateString("it-IT", { month: "short" }).toUpperCase()}
                     </th>
 
                     {timeSlots.map((slot, index) => (
                       <React.Fragment key={`header-${index}`}>
-                        <th className="py-2 px-4 text-center border-l border-blue-500 w-12 bg-yellow-50">
-                          Dev
+                        <th className={`py-1 px-1 w-8 text-center ${borderClass} w-12 bg-yellow-50 `}>
+                          
                         </th>
-                        <th className="py-2 px-4 text-center border-l border-blue-500">
+                        <th className={`py-2 px-4 text-center ${borderClass} `}>
                           {slot}
                         </th>
                       </React.Fragment>
@@ -618,26 +623,20 @@ const ScheduleCalendarTelefono = () => {
 
                       // Scegliamo il colore di sfondo per la cella del giorno
                       let dayBackground = '';
-                      if (isInNextTwoWeeks) {
-                        dayBackground = 'bg-red-100';
-                      } else {
-                        dayBackground = day.dayType === "weekend"
-                          ? "bg-yellow-100"
-                          : isFullyBooked(day.slots)
-                          ? "bg-green-100"
-                          : "bg-blue-100";
-                      }
+        
+                      dayBackground = day.dayType === "weekend"
+                        ? "bg-yellow-100"
+                        : isFullyBooked(day.slots)
+                        ? "bg-green-100"
+                        : "bg-blue-100";
+                      
 
                       return (
                         <tr key={day.day} className="border-t bg-white">
-                          <td
-                            className={`py-2 px-2 border-r text-center w-8 ${
-                              isFullyBooked(day.slots) ? "bg-green-100" : "bg-red-100"
-                            }`}
-                          ></td>
-                          <td
-                            className={`py-2 px-4 border-r font-bold ${dayBackground}`}
-                          >
+                          <td  className={`py-2 px-2 ${borderClass} text-center w-8 ${isFullyBooked(day.slots) ? "bg-green-100" : "bg-red-100"}`}>
+
+                          </td>
+                          <td className={`py-2 px-4 ${borderClass} font-bold ${dayBackground}`}>
                             <div className="text-2xl">{day.day}</div>
                             <div className="text-sm">{day.dayName}</div>
                           </td>
@@ -646,8 +645,8 @@ const ScheduleCalendarTelefono = () => {
                             <React.Fragment key={`slot-${dayIndex}-${slotIndex}`}>
                               {/* Colonna "Dev" (shift) */}
                               <td
-                                className={`border-l text-center font-bold ${
-                                  isInNextTwoWeeks ? "bg-red-100" : "bg-yellow-50"
+                                className={`${borderClass} text-center font-bold ${
+                                  isInNextTwoWeeks ? "bg-yellow-50" : "bg-yellow-50"
                                 } ${
                                   (!selectedVolunteer || slot?.name === selectedVolunteer) &&
                                   (!selectedShift || slot?.shift === selectedShift)
@@ -812,7 +811,7 @@ const ScheduleCalendarTelefono = () => {
                         </td>
                         <td className="py-2 px-4 w-1/4 align-top">
                           {timeSlots[slotIndex] || "Orario Non Definito"}
-                          <div className="text-xs text-gray-400 mt-1">{slot.shift}</div>
+                          <div className="text-xs ${borderClass} mt-1">{slot.shift}</div>
                         </td>
                         <td className="py-2 px-4 align-top">
                           {slot.name}
@@ -830,4 +829,4 @@ const ScheduleCalendarTelefono = () => {
   );
 };
 
-export default ScheduleCalendarTelefono;
+export default ScheduleCalendarContent;
