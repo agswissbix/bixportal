@@ -410,7 +410,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
       apiRoute: "delete_shift",
       date: `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${(dayIndex + 1).toString().padStart(2, '0')}`,
       timeSlot: timeSlots[slotIndex],
-      type: {tipologia}
+      type: tipologia
     };
 
     try {
