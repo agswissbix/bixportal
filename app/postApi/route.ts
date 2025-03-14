@@ -113,6 +113,9 @@ export async function POST(request: Request) {
       case 'getPitservicePivotLavanderie':
             djangoUrl = '/commonapp/get_pitservice_pivot_lavanderia/';
             break;
+      case 'save_record_fields':
+        djangoUrl = '/commonapp/save_record_fields/';
+        break;
             
           
       default:

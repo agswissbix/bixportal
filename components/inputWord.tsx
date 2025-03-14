@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -6,9 +6,13 @@ interface PropsInterface {
   onChange?: (value: string) => void;
 }
 
-export default function InputWord({ initialValue = '',onChange }: PropsInterface) {
-
+export default function InputWord({ initialValue = '', onChange }: PropsInterface) {
   const [value, setValue] = useState(initialValue);
+
+  // Sync the state value with the initialValue when it changes
+  useEffect(() => {
+    setValue(initialValue);  // Update value whenever initialValue changes
+  }, [initialValue]);
 
   useEffect(() => {
     if (onChange && value !== initialValue) {
@@ -33,5 +37,3 @@ export default function InputWord({ initialValue = '',onChange }: PropsInterface
     </div>
   );
 };
-
-

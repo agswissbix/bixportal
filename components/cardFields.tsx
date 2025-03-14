@@ -10,6 +10,10 @@ import InputCheckbox from './inputCheckbox';
 import SelectUser from './selectUser';
 import SelectStandard from './selectStandard';
 import InputLinked from './inputLinked';
+import InputEditor from './inputEditor';
+import { forEach, update } from 'lodash';
+import axiosInstance from '@/utils/axiosInstance';
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -120,8 +124,8 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         fieldid: "test6",
                         fieldorder: "6",
                         description: "Test 6",
-                        value: { code: 'test6', value: 'test6' },
-                        fieldtype: "Categoria",
+                        value: { code: '<p>test6a</p><table><thead><tr><th><p>fwefewfwa</p></th><th><p>wfewffww</p></th><th><p><br></p></th><th><p>ewfwefwfwwef</p></th></tr></thead><tbody><tr><td><p>wefew</p></td><td><p>fwfwe</p></td><td><p>ewfe</p></td><td><p>fwef</p></td></tr><tr><td><p>wefwef</p></td><td><p>fwefewf</p></td><td><p>wewfef</p></td><td><p>wef</p></td></tr><tr><td><p>wf</p></td><td><p>wef</p></td><td><p>wef</p></td><td><p>wef</p></td></tr></tbody></table>', value: 'test6' },
+                        fieldtype: "LongText",
                         lookupitems: [
                             {itemcode: '1', itemdesc: 'Item 1', link: 'item', linkfield: 'id', linkvalue: '1', linkedfield: 'id', linkedvalue: '1'},
                             {itemcode: '2', itemdesc: 'Item 2', link: 'item', linkfield: 'id', linkvalue: '2', linkedfield: 'id', linkedvalue: '2'}
@@ -149,17 +153,31 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
     const handleInputChange = (fieldid: string, newValue: string | string[]) => {
-        setUpdatedFields(prev => ({
-          ...prev,
-          [fieldid]: newValue
+        setUpdatedFields((prev) => ({
+            ...prev,
+            [fieldid]: newValue,
         }));
       };
     
-      const handleSave = () => {
-        console.log("Campi modificati:", updatedFields);
+      const handleSave = async () => {
+        console.log("Tutti i campi aggiornati:", updatedFields);
+        try {
+            await axiosInstance.post('/commonapp/save_record_fields/', { tableid, recordid, fields: updatedFields });
+            toast.success('Record salvato con successo');
+        } catch (error) {
+            console.error('Errore durante il salvataggio del record', error);
+            toast.error('Errore durante iil salvataggio del record');
+        }
+
+
+        //reset updatedFields
+        setUpdatedFields({});
+        console.log("After save:", updatedFields);
+
         // Qui potresti fare una chiamata API per salvare i dati
-        // es: api.post('/updateFields', { tableid, recordid, fields: updatedFields })
-      };
+        // es: api.post('/updateFields', { tableid, recordid, fields: allFields })
+    };
+    
 
 
     // PAYLOAD (solo se non in sviluppo)
@@ -181,7 +199,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
         }
-    }, [response, responseData]);
+    }, [response]);
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
@@ -192,7 +210,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         {response.fields.map(field => (
                             <div className="flex-1" key={field.fieldid}>
                                 <p className="text-black">{field.description}</p>
-                            </div>
+                            </div>  
                         ))}
                     </div>
                     <div className="flex-1 flex flex-col">
@@ -222,7 +240,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                                 <InputCheckbox 
                                     initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
                                     onChange={(value: string) => handleInputChange(field.fieldid, value)} 
-                                />
+                                /> 
                             ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
                                 <SelectUser
                                   lookupItems={field.lookupitemsuser}
@@ -246,7 +264,12 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                                     linkedmaster_tableid={field.linked_mastertable}
                                     linkedmaster_recordid={typeof field.value === 'object' ? field.value.code : field.value}
                                 />
-                              ) : null}
+                            ) : field.fieldtype === 'LongText' ? (
+                                <InputEditor 
+                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
+                                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
+                                />
+                            ) : null}
                         </div>
                     ))}
 
