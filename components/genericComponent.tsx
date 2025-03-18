@@ -8,6 +8,7 @@ interface GenericComponentProps<T> {
     response?: T | null; // Optional
     loading?: boolean; // Optional
     error?: string | null; // Optional
+    elapsedTime?: number | null;
     children: (data: T) => React.ReactNode;
 }
 
@@ -16,6 +17,7 @@ const GenericComponent = <T,>({
     response,
     loading = false,
     error = null,
+    elapsedTime = null,
     children,
 }: GenericComponentProps<T>) => {
     if (loading) return <LoadingComp />;
@@ -30,7 +32,7 @@ const GenericComponent = <T,>({
                 <span className={`absolute top-0 left-0 bg-black text-white text-xs px-2 py-1 rounded shadow-md 
                                 ${!isVisible ? 'hidden' : ''} 
                                 z-[9999] pointer-events-none`}>
-                    Componente: <span className="text-red-600">{title}</span>
+                    Componente: <span className="text-red-600">{title}</span> {elapsedTime !== null && ` - Tempo: ${elapsedTime.toFixed(2)} ms`}
                 </span>
                 {/* Renderizza i children senza div aggiuntivi */}
                 {children(response as T)}

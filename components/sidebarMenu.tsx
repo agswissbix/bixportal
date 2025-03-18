@@ -115,7 +115,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+    const { response, loading, error, elapsedTime  } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null, elapsedTime: null };
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo)
     useEffect(() => {
@@ -125,7 +125,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     }, [response, responseData]);
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu"> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu" elapsedTime={elapsedTime}> 
             {(data) => (
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300">
                     <ul className="list-none p-0 m-0">
