@@ -84,7 +84,7 @@ export default function SelectUser({ lookupItems,initialValue='', onChange,isMul
       };
 
   return (
-    <div className="mt-2 relative">
+    <div className=" relative">
       <Select
         isMulti={isMulti}
         options={options}

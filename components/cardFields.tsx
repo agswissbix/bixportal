@@ -153,11 +153,18 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
     const handleInputChange = (fieldid: string, newValue: string | string[]) => {
-        setUpdatedFields((prev) => ({
-            ...prev,
-            [fieldid]: newValue,
-        }));
-      };
+        setUpdatedFields(prev => {
+            // Controlla se il valore è effettivamente cambiato prima di aggiornare lo stato
+            if (prev[fieldid] === newValue) {
+                return prev; // Non fare nulla se il valore è uguale
+            }
+            return {
+                ...prev,
+                [fieldid]: newValue,
+            };
+        });
+    };
+    
     
       const handleSave = async () => {
         console.log("Tutti i campi aggiornati:", updatedFields);
@@ -197,23 +204,24 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response);
+            setResponseData(response); // Questo aggiorna solo quando c'è una differenza nei dati
         }
-    }, [response]);
+    }, [response, isDev, responseData]); // Assicurati che le dipendenze siano ben definite
+    
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="CardFields"> 
             {(response: ResponseInterface) => (
                 <div className="h-5/6">
-                <div className="h-full flex flex-row overflow-y-scroll">
-                    <div className="flex-1 flex flex-col ">
+                <div className="h-full flex flex-row overflow-y-scroll gap-x-4">
+                    <div className="flex-2 flex flex-col">
                         {response.fields.map(field => (
                             <div className="flex-1" key={field.fieldid}>
                                 <p className="text-black">{field.description}</p>
                             </div>  
                         ))}
                     </div>
-                    <div className="flex-1 flex flex-col">
+                    <div className="flex-1 flex flex-col ">
                     {response.fields.map(field => (
                         <div key={field.fieldid} className="flex-1">
                             {field.fieldtype === 'Parola' ? (

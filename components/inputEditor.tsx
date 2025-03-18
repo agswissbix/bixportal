@@ -47,7 +47,7 @@ export default function InputEditor({ initialValue = '', onChange }: PropsInterf
 
   return (
     <div className="flex flex-col">
-      <div className="mt-2">
+      <div className="">
         <div
           ref={containerRef}
           className="flex items-center rounded-md bg-white p-3 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 transition-all duration-300"
