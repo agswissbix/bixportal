@@ -5,7 +5,7 @@ import { AppContext } from '@/context/appContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -90,7 +90,7 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
     }, [response, responseData]);
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="cardBadge"> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full flex justify-center items-center">
                     <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">

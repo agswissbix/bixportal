@@ -5,6 +5,7 @@ import LoadingComp from './loading';
 import ReactDOM from 'react-dom';
 import axiosInstance from '../utils/axiosInstance';
 import SidebarMenu from './sidebarMenu';
+import GenericComponent from './genericComponent';
 
 
 // INTERFACCIA PROPS
@@ -13,9 +14,10 @@ interface PropsInterface {
 
 export default function SideBar({  }: PropsInterface) {
   return (
-    <div className="w-1/12 h-full"> 
+        <div className="w-1/12 h-full"> 
            <SidebarMenu ></SidebarMenu>
-    </div>
+        </div>
+   
   );
 };
 

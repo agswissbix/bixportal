@@ -8,7 +8,7 @@ import { set } from 'lodash';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -99,11 +99,12 @@ export default function RecordFilters({ propExampleValue }: PropsInterface) {
         setTableView(selectedView.toString());
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
+            setSelectedView(response.views[0].id);
         }
     }, [response, responseData, selectedView]);
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="recordFilters" > 
             {(response: ResponseInterface) => (
                 <div className="w-full">
                 <form className="max-w-md" onSubmit={(e) => {e.preventDefault(); researchTableSubmit(); }}>

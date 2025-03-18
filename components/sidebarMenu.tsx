@@ -8,7 +8,7 @@ import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
 interface PropsInterface {
@@ -125,7 +125,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     }, [response, responseData]);
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu"> 
             {(data) => (
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300">
                     <ul className="list-none p-0 m-0">

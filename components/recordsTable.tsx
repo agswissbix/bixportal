@@ -37,6 +37,7 @@ const isDev = false;
                     css: string;
                     type: string;
                     value: string;
+                    fieldid: string;
                 }>
             }>;
             columns: Array<{    
@@ -70,25 +71,29 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 recordid: "",
                                 css: "",
                                 type: "standard",
-                                value: "macbook"
+                                value: "macbook",
+                                fieldid: "1"
                             },
                             {
                                 recordid: "",
                                 css: "",
                                 type: "standard",
-                                value: "nero"
+                                value: "nero",
+                                fieldid: "2"
                             },
                             {
                                 recordid: "",
                                 css: "",
                                 type: "standard",
-                                value: "Laptop"
+                                value: "Laptop",
+                                fieldid: "3"
                             },
                             {
                                 recordid: "",
                                 css: "",
                                 type: "standard",
-                                value: "2k"
+                                value: "2k",
+                                fieldid: "4"
                             },
                         ]
                     },
@@ -101,24 +106,28 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 css: "",
                                 type: "standard",
                                 value: "surface",
+                                fieldid: "1"
                             },
                             {
                                 recordid: "",
                                 css: "",
                                 type: "standard",
                                 value: "bianco",
+                                fieldid: "2"
                             },
                             {
                                 recordid: "",
                                 css: "",
                                 type: "standard",
                                 value: "Laptop",
+                                fieldid: "3"
                             },
                             {
                                 recordid: "",
                                 css: "",
                                 type: "standard",
                                 value: "1k",
+                                fieldid: "4"
                             },
                         ]
                     },
@@ -221,7 +230,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     }
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable'> 
             {(response: ResponseInterface) => (
                 <div className="h-full">
                     <div className="w-full h-full relative overflow-auto rounded-lg drop-shadow-sm ">
@@ -260,7 +269,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 {response.rows.map((row) => (
                                     <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
                                         {row.fields.map((field) => (
-                                            <td className="px-6 py-4" key={field.value}>
+                                            <td className="px-6 py-4" key={`${row.recordid}-${field.fieldid}`}>
                                                 {field.value}
                                             </td>
                                         ))}

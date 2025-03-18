@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -184,7 +184,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
+            apiRoute: 'get_record_card_fields', // riferimento api per il backend
             tableid: tableid,
             recordid: recordid,
         };
@@ -202,7 +202,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     }, [response]);
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="CardFields"> 
             {(response: ResponseInterface) => (
                 <div className="h-5/6">
                 <div className="h-full flex flex-row overflow-y-scroll">

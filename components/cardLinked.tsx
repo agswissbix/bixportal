@@ -7,7 +7,7 @@ import RecordsTable from './recordsTable';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -57,32 +57,7 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                         tableid: "tableid",
                         description: "siung",
                         rowsCount: 1,
-                    },
-                    {
-                        tableid: "tableid",
-                        description: "siung",
-                        rowsCount: 1,
-                    },
-                    {
-                        tableid: "tableid",
-                        description: "siung",
-                        rowsCount: 1,
-                    },
-                    {
-                        tableid: "tableid",
-                        description: "siung",
-                        rowsCount: 1,
-                    },
-                    {
-                        tableid: "tableid",
-                        description: "siung",
-                        rowsCount: 1,
-                    },
-                    {
-                        tableid: "tableid",
-                        description: "siung",
-                        rowsCount: 1,
-                    },
+                    }
                 ]
             };
 
@@ -107,7 +82,7 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
+            apiRoute: 'get_record_linked_tables', // riferimento api per il backend
             masterTableid:masterTableid,
             masterRecordid:masterRecordid,
         };
@@ -125,7 +100,7 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
     }, [response, responseData]);
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="cardLinked"> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full flex flex-col overflow-y-auto">
                     {response.linkedTables.map((table, index) => (
@@ -141,7 +116,7 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                 </div>
                             </div>
                             <div className={`w-full h-96 max-h-96 border border-gray-300  rounded-md shadow animate-slide-in ${!openCards[index] ? 'hidden' : ''}`}>
-                                <RecordsTable tableid={table.tableid} searchTerm={''} context='linked'  ></RecordsTable>
+                                <RecordsTable tableid={table.tableid} searchTerm={''} context='linked' pagination={{ page: 1, limit: 10 }}   ></RecordsTable>
                             </div>
                         </>
                     ))}

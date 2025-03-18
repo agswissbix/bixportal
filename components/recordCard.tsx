@@ -87,7 +87,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
 
   return (
     <div
-            className={`absolute shadow-2xl bg-gray-100 z-10 rounded-md p-3 ${animationClass} ${
+            className={`absolute shadow-2xl  bg-gray-100 z-10 rounded-md p-3 ${animationClass} ${
                 isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-4/6'
             } transition-all duration-300`}
             style={{
@@ -99,7 +99,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
             <div className="h-1/5 w-full">
                 <div className='h-1/6 w-full flex justify-between items-center'>
                     <div className="flex">
-                        <p className="text-black">{tableid}</p>
+                        <p className="text-black">{tableid} - {recordid}</p>
                     </div>
                     <div className="flex items-center gap-5">
                         <button 
