@@ -40,7 +40,11 @@ interface RecordsStore {
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
     refreshTable: 0,
-    setRefreshTable: (refreshTable: number) => set({ refreshTable }),
+    setRefreshTable: (refreshTable: number) => {
+        const { resetCardsList } = get(); // Ottieni la funzione resetCardsList
+        resetCardsList(); // Resetta la lista delle carte
+        set({ refreshTable });
+    },    
 
     cardsList: [],
     addCard: (tableid: string, recordid: string, type: string) => 

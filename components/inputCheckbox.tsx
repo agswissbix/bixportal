@@ -28,7 +28,7 @@ export default function InputCheckbox({ initialValue, onChange }: PropsInterface
   };
 
   return (
-    <div className="mt-2">
+    <div className="">
       <div className="flex items-center mb-4">
         <input
           name="input-checkbox"

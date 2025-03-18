@@ -143,13 +143,8 @@ export default function SidebarMenu({  }: PropsInterface) {
                                 Agenda TelAmico
                             </span>
                         </>
-                    ) : activeServer === 'pitservice' ? (
-                        <>
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('PitCalendar')}> 
-                                PitCalendar
-                            </span>
-                        </>
-                    ) : null}
+                    ) : null
+                    }
                         <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
                             Dashboard
                         </span>

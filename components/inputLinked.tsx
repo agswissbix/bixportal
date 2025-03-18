@@ -105,7 +105,7 @@ export default function ExampleComponentWithData({ initialValue='',onChange,link
 
   return (
     <div className="relative w-full" ref={wrapperRef}>
-      <div className="mt-2">
+      <div className="">
         <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
           <input
             name="word"

@@ -19,7 +19,7 @@ export default function ExampleComponent({ lookupItems,initialValue='',onChange 
   
   return (
     <div>
-      <div className="mt-2">
+      <div className="">
         {/*
         <Select 
         defaultValue={lookupItems.filter(item => item.itemcode === initialValue)}
