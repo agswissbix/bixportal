@@ -182,7 +182,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     }, [refreshTable, tableid,]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+    const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null, elapsedTime:null };
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
@@ -230,7 +230,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     }
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable'> 
+        <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable' elapsedTime={elapsedTime}> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full">
                     <div className="w-full h-full relative rounded-lg drop-shadow-sm ">

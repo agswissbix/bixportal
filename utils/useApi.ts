@@ -10,10 +10,12 @@ export const useApi = <T>(
   const [response, setResponse] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const { refreshTable } = useRecordsStore();
 
   useEffect(() => {
     const fetchData = async () => {
+      const startTime = performance.now();
       try {
         consoleDebug('Fetching data with payload:', payload);
         setLoading(true);
@@ -33,6 +35,9 @@ export const useApi = <T>(
       } catch (err: any) {
         setError(err.message || 'Errore durante il recupero dei dati');
       } finally {
+        // Calcola il tempo trascorso dalla richiesta
+        const timeTaken = performance.now() - startTime;
+        setElapsedTime(timeTaken);
         setLoading(false);
       }
     };
@@ -41,5 +46,5 @@ export const useApi = <T>(
     fetchData();
   }, [payload, refreshTable]);
 
-  return { response, loading, error };
+  return { response, loading, error, elapsedTime  };
 };
