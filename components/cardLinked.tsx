@@ -102,27 +102,26 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="cardLinked"> 
             {(response: ResponseInterface) => (
-                <>
-                    <div className="h-full w-full flex flex-col overflow-y-auto">
-                        {response.linkedTables.map((table, index) => (
-                            <>
-                                <div 
-                                    className="w-full mx-auto border border-gray-200 rounded-md p-2 shadow"
-                                    onClick={() => handleCollapse(index)}
-                                >
-                                    <div className="w-full">
-                                        <span className="float-start bg-primary text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded">{table.rowsCount}</span>
-                                        <p className="text-black float-start">{table.description}</p>
-                                        <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
-                                    </div>
+                <div className="h-full w-full flex flex-col overflow-y-auto">
+                    {response.linkedTables.map((table, index) => (
+                        <React.Fragment key={index}>
+                            <div 
+                                className="w-full mx-auto border border-gray-200 rounded-md p-2 shadow"
+                                onClick={() => handleCollapse(index)}
+                            >
+                                <div className="w-full">
+                                    <span className="float-start bg-primary text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded">{table.rowsCount}</span>
+                                    <p className="text-black float-start">{table.description}</p>
+                                    <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
-                                <div className={`w-full h-96 max-h-96 border border-gray-300  rounded-md shadow animate-slide-in ${!openCards[index] ? 'hidden' : ''}`}>
-                                    <RecordsTable tableid={table.tableid} searchTerm={''} context='linked' pagination={{ page: 1, limit: 10 }}   ></RecordsTable>
-                                </div>
-                            </>
-                        ))}
-                    </div>
-                </>
+                            </div>
+                            <div className={`w-full h-96 max-h-96 border border-gray-300 rounded-md shadow animate-slide-in ${!openCards[index] ? 'hidden' : ''}`}>
+                                <RecordsTable tableid={table.tableid} searchTerm={''} context='linked' pagination={{ page: 1, limit: 10 }} />
+                            </div>
+                        </React.Fragment>
+                    
+                    ))}
+                </div>
             )}
         </GenericComponent>
     );
