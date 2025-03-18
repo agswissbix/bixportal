@@ -1,4 +1,5 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -127,7 +128,15 @@ export default function SidebarMenu({  }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu" elapsedTime={elapsedTime}> 
             {(data) => (
-                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300">
+                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 text-ce">
+                    <Image                                
+                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : 'default'}.png`}
+                        alt={activeServer ?? ''}
+                        width={1000}
+                        height={1000}
+                        className="h-16 w-auto m-auto"
+                        priority
+                    />
                     <ul className="list-none p-0 m-0">
                     {activeServer === 'telamico' ? (
                         <>

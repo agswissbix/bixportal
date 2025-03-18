@@ -115,7 +115,7 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
                             </div>
-                            <div className={`w-full h-96 max-h-96 border border-gray-300 rounded-md shadow animate-slide-in ${!openCards[index] ? 'hidden' : ''}`}>
+                            <div className={`w-full h-96 max-h-96 border border-gray-300 rounded-md shadow animate-cardslide-in ${!openCards[index] ? 'hidden' : ''}`}>
                                 <RecordsTable tableid={table.tableid} searchTerm={''} context='linked' pagination={{ page: 1, limit: 10 }} />
                             </div>
                         </React.Fragment>

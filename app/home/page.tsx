@@ -25,38 +25,35 @@ export default function Home() {
       setTableid(selectedMenu);
     }
   }, [selectedMenu]);
-  
-  return (    
-    <div className="w-full h-full flex flex-col">
-      <Toaster richColors position='top-right' />
-      <Navbar />
-      <div className="w-full flex-1 flex">
-        <Sidebar />
-        <div className="relative h-full w-11/12 bg-gray-100">
-        {
-              selectedMenu === 'TelAmicoCalendario' ? (
-                <ScheduleCalendar />
-              )
-              : selectedMenu === 'TelAmicoAgenda' ? (
-                <Agenda />
-              ) 
-              : selectedMenu === 'PitCalendar' ? (
-                <PitCalendar />
-              ) 
-              : selectedMenu === 'Calendario' ? (
-                <CalendarComponent />
-              ) 
-              : selectedMenu === 'Dashboard' ? (
-                <Dashboard />
-              )
-              : (
-                <StandardContent tableid={selectedMenu} />
-              )
-        }
 
+  return (    
+   <div className="w-full h-screen flex">
+      <Toaster richColors position="top-right" />
+      
+      {/* Sidebar occupa tutta l'altezza */}
+      <Sidebar className="h-screen  bg-gray-800 text-white" />
+
+      {/* Contenitore principale con Navbar e contenuto */}
+      <div className="flex flex-col w-full h-full">
+        <Navbar className="w-full  bg-white shadow-md" />
+
+        {/* Contenuto principale */}
+        <div className="flex-1 bg-gray-100 p-4 h-full">
+          {selectedMenu === 'TelAmicoCalendario' ? (
+            <ScheduleCalendar />
+          ) : selectedMenu === 'TelAmicoAgenda' ? (
+            <Agenda />
+          ) : selectedMenu === 'PitCalendar' ? (
+            <PitCalendar />
+          ) : selectedMenu === 'Calendario' ? (
+            <CalendarComponent />
+          ) : selectedMenu === 'Dashboard' ? (
+            <Dashboard />
+          ) : (
+            <StandardContent tableid={selectedMenu} />
+          )}
         </div>
       </div>
-
     </div>
   );
 }

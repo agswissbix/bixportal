@@ -41,12 +41,31 @@ body {
   }
 }
 
+@keyframes cardSlideIn {
+  0% {
+    transform: translateY(10rem);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-0.5rem); /* Leggera sovraelongazione per un effetto più naturale */
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+
 .animate-slide-in {
   animation: slideIn 0.25s ease-out forwards;
 }
 
 .animate-slide-out {
   animation: slideOut 0.25s ease-in forwards;
+}
+
+.animate-cardslide-in {
+  animation: cardSlideIn 0.25s ease-out forwards;
 }
 
 /*CUSTOM SCROLLBAR*/

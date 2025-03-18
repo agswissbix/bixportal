@@ -87,16 +87,6 @@ export default function NavBar() {
                         </DisclosureButton>
                     </div>
                     <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                        <div className="flex flex-shrink-0 items-center">
-                            <Image                                
-                                src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : 'default'}.png`}
-                                alt={activeServer ?? ''}
-                                width={1000}
-                                height={1000}
-                                className="h-14 w-auto ml-14"
-                                priority
-                            />
-                        </div>
                         <div className="hidden sm:ml-6 sm:block">
                             <div className="flex space-x-4">
                                 {navigation.map((item) => (
