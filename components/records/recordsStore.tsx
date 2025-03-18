@@ -36,6 +36,9 @@ interface RecordsStore {
 
     pageLimit: number;
     setPageLimit: (pageLimit: number) => void;
+
+    tableid: string;
+    setTableid: (tableid: string) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -102,6 +105,12 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     pageLimit: 10,
     setPageLimit: (pageLimit: number) => set({ pageLimit }),
     
+    tableid: '',
+    setTableid: (tableid: string) => {
+        const { resetCardsList } = get(); // Ottieni la funzione resetCardsList
+        resetCardsList(); // Resetta la lista delle carte
+        set({ tableid });
+    }
 
 }));
 

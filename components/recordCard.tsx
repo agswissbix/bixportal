@@ -87,7 +87,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
 
   return (
     <div
-            className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 z-10 rounded-xl  border-2 border-gray-50 p-3 ${animationClass} ${
+            className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 z-10 rounded-xl border-2 border-gray-50 p-3 ${animationClass} ${
                 isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-5/6'
             } transition-all duration-300`}
             style={{
@@ -103,7 +103,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                     </div>
                     <div className="flex items-center gap-5">
                         <button 
-                            className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
+                            className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
                             type="button" 
 
                         >

@@ -16,6 +16,8 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
 
 
+
+
   const {refreshTable, setRefreshTable} = useRecordsStore(); // Stato per il valore di ricerca
 
   const {cardsList, addCard, removeCard, resetCardsList, handleRowClick} = useRecordsStore(); // Stato per il valore di ricerca
@@ -29,6 +31,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
     if (recordid) {
       resetCardsList(); // Resetta le schede
       addCard(tableid, recordid, 'standard'); // Aggiungi la nuova scheda
+
     }
   }, [recordid]);
 

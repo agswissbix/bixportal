@@ -17,10 +17,15 @@ import Dashboard from '@/components/dashboard';
 import { set } from 'lodash';
 
 export default function Home() {
-  const {selectedMenu} = useRecordsStore();
+  const {selectedMenu, setTableid} = useRecordsStore();
   const router = useRouter();
 
-
+  useEffect(() => {
+    if (selectedMenu) {
+      setTableid(selectedMenu);
+    }
+  }, [selectedMenu]);
+  
   return (    
     <div className="w-full h-full flex flex-col">
       <Toaster richColors position='top-right' />

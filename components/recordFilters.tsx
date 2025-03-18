@@ -128,12 +128,12 @@ export default function RecordFilters({ propExampleValue }: PropsInterface) {
                       </svg>
                     </div>
                     <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Cerca" value={inputValue} onChange={handleInputChange} />
-                    <button type="submit" className="text-white absolute end-2.5 bottom-2.5 bg-primary hover:bg-red-500 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2">Cerca</button>
+                    <button type="submit" className="text-white absolute end-2.5 bottom-2.5 bg-primary hover:bg-red-500 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-md text-sm px-4 py-2">Cerca</button>
                   </div>  
                 </form>
               
                 {/* Bottone Filtri fuori dal form */}
-                <button type="button" className="ml-4 text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2">
+                <button type="button" className="ml-4 text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-md text-sm px-4 py-2">
                   Filtri
                 </button>
               </div>

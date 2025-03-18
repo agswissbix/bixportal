@@ -24,6 +24,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --font-body: 'Poppins', sans-serif;
   }
   .theme-test {
     --sidebar-background: linear-gradient(180deg, #ffd900 90%, #ede4e4 200%);
@@ -50,4 +51,5 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --font-body: 'Revert', sans-serif;
   }

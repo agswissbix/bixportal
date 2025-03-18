@@ -212,18 +212,21 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="CardFields"> 
             {(response: ResponseInterface) => (
-                <div className="h-5/6">
-                <div className="h-full flex flex-row overflow-y-scroll gap-x-4">
-                    <div className="flex-2 flex flex-col">
-                        {response.fields.map(field => (
-                            <div className="flex-1" key={field.fieldid}>
-                                <p className="text-black">{field.description}</p>
-                            </div>  
-                        ))}
-                    </div>
-                    <div className="flex-1 flex flex-col ">
-                    {response.fields.map(field => (
-                        <div key={field.fieldid} className="flex-1">
+                <div className="h-full">
+                    <div className="h-full flex flex-row overflow-y-scroll">
+                        {/* COLONNA DEI FIELD (ETICHETTE) */}
+                        <div className="h-full flex flex-2 flex-col space-y-3">
+                            {response.fields.map(field => (
+                                <div className="py-2 flex items-center h-10" key={field.fieldid}>
+                                    <p className="text-black">{field.description}</p>
+                                </div>  
+                            ))}
+                        </div>
+                        
+                        {/* COLONNA DEI VALORI (INPUT) */}
+                        <div className="h-full ml-6 flex flex-auto flex-col space-y-3">
+                            {response.fields.map(field => (
+                                <div key={field.fieldid} className="w-full py-2 items-center h-10">
                             {field.fieldtype === 'Parola' ? (
                                 <InputWord 
                                     initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
@@ -283,7 +286,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
 
                     </div>
                 </div>
-                <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">
+                <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
                     Salva
                 </button>                
             </div>

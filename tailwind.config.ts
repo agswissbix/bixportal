@@ -12,6 +12,7 @@ export default {
 		backgroundImage: {
 			sidebar: 'var(--sidebar-background)',
 		},
+
   		colors: {
 			bixcolor: {
 				default: '#074048',

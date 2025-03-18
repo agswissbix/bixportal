@@ -265,7 +265,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="max-h-96 h-5/6 overflow-y-scroll">
+                            <tbody className="max-h-8 h-2/6 overflow-scroll">
                                 {response.rows.map((row) => (
                                     <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
                                         {row.fields.map((field) => (
