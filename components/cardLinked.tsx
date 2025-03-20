@@ -126,7 +126,7 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                     context="linked"
                                     pagination={{ page: 1, limit: 10 }}
                                 />
-                            </div>
+                                </div>
                         </React.Fragment>
                     
                     ))}
