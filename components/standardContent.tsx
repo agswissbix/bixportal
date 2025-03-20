@@ -65,7 +65,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
             ))}
   
   
-          <div><RecordTabs tableid={tableid}></RecordTabs></div>
+          <div className="h-full"><RecordTabs tableid={tableid}></RecordTabs></div>
   
         </div>
       )}

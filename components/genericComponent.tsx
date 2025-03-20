@@ -29,14 +29,16 @@ const GenericComponent = <T,>({
         <>
             {/* Wrapper invisibile per posizionare il titolo senza alterare il layout */}
             <span className="relative">
-                <span className={`absolute top-0 left-0 bg-black text-white text-xs px-2 py-1 rounded shadow-md 
+                <span className={` absolute top-0 left-0 bg-black text-white text-xs px-2 py-1 rounded shadow-md 
                                 ${!isVisible ? 'hidden' : ''} 
                                 z-[9999] pointer-events-none`}>
                     Componente: <span className="text-red-600">{title}</span> {elapsedTime !== null && ` - Tempo: ${elapsedTime.toFixed(2)} ms`}
                 </span>
                 {/* Renderizza i children senza div aggiuntivi */}
-                {children(response as T)}
+                
             </span>
+
+            {children(response as T)}
         </>
     );
 };

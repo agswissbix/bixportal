@@ -232,10 +232,10 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable' elapsedTime={elapsedTime}> 
             {(response: ResponseInterface) => (
-                <div className="h-full w-full">
-                    <div className="w-full h-full relative rounded-lg drop-shadow-sm ">
-                        <table className="w-full h-5/6 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="h-1/6 text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
+                <div className="h-full w-full ">
+                    <div className="w-full h-full relative rounded-lg drop-shadow-md ">
+                        <table className="max-h-fit block w-full h-5/6 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 ">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 table table-fixed w-full rounded-t-xl">
                                 <tr>
                                     {response.columns.map((column) => (
                                         <th 
@@ -265,9 +265,9 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="max-h-8 h-2/6 overflow-scroll">
+                            <tbody className="max-h-5/6 h-fit overflow-y-auto overflow-x-hidden block w-full rounded-b-xl">
                                 {response.rows.map((row) => (
-                                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
+                                    <tr className="table table-fixed w-full bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(row.recordid, tableid, context)}>
                                         {row.fields.map((field) => (
                                             <td className="px-6 py-4" key={`${row.recordid}-${field.fieldid}`}>
                                                 {field.value}
@@ -278,7 +278,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             </tbody>    
                         </table>
 
-                        <nav aria-label="Page navigation example" className="h 1/6 text-center mt-4">
+                        <nav aria-label="Page navigation example" className="h-1/6 text-center mt-4">
                             <ul className="inline-flex text-sm">
                                 {/* Pulsante Previous */}
                                 <li>

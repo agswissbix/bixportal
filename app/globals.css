@@ -18,7 +18,6 @@ body {
   height: 100%;
 }
 
-
 @keyframes slideIn {
   0% {
     transform: translateX(10rem) rotate(5deg);
@@ -43,12 +42,32 @@ body {
 
 @keyframes cardSlideIn {
   0% {
-    transform: translateY(10rem);
+    transform: translateY(-50%);
     opacity: 0;
   }
-  60% {
-    transform: translateY(-0.5rem); /* Leggera sovraelongazione per un effetto più naturale */
+  70% {
+    transform: translateY(5%);
     opacity: 1;
+  }
+  85% {
+    transform: translateY(-2%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardSlideOut {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(5%);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(-2%);
   }
   100% {
     transform: translateY(0);
@@ -59,13 +78,15 @@ body {
 .animate-slide-in {
   animation: slideIn 0.25s ease-out forwards;
 }
-
 .animate-slide-out {
   animation: slideOut 0.25s ease-in forwards;
 }
 
 .animate-cardslide-in {
   animation: cardSlideIn 0.25s ease-out forwards;
+}
+.animate-cardslide-out {
+  animation: cardSlideOut 0.25s ease-in forwards;
 }
 
 /*CUSTOM SCROLLBAR*/

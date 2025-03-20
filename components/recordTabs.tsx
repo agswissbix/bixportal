@@ -18,7 +18,7 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
     <GenericComponent title="recordTabs"> 
       {(data) => (
         <div className="h-full w-full">
-          <div>
+          <div className="">
             <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
               <li className="me-2">
               <button
@@ -72,7 +72,7 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
               </li>
             </ul>
           </div>
-          <div id="records-tab-content" className="mt-2">
+          <div id="records-tab-content" className="mt-2 h-full">
             {activeTab === 'Table' ? (
                 <RecordsTable
                   tableid={tableid}

@@ -12,7 +12,14 @@ export default {
 		backgroundImage: {
 			sidebar: 'var(--sidebar-background)',
 		},
-
+		maxHeight: {
+			'1/2': '50%',
+			'1/3': '33.333333%',
+			'2/3': '66.666667%',
+			'3/4': '75%',
+			'4/5': '80%',
+			'5/6': '83.333333%',
+		},
   		colors: {
 			bixcolor: {
 				default: '#074048',

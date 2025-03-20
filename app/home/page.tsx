@@ -38,7 +38,7 @@ export default function Home() {
         <Navbar className="w-full  bg-white shadow-md" />
 
         {/* Contenuto principale */}
-        <div className="flex-1 bg-gray-100 p-4 h-full">
+        <div className="flex-1 bg-gray-100 p-4 h-5/6">
           {selectedMenu === 'TelAmicoCalendario' ? (
             <ScheduleCalendar />
           ) : selectedMenu === 'TelAmicoAgenda' ? (

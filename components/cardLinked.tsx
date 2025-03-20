@@ -102,11 +102,11 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="cardLinked"> 
             {(response: ResponseInterface) => (
-                <div className="h-full w-full flex flex-col overflow-y-auto">
+                <div className="h-full w-full flex flex-col overflow-y-auto overflow-x-hidden">
                     {response.linkedTables.map((table, index) => (
                         <React.Fragment key={index}>
                             <div 
-                                className="w-full mx-auto border border-gray-200 rounded-md p-2 shadow"
+                                className="w-full mx-auto border border-gray-200 rounded-md p-2 shadow mt-2"
                                 onClick={() => handleCollapse(index)}
                             >
                                 <div className="w-full">
@@ -115,8 +115,17 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
                             </div>
-                            <div className={`w-full h-96 max-h-96 border border-gray-300 rounded-md shadow animate-cardslide-in ${!openCards[index] ? 'hidden' : ''}`}>
-                                <RecordsTable tableid={table.tableid} searchTerm={''} context='linked' pagination={{ page: 1, limit: 10 }} />
+                            <div
+                                className={`w-full h-4/6 rounded-md p-3 transition-all duration-300 
+                                    ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
+                                    ${!openCards[index] && 'hidden'}`}
+                                >
+                                <RecordsTable
+                                    tableid={table.tableid}
+                                    searchTerm={''}
+                                    context="linked"
+                                    pagination={{ page: 1, limit: 10 }}
+                                />
                             </div>
                         </React.Fragment>
                     
