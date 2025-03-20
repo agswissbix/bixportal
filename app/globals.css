@@ -83,10 +83,10 @@ body {
 }
 
 .animate-cardslide-in {
-  animation: cardSlideIn 0.20s ease-out forwards;
+  animation: cardSlideIn 0.25s ease-out forwards;
 }
 .animate-cardslide-out {
-  animation: cardSlideOut 0.20s ease-in forwards;
+  animation: cardSlideOut 0.25s ease-in forwards;
 }
 
 /*CUSTOM SCROLLBAR*/
