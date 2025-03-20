@@ -30,6 +30,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     pitserviceLavanderie : dynamic(() => import('@/components/pitserviceLavanderie')),
     dashboard: dynamic(() => import('@/components/dashboard')),
     scanner: dynamic(() => import('@/components/scannerTest')),
+    belotti: dynamic(() => import('@/components/belotti1')),
 
 };
 

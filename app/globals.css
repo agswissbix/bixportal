@@ -42,12 +42,11 @@ body {
 
 @keyframes cardSlideIn {
   0% {
-    transform: translateY(-50%);
+    transform: translateY(10rem);
     opacity: 0;
   }
-  70% {
-    transform: translateY(5%);
-    opacity: 1;
+  60% {
+    transform: translateY(-0.5rem); /* Leggera sovraelongazione per un effetto più naturale */
   }
   85% {
     transform: translateY(-2%);
