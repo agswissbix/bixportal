@@ -6,7 +6,7 @@ import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -122,7 +122,7 @@ export default function Pivot({ tableid, searchTerm, filters, context }: PropsIn
                                 ]
                             },
                             {
-                                recordid: "6",
+                                recordid: "00000000000000000000000000001618",
                                 css: "#",
                                 fields: [
                                     { recordid: "", css: "", type: "standard", value: "Condominio Liberty Via Domenico Fontana 6" },
@@ -261,12 +261,13 @@ export default function Pivot({ tableid, searchTerm, filters, context }: PropsIn
                                     {/* Child rows */}
                                     {expandedGroups[groupIndex] && group.rows.map((row, rowIndex) => (
                                         <tr 
-                                            className={`border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 ${
+                                            className={`w-full border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 ${
                                                 rowIndex % 2 === 0 
                                                     ? 'bg-white dark:bg-gray-800' 
                                                     : 'bg-white dark:bg-gray-750'
                                             } hover:bg-blue-50/50 dark:hover:bg-gray-700/80 transition-all duration-200 ease-in-out`} 
                                             key={`${rowIndex}`}
+                                            onClick={() => handleRowClick(row.recordid, 'task', '')}
                                         >
                                             {row.fields.map((field, fieldIndex) => (
                                                 <td 

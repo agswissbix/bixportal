@@ -84,7 +84,6 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
     }, []);
 
 
-
   return (
     <div
             className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 z-10 rounded-xl border-2 border-gray-50 p-3 ${animationClass} ${
