@@ -72,7 +72,7 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
               </li>
             </ul>
           </div>
-          <div id="records-tab-content" className="mt-2 h-fit ">
+          <div id="records-tab-content" className="mt-2 ">
             {activeTab === 'Table' ? (
                 <RecordsTable
                   tableid={tableid}
