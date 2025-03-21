@@ -128,8 +128,9 @@ export async function POST(request: Request) {
       case 'get_record_linked_tables':
         djangoUrl = '/commonapp/get_record_linked_tables/';
         break;
-          
-          
+      case 'prepara_email':
+        djangoUrl = '/commonapp/prepara_email/';
+        break;
         
             
           

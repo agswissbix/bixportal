@@ -4,7 +4,8 @@ import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardTabs from './cardTabs';
 import { toast, Toaster } from 'sonner';
-import axiosInstance from '@/utils/axiosInstance';
+import axiosInstance from '@/utils/axiosInstance'
+import SimplePopup from './inviaEmail';
 
 
 
@@ -18,7 +19,7 @@ interface PropsInterface {
 
 export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsInterface) {
 
-  const { removeCard, cardsList } = useRecordsStore();
+  const { removeCard, cardsList, handleRowClick } = useRecordsStore();
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
   const [isMaximized, setIsMaximized] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>("");
@@ -46,6 +47,21 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
             toast.error('Errore durante l\'eliminazione del record');
         }
     }
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+
+  const getEmailReady = async () => {
+    try {
+      await axiosInstance.post('/commonapp/prepara_email/');
+      setPopupMessage('Email preparata con successo!');
+      setIsPopupOpen(true);
+    } catch (error) {
+      console.error('Errore durante la preparazione dell\'email', error);
+      setPopupMessage('Errore durante la preparazione dell\'email');
+      setIsPopupOpen(true);
+    }
+  };
 
   const handleTrashClick = () => {
     toast.warning(
@@ -111,6 +127,11 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
                             </svg>
                         </button>
+                        <button
+                            onClick={() => getEmailReady()}
+                            className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
+                            type="button">Invia email
+                        </button>
 
                         <button onClick={() => setIsMaximized(!isMaximized)}>
                             <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
@@ -132,6 +153,11 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                 <div className="h-5/6">
                     <CardBadge tableid={tableid} recordid={recordid}></CardBadge>
                 </div>
+                <SimplePopup 
+                isOpen={isPopupOpen} 
+                onClose={() => setIsPopupOpen(false)} 
+                message={popupMessage} 
+                />
             </div>
             
             <div className="h-5/6 w-full">
