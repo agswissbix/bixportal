@@ -32,6 +32,8 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.462.0",
     "next": "15.1.6",
+    "panda": "^0.6.5",
+    "pandas": "^0.0.3",
     "quagga": "^0.12.1",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
