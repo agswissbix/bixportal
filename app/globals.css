@@ -76,16 +76,26 @@ body {
 
 .animate-slide-in {
   animation: slideIn 0.25s ease-out forwards;
+  will-change: transform;
+  transform: translateZ(0);
 }
+
 .animate-slide-out {
   animation: slideOut 0.25s ease-in forwards;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .animate-cardslide-in {
   animation: cardSlideIn 0.25s ease-out forwards;
+  will-change: transform;
+  transform: translateZ(0);
 }
+
 .animate-cardslide-out {
   animation: cardSlideOut 0.25s ease-in forwards;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /*CUSTOM SCROLLBAR*/
@@ -121,5 +131,6 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
 
 
