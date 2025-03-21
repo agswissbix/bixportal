@@ -131,6 +131,9 @@ export async function POST(request: Request) {
       case 'prepara_email':
         djangoUrl = '/commonapp/prepara_email/';
         break;
+      case 'save_email':
+        djangoUrl = '/commonapp/save_email/';
+        break;
         
             
           

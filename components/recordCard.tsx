@@ -19,7 +19,7 @@ interface PropsInterface {
 
 export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsInterface) {
 
-  const { removeCard, cardsList, handleRowClick } = useRecordsStore();
+  const { removeCard, cardsList, setIsPopupOpen } = useRecordsStore();
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
   const [isMaximized, setIsMaximized] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>("");
@@ -48,19 +48,10 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
         }
     }
 
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [popupMessage, setPopupMessage] = useState('');
 
-  const getEmailReady = async () => {
-    try {
-      await axiosInstance.post('/commonapp/prepara_email/');
-      setPopupMessage('Email preparata con successo!');
-      setIsPopupOpen(true);
-    } catch (error) {
-      console.error('Errore durante la preparazione dell\'email', error);
-      setPopupMessage('Errore durante la preparazione dell\'email');
-      setIsPopupOpen(true);
-    }
+
+  const getEmailReady = () => {
+    setIsPopupOpen(true);
   };
 
   const handleTrashClick = () => {
@@ -153,11 +144,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                 <div className="h-5/6">
                     <CardBadge tableid={tableid} recordid={recordid}></CardBadge>
                 </div>
-                <SimplePopup 
-                isOpen={isPopupOpen} 
-                onClose={() => setIsPopupOpen(false)} 
-                message={popupMessage} 
-                />
+                
             </div>
             
             <div className="h-5/6 w-full">

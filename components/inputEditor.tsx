@@ -20,6 +20,7 @@ export default function InputEditor({ initialValue = '', onChange }: PropsInterf
       editorRef.current = new Editor({
         el: containerRef.current,
         height: '300px',
+        width: '100%',
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
         
@@ -50,7 +51,7 @@ export default function InputEditor({ initialValue = '', onChange }: PropsInterf
       <div className="">
         <div
           ref={containerRef}
-          className="flex items-center rounded-md bg-white p-3 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 transition-all duration-300"
+          className="flex items-center rounded-md bg-white p-3 shadow-sm focus-within:outline-none focus-within:ring-1 focus-within:ring-gray-200 focus-within:ring-offset-2 transition-all duration-300 w-full"
         ></div>
       </div>
     </div>

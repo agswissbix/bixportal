@@ -15,9 +15,11 @@ import PitCalendar from '@/components/pitCalendar';
 import CalendarComponent from '@/components/calendarComponent';
 import Dashboard from '@/components/dashboard';
 import { set } from 'lodash';
+import SimplePopup from '@/components/inviaEmail';
+import EmailPopup from '@/components/inviaEmail';
 
 export default function Home() {
-  const {selectedMenu, setTableid} = useRecordsStore();
+  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen} = useRecordsStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export default function Home() {
 
   return (    
    <div className="w-full h-screen flex">
+    
       <Toaster richColors position="top-right" />
       
       {/* Sidebar occupa tutta l'altezza */}
@@ -38,6 +41,10 @@ export default function Home() {
         <Navbar className="w-full  bg-white shadow-md" />
 
         {/* Contenuto principale */}
+        <EmailPopup 
+          isOpen={isPopupOpen} 
+          onClose={() => setIsPopupOpen(false)} 
+        />
         <div className="flex-1 bg-gray-100 p-4 h-5/6">
           {selectedMenu === 'TelAmicoCalendario' ? (
             <ScheduleCalendar />

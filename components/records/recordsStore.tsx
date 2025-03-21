@@ -39,6 +39,9 @@ interface RecordsStore {
 
     tableid: string;
     setTableid: (tableid: string) => void;
+
+    isPopupOpen: boolean;
+    setIsPopupOpen: (isPopupOpen: boolean) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -110,7 +113,10 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         const { resetCardsList } = get(); // Ottieni la funzione resetCardsList
         resetCardsList(); // Resetta la lista delle carte
         set({ tableid });
-    }
+    },
+
+    isPopupOpen: false,
+    setIsPopupOpen: (isPopupOpen: boolean) => set({ isPopupOpen: isPopupOpen }),
 
 }));
 
