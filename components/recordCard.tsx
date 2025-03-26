@@ -23,6 +23,8 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
   const [isMaximized, setIsMaximized] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>("");
+  // Nuovo stato per il menu a tendina
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const getOffset = () => {
     if (isMaximized) return 0;
@@ -105,24 +107,55 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
             <div className="h-1/5 w-full">
                 <div className='h-1/6 w-full flex justify-between items-center'>
                     <div className="flex">
-                        <p className="text-black">{tableid} - {recordid}</p>
+                        <p className="text-black">{tableid} </p>
                     </div>
                     <div className="flex items-center gap-5">
-                        <button 
-                            className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
-                            type="button" 
+                        {/* -------------------- MENU A TENDINA -------------------- */}
+            <div className="relative">
+              <button 
+                className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 
+                           font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center 
+                           dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
+                type="button"
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                Funzioni
+                <svg className="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                </svg>
+              </button>
 
-                        >
-                            Funzioni
-                            <svg className="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-                            </svg>
-                        </button>
-                        <button
-                            onClick={() => getEmailReady()}
-                            className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
-                            type="button">Invia email
-                        </button>
+              {showDropdown && (
+                <div 
+                  className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded shadow-lg z-50"
+                >
+                  <ul className="py-1">
+                    <li 
+                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        // Qui puoi inserire la logica per funzione1
+                        toast.success('Hai cliccato Funzione1');
+                        setShowDropdown(false);
+                      }}
+                    >
+                      Stampa
+                    </li>
+                    <li 
+                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        // Qui puoi inserire la logica per funzione2
+                        getEmailReady();
+                        setShowDropdown(false);
+                      }}
+                    >
+                      Invia email
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+            {/* ------------------ FINE MENU A TENDINA ------------------ */}
+                        
 
                         <button onClick={() => setIsMaximized(!isMaximized)}>
                             <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />

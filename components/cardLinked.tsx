@@ -110,8 +110,13 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                 onClick={() => handleCollapse(index)}
                             >
                                 <div className="w-full">
-                                    <span className="float-start bg-primary text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded">{table.rowsCount}</span>
-                                    <p className="text-black float-start">{table.description}</p>
+                                    {table.rowsCount > 0 && (
+                                        <span className="float-start bg-primary text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded">{table.rowsCount}</span>
+                                    )}
+                                    {table.rowsCount == 0 && (
+                                        <span className="float-start text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded"></span>
+                                    )}
+                                    <p className="text-black float-start">{` ${table.description}`}</p>
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
                             </div>
