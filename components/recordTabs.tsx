@@ -2,7 +2,7 @@ import React, { use, useMemo, useState } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import RecordsTable from './recordsTable';
 import Kanban from './kanban';
-import Pivot from './pitserviceLavanderie'
+import Pivot from './recordsPivot'
 import PitCalendar from './pitCalendar';
 import GenericComponent from './genericComponent';
 // INTERFACCIA PROPS
@@ -72,7 +72,7 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
               </li>
             </ul>
           </div>
-          <div id="records-tab-content" className="mt-2 h-96 ">
+          <div id="records-tab-content" className="mt-2 h-full ">
             {activeTab === 'Table' ? (
                 <RecordsTable
                   tableid={tableid}
@@ -85,7 +85,7 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
             ) : activeTab === 'Kanban' ? (
               <Kanban />
             ): activeTab === 'Pivot' ? (
-              <Pivot />
+              <Pivot  tableid={tableid} searchTerm={searchTerm} />
             ): activeTab === 'Calendar' ? (
               <PitCalendar />
             ): null

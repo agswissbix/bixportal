@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import _ from 'lodash';
+import { useApi } from '@/utils/useApi';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 interface PropsInterface {
   initialValue?: string;
@@ -22,18 +24,22 @@ interface LinkedMaster {
 const fetchLinkedItems = async (searchTerm: string, tableid?: string): Promise<LinkedItem[]> => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
-  
+  const payload = {
+    apiRoute: "get_input_linked",
+    tableid: tableid,
+    searchTerm: searchTerm
+  };
+  const res = await axiosInstanceClient.post('/postApi/', payload, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    withCredentials: true,
+  });
   // Mock data - replace with actual API call
-  return [
-    { recordid: '1', name: 'Python' },
-    { recordid: '2', name: 'JavaScript' },
-    { recordid: '3', name: 'TypeScript' },
-  ].filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  return res.data;
 };
 
-export default function ExampleComponentWithData({ initialValue='',onChange,linkedmaster_tableid }: PropsInterface) {
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid }: PropsInterface) {
   const [value, setValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -81,6 +87,7 @@ export default function ExampleComponentWithData({ initialValue='',onChange,link
   }, [debouncedSearch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.info('handleChange');
     const newValue = e.target.value;
     setValue(newValue);
     setIsOpen(true);
@@ -96,10 +103,11 @@ export default function ExampleComponentWithData({ initialValue='',onChange,link
   };
 
   const handleSelectOption = (item: LinkedItem) => {
+    console.info('handleSelectOption');
     setValue(item.name);
     setIsOpen(false);
     if (onChange) {
-      onChange(item.name);
+      onChange(item.recordid);
     }
   };
 

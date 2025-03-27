@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 // INTERFACCIA PROPS
 interface PropsInterface {
   initialValue?: string;
-  onChange?: (value: string | null) => void;
+  onChange?: (value: string) => void;
 }
 
 export default function InputCheckbox({ initialValue, onChange }: PropsInterface) {

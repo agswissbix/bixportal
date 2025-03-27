@@ -6,7 +6,7 @@ import { KeyboardEvent } from 'react';
 interface PropsInterface {
   lookupItems: Array<{ id: string; firstname: string; lastname: string }>;
   initialValue?: string | string[];
-  onChange?: (value: string | string[]) => void;
+  onChange?: (value: string) => void;
   isMulti?: boolean;
 }
 
