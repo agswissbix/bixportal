@@ -14,7 +14,7 @@ interface RecordsStore {
     removeCard: (tableid: string, recordid: string) => void;
     resetCardsList: () => void;
 
-    handleRowClick: (recordid: string, tableid: string, context: string) => Promise<void>; // Aggiungi quia
+    handleRowClick: (recordid: string, tableid: string, context: string, mastertableid?: string, masterrecordid?: string) => Promise<void>; // Aggiungi quia
 
     searchTerm: string;
     setSearchTerm: (searchTerm: string) => void;

@@ -2,9 +2,9 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, SquarePlus } from 'lucide-react';
 import RecordsTable from './recordsTable';
-
+import { useRecordsStore } from './records/recordsStore';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = false;
@@ -69,6 +69,8 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
 
     const [openCards, setOpenCards] = useState<boolean[]>(new Array(responseDataDEV.linkedTables.length).fill(false));
 
+    const {handleRowClick} = useRecordsStore();
+
     const handleCollapse = (index: number) => {
         setOpenCards(prev => {
             const newState = [...prev];
@@ -120,11 +122,17 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
                             </div>
+                        
                             <div
                                 className={`w-full h-4/6 rounded-md p-3 transition-all duration-300 
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
-                                >
+                            >
+                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('', table.tableid, 'standard', masterTableid, masterRecordid)}>
+                                    <SquarePlus name="Plus" className="mr-2" /> 
+                                    Aggiungi    
+                                </button>
+
                                 <RecordsTable
                                     tableid={table.tableid}
                                     searchTerm={''}
