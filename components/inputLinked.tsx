@@ -22,12 +22,12 @@ interface LinkedMaster {
 }
 
 // Simulate API call - replace with your actual API call
-const fetchLinkedItems = async (searchTerm: string, tableid?: string): Promise<LinkedItem[]> => {
+const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string, tableid: string): Promise<LinkedItem[]> => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
   const payload = {
     apiRoute: "get_input_linked",
-    tableid: 'test',
+    tableid: tableid,
     searchTerm: searchTerm
   };
   const res = await axiosInstanceClient.post('/postApi/', payload, {
@@ -40,7 +40,7 @@ const fetchLinkedItems = async (searchTerm: string, tableid?: string): Promise<L
   return res.data;
 };
 
-export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid }: PropsInterface) {
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid }: PropsInterface) {
   const [value, setValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
       setError(null);
 
       try {
-        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid);
+        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid);
         setItems(results);
       } catch (err) {
         setError('Error fetching data');
