@@ -45,6 +45,42 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
                   Collegati
                 </button>
               </li>
+              <li className="me-2">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                    activeTab === 'Linked'
+                      ? 'text-primary border-primary'
+                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('Linked')}
+                >
+                  Allegati
+                </button>
+              </li>
+              <li className="me-2">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                    activeTab === 'Linked'
+                      ? 'text-primary border-primary'
+                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('Linked')}
+                >
+                  Statistiche
+                </button>
+              </li>
+              <li className="me-2">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                    activeTab === 'Linked'
+                      ? 'text-primary border-primary'
+                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('Linked')}
+                >
+                  Storico
+                </button>
+              </li>
             </ul>
           </div>
 
