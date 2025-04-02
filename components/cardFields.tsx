@@ -272,7 +272,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                                 <InputLinked 
                                     initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
                                     onChange={(value: string) => handleInputChange(field.fieldid, value)}
-                                    tableid={field.tableid}
+                                    tableid={tableid}
                                     linkedmaster_tableid={field.linked_mastertable}
                                     linkedmaster_recordid={typeof field.value === 'object' ? field.value.code : field.value}
                                 />
