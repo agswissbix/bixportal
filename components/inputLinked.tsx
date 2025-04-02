@@ -7,6 +7,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 interface PropsInterface {
   initialValue?: string;
   onChange?: (value: string) => void;
+  tableid?: string;
   linkedmaster_tableid?: string;
   linkedmaster_recordid?: string;
 }
@@ -26,7 +27,7 @@ const fetchLinkedItems = async (searchTerm: string, tableid?: string): Promise<L
   await new Promise(resolve => setTimeout(resolve, 300));
   const payload = {
     apiRoute: "get_input_linked",
-    tableid: tableid,
+    tableid: 'test',
     searchTerm: searchTerm
   };
   const res = await axiosInstanceClient.post('/postApi/', payload, {
