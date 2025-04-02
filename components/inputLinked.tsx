@@ -10,6 +10,7 @@ interface PropsInterface {
   tableid?: string;
   linkedmaster_tableid?: string;
   linkedmaster_recordid?: string;
+  fieldid: string;
 }
 
 interface LinkedItem {
@@ -22,12 +23,14 @@ interface LinkedMaster {
 }
 
 // Simulate API call - replace with your actual API call
-const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string, tableid: string): Promise<LinkedItem[]> => {
+const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string, tableid: string, fieldid: string): Promise<LinkedItem[]> => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
   const payload = {
     apiRoute: "get_input_linked",
+    fieldid: fieldid,
     tableid: tableid,
+    linkedmaster_tableid: linkedmaster_tableid,
     searchTerm: searchTerm
   };
   const res = await axiosInstanceClient.post('/postApi/', payload, {
@@ -40,7 +43,7 @@ const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string
   return res.data;
 };
 
-export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid }: PropsInterface) {
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid,fieldid }: PropsInterface) {
   const [value, setValue] = useState(initialValue);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,7 +62,14 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
       setError(null);
 
       try {
-        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid);
+        if (linkedmaster_tableid && tableid) {
+          const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid);
+        } else {
+          setError('Missing required parameters');
+          setItems([]);
+          return;
+        }
+        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid);
         setItems(results);
       } catch (err) {
         setError('Error fetching data');
