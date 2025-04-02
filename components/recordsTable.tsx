@@ -26,6 +26,8 @@ const isDev = false;
             limit: number;
           }
           level?: number;
+          masterTableid?: string;
+          masterRecordid?: string;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -50,7 +52,7 @@ const isDev = false;
 // TIPO DI ORDINAMENTO
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function RecordsTable({ tableid, searchTerm, filters, view, order, context, pagination, level }: PropsInterface) {
+export default function RecordsTable({ tableid, searchTerm, filters, view, order, context, pagination, level, masterTableid, masterRecordid }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
@@ -180,6 +182,8 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             searchTerm: searchTerm,
             view: view,
             currentPage: pagination.page,
+            masterTableid: masterTableid,
+            masterRecordid: masterRecordid
         };
     }, [refreshTable, tableid,]);
 
