@@ -267,7 +267,7 @@ export default function Pivot({ tableid, searchTerm, filters, context }: PropsIn
                                                     : 'bg-white dark:bg-gray-750'
                                             } hover:bg-blue-50/50 dark:hover:bg-gray-700/80 transition-all duration-200 ease-in-out`} 
                                             key={`${rowIndex}`}
-                                            onClick={() => handleRowClick(row.recordid, 'task', '')}
+                                            onClick={() => handleRowClick('standard', row.recordid, 'task')}
                                         >
                                             {row.fields.map((field, fieldIndex) => (
                                                 <td 

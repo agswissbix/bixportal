@@ -14,7 +14,7 @@ interface RecordsStore {
     removeCard: (tableid: string, recordid: string) => void;
     resetCardsList: () => void;
 
-    handleRowClick: (recordid: string, tableid: string, context: string, mastertableid?: string, masterrecordid?: string) => Promise<void>; // Aggiungi quia
+    handleRowClick: (context: string, recordid: string, tableid: string,  mastertableid?: string, masterrecordid?: string) => Promise<void>; // Aggiungi quia
 
     searchTerm: string;
     setSearchTerm: (searchTerm: string) => void;
@@ -71,7 +71,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         })),
     resetCardsList: () => set({ cardsList: [] }),
 
-    handleRowClick: async (recordid: string, tableid: string, context: string) => {
+    handleRowClick: async (context: string, recordid: string, tableid: string, mastertableid?: string, masterrecordid?: string) => {
         const { resetCardsList, addCard } = get(); // Ottieni i metodi dallo stato
         const tableType = context
 
