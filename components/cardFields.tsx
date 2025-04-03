@@ -225,7 +225,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         <div className="h-full flex flex-2 flex-col space-y-3">
                             {response.fields.map(field => (
                                 <div className="py-2 flex items-center h-10" key={field.fieldid}>
-                                    <p className="text-black">{field.description}</p>
+                                    <p className="text-black">{field.description} {field.linked_mastertable}</p>
                                 </div>  
                             ))}
                         </div>
@@ -282,6 +282,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                                     tableid={tableid}
                                     linkedmaster_tableid={field.linked_mastertable}
                                     linkedmaster_recordid={typeof field.value === 'object' ? field.value.code : field.value}
+                                    fieldid={field.fieldid}
                                 />
                             ) : field.fieldtype === 'LongText' ? (
                                 <InputEditor 
