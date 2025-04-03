@@ -4,6 +4,7 @@ import RecordFilters from './recordFilters';
 import RecordTabs from './recordTabs';
 import RecordCard from './recordCard';
 import GenericComponent from './genericComponent';
+import { PlusIcon, ArrowPathIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -43,15 +44,35 @@ export default function StandardContent({ tableid }: PropsInterface) {
           <h2>Contenuto</h2>
           <p>Hai selezionato: <strong>{tableid}</strong></p>
           */}
-          <div className="flex flex-wrap w-full mb-4">
+          <div className="flex flex-wrap w-full mb-2">
             <div className="w-1/2">
                 <RecordFilters></RecordFilters>
             </div>
-            <div className="w-1/2">
-              <button type="button" className="float-end text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" onClick={() => handleRowClick('', tableid, 'standard')}>Nuovo</button>
-              <button type="button" className="float-end text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" onClick={refreshTableFunc}>Ricarica</button>
-              <button type="button" className="float-end text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">Esporta</button>
-            </div>  
+            <div className="w-1/2 h-1/2 flex justify-end gap-3">
+              <button
+                type="button"
+                className="font-bold inline-flex items-center px-5 py-2.5 text-sm text-white bg-primary rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-100 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                onClick={() => handleRowClick('', tableid, 'standard')}
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Nuovo
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                onClick={refreshTableFunc}
+              >
+                <ArrowPathIcon className="w-5 h-5 mr-2" />
+                Ricarica
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                Esporta
+              </button>
+            </div>
           </div>
   
             {cardsList.map((card, index) => (

@@ -157,21 +157,37 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
             {/* ------------------ FINE MENU A TENDINA ------------------ */}
                         
 
-                        <button onClick={() => setIsMaximized(!isMaximized)}>
-                            <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                        </button>
+                        <button 
+                          onClick={() => setIsMaximized(!isMaximized)} 
+                          title="Visualizza informazioni"
+                          className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out"
+                      >
+                          <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                      </button>
 
-                        <button onClick={() => setIsMaximized(!isMaximized)}>
-                            <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                        </button>
+                      <button 
+                          onClick={() => setIsMaximized(!isMaximized)} 
+                          title="Ingrandisci"
+                          className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out"
+                      >
+                          <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                      </button>
 
-                        <button className="cursor-pointer w-6 h-6 flex items-center justify-center transition-colors" onClick={handleTrashClick}>
-                            <Trash2 className="w-6 h-6 text-red-500 hover:text-red-700" />
-                        </button>
+                      <button 
+                          className="p-2 rounded-full hover:bg-red-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out" 
+                          onClick={handleTrashClick}
+                          title="Elimina"
+                      >
+                          <Trash2 className="w-6 h-6 text-primary hover:text-red-500" />
+                      </button>
 
-                        <button className="cursor-pointer w-6 h-6 flex items-center justify-center transition-colors" onClick={handleRemoveCard}>
-                            <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                        </button>
+                      <button 
+                          className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out" 
+                          onClick={handleRemoveCard}
+                          title="Chiudi"
+                      >
+                          <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                      </button>
                     </div>
                 </div>
                 <div className="h-5/6">

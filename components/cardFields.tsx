@@ -11,13 +11,14 @@ import SelectUser from './selectUser';
 import SelectStandard from './selectStandard';
 import InputLinked from './inputLinked';
 import InputEditor from './inputEditor';
+import InputFile from './inputFile';
 import { forEach, update } from 'lodash';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -119,26 +120,14 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
             
                     },
-                    {
-                        tableid: "1",
-                        fieldid: "test6",
-                        fieldorder: "6",
-                        description: "Test 6",
-                        value: { code: '<p>test6a</p><table><thead><tr><th><p>fwefewfwa</p></th><th><p>wfewffww</p></th><th><p><br></p></th><th><p>ewfwefwfwwef</p></th></tr></thead><tbody><tr><td><p>wefew</p></td><td><p>fwfwe</p></td><td><p>ewfe</p></td><td><p>fwef</p></td></tr><tr><td><p>wefwef</p></td><td><p>fwefewf</p></td><td><p>wewfef</p></td><td><p>wef</p></td></tr><tr><td><p>wf</p></td><td><p>wef</p></td><td><p>wef</p></td><td><p>wef</p></td></tr></tbody></table>', value: 'test6' },
-                        fieldtype: "LongText",
-                        lookupitems: [
-                            {itemcode: '1', itemdesc: 'Item 1', link: 'item', linkfield: 'id', linkvalue: '1', linkedfield: 'id', linkedvalue: '1'},
-                            {itemcode: '2', itemdesc: 'Item 2', link: 'item', linkfield: 'id', linkvalue: '2', linkedfield: 'id', linkedvalue: '2'}
-                        ],
-                        settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
-                    },
+
                     {
                         tableid: "1",
                         fieldid: "test7",
                         fieldorder: "7",
                         description: "Test 7",
                         value: { code: 'test77', value: 'test7' },
-                        fieldtype: "Checkbox",
+                        fieldtype: "Attachment",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
                     }
                 ],
@@ -152,7 +141,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
-    const handleInputChange = (fieldid: string, newValue: string | string[]) => {
+    const handleInputChange = (fieldid: string, newValue: any | any[]) => {
         setUpdatedFields(prev => {
             // Controlla se il valore è effettivamente cambiato prima di aggiornare lo stato
             if (prev[fieldid] === newValue) {
@@ -169,20 +158,38 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
       const handleSave = async () => {
         console.log("Tutti i campi aggiornati:", updatedFields);
         try {
-            await axiosInstance.post('/commonapp/save_record_fields/', { tableid, recordid, fields: updatedFields });
+            const formData = new FormData();
+            formData.append('tableid', tableid || '');
+            formData.append('recordid', recordid || '');
+            
+            // Separa i file dagli altri campi
+            const standardFields: { [key: string]: any } = {};
+            
+            Object.entries(updatedFields).forEach(([fieldId, value]) => {
+                if (value instanceof File) {
+                    formData.append(`files[${fieldId}]`, value);
+                } else {
+                    standardFields[fieldId] = value;
+                }
+            });
+            
+            // Aggiungi i campi standard come JSON
+            formData.append('fields', JSON.stringify(standardFields));
+
+            console.log(formData)   
+
+            await axiosInstance.post('/commonapp/save_record_fields/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            
             toast.success('Record salvato con successo');
+            setUpdatedFields({});
         } catch (error) {
-            console.error('Errore durante il salvataggio del record', error);
-            toast.error('Errore durante iil salvataggio del record');
+            console.error('Errore durante il salvataggio del record:', error);
+            toast.error('Errore durante il salvataggio del record');
         }
-
-
-        //reset updatedFields
-        setUpdatedFields({});
-        console.log("After save:", updatedFields);
-
-        // Qui potresti fare una chiamata API per salvare i dati
-        // es: api.post('/updateFields', { tableid, recordid, fields: allFields })
     };
     
 
@@ -280,6 +287,11 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                                 <InputEditor 
                                     initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
                                     onChange={(value: string) => handleInputChange(field.fieldid, value)}
+                                />
+                            ) : field.fieldtype === 'Attachment' ? (
+                                <InputFile
+                                    initialValue={field.value as unknown as File}
+                                    onChange={(value: File | null) => handleInputChange(field.fieldid, value)} 
                                 />
                             ) : null}
                         </div>

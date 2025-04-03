@@ -19,7 +19,7 @@ interface ResponseInterface {
     menuItems: Record<string, MenuItem>;
 }
 
-interface SubItem {
+interface SubItem{
     id: string;
     title: string;
     href: string;
@@ -128,13 +128,14 @@ export default function SidebarMenu({  }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu" elapsedTime={elapsedTime}> 
             {(data) => (
-                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 text-ce">
-                    <Image                                
+                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg">
+                    <Image 
                         src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : 'default'}.png`}
                         alt={activeServer ?? ''}
                         width={1000}
                         height={1000}
-                        className="h-16 w-auto m-auto"
+                        className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all ease-in-out duration-150"
+                        onClick={() => handleMenuClick('Dashboard')}
                         priority
                     />
                     <ul className="list-none p-0 m-0">
@@ -157,10 +158,13 @@ export default function SidebarMenu({  }: PropsInterface) {
                         <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
                             Dashboard
                         </span>
+                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('formularioLifestyle')}> 
+                            formulario lifestyle
+                        </span>
                         {Object.entries(data['menuItems']).map(([key, item]) => {
                             const Icon = iconMap[item.icon] || HelpCircle;
                             return (
-                                <li key={item.id} className="border-b border-gray-700 relative" onMouseEnter={() => handleMouseEnter(item.id)} onMouseLeave={handleMouseLeave}>
+                                <li key={item.id} className="" onMouseEnter={() => handleMouseEnter(item.id)} onMouseLeave={handleMouseLeave}>
                                     {item.subItems ? (
                                         // Dropdown section
                                         <div>

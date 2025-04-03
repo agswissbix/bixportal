@@ -17,6 +17,7 @@ import Dashboard from '@/components/dashboard';
 import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
 import EmailPopup from '@/components/inviaEmail';
+import FormularioLifestyle from '@/components/formularioLifestyle';
 
 export default function Home() {
   const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen} = useRecordsStore();
@@ -56,6 +57,8 @@ export default function Home() {
             <CalendarComponent />
           ) : selectedMenu === 'Dashboard' ? (
             <Dashboard />
+          ) : selectedMenu === 'formularioLifestyle' ? (
+            <FormularioLifestyle />
           ) : (
             <StandardContent tableid={selectedMenu} />
           )}
