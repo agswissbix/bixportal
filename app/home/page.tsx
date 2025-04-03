@@ -18,6 +18,7 @@ import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
 import EmailPopup from '@/components/inviaEmail';
 import FormularioLifestyle from '@/components/formularioLifestyle';
+import FormularioOakley from '@/components/formularioOakley';
 
 export default function Home() {
   const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen} = useRecordsStore();
@@ -59,6 +60,8 @@ export default function Home() {
             <Dashboard />
           ) : selectedMenu === 'formularioLifestyle' ? (
             <FormularioLifestyle />
+          ) : selectedMenu === 'formularioOakley' ? (
+            <FormularioOakley />
           ) : (
             <StandardContent tableid={selectedMenu} />
           )}

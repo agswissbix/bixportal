@@ -159,7 +159,10 @@ export default function SidebarMenu({  }: PropsInterface) {
                             Dashboard
                         </span>
                         <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('formularioLifestyle')}> 
-                            formulario lifestyle
+                            Formulario lifestyle
+                        </span>
+                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('formularioOakley')}> 
+                            Formulario oakley
                         </span>
                         {Object.entries(data['menuItems']).map(([key, item]) => {
                             const Icon = iconMap[item.icon] || HelpCircle;
