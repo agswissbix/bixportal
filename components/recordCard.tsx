@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
-import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
+import { CircleX, Maximize2, Info, Trash2, Check } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardTabs from './cardTabs';
 import { toast, Toaster } from 'sonner';
@@ -112,6 +112,17 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                     <div className="flex items-center gap-5">
                         {/* -------------------- MENU A TENDINA -------------------- */}
             <div className="relative">
+
+              <button 
+                className="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 
+                           font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center gap-2
+                           dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 mr-3" 
+                type="button"
+              >
+                <Check size={13} />
+                Conferma ricezione merce
+              </button>
+
               <button 
                 className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 
                            font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center 
