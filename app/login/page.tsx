@@ -68,7 +68,7 @@ export default function Login() {
         <div className="block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <Image
-              src={`/bixdata/logos/belotti.png`}
+              src={`/bixdata/logos/${activeServer}.png`}
               alt={activeServer}
               width={1000}
               height={1000}
