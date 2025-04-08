@@ -110,7 +110,7 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
                             item.value ? (
                             <ImagePreview 
                                     key={item.fieldid}
-                                    imageUrl={`http://localhost:8001/commonapp/media/${item.value}`}
+                                    imageUrl={`${API_BASE_URL}/commonapp/media/${item.value}`}
                                 />
                             ) : null
                            ) : (
