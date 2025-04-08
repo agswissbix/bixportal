@@ -15,6 +15,7 @@ import InputFile from './inputFile';
 import { forEach, update } from 'lodash';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -175,14 +176,16 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
             
             // Aggiungi i campi standard come JSON
             formData.append('fields', JSON.stringify(standardFields));
+            formData.append('apiRoute', 'save_record_fields');
 
             console.log(formData)   
 
-            await axiosInstance.post('/commonapp/save_record_fields/', formData, {
+            await axiosInstanceClient.post('/postApi', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-            });
+                });
             
             toast.success('Record salvato con successo');
             setUpdatedFields({});
