@@ -110,11 +110,10 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
                             item.value ? (
                             <div>   
                                 <p key={item.fieldid} className="w-full text-center text-white">
-                    {`${API_BASE_URL}/commonapp/media/${item.value}`}
                 </p> 
                             <ImagePreview 
                                     key={item.fieldid}
-                                    imageUrl={`${API_BASE_URL}/commonapp/media/${item.value}`}
+                                    imageUrl={`/api/media-proxy?url=${item.value}`}
                                 />
                             </div>
                             ) : null
