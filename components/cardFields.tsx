@@ -179,7 +179,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
             formData.append('apiRoute', 'save_record_fields');
 
             console.log(formData)   
-
+            console.log("axiosInstanceClient:save_record_fields")
             await axiosInstanceClient.post('/postApi', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
