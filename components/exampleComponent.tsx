@@ -9,7 +9,6 @@ interface PropsInterface {
 
 export default function ExampleComponent({ tableid, searchTerm }: PropsInterface) {
 
-  const {handleRowClick} = useRecordsStore();
   return (
     <div className="h-full w-full">
       <div>
