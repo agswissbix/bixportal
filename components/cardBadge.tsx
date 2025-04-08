@@ -94,6 +94,7 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
             {(response: ResponseInterface) => (
                 <div className="h-full w-full flex justify-center items-center">
                     <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">
+                    <img src="http://localhost:8000/media/fotostabile.jpg" alt="Allegato" />
                         {response.badgeItems.map((item) => (
                             <p key={item.fieldid} className="w-1/3 text-center text-white">
                                 {item.value}
