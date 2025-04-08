@@ -104,6 +104,7 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
             {(response: ResponseInterface) => (
                 <div className="h-full w-full flex justify-center items-center">
                     <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">
+                    {tableid}
                         {response.badgeItems.map((item) => (
                            item.fieldid === "fotostabile" ? (
                             //check if item.value is not null, i'm in a react tsx template
