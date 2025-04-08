@@ -108,10 +108,15 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
                            item.fieldid === "fotostabile" ? (
                             //check if item.value is not null, i'm in a react tsx template
                             item.value ? (
+                            <div>   
+                                <p key={item.fieldid} className="w-full text-center text-white">
+                    {`${API_BASE_URL}/commonapp/media/${item.value}`}
+                </p> 
                             <ImagePreview 
                                     key={item.fieldid}
                                     imageUrl={`${API_BASE_URL}/commonapp/media/${item.value}`}
                                 />
+                            </div>
                             ) : null
                            ) : (
                             <p key={item.fieldid} className="w-1/3 text-center text-white">
