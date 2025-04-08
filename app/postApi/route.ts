@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   }
 
   let djangoUrl = '';
-
+  console.log('apiRoute:', apiRoute);
   switch (apiRoute) {
     case 'examplepost': djangoUrl = '/commonapp/examplepost/'; break;
     case 'get_sidebarmenu_items': djangoUrl = '/commonapp/get_sidebarmenu_items/'; break;
