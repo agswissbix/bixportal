@@ -56,6 +56,24 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
     setIsPopupOpen(true);
   };
 
+  const stampaBollettino = async () => {
+    try {
+      //download a file from the response
+      const response = await axiosInstance.post('/commonapp/stampa_bollettini/', { recordid });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'bollettino.pdf');
+      document.body.appendChild(link);
+      link.click();
+      toast.success('Bollettino stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del bollettino', error);
+      toast.error('Errore durante la stampa del bollettino');
+    }
+  }
+
   const handleTrashClick = () => {
     toast.warning(
         "Sei sicuro di voler eliminare questo record?", 
@@ -138,10 +156,11 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                       onClick={() => {
                         // Qui puoi inserire la logica per funzione1
                         toast.success('Hai cliccato Funzione1');
+                        stampaBollettino()
                         setShowDropdown(false);
                       }}
                     >
-                      Stampa
+                      Stampa bollettino
                     </li>
                     <li 
                       className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"

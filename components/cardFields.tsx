@@ -16,6 +16,7 @@ import { forEach, update } from 'lodash';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -142,6 +143,9 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
+    const {removeCard,addCard,refreshTable,setRefreshTable} = useRecordsStore();
+
+
     const handleInputChange = (fieldid: string, newValue: any | any[]) => {
         setUpdatedFields(prev => {
             // Controlla se il valore è effettivamente cambiato prima di aggiornare lo stato
@@ -186,6 +190,9 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 });
+            setRefreshTable(refreshTable+1)
+            removeCard(tableid,recordid)
+            addCard(tableid,recordid,'standard')
             
             toast.success('Record salvato con successo');
             setUpdatedFields({});
