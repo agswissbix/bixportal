@@ -137,7 +137,6 @@ export default function RecordFilters({ propExampleValue }: PropsInterface) {
                   Filtri
                 </button>
               </div>
-              
             )}
         </GenericComponent>
     );

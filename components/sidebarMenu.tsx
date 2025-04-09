@@ -136,7 +136,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                         width={1000}
                         height={1000}
                         className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all ease-in-out duration-150"
-                        onClick={() => handleMenuClick('Dashboard')}
+                        onClick={() => handleMenuClick('Home')}
                         priority
                     />
                     <ul className="list-none p-0 m-0">
@@ -156,9 +156,11 @@ export default function SidebarMenu({  }: PropsInterface) {
                         </>
                     ) : null
                     }
+                    {/*
                         <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
                             Dashboard
                         </span>
+                    */}
                         {Object.entries(data['menuItems']).map(([key, item]) => {
                             const Icon = iconMap[item.icon] || HelpCircle;
                             return (
@@ -166,9 +168,9 @@ export default function SidebarMenu({  }: PropsInterface) {
                                     {item.subItems ? (
                                         // Dropdown section
                                         <div>
-                                            <button onClick={() => setOpenDropdown(openDropdown === item.id ? '' : item.id)} className="w-full flex items-center justify-between px-6 py-4 hover:text-primary focus:text-primary transition-colors">
+                                            <button onClick={() => setOpenDropdown(openDropdown === item.id ? '' : item.id)} className="w-full text-md flex items-center justify-between px-6 py-4 hover:text-primary focus:text-primary transition-colors">
                                                 <div className="flex items-center min-w-[20px]">
-                                                    <Icon className="w-5 h-5 min-w-[20px]"/>
+                                                    <Icon className=" font-bold w-5 h-5 min-w-[20px]"/>
                                                     <span className="ml-3 xl:opacity-100 opacity-0 transition-opacity duration-300">{item.title}</span>
                                                 </div>
                                                 <span className="xl:block hidden">
@@ -197,7 +199,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                                                 <ul className="py-2 ml-6">
                                                     {item.subItems.map((subItem) => (
                                                         <li key={subItem.id} className='cursor-pointer'>
-                                                            <span className="block px-12 py-2 hover:text-primary transition-colors" onClick={() => handleMenuClick(subItem.id)}>{subItem.title}</span>
+                                                            <span className="text-gray-200 block px-12 py-2 hover:text-primary transition-colors" onClick={() => handleMenuClick(subItem.id)}>{subItem.title}</span>
                                                         </li>
                                                     ))}
                                                 </ul>

@@ -227,7 +227,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         {/* COLONNA DEI FIELD (ETICHETTE) */}
                         <div className="h-full flex flex-2 flex-col space-y-3">
                             {response.fields.map(field => (
-                                <div className="py-2 flex items-center h-10" key={field.fieldid}>
+                                <div className="py-2 flex items-center h-10" key={`${field.fieldid}-label`}>
                                     <p className="text-black">{field.description} {field.linked_mastertable}</p>
                                 </div>  
                             ))}
@@ -236,7 +236,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         {/* COLONNA DEI VALORI (INPUT) */}
                         <div className="h-full ml-6 flex flex-auto flex-col space-y-3">
                             {response.fields.map(field => (
-                                <div key={field.fieldid} className="w-full py-2 items-center h-10">
+                                <div key={`${field.fieldid}-value`} className="w-full py-2 items-center h-10">
                             {field.fieldtype === 'Parola' ? (
                                 <InputWord 
                                     initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
@@ -294,10 +294,15 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                                 />
                             ) : field.fieldtype === 'Attachment' ? (
                                 <InputFile
-                                    initialValue={field.value as unknown as File}
-                                    onChange={(value: File | null) => handleInputChange(field.fieldid, value)} 
+                                    initialValue={
+                                        typeof field.value === 'object' && field.value.code
+                                            ? `/api/media-proxy?url=${field.value.code}`
+                                            : null
+                                    }
+                                    onChange={(value: File | null) => handleInputChange(field.fieldid, value)}
                                 />
                             ) : null}
+                            
                         </div>
                     ))}
 

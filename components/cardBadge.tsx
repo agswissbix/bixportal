@@ -106,19 +106,17 @@ export default function ExampleComponentWithData({ tableid,recordid }: PropsInte
                     <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">
                         {response.badgeItems.map((item) => (
                            item.fieldid === "fotostabile" ? (
-                            //check if item.value is not null, i'm in a react tsx template
                             item.value ? (
                             <div>   
-                                <p key={item.fieldid} className="w-full text-center text-white">
-                </p> 
-                            <ImagePreview 
+                                <p key={`${item.fieldid}-badge`} className="w-full text-center text-white"></p> 
+                            <ImagePreview
                                     key={item.fieldid}
                                     imageUrl={`/api/media-proxy?url=${item.value}`}
                                 />
                             </div>
                             ) : null
                            ) : (
-                            <p key={item.fieldid} className="w-1/3 text-center text-white">
+                            <p key={`${item.fieldid}-badge`} className="w-1/3 text-center text-white">
                                     {item.value}
                                 </p>
                            )

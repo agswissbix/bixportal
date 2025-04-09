@@ -1,8 +1,8 @@
-import SyncLoader from "react-spinners/SyncLoader";
+import BarLoader from "react-spinners/BarLoader";
 export default function LoadingComp() {
     return(
         <div className={"w-full h-full flex justify-center items-center"}>
-            <SyncLoader color={"#6e857e"} margin={10} />
+            <BarLoader color={"#6e857e"} size={50} />
         </div>
     )
 }

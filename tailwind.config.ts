@@ -69,7 +69,11 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+
+		fontFamily: {
+		sans: ['Inter', 'sans-serif'], // Aggiungi Verdana come font di default
+		},
   	}
   },
   plugins: [require("tailwindcss-animate")],

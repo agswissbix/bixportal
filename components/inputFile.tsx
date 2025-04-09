@@ -1,51 +1,128 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { FileIcon, Upload, X, Download } from 'lucide-react';
 
-// INTERFACCIA PROPS
 interface PropsInterface {
-  initialValue?: File | null;
+  initialValue?: File | string | null;
   onChange?: (file: File | null) => void;
 }
 
 export default function InputFile({ initialValue = null, onChange }: PropsInterface) {
-  const [value, setValue] = useState<File | null>(initialValue);
+  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync the state value with the initialValue when it changes
   useEffect(() => {
-    if (initialValue) {
-      setValue(initialValue);
+    // Pulizia vecchio blob
+    return () => {
+      if (fileUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(fileUrl);
+      }
+    };
+  }, [fileUrl]);
+
+  useEffect(() => {
+    if (initialValue && typeof initialValue === 'string') {
+      // È un URL?
+      const isProbablyUrl = initialValue.includes('/') || initialValue.startsWith('http');
+      if (isProbablyUrl) {
+        const name = decodeURIComponent(initialValue.split('/').pop() || 'file');
+        setFileName(name);
+        setFileUrl(initialValue);
+      } else {
+        // È solo testo? Crea un blob
+        const blob = new Blob([initialValue], { type: 'text/plain' });
+        const blobUrl = URL.createObjectURL(blob);
+        setFileName('testo.txt');
+        setFileUrl(blobUrl);
+      }
+    } else if (initialValue instanceof File) {
+      setFile(initialValue);
       setFileName(initialValue.name);
+      setFileUrl(null);
     }
   }, [initialValue]);
 
-  useEffect(() => {
-    if (onChange && value !== initialValue && value) {
-      onChange(value);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] || null;
+    setFile(selected);
+    setFileName(selected?.name || '');
+    setFileUrl(null);
+    onChange?.(selected);
+  };
+
+  const handleRemove = () => {
+    if (fileUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(fileUrl);
     }
-  }, [value, onChange, initialValue]);
+    setFile(null);
+    setFileName('');
+    setFileUrl(null);
+    onChange?.(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   return (
-    <div>
-      <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300">
-        <input
-          name="file"
-          type="file"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              setValue(file);
-              setFileName(file.name);
-              if (onChange) {
-                onChange(file);
-              }
-            }
-          }}
-          className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-        />
-        {fileName && (
-          <span className="text-sm text-gray-500 mr-2">{fileName}</span>
-        )}
+    <div className="flex items-center gap-2 w-full max-w-xl">
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="flex items-center px-3 py-2 bg-green-50 text-green-600 rounded-md border border-green-200 hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50"
+      >
+        <Upload className="w-4 h-4 mr-1.5" />
+        <span className="text-sm font-medium">Scegli file</span>
+      </button>
+      
+      <div className="relative flex-1 min-w-0">
+        <div className="flex items-center w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
+          {fileName ? (
+            <div className="flex items-center w-full">
+              <FileIcon className="w-4 h-4 text-gray-500 mr-2 flex-shrink-0" />
+              <span className="text-sm text-gray-700 truncate flex-1" title={fileName}>
+                {fileName}
+              </span>
+            </div>
+          ) : (
+            <span className="text-sm text-gray-400">Nessun file selezionato</span>
+          )}
+        </div>
       </div>
+      
+      {fileName && (
+        <div className="flex items-center gap-2">
+          {fileUrl && (
+            <button
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                console.log(fileUrl);
+                link.download = fileName;  // Usa il nome del file per il download
+                link.click();  // Simula un click sul link per avviare il download
+              }}
+              className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors"
+              title="Scarica il file"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          )}
+
+          
+          <button
+            onClick={handleRemove}
+            className="flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md border border-red-200 hover:bg-red-100 transition-colors"
+            title="Rimuovi il file"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
