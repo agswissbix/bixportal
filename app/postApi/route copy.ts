@@ -1,79 +1,34 @@
 import axiosInstance from '@/utils/axiosInstance';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { parseFormData } from '@/lib/parseFormData';
+import https from 'https';
 import FormDataNode from 'form-data';
-import fs from 'fs';
-
-// Disabilita il body parser di Next.js per gestire file
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export async function POST(request: Request) {
+  // Recupera i cookie attuali da Next (es. eventuale csrftoken/sessionid già noti)
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get('csrftoken')?.value;
+  console.log('csrftoken dal cookie:', csrfToken);
   const sessionId = cookieStore.get('sessionid')?.value;
+  console.log('sessionId dal cookie:', sessionId);
 
   const contentType = request.headers.get('content-type') || '';
 
   let postData: any = {};
+  let formData: FormData | null = null;
   let rawFormData: FormDataNode | null = null;
 
   try {
     if (contentType.includes('application/json')) {
       postData = await request.json();
-    } else if (contentType.includes('multipart/form-data')) {
-      const { fields, files } = await parseFormData(request);
-      postData = fields;
-      const singleValueFields: Record<string, any> = {};
-      for (const [key, fieldValue] of Object.entries(fields)) {
-        if (Array.isArray(fieldValue) && fieldValue.length === 1) {
-          singleValueFields[key] = fieldValue[0];
-        } else {
-          singleValueFields[key] = fieldValue;
-        }
-      }
-      postData = singleValueFields;
-      rawFormData = new FormDataNode();
-
-      // Aggiungi i campi testuali (gestione array)
-      for (const [key, fieldValue] of Object.entries(postData)) {
-        // se è un array di 1 elemento -> stringa
-        let values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-        if (values.length === 1) {
-          // valore singolo
-          rawFormData.append(key, values[0]);
-        } else {
-          // multipli
-          values.forEach((item) => {
-            if (rawFormData) {
-              rawFormData.append(key, item);
-            }
-          });
-        }
-      }
-
-      // Aggiungi i file
-      for (const [key, fileOrFiles] of Object.entries(files)) {
-        const fileArray = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
-        fileArray.forEach((f: any) => {
-          if (f?.filepath) {
-            if (rawFormData) {
-              rawFormData.append(key, fs.createReadStream(f.filepath), {
-                filename: f.originalFilename,
-                contentType: f.mimetype,
-              });
-            }
-          }
-        });
-      }
-    } else if (contentType.includes('application/x-www-form-urlencoded')) {
-      const formData = await request.formData();
+    } else if (
+      contentType.includes('multipart/form-data') ||
+      contentType.includes('application/x-www-form-urlencoded')
+    ) {
+      formData = await request.formData();
       postData = Object.fromEntries(formData.entries());
 
+      // Ricostruiamo il form come `FormDataNode` per inoltrarlo con Axios
       rawFormData = new FormDataNode();
       for (const [key, value] of formData.entries()) {
         rawFormData.append(key, value as any);
@@ -85,7 +40,6 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    console.error('Errore nel parsing del body:', error);
     return NextResponse.json(
       { error: 'Errore nel parsing del body. Assicurati che sia ben formato.' },
       { status: 400 }
@@ -102,6 +56,7 @@ export async function POST(request: Request) {
   }
 
   let djangoUrl = '';
+  console.log('apiRoute:', apiRoute);
   switch (apiRoute) {
     case 'examplepost': djangoUrl = '/commonapp/examplepost/'; break;
     case 'get_sidebarmenu_items': djangoUrl = '/commonapp/get_sidebarmenu_items/'; break;
@@ -152,10 +107,16 @@ export async function POST(request: Request) {
       withCredentials: true,
     };
 
-    const payload = rawFormData ?? rest;
-    const response = await axiosInstance.post(djangoUrl, payload, axiosConfig);
+    let response;
 
-    const setCookieHeader = response.headers['set-cookie'] as string | string[] | undefined;
+    if (apiRoute === 'getCsrf') {
+      response = await axiosInstance.get(djangoUrl, axiosConfig);
+    } else {
+      const payload = rawFormData ?? rest;
+      response = await axiosInstance.post(djangoUrl, payload, axiosConfig);
+    }
+
+    const setCookieHeader = response.headers['set-cookie'] as string | string[] ?? [];
     const nextResponse = NextResponse.json(response.data, { status: 200 });
 
     if (Array.isArray(setCookieHeader)) {
