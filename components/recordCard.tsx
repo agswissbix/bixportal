@@ -26,6 +26,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
   const [isMaximized, setIsMaximized] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>("");
+  const [showInfoPopup, setShowInfoPopup] = useState(false);
   // Nuovo stato per il menu a tendina
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -126,10 +127,34 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                 zIndex: 50  + index
             }}
         >
+          {showInfoPopup && (
+  <div className="absolute top-5 left-5 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-72">
+    <h3 className="text-lg font-semibold mb-2">Info record</h3>
+    <ul className="text-sm text-gray-700">
+      <li><strong>Table ID:</strong> {tableid}</li>
+      <li><strong>Record ID:</strong> {recordid}</li>
+      <li><strong>Master Table ID:</strong> {mastertableid || '-'}</li>
+      <li><strong>Master Record ID:</strong> {masterrecordid || '-'}</li>
+    </ul>
+    <button 
+      onClick={() => setShowInfoPopup(false)} 
+      className="mt-3 bg-gray-100 hover:bg-gray-200 text-sm px-3 py-1 rounded"
+    >
+      Chiudi
+    </button>
+  </div>
+)}
+
             <div className="h-1/5 w-full">
                 <div className='h-1/6 w-full flex justify-between items-center'>
                     <div className="flex">
-                        <p className="text-black">{tableid} </p>
+                      <button 
+                        onClick={() => setShowInfoPopup(!showInfoPopup)} 
+                        title="Mostra info"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out"
+                      >
+                        <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                      </button>
                     </div>
                     <div className="flex items-center gap-5">
                         {/* -------------------- MENU A TENDINA -------------------- */}
