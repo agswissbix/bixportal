@@ -191,8 +191,8 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                 },
                 });
             setRefreshTable(refreshTable+1)
-            removeCard(tableid,recordid)
-            addCard(tableid,recordid,'standard')
+            removeCard(tableid || '', recordid || '')
+            addCard(tableid || '', recordid || '', 'standard')
             
             toast.success('Record salvato con successo');
             setUpdatedFields({});
@@ -242,76 +242,81 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         
                         {/* COLONNA DEI VALORI (INPUT) */}
                         <div className="h-full ml-6 flex flex-auto flex-col space-y-3">
-                            {response.fields.map(field => (
-                                <div key={`${field.fieldid}-value`} className="w-full py-2 items-center h-10">
-                            {field.fieldtype === 'Parola' ? (
-                                <InputWord 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
-                                />
-                            ) : field.fieldtype === 'Numero' ? (
-                                <InputNumber 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
-                                />
-                            ) : field.fieldtype === 'Data' ? (
-                                <InputDate 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
-                                />
-                            ) : field.fieldtype === 'Memo' ? (
-                                <InputMemo 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
-                                />
-                            ) : field.fieldtype === 'Checkbox' ? (
-                                <InputCheckbox 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
-                                /> 
-                            ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
-                                <SelectUser
-                                  lookupItems={field.lookupitemsuser}
-                                  initialValue={typeof field.value === 'object' ? field.value.code : field.value}
-                                  onChange={(value: string) => handleInputChange(field.fieldid, value)}
-                                  isMulti={field.fieldtypewebid === 'multiselect'}
-                                />
-                            ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
-                                <SelectStandard
-                                    lookupItems={field.lookupitems.map(item => ({
-                                    itemcode: item.itemcode,
-                                    itemdesc: item.itemdesc,
-                                    }))}
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value}
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
-                                />
-                            ) : field.fieldtype === 'linkedmaster' ? (
-                                <InputLinked 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
-                                    tableid={tableid}
-                                    linkedmaster_tableid={field.linked_mastertable}
-                                    linkedmaster_recordid={typeof field.value === 'object' ? field.value.code : field.value}
-                                    fieldid={field.fieldid}
-                                />
-                            ) : field.fieldtype === 'LongText' ? (
-                                <InputEditor 
-                                    initialValue={typeof field.value === 'object' ? field.value.code : field.value} 
-                                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
-                                />
-                            ) : field.fieldtype === 'Attachment' ? (
-                                <InputFile
-                                    initialValue={
-                                        typeof field.value === 'object' && field.value.code
-                                            ? `/api/media-proxy?url=${field.value.code}`
-                                            : null
-                                    }
-                                    onChange={(value: File | null) => handleInputChange(field.fieldid, value)}
-                                />
-                            ) : null}
-                            
-                        </div>
-                    ))}
+                        {response.fields.map(field => {
+    const rawValue = typeof field.value === 'object' ? field.value?.code : field.value;
+    const initialValue = rawValue ?? ''; // Garantisce sempre una stringa, mai null o undefined
+
+    return (
+        <div key={`${field.fieldid}-value`} className="w-full py-2 items-center h-10">
+            {field.fieldtype === 'Parola' ? (
+                <InputWord 
+                    initialValue={initialValue} 
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
+                />
+            ) : field.fieldtype === 'Numero' ? (
+                <InputNumber 
+                    initialValue={initialValue} 
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
+                />
+            ) : field.fieldtype === 'Data' ? (
+                <InputDate 
+                    initialValue={initialValue} 
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
+                />
+            ) : field.fieldtype === 'Memo' ? (
+                <InputMemo 
+                    initialValue={initialValue} 
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
+                />
+            ) : field.fieldtype === 'Checkbox' ? (
+                <InputCheckbox 
+                    initialValue={initialValue} 
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)} 
+                /> 
+            ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
+                <SelectUser
+                    lookupItems={field.lookupitemsuser}
+                    initialValue={initialValue}
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
+                    isMulti={field.fieldtypewebid === 'multiselect'}
+                />
+            ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
+                <SelectStandard
+                    lookupItems={field.lookupitems.map(item => ({
+                        itemcode: item.itemcode,
+                        itemdesc: item.itemdesc,
+                    }))}
+                    initialValue={initialValue}
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
+                />
+            ) : field.fieldtype === 'linkedmaster' ? (
+                <InputLinked 
+                    initialValue={initialValue}
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
+                    tableid={tableid}
+                    linkedmaster_tableid={field.linked_mastertable}
+                    linkedmaster_recordid={initialValue}
+                    fieldid={field.fieldid}
+                />
+            ) : field.fieldtype === 'LongText' ? (
+                <InputEditor 
+                    initialValue={initialValue}
+                    onChange={(value: string) => handleInputChange(field.fieldid, value)}
+                />
+            ) : field.fieldtype === 'Attachment' ? (
+                <InputFile
+                    initialValue={
+                        initialValue
+                            ? `/api/media-proxy?url=${initialValue}`
+                            : null
+                    }
+                    onChange={(value: File | null) => handleInputChange(field.fieldid, value)}
+                />
+            ) : null}
+        </div>
+    );
+})}
+
 
                     </div>
                 </div>

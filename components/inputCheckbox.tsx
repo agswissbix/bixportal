@@ -7,11 +7,11 @@ interface PropsInterface {
 }
 
 export default function InputCheckbox({ initialValue, onChange }: PropsInterface) {
-  const [checked, setChecked] = useState(initialValue === 'Si');
+  const [checked, setChecked] = useState((initialValue ?? '') === 'Si');
   const [modified, setModified] = useState(false);
 
   useEffect(() => {
-    if (!initialValue) {
+    if (!(initialValue ?? '')) {
       setChecked(false);
     }
   }, [initialValue]);
