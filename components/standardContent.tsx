@@ -80,6 +80,8 @@ export default function StandardContent({ tableid }: PropsInterface) {
                     key={`${card.tableid}-${card.recordid}`}
                     tableid={card.tableid} 
                     recordid={card.recordid}
+                    mastertableid={card.mastertableid}
+                    masterrecordid={card.masterrecordid}
                     index={index}
                     total={cardsList.length}
                 />

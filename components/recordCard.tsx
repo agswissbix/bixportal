@@ -113,6 +113,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         const seconds = Math.floor((now % 60000) / 1000);
         const centiseconds = Math.floor((now % 1000) / 10);
         setMountedTime(`${minutes}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`);
+
     }, []);
 
 

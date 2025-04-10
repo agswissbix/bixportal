@@ -88,7 +88,7 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
             {activeTab === 'Fields' ? (
               <CardFields tableid={tableid} recordid={recordid} />
             ) : (
-              <CardLinked masterTableid={tableid} masterRecordid={recordid} />
+              <CardLinked tableid={tableid} recordid={recordid} />
             )}
           </div>
         </div>

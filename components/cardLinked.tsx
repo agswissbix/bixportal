@@ -12,8 +12,8 @@ const isDev = false;
 // INTERFACCE
         // INTERFACCIA PROPS
         interface PropsInterface {
-          masterTableid: string;
-          masterRecordid: string;
+          tableid: string;
+          recordid: string;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -25,10 +25,10 @@ const isDev = false;
             }>;
         }
 
-export default function CardLinked({ masterTableid,masterRecordid }: PropsInterface) {
+export default function CardLinked({ tableid,recordid }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : masterTableid + '' + masterRecordid;
+            const devPropExampleValue = isDev ? "Example prop" : tableid + '' + recordid;
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
@@ -85,10 +85,10 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
         if (isDev) return null;
         return {
             apiRoute: 'get_record_linked_tables', // riferimento api per il backend
-            masterTableid:masterTableid,
-            masterRecordid:masterRecordid,
+            masterTableid:tableid,
+            masterRecordid:recordid,
         };
-    }, [masterRecordid]);
+    }, [recordid]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -122,13 +122,12 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
                             </div>
-                        
                             <div
                                 className={`w-full h-4/6 rounded-md p-3 transition-all duration-300 
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, masterTableid, masterRecordid)}>
+                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
                                     <SquarePlus name="Plus" className="mr-2" /> 
                                     Aggiungi    
                                 </button>
@@ -138,8 +137,8 @@ export default function CardLinked({ masterTableid,masterRecordid }: PropsInterf
                                     searchTerm={''}
                                     context="linked"
                                     pagination={{ page: 1, limit: 10 }}
-                                    masterTableid={masterTableid}
-                                    masterRecordid={masterRecordid}
+                                    masterTableid={tableid}
+                                    masterRecordid={recordid}
 
                                 />
                                 </div>

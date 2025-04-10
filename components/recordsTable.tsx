@@ -274,7 +274,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             </thead>
                             <tbody className="max-h-5/6 h-fit overflow-y-auto overflow-x-hidden block w-full rounded-b-xl">
                                 {response.rows.map((row) => (
-                                    <tr className="table table-fixed w-full bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid)}>
+                                    <tr className="table table-fixed w-full bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
                                         {row.fields.map((field) => (
                                             <td className="px-6 py-4" key={`${row.recordid}-${field.fieldid}`}>
                                                 {field.value}

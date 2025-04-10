@@ -9,6 +9,8 @@ interface RecordsStore {
         tableid: string,
         recordid: string,
         type: string,
+        mastertableid?: string,
+        masterrecordid?: string
     }>;
     addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => void;
     removeCard: (tableid: string, recordid: string) => void;
@@ -56,7 +58,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => 
         set((state) => {
             const cardExists = state.cardsList.some(
-                (card) => card.tableid === tableid && card.recordid === recordid
+                (card) => card.tableid === tableid && card.recordid === recordid && card.mastertableid === mastertableid && card.masterrecordid === masterrecordid
             );
             if (!cardExists) {
                 return { cardsList: [...state.cardsList, { tableid, recordid, type, mastertableid, masterrecordid }] };
@@ -67,7 +69,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         set((state) => ({ 
             cardsList: state.cardsList.filter(
                 (card) => card.tableid !== tableid || card.recordid !== recordid
-            ) 
+            )
         })),
     resetCardsList: () => set({ cardsList: [] }),
 
@@ -80,9 +82,8 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
             await resetCardsList();
 
             // Aggiungi la nuova card
-            addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
+            addCard(tableid, recordid, tableType);
         } else {
-            // Rimuovi la card selezionata
             addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
         }
     },
