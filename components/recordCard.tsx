@@ -33,7 +33,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
   const getOffset = () => {
     if (isMaximized) return 0;
-    const baseOffset = 16; // Base offset in pixels
+    const baseOffset = 30; // Base offset in pixels
     return (total - index - 1) * baseOffset;
   };
 

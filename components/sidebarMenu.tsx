@@ -170,8 +170,8 @@ export default function SidebarMenu({  }: PropsInterface) {
                                         <div>
                                             <button onClick={() => setOpenDropdown(openDropdown === item.id ? '' : item.id)} className="w-full text-md flex items-center justify-between px-6 py-4 hover:text-primary focus:text-primary transition-colors">
                                                 <div className="flex items-center min-w-[20px]">
-                                                    <Icon className=" font-bold w-5 h-5 min-w-[20px]"/>
-                                                    <span className="ml-3 xl:opacity-100 opacity-0 transition-opacity duration-300">{item.title}</span>
+                                                    <Icon className="w-5 h-5 min-w-[20px]"/>
+                                                    <span className="text-md ml-3 xl:opacity-100 opacity-0 transition-opacity duration-300">{item.title}</span>
                                                 </div>
                                                 <span className="xl:block hidden">
                                                     <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openDropdown === item.id ? '-rotate-180' : ''}`} />
@@ -196,10 +196,10 @@ export default function SidebarMenu({  }: PropsInterface) {
 
                                             {/* Dropdown menu for desktop */}
                                             <div className={`xl:block hidden overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? 'max-h-[800px]' : 'max-h-0'}`}>
-                                                <ul className="py-2 ml-6">
+                                                <ul className="py-1 ml-6">
                                                     {item.subItems.map((subItem) => (
                                                         <li key={subItem.id} className='cursor-pointer'>
-                                                            <span className="text-gray-200 block px-12 py-2 hover:text-primary transition-colors" onClick={() => handleMenuClick(subItem.id)}>{subItem.title}</span>
+                                                            <span className="text-gray-200 text-sm block px-8 py-2 hover:text-primary transition-colors" onClick={() => handleMenuClick(subItem.id)}>{subItem.title}</span>
                                                         </li>
                                                     ))}
                                                 </ul>
