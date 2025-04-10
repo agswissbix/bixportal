@@ -135,6 +135,8 @@ export async function POST(request: Request) {
     case 'prepara_email': djangoUrl = '/commonapp/prepara_email/'; break;
     case 'save_email': djangoUrl = '/commonapp/save_email/'; break;
     case 'get_input_linked': djangoUrl = '/commonapp/get_input_linked/'; break;
+    case 'stampa_bollettini_test': djangoUrl = '/commonapp/stampa_bollettini_test/'; break;
+    case 'stampa_bollettini': djangoUrl = '/commonapp/stampa_bollettini/'; break;
     default:
       return NextResponse.json(
         { error: `apiRoute ${apiRoute} non gestito.` },

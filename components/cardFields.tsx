@@ -106,7 +106,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
                         fieldid: "test5",
                         fieldorder: "5",
                         description: "Test 5",
-                        value: { code: 'test5', value: 'test5' },
+                        value: { code: '2', value: '2' },
                         fieldtype: "Utente",
                         lookupitemsuser: [
                             {id: '1', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '1'},
@@ -182,7 +182,7 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
             formData.append('fields', JSON.stringify(standardFields));
             formData.append('apiRoute', 'save_record_fields');
 
-            console.log(formData)   
+            console.log(formData)
             console.log("axiosInstanceClient:save_record_fields")
             await axiosInstanceClient.post('/postApi', formData, {
                 headers: {
