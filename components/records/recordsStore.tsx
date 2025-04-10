@@ -10,7 +10,7 @@ interface RecordsStore {
         recordid: string,
         type: string,
     }>;
-    addCard: (tableid: string, recordid: string, type: string) => void;
+    addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => void;
     removeCard: (tableid: string, recordid: string) => void;
     resetCardsList: () => void;
 
@@ -53,13 +53,13 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     },    
 
     cardsList: [],
-    addCard: (tableid: string, recordid: string, type: string) => 
+    addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => 
         set((state) => {
             const cardExists = state.cardsList.some(
                 (card) => card.tableid === tableid && card.recordid === recordid
             );
             if (!cardExists) {
-                return { cardsList: [...state.cardsList, { tableid, recordid, type }] };
+                return { cardsList: [...state.cardsList, { tableid, recordid, type, mastertableid, masterrecordid }] };
             }
             return state;
         }),
@@ -80,10 +80,10 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
             await resetCardsList();
 
             // Aggiungi la nuova card
-            addCard(tableid, recordid, tableType);
+            addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
         } else {
             // Rimuovi la card selezionata
-            addCard(tableid, recordid, tableType);
+            addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
         }
     },
 

@@ -5,6 +5,7 @@ import CardBadge from './cardBadge';
 import CardTabs from './cardTabs';
 import { toast, Toaster } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance'
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SimplePopup from './inviaEmail';
 
 
@@ -13,11 +14,13 @@ import SimplePopup from './inviaEmail';
 interface PropsInterface {
   tableid: string;
   recordid: string;
+  mastertableid?: string;
+  masterrecordid?: string;
   index?: number;
   total?: number;	
 }
 
-export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsInterface) {
+export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid,index=0,total=1 }: PropsInterface) {
 
   const { removeCard, cardsList, setIsPopupOpen } = useRecordsStore();
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
@@ -25,6 +28,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
   const [mountedTime, setMountedTime] = useState<string>("");
   // Nuovo stato per il menu a tendina
   const [showDropdown, setShowDropdown] = useState(false);
+
 
   const getOffset = () => {
     if (isMaximized) return 0;
