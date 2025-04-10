@@ -59,7 +59,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
   const stampaBollettino = async () => {
     try {
       //download a file from the response
-      const response = await axiosInstance.post('/commonapp/stampa_bollettini/', { recordid });
+      const response = await axiosInstance.post('/commonapp/stampa_bollettini_test/', { recordid }, {responseType: 'blob'});
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -155,7 +155,7 @@ export default function RecordCard({ tableid,recordid,index=0,total=1 }: PropsIn
                       className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
                         // Qui puoi inserire la logica per funzione1
-                        toast.success('Hai cliccato Funzione1');
+                        toast.info('Stampa bollettino in corso...');
                         stampaBollettino()
                         setShowDropdown(false);
                       }}
