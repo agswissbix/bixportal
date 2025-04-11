@@ -138,6 +138,8 @@ export async function POST(request: Request) {
     case 'stampa_bollettini_test': djangoUrl = '/commonapp/stampa_bollettini_test/'; break;
     case 'stampa_bollettini': djangoUrl = '/commonapp/stampa_bollettini/'; break;
     case 'save_belotti_form_data': djangoUrl = '/commonapp/save_belotti_form_data/'; break;
+    case 'get_form_data': djangoUrl = '/commonapp/get_form_data/'; break;
+
     default:
       return NextResponse.json(
         { error: `apiRoute ${apiRoute} non gestito.` },

@@ -18,7 +18,6 @@ import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
 import EmailPopup from '@/components/inviaEmail';
 import BelottiFormulari from '@/components/belottiFormulari';
-import FormularioOakley from '@/components/formularioOakley';
 
 export default function Home() {
   const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen} = useRecordsStore();
@@ -59,9 +58,17 @@ export default function Home() {
           ) : selectedMenu === 'Dashboard' ? (
             <Dashboard />
           ) : selectedMenu === 'formularioLifestyle' ? (
-            <BelottiFormulari />
-          ) : selectedMenu === 'formularioOakley' ? (
-            <FormularioOakley />
+            <BelottiFormulari formType='lifestyle' />
+          ) : selectedMenu === 'formularioLiquidiLAC' ? (
+            <BelottiFormulari formType='LiquidiLAC' />
+          ) : selectedMenu === 'formularioMerceVaria' ? (
+            <BelottiFormulari formType='MerceVaria' />
+          ) : selectedMenu === 'formularioMerceVariaBlitz' ? (
+            <BelottiFormulari formType='MerceVariaBlitz' />
+          ) : selectedMenu === 'formularioMerceVariaOakley' ? (
+            <BelottiFormulari formType='MerceVariaOakley' />
+          ) : selectedMenu === 'formularioOrdiniUdito' ? (
+            <BelottiFormulari formType='OrdiniUdito' />
           ) : (
             <StandardContent tableid={selectedMenu} />
           )}

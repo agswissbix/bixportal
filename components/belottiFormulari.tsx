@@ -32,7 +32,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   };
 
   const devResponseData: ResponseInterface = {
-    formName: "LIFESTYLE ORDER FORM 2024/2025",
+    formName: "FORMULARIO ORDINE LIFESTYLE 2024/2025",
     categories: [
       {
         title: "Small Cases",
@@ -113,8 +113,8 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
-      apiRoute: 'examplepost',
-      example1: formType,
+      apiRoute: 'get_form_data',
+      formType: formType,
     };
   }, [formType]);
 
