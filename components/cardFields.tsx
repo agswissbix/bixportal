@@ -226,7 +226,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response); // Questo aggiorna solo quando c'è una differenza nei dati
-        }
+        }                                     
     }, [response, isDev, responseData]); // Assicurati che le dipendenze siano ben definite
     
 
@@ -238,6 +238,13 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         {response.fields.map(field => {
                             const rawValue = typeof field.value === 'object' ? field.value?.code : field.value;
                             const initialValue = rawValue ?? '';
+                            //check with an if if the recordid is null
+                            if (!recordid && updatedFields[field.fieldid] === undefined) {
+                                setUpdatedFields(prev => ({
+                                    ...prev,
+                                    [field.fieldid]: initialValue
+                                }));
+                            }
 
                             return (
                                 <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
