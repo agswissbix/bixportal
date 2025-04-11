@@ -48,11 +48,11 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
               <li className="me-2">
                 <button
                   className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Linked'
+                    activeTab === 'Attachments'
                       ? 'text-primary border-primary'
                       : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
                   }`}
-                  onClick={() => setActiveTab('Linked')}
+                  onClick={() => setActiveTab('Attachments')}
                 >
                   Allegati
                 </button>
@@ -60,11 +60,11 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
               <li className="me-2">
                 <button
                   className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Linked'
+                    activeTab === 'Analytics'
                       ? 'text-primary border-primary'
                       : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
                   }`}
-                  onClick={() => setActiveTab('Linked')}
+                  onClick={() => setActiveTab('Analytics')}
                 >
                   Statistiche
                 </button>
@@ -72,11 +72,11 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
               <li className="me-2">
                 <button
                   className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Linked'
+                    activeTab === 'Storical'
                       ? 'text-primary border-primary'
                       : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
                   }`}
-                  onClick={() => setActiveTab('Linked')}
+                  onClick={() => setActiveTab('Storical')}
                 >
                   Storico
                 </button>
@@ -85,10 +85,14 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
           </div>
 
           <div className="h-5/6 p-4">
-            {activeTab === 'Fields' ? (
+            {activeTab === 'Fields' && (
               <CardFields tableid={tableid} recordid={recordid} />
-            ) : (
+            )}
+            {activeTab === 'Linked' && (
               <CardLinked tableid={tableid} recordid={recordid} />
+            )}
+            {activeTab !== 'Fields' && activeTab !== 'Linked' && (
+              <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
           </div>
         </div>
