@@ -249,7 +249,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
             </div>
             
             <div className="h-5/6 w-full">
-                <CardTabs tableid={tableid} recordid={recordid}></CardTabs>
+                <CardTabs tableid={tableid} recordid={recordid} mastertableid={mastertableid} masterrecordid={masterrecordid}></CardTabs>
             </div>
         </div>
   );

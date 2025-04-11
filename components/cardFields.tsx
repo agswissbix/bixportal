@@ -27,6 +27,8 @@ const isDev = false;
         interface PropsInterface {
           tableid?: string;
           recordid?: string;
+          mastertableid?: string;
+          masterrecordid?: string;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -47,7 +49,7 @@ const isDev = false;
             recordid: string;
         }
 
-export default function CardFields({ tableid,recordid }: PropsInterface) {
+export default function CardFields({ tableid,recordid,mastertableid,masterrecordid }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + '' + recordid;
@@ -211,6 +213,8 @@ export default function CardFields({ tableid,recordid }: PropsInterface) {
             apiRoute: 'get_record_card_fields', // riferimento api per il backend
             tableid: tableid,
             recordid: recordid,
+            mastertableid: mastertableid, 
+            masterrecordid: masterrecordid
         };
     }, [tableid,recordid]);
 
