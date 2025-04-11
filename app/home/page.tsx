@@ -17,7 +17,7 @@ import Dashboard from '@/components/dashboard';
 import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
 import EmailPopup from '@/components/inviaEmail';
-import FormularioLifestyle from '@/components/formularioLifestyle';
+import BelottiFormulari from '@/components/belottiFormulari';
 import FormularioOakley from '@/components/formularioOakley';
 
 export default function Home() {
@@ -59,7 +59,7 @@ export default function Home() {
           ) : selectedMenu === 'Dashboard' ? (
             <Dashboard />
           ) : selectedMenu === 'formularioLifestyle' ? (
-            <FormularioLifestyle />
+            <BelottiFormulari />
           ) : selectedMenu === 'formularioOakley' ? (
             <FormularioOakley />
           ) : (

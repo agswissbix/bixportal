@@ -130,8 +130,8 @@ export default function SidebarMenu({  }: PropsInterface) {
             {(data) => (
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg">
                     <Image 
-                        src={`/bixdata/logos/${activeServer}.png`}
-                        //src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : 'default'}.png`}
+                        //src={`/bixdata/logos/${activeServer}.png`}
+                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : 'default'}.png`}
                         alt={activeServer ?? ''}
                         width={1000}
                         height={1000}
@@ -161,6 +161,11 @@ export default function SidebarMenu({  }: PropsInterface) {
                             Dashboard
                         </span>
                     */}
+                    {activeServer === 'belotti' ? (
+                        <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioLifestyle')}> 
+                            Lifestyle
+                        </span>
+                    ) : null}
                         {Object.entries(data['menuItems']).map(([key, item]) => {
                             const Icon = iconMap[item.icon] || HelpCircle;
                             return (

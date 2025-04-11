@@ -31,7 +31,6 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     dashboard: dynamic(() => import('@/components/dashboard')),
     scanner: dynamic(() => import('@/components/scannerTest')),
     belotti: dynamic(() => import('@/components/belotti1')),
-    formularioLifestyle: dynamic(() => import('@/components/formularioLifestyle')),
 
 };
 
