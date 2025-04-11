@@ -192,8 +192,8 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 });
-            setRefreshTable(refreshTable+1)
-            removeCard(tableid || '', recordid || '')
+            //setRefreshTable(refreshTable+1)
+            removeCard(tableid, recordid)
             addCard(tableid || '', recordid || '', 'standard')
             
             toast.success('Record salvato con successo');
