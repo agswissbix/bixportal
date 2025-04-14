@@ -105,9 +105,9 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
 
 
 
-<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-5 w-1/3 h-1/3">
-  <img className="w-full" src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`} alt="Sunset in the mountains" />
-  <div className="px-6 py-4">
+<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-6 ml-6 w-1/2 h-1/2 ">
+  <img className="w-full h-1/2" src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`} alt="Sunset in the mountains" />
+  <div className="px-6 py-4 h-1/2">
     {responseData.badgeItems.map((item) => (
       (item.fieldid !== "fotostabile" && item.fieldid !== "test7") ? (
         item.fieldid === "titolo_stabile" ? (
@@ -115,10 +115,10 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
         ) : (
           <div
             key={item.fieldid}
-            className="flex items-center gap-2 px-3 py-1 bg-black/50 rounded text-white shadow-md mb-2"
+            className="flex items-center gap-2 px-3 py-1 bg-black/50 rounded text-black shadow-md mb-2"
           >
-            <span className="font-semibold">{item.fieldid}:</span>
-            <span>{item.value}</span>
+            <span className="font-semibold text-black">{item.fieldid}:</span>
+            <span className="text-black">{item.value}</span>
           </div>
         )
       ) : null

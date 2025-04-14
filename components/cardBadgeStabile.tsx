@@ -116,7 +116,7 @@ export default function CardBadgeStabile({ tableid,recordid }: PropsInterface) {
                             </div>
                             ) : null
                            ) : (
-                            <div className="w-1/2 h-full">
+                            <div key={item.fieldid} className="w-1/2 h-full">
                                 <p key={`${item.fieldid}-badge`} className="w-1/3 text-center text-white">
                                     {item.value}
                                 </p>
