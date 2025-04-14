@@ -8,9 +8,11 @@ import GenericComponent from './genericComponent';
 interface PropsInterface {
   tableid: string;
   recordid: string;
+  mastertableid?: string;
+  masterrecordid?: string;
 }
 
-export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
+export default function ExampleComponent({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
 
   const {addCard} = useRecordsStore();
   const [activeTab, setActiveTab] = useState('Fields')
@@ -78,7 +80,7 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
                   }`}
                   onClick={() => setActiveTab('Storical')}
                 >
-                  Storico
+                  Storico 
                 </button>
               </li>
             </ul>
@@ -86,7 +88,7 @@ export default function ExampleComponent({ tableid,recordid }: PropsInterface) {
 
           <div className="h-5/6 p-4">
             {activeTab === 'Fields' && (
-              <CardFields tableid={tableid} recordid={recordid} />
+              <CardFields tableid={tableid} recordid={recordid}  mastertableid={mastertableid} masterrecordid={masterrecordid}/>
             )}
             {activeTab === 'Linked' && (
               <CardLinked tableid={tableid} recordid={recordid} />
