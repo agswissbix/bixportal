@@ -250,7 +250,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                 <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
                                     {/* Etichetta */}
                                     <div className="w-1/4">
-                                        <p className="text-black">{field.description} {field.linked_mastertable}</p>
+                                        <p className="text-black">{field.description} </p>
                                     </div>
                                     
                                     {/* Input */}
