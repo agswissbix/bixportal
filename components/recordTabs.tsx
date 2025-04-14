@@ -4,6 +4,7 @@ import RecordsTable from './recordsTable';
 import Kanban from './kanban';
 import Pivot from './recordsPivot'
 import PitCalendar from './pitCalendar';
+import GalleryView from './gallery';
 import GenericComponent from './genericComponent';
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -70,6 +71,18 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
                   Calendario
                 </button>
               </li>
+              <li className="me-2">
+              <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                    activeTab === 'Gallery'
+                      ? 'text-primary border-primary'
+                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('Gallery')}
+                >
+                  Gallery
+                </button>
+              </li>
             </ul>
           </div>
           <div id="records-tab-content" className="mt-2 h-full ">
@@ -88,6 +101,15 @@ export default function ExampleComponent({ tableid }: PropsInterface) {
               <Pivot  tableid={tableid} searchTerm={searchTerm} />
             ): activeTab === 'Calendar' ? (
               <PitCalendar />
+            ): activeTab === 'Gallery' ? (
+              <GalleryView 
+              tableid={tableid}
+              searchTerm={searchTerm}
+              view={tableView}
+              pagination={{ page: currentPage, limit: pageLimit }}
+
+              context='standard'
+              />
             ): null
             }
       
