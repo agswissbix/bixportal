@@ -11,6 +11,7 @@ interface PropsInterface {
   linkedmaster_tableid?: string;
   linkedmaster_recordid?: string;
   fieldid: string;
+  valuecode?: string;
 }
 
 interface LinkedItem {
@@ -43,8 +44,8 @@ const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string
   return res.data;
 };
 
-export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid,fieldid }: PropsInterface) {
-  const [value, setValue] = useState(initialValue);
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid,fieldid,valuecode='' }: PropsInterface) {
+  const [value, setValue] = useState(valuecode);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +93,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
   }, []);
 
   useEffect(() => {
+    window.alert(valuecode);
     return () => {
       debouncedSearch.cancel();
     };

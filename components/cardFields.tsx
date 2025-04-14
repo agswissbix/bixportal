@@ -236,7 +236,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                 <div className="h-full">
                     <div className="h-full flex flex-col overflow-y-scroll space-y-3">
                         {response.fields.map(field => {
-                            const rawValue = typeof field.value === 'object' ? field.value?.code : field.value;
+                            const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
                             const initialValue = rawValue ?? '';
                            
 
@@ -293,6 +293,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                         ) : field.fieldtype === 'linkedmaster' ? (
                                             <InputLinked 
                                                 initialValue={initialValue}
+                                                valuecode={field.value.value}
                                                 onChange={(value: string) => handleInputChange(field.fieldid, value)}
                                                 tableid={tableid}
                                                 linkedmaster_tableid={field.linked_mastertable}
