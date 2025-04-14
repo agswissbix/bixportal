@@ -107,7 +107,7 @@ export default function CardBadgeStabile({ tableid,recordid }: PropsInterface) {
                         {response.badgeItems.map((item) => (
                            item.fieldid === "fotostabile" ? (
                             item.value ? (
-                            <div className='h-full w-1/2'>   
+                            <div key={item.fieldid} className='h-full w-1/2'>   
                                 <p key={`${item.fieldid}-badge`} className="w-full text-center text-white"></p> 
                             <ImagePreview
                                     key={item.fieldid}

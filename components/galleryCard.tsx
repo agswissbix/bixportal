@@ -106,7 +106,16 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
 
 
 <div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-6 ml-6 w-1/2 h-1/2 ">
-  <img className="w-full h-1/2" src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`} alt="Sunset in the mountains" />
+    <img
+    className="w-full h-1/2"
+    src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`}
+    alt="Immagine dello stabile"
+    onError={(e) => {
+        (e.target as HTMLImageElement).onerror = null; // previene loop infiniti
+        (e.target as HTMLImageElement).src = 'https://i.pinimg.com/736x/87/6e/e8/876ee8ecc68c920dabc68a69a6ab2ca0.jpg'; // immagine di default
+    }}
+    />
+
   <div className="px-6 py-4 h-1/2">
     {responseData.badgeItems.map((item) => (
       (item.fieldid !== "fotostabile" && item.fieldid !== "test7") ? (
