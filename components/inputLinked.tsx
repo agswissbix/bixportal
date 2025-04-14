@@ -11,7 +11,7 @@ interface PropsInterface {
   linkedmaster_tableid?: string;
   linkedmaster_recordid?: string;
   fieldid: string;
-  valuecode?: string;
+  valuecode?: { code: string; value: string };
 }
 
 interface LinkedItem {
@@ -44,8 +44,8 @@ const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string
   return res.data;
 };
 
-export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid,fieldid,valuecode='' }: PropsInterface) {
-  const [value, setValue] = useState(valuecode);
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid,fieldid,valuecode }: PropsInterface) {
+  const [value, setValue] = useState(valuecode?.value);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +93,6 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
   }, []);
 
   useEffect(() => {
-    window.alert(valuecode);
     return () => {
       debouncedSearch.cancel();
     };
@@ -123,7 +122,13 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
       onChange(item.recordid);
     }
   };
-
+  console.info('test inputLinked:', valuecode);
+  useEffect(() => {
+        if(onChange && valuecode?.code){
+          onChange(valuecode?.code);
+        } 
+      }, [valuecode?.code]);
+      
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div className="">

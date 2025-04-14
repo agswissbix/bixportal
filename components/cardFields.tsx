@@ -293,7 +293,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                         ) : field.fieldtype === 'linkedmaster' ? (
                                             <InputLinked 
                                                 initialValue={initialValue}
-                                                valuecode={field.value.value}
+                                                valuecode={field.value}
                                                 onChange={(value: string) => handleInputChange(field.fieldid, value)}
                                                 tableid={tableid}
                                                 linkedmaster_tableid={field.linked_mastertable}
