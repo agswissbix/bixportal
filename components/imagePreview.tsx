@@ -4,15 +4,15 @@ const ImagePreview = ({ imageUrl }: { imageUrl: string }) => {
   const [showFull, setShowFull] = useState(false);
 
   return (
-    <div>
+    <div className="h-full w-full">
       {/* Preview thumbnail */}
       <img
         src={imageUrl}
         alt="allegato"
         onClick={() => setShowFull(true)}
         style={{
-          width: '50%',
-          height: 'auto',
+          width: '40%',
+          height: '100%',
           cursor: 'pointer',
           borderRadius: '8px',
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
