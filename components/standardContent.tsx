@@ -84,6 +84,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                     masterrecordid={card.masterrecordid}
                     index={index}
                     total={cardsList.length}
+                    type={card.type}
                 />
             ))}
   

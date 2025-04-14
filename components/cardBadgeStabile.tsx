@@ -25,7 +25,7 @@ const isDev = false;
             }>
         }
 
-export default function CardBadge({ tableid,recordid }: PropsInterface) {
+export default function CardBadgeStabile({ tableid,recordid }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO 
             const devPropExampleValue = isDev ? "Example prop" : tableid + '' + recordid;
@@ -103,11 +103,23 @@ export default function CardBadge({ tableid,recordid }: PropsInterface) {
         <GenericComponent response={responseData} loading={loading} error={error} title="cardBadge"> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full flex justify-center items-center">
-                    <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">
+                    <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3 overflow-hidden">
                         {response.badgeItems.map((item) => (
-                            <p key={item.fieldid} className="w-1/3 text-center text-white">
-                                {item.value}
-                            </p>
+                           item.fieldid === "fotostabile" ? (
+                            item.value ? (
+                            <div>   
+                                <p key={`${item.fieldid}-badge`} className="w-full text-center text-white"></p> 
+                            <ImagePreview
+                                    key={item.fieldid}
+                                    imageUrl={`/api/media-proxy?url=${item.value}`}
+                                />
+                            </div>
+                            ) : null
+                           ) : (
+                            <p key={`${item.fieldid}-badge`} className="w-1/3 text-center text-white">
+                                    {item.value}
+                                </p>
+                           )
                         ))}
                     </div>
                 </div>

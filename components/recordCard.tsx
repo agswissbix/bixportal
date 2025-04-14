@@ -2,11 +2,13 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import { CircleX, Maximize2, Info, Trash2, Check } from 'lucide-react';
 import CardBadge from './cardBadge';
+import CardBadgeStabile from './cardBadgeStabile';
 import CardTabs from './cardTabs';
 import { toast, Toaster } from 'sonner';
 import axiosInstance from '@/utils/axiosInstance'
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SimplePopup from './inviaEmail';
+import { Card } from './ui/card';
 
 
 
@@ -16,11 +18,12 @@ interface PropsInterface {
   recordid: string;
   mastertableid?: string;
   masterrecordid?: string;
+  type: string;
   index?: number;
   total?: number;	
 }
 
-export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid,index=0,total=1 }: PropsInterface) {
+export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid, type,index=0,total=1 }: PropsInterface) {
 
   const { removeCard, cardsList, setIsPopupOpen } = useRecordsStore();
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
@@ -113,7 +116,6 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         const seconds = Math.floor((now % 60000) / 1000);
         const centiseconds = Math.floor((now % 1000) / 10);
         setMountedTime(`${minutes}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`);
-
     }, []);
 
 
@@ -243,7 +245,11 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                     </div>
                 </div>
                 <div className="h-5/6">
+                {tableid === 'stabile' ? (
+                    <CardBadgeStabile tableid={tableid} recordid={recordid}></CardBadgeStabile>
+                ) : (
                     <CardBadge tableid={tableid} recordid={recordid}></CardBadge>
+                )}
                 </div>
                 
             </div>

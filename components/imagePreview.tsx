@@ -11,7 +11,7 @@ const ImagePreview = ({ imageUrl }: { imageUrl: string }) => {
         alt="allegato"
         onClick={() => setShowFull(true)}
         style={{
-          width: '5%',
+          width: '50%',
           height: 'auto',
           cursor: 'pointer',
           borderRadius: '8px',
@@ -24,7 +24,7 @@ const ImagePreview = ({ imageUrl }: { imageUrl: string }) => {
         <div
           onClick={() => setShowFull(false)}
           style={{
-            position: 'fixed',
+            position: 'static',
             top: 0,
             left: 0,
             width: 'screen',
@@ -33,7 +33,7 @@ const ImagePreview = ({ imageUrl }: { imageUrl: string }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 9999,
+            zIndex: 0,
             cursor: 'zoom-out',
             borderRadius: '10px',
             padding: '10px',
