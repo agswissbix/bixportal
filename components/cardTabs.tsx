@@ -3,6 +3,7 @@ import { useRecordsStore } from './records/recordsStore';
 import CardFields from './cardFields';
 import CardLinked from './cardLinked';
 import GenericComponent from './genericComponent';
+import RecordAttachments from './recordAttachments';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -12,7 +13,7 @@ interface PropsInterface {
   masterrecordid?: string;
 }
 
-export default function ExampleComponent({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
+export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
 
   const {addCard} = useRecordsStore();
   const [activeTab, setActiveTab] = useState('Fields')
@@ -93,9 +94,13 @@ export default function ExampleComponent({ tableid,recordid,mastertableid, maste
             {activeTab === 'Linked' && (
               <CardLinked tableid={tableid} recordid={recordid} />
             )}
-            {activeTab !== 'Fields' && activeTab !== 'Linked' && (
+            {activeTab !== 'Fields' && activeTab !== 'Linked' && activeTab !== 'Attachments' && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
+            {activeTab !== 'Attachments' && (
+              <RecordAttachments tableid={tableid}/>
+            )}
+            
           </div>
         </div>
       )}

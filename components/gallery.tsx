@@ -22,7 +22,7 @@ const isDev = false;
           view?: string;
           order?: string[];
           context?: string;
-          pagination: {
+          pagination?: {
             page: number;
             limit: number;
           }
@@ -53,7 +53,7 @@ const isDev = false;
 // TIPO DI ORDINAMENTO
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function GalleryView({ tableid, searchTerm, filters, view, order, context, pagination, level, masterTableid, masterRecordid }: PropsInterface) {
+export default function GalleryView({ tableid, searchTerm, filters, view, order, context, pagination = { page: 1, limit: 50 }, level, masterTableid, masterRecordid }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
