@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useRecordsStore } from '@/components/records/recordsStore';
 import { consoleDebug } from '@/utils/develop';
 import axios from 'axios';
 
@@ -11,7 +10,6 @@ export const useApi = <T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
-  const { refreshTable } = useRecordsStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,9 +40,9 @@ export const useApi = <T>(
       }
     };
 
-    console.log('Fetching data with payload:', payload, 'refreshTable:', refreshTable);
+    console.log('Fetching data with payload:', payload);
     fetchData();
-  }, [payload, refreshTable]);
+  }, [payload]);
 
   return { response, loading, error, elapsedTime  };
 };
