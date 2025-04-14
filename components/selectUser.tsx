@@ -48,6 +48,7 @@ export default function SelectUser({
     [lookupItems]
   );
 
+  
   // Funzione per calcolare il valore iniziale in base a initialValue e isMulti
   const getInitialValue = () => {
     if (isMulti) {
@@ -65,6 +66,7 @@ export default function SelectUser({
     OptionType | OptionType[] | null
   >(getInitialValue());
 
+  
   // Aggiorna lo stato se cambiano initialValue, lookupItems o la modalità isMulti
   useEffect(() => {
     const computed = getInitialValue();
@@ -113,6 +115,12 @@ export default function SelectUser({
       }
     }
   };
+
+  useEffect(() => {
+        if(onChange && initialValue){
+          onChange(initialValue);
+        } 
+      }, [initialValue]);
 
   return (
     <div className="relative">
