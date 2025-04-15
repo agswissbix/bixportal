@@ -105,7 +105,7 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
 
 
 
-<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-6 ml-6 w-1/2 h-1/2 ">
+<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-8 ml-12 w-1/2 h-1/2 ">
     <img
     className="w-full h-1/2"
     src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`}

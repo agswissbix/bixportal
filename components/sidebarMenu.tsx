@@ -136,8 +136,9 @@ export default function SidebarMenu({  }: PropsInterface) {
                         width={1000}
                         height={1000}
                         className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all ease-in-out duration-150"
-                        onClick={() => handleMenuClick('Home')}
-                        priority
+                        onClick ={() => window.location.reload()}
+                        //onClick={() => handleMenuClick('Home')}
+                        
                     />
                     <ul className="list-none p-0 m-0">
                     {activeServer === 'telamico' ? (
