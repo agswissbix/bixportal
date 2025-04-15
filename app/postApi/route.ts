@@ -89,6 +89,7 @@ export async function POST(request: Request) {
     case 'test_connection_post': djangoUrl = '/commonapp/test_connection_post/'; break;
     case 'getCsrf': djangoUrl = '/commonapp/get_csrf'; break;
     case 'login': djangoUrl = '/auth/login/'; break;
+    case 'logout': djangoUrl = '/auth/logout/'; break;
     case 'checkAuth': djangoUrl = '/auth/user/'; break;
     case 'verify_2fa': djangoUrl = '/commonapp/verify_2fa/'; break;
     case 'changePassword': djangoUrl = '/commonapp/change_password/'; break;

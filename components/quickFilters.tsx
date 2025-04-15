@@ -106,13 +106,13 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="recordFilters" > 
             {(response: ResponseInterface) => (
-                <div className="flex items-center justify-between w-4/6">
+                <div className="flex items-center justify-between w-full gap-3">
                 {/* Form con select e search */}
-                <form className="flex items-center gap-4 w-full" onSubmit={(e) => { e.preventDefault(); researchTableSubmit(); }}>
+                <form className="flex items-center gap-3 w-full" onSubmit={(e) => { e.preventDefault(); researchTableSubmit(); }}>
                   <select 
                     id="filter-type"
                     value={selectedView}
-                    className="w-3/6 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    className="w-64 h-10 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 px-4 shadow-sm hover:border-gray-300 transition-all duration-200 outline-none"
                     onChange={handleViewChange}
                   >
                     {response.views.map((view) => (
@@ -120,20 +120,40 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
                     ))}
                   </select>
               
-                  <div className="relative w-3/6">
-                    <label htmlFor="default-search" className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Cerca</label>
-                    <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                  <div className="relative flex-grow">
+                    <div className="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none">
+                      <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                       </svg>
                     </div>
-                    <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Cerca" value={inputValue} onChange={handleInputChange} />
-                    <button type="submit" className="text-white absolute end-2.5 bottom-2.5 bg-primary hover:bg-red-500 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-md text-sm px-4 py-2">Cerca</button>
-                  </div>  
+                    <input 
+                      type="search" 
+                      id="default-search" 
+                      className="block w-full h-10 ps-10 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white focus:ring-gray-500 focus:border-gray-500 shadow-sm hover:border-gray-300 transition-all duration-200 outline-none" 
+                      placeholder="Cerca" 
+                      value={inputValue} 
+                      onChange={handleInputChange} 
+                    />
+                    <button 
+                      type="submit" 
+                      className="absolute right-1 top-1 h-8 text-white bg-red-500 hover:bg-red-600 focus:ring-2 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 transition-all duration-200 shadow-sm"
+                    >
+                      <div className="flex items-center">
+                        Cerca
+                      </div>
+                    </button>
+                  </div>
                 </form>
               
-                {/* Bottone Filtri fuori dal form */}
-                <button type="button" className="ml-4 text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-md text-sm px-4 py-2" onClick={() => setIsFiltersOpen(!isFiltersOpen)}>
+                {/* Bottone Filtri fuori dal form - stilizzato più bello */}
+                <button 
+                  type="button" 
+                  className={`flex items-center h-10 gap-2 ${isFiltersOpen ? 'text-white bg-red-500 hover:bg-red-600' : 'text-gray-700 bg-white hover:bg-gray-50'} border border-gray-300 focus:ring-2 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 shadow-sm transition-all duration-200`}
+                  onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
                   Filtri
                 </button>
               </div>
@@ -141,5 +161,3 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
         </GenericComponent>
     );
 };
-
-

@@ -1,5 +1,6 @@
 import axiosInstance from '@/utils/axiosInstance';
 import axios from 'axios';
+import axiosInstanceClient from './axiosInstanceClient';
 
 // Funzione per leggere il valore di un cookie (ad es. "csrftoken")
 export function getCookie(name: string): string | null {
@@ -177,7 +178,7 @@ export interface LogoutResponse {
 export async function logoutUser(): Promise<LogoutResponse> {
   try {
     const csrfToken = getCookie('csrftoken');
-    const response = await axiosInstance.post('/auth/logout/', null, {
+    const response = await axiosInstanceClient.post('/auth/logout/', null, {
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrfToken || '',
