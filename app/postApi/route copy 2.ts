@@ -140,67 +140,35 @@ export async function POST(request: Request) {
     const payload = rawFormData ?? rest;
     const response = await axiosInstance.post(djangoUrl, payload, axiosConfig);
 
-       // Estrazione dei cookie dalla risposta del backend
-  const setCookieHeader = response.headers['set-cookie'] as string | string[] | undefined;
+    const contentType = response.headers['content-type'];
 
-  // Ricava il content-type della risposta
-  const resContentType = response.headers['content-type'];
+    if (contentType && contentType.includes('application/pdf')) {
+      return new Response(response.data, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment; filename="bollettino.pdf"',
+        },
+      });
+    }
 
-  // Gestione della risposta in base al content-type
-  if (resContentType && resContentType.includes('application/pdf')) {
-    // Risposta Blob: PDF
-    const nextResponse = new Response(response.data, {
+    return NextResponse.json(JSON.parse(Buffer.from(response.data).toString('utf-8')), {
       status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="bollettino.pdf"',
-      },
     });
+  } catch (error: any) {
+    console.error('Errore durante il proxy:', error);
+    const status = error.response?.status || 500;
+    const detail = error.response?.data?.detail || error.message || 'Errore generico.';
 
-    if (Array.isArray(setCookieHeader)) {
-      setCookieHeader.forEach((cookie) => {
-        nextResponse.headers.append('Set-Cookie', cookie);
-      });
-    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
-    }
-
-    return nextResponse;
-  } else {
-    // Risposta JSON: convertiamo l'arraybuffer in stringa e poi facciamo il parse
-    const parsedData = JSON.parse(Buffer.from(response.data).toString('utf-8'));
-    const nextResponse = NextResponse.json(parsedData, { status: 200 });
-
-    if (Array.isArray(setCookieHeader)) {
-      setCookieHeader.forEach((cookieValue) => {
-        nextResponse.headers.append('Set-Cookie', cookieValue);
-      });
-    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
-    }
-
-    return nextResponse;
-  }
-      } catch (error: any) {
-        console.error('Errore durante il proxy:', error);
-        const status = error.response?.status || 500;
-        const detail = error.response?.data?.detail || error.message || 'Errore generico.';
-    
-        if (
-          error.response?.data instanceof ArrayBuffer &&
-          error.response?.headers['content-type']?.includes('application/json')
-        ) {
-          try {
-            const decoded = JSON.parse(Buffer.from(error.response.data).toString('utf-8'));
-            return NextResponse.json(
-              { error: decoded.detail || decoded.message || 'Errore JSON.' },
-              { status }
-            );
-          } catch (err) {
-            console.warn('Errore nel parsing del JSON di errore:', err);
-          }
-        }
-    
-        return NextResponse.json({ error: detail }, { status });
+    if (error.response?.data instanceof ArrayBuffer && error.response?.headers['content-type']?.includes('application/json')) {
+      try {
+        const decoded = JSON.parse(Buffer.from(error.response.data).toString('utf-8'));
+        return NextResponse.json({ error: decoded.detail || decoded.message || 'Errore JSON.' }, { status });
+      } catch (err) {
+        console.warn('Errore nel parsing del JSON di errore:', err);
       }
     }
+
+    return NextResponse.json({ error: detail }, { status });
+  }
+}
