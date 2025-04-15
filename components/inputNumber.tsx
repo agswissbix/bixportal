@@ -8,14 +8,15 @@ interface PropsInterface {
 
 export default function InputNumber({ initialValue = '',onChange }: PropsInterface) {
 
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(initialValue ?? '');
+
   useEffect(() => {
-        setValue(initialValue); 
+        setValue(initialValue ?? '');
         if(onChange && initialValue){
           onChange(initialValue);
         } 
       }, [initialValue]);
-      
+
   useEffect(() => {
     if (onChange && value !== initialValue) {
       onChange(value);

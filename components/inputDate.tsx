@@ -8,9 +8,9 @@ interface PropsInterface {
 
 export default function InputDate({ initialValue = '',onChange }: PropsInterface) {
 
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(initialValue ?? '');
   useEffect(() => {
-      setValue(initialValue); 
+      setValue(initialValue ?? ''); 
       if(onChange && initialValue){
         onChange(initialValue);
       } 

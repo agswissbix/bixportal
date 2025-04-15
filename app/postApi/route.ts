@@ -5,7 +5,6 @@ import { parseFormData } from '@/lib/parseFormData';
 import FormDataNode from 'form-data';
 import fs from 'fs';
 
-// Disabilita il body parser di Next.js per gestire file
 export const config = {
   api: {
     bodyParser: false,
@@ -27,53 +26,32 @@ export async function POST(request: Request) {
       postData = await request.json();
     } else if (contentType.includes('multipart/form-data')) {
       const { fields, files } = await parseFormData(request);
-      postData = fields;
       const singleValueFields: Record<string, any> = {};
       for (const [key, fieldValue] of Object.entries(fields)) {
-        if (Array.isArray(fieldValue) && fieldValue.length === 1) {
-          singleValueFields[key] = fieldValue[0];
-        } else {
-          singleValueFields[key] = fieldValue;
-        }
+        singleValueFields[key] = Array.isArray(fieldValue) && fieldValue.length === 1 ? fieldValue[0] : fieldValue;
       }
       postData = singleValueFields;
       rawFormData = new FormDataNode();
 
-      // Aggiungi i campi testuali (gestione array)
       for (const [key, fieldValue] of Object.entries(postData)) {
-        // se è un array di 1 elemento -> stringa
-        let values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-        if (values.length === 1) {
-          // valore singolo
-          rawFormData.append(key, values[0]);
-        } else {
-          // multipli
-          values.forEach((item) => {
-            if (rawFormData) {
-              rawFormData.append(key, item);
-            }
-          });
-        }
+        const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+        values.forEach((val) => rawFormData?.append(key, val));
       }
 
-      // Aggiungi i file
       for (const [key, fileOrFiles] of Object.entries(files)) {
         const fileArray = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
         fileArray.forEach((f: any) => {
           if (f?.filepath) {
-            if (rawFormData) {
-              rawFormData.append(key, fs.createReadStream(f.filepath), {
-                filename: f.originalFilename,
-                contentType: f.mimetype,
-              });
-            }
+            rawFormData?.append(key, fs.createReadStream(f.filepath), {
+              filename: f.originalFilename,
+              contentType: f.mimetype,
+            });
           }
         });
       }
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await request.formData();
       postData = Object.fromEntries(formData.entries());
-
       rawFormData = new FormDataNode();
       for (const [key, value] of formData.entries()) {
         rawFormData.append(key, value as any);
@@ -113,10 +91,8 @@ export async function POST(request: Request) {
     case 'checkAuth': djangoUrl = '/auth/user/'; break;
     case 'verify_2fa': djangoUrl = '/commonapp/verify_2fa/'; break;
     case 'changePassword': djangoUrl = '/commonapp/change_password/'; break;
-    case 'get_shifts_and_volunteers_telefono':
-      djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers_telefono/'; break;
-    case 'get_shifts_and_volunteers_chat':
-      djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers_chat/'; break;
+    case 'get_shifts_and_volunteers_telefono': djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers_telefono/'; break;
+    case 'get_shifts_and_volunteers_chat': djangoUrl = '/customapp_telefonoamico/get_shifts_and_volunteers_chat/'; break;
     case 'get_volunteers_list': djangoUrl = '/customapp_telefonoamico/get_volunteers_list/'; break;
     case 'save_shift': djangoUrl = '/customapp_telefonoamico/save_shift/'; break;
     case 'delete_shift': djangoUrl = '/customapp_telefonoamico/delete_shift/'; break;
@@ -139,7 +115,8 @@ export async function POST(request: Request) {
     case 'stampa_bollettini': djangoUrl = '/commonapp/stampa_bollettini/'; break;
     case 'save_belotti_form_data': djangoUrl = '/commonapp/save_belotti_form_data/'; break;
     case 'get_form_data': djangoUrl = '/commonapp/get_form_data/'; break;
-
+    case 'stampa_bollettino': djangoUrl = '/customapp_pitservice/stampa_bollettino/'; break;
+    case 'stampa_bollettino_test': djangoUrl = '/customapp_pitservice/stampa_bollettino_test/'; break;
     default:
       return NextResponse.json(
         { error: `apiRoute ${apiRoute} non gestito.` },
@@ -154,28 +131,42 @@ export async function POST(request: Request) {
         'Cookie': `sessionid=${sessionId ?? ''}; csrftoken=${csrfToken ?? ''}`,
         ...(rawFormData ? rawFormData.getHeaders() : {}),
       },
+      responseType: 'arraybuffer' as const,
       withCredentials: true,
     };
 
     const payload = rawFormData ?? rest;
     const response = await axiosInstance.post(djangoUrl, payload, axiosConfig);
 
-    const setCookieHeader = response.headers['set-cookie'] as string | string[] | undefined;
-    const nextResponse = NextResponse.json(response.data, { status: 200 });
+    const contentType = response.headers['content-type'];
 
-    if (Array.isArray(setCookieHeader)) {
-      setCookieHeader.forEach((cookieValue) => {
-        nextResponse.headers.append('Set-Cookie', cookieValue);
+    if (contentType && contentType.includes('application/pdf')) {
+      return new Response(response.data, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment; filename="bollettino.pdf"',
+        },
       });
-    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
     }
 
-    return nextResponse;
+    return NextResponse.json(JSON.parse(Buffer.from(response.data).toString('utf-8')), {
+      status: 200,
+    });
   } catch (error: any) {
     console.error('Errore durante il proxy:', error);
     const status = error.response?.status || 500;
     const detail = error.response?.data?.detail || error.message || 'Errore generico.';
+
+    if (error.response?.data instanceof ArrayBuffer && error.response?.headers['content-type']?.includes('application/json')) {
+      try {
+        const decoded = JSON.parse(Buffer.from(error.response.data).toString('utf-8'));
+        return NextResponse.json({ error: decoded.detail || decoded.message || 'Errore JSON.' }, { status });
+      } catch (err) {
+        console.warn('Errore nel parsing del JSON di errore:', err);
+      }
+    }
+
     return NextResponse.json({ error: detail }, { status });
   }
 }

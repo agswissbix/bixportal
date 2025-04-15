@@ -67,7 +67,21 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
   const stampaBollettino = async () => {
     try {
       //download a file from the response
-      const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettini/', { recordid }, {responseType: 'blob'});
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_bollettino",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
