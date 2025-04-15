@@ -8,7 +8,7 @@ import { Sidebar } from 'lucide-react';
 import RecordCard from '@/components/recordCard';
 import CardFields from '@/components/cardFields';
 import CardLinked from '@/components/cardLinked';
-import RecordFilters from '@/components/recordFilters';
+import RecordFilters from '@/components/quickFilters';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -19,7 +19,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     sidebarMenu: dynamic(() => import('@/components/sidebarMenu')),
     standardContent : dynamic(() => import('@/components/standardContent')),
     recordTabs : dynamic(() => import('@/components/recordTabs')),
-    recordFilters : dynamic(() => import('@/components/recordFilters')),
+    recordFilters : dynamic(() => import('@/components/quickFilters')),
     recordsTable : dynamic(() => import('@/components/recordsTable')),
     recordCard : dynamic(() => import('@/components/recordCard')),
     cardTabs : dynamic(() => import('@/components/cardTabs')),

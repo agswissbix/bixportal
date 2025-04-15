@@ -24,7 +24,7 @@ const isDev = false;
           }[];
         }
 
-export default function RecordFilters({ propExampleValue }: PropsInterface) {
+export default function QuickFilters({ propExampleValue }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -58,7 +58,7 @@ export default function RecordFilters({ propExampleValue }: PropsInterface) {
             const [inputValue, setInputValue] = useState('');
             const [selectedView, setSelectedView] = useState(1);
 
-            const {setSearchTerm,setTableView} = useRecordsStore();
+            const {setSearchTerm,setTableView, isFiltersOpen, setIsFiltersOpen} = useRecordsStore();
             const {refreshTable,setRefreshTable,selectedMenu} = useRecordsStore();
 
             const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,7 +133,7 @@ export default function RecordFilters({ propExampleValue }: PropsInterface) {
                 </form>
               
                 {/* Bottone Filtri fuori dal form */}
-                <button type="button" className="ml-4 text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-md text-sm px-4 py-2">
+                <button type="button" className="ml-4 text-white bg-gray-400 hover:bg-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-md text-sm px-4 py-2" onClick={() => setIsFiltersOpen(!isFiltersOpen)}>
                   Filtri
                 </button>
               </div>

@@ -1,10 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {useRecordsStore} from './records/recordsStore';
-import RecordFilters from './recordFilters';
+import QuickFilters from './quickFilters';
+import TableFilters from './TableFilters';
 import RecordTabs from './recordTabs';
 import RecordCard from './recordCard';
 import GenericComponent from './genericComponent';
 import { PlusIcon, ArrowPathIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { Table } from 'lucide-react';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -19,7 +21,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
 
 
-  const {refreshTable, setRefreshTable} = useRecordsStore(); // Stato per il valore di ricerca
+  const {refreshTable, setRefreshTable, setIsFiltersOpen, isFiltersOpen} = useRecordsStore(); // Stato per il valore di ricerca
 
   const {cardsList, addCard, removeCard, resetCardsList, handleRowClick} = useRecordsStore(); // Stato per il valore di ricerca
 
@@ -46,7 +48,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
           */}
           <div className="flex flex-wrap w-full mb-2">
             <div className="w-1/2">
-                <RecordFilters></RecordFilters>
+                <QuickFilters></QuickFilters>
             </div>
             <div className="w-1/2 h-1/2 flex justify-end gap-3">
               <button
@@ -74,22 +76,35 @@ export default function StandardContent({ tableid }: PropsInterface) {
               </button>
             </div>
           </div>
-  
-            {cardsList.map((card, index) => (
-                <RecordCard 
-                    key={`${card.tableid}-${card.recordid}`}
-                    tableid={card.tableid} 
-                    recordid={card.recordid}
-                    mastertableid={card.mastertableid}
-                    masterrecordid={card.masterrecordid}
-                    index={index}
-                    total={cardsList.length}
-                    type={card.type}
-                />
-            ))}
-  
-  
-          <div className="h-full"><RecordTabs tableid={tableid}></RecordTabs></div>
+
+          
+
+    {cardsList.map((card, index) => (
+      <RecordCard 
+        key={`${card.tableid}-${card.recordid}`}
+        tableid={card.tableid} 
+        recordid={card.recordid}
+        mastertableid={card.mastertableid}
+        masterrecordid={card.masterrecordid}
+        index={index}
+        total={cardsList.length}
+        type={card.type}
+      />
+    ))}
+
+      <div className="w-full h-full flex gap-4 mb-4">
+      {isFiltersOpen && (
+
+      <div className="w-1/4 h-full flex flex-nowrap overflow-x-auto overflow-y-hidden border border-gray-200 p-2">
+          <TableFilters tableid={tableid} ></TableFilters>
+      </div>
+        )}
+
+      <div className="w-full h-full flex flex-nowrap overflow-x-auto overflow-y-hidden p-2">
+
+          <div className="w-full h-full"><RecordTabs tableid={tableid}></RecordTabs></div>
+          </div>
+          </div>
   
         </div>
       )}
