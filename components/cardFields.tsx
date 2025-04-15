@@ -193,9 +193,14 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                 },
                 });
             setRefreshTable(refreshTable+1)
-            removeCard(tableid, recordid)
-            removeCard(mastertableid, masterrecordid)
-            addCard(mastertableid, masterrecordid, 'standard')
+            if (mastertableid && masterrecordid) {
+                removeCard(tableid, recordid);
+                removeCard(mastertableid, masterrecordid);
+                addCard(mastertableid, masterrecordid);
+            } else {
+                removeCard(tableid, recordid);
+                addCard(tableid, recordid);
+            }
 
             
             toast.success('Record salvato con successo');

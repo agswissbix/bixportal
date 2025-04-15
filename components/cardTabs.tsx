@@ -79,7 +79,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                       ? 'text-primary border-primary'
                       : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
                   }`}
-                  onClick={() => setActiveTab('Storical')}
+                  onClick={() => setActiveTab('Storical')}  
                 >
                   Storico 
                 </button>
@@ -97,8 +97,8 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
             {activeTab !== 'Fields' && activeTab !== 'Linked' && activeTab !== 'Attachments' && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
-            {activeTab !== 'Attachments' && (
-              <RecordAttachments tableid={tableid}/>
+            {activeTab === 'Attachments' && (
+              <RecordAttachments tableid={tableid} recordid={recordid}/>
             )}
             
           </div>

@@ -92,6 +92,7 @@ export async function POST(request: Request) {
     );
   }
 
+
   const { apiRoute, ...rest } = postData;
 
   if (!apiRoute) {
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
     case 'stampa_bollettini': djangoUrl = '/commonapp/stampa_bollettini/'; break;
     case 'save_belotti_form_data': djangoUrl = '/commonapp/save_belotti_form_data/'; break;
     case 'get_form_data': djangoUrl = '/commonapp/get_form_data/'; break;
+    case 'get_record_attachments': djangoUrl = '/commonapp/get_record_attachments/'; break;
 
     default:
       return NextResponse.json(
