@@ -2,6 +2,10 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
+import { SquarePlus } from 'lucide-react';
+import { useRecordsStore } from './records/recordsStore';
+
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -11,6 +15,7 @@ const isDev = false;
 interface PropsInterface {
   tableid: string;
   recordid: string;
+
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
@@ -74,6 +79,8 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
     };
   }, [tableid, recordid]);
 
+  const { handleRowClick } = useRecordsStore();
+
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
@@ -104,6 +111,10 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
     <GenericComponent response={responseData} loading={loading} error={error}> 
       {(response: ResponseInterface) => (
         <div className="p-4 h-full w-full overflow-y-auto bg-gray-50">
+          <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', 'attachment', tableid, recordid)}>
+              <SquarePlus name="Plus" className="mr-2" /> 
+              Aggiungi    
+          </button>
           <div className="grid grid-cols-4 3xl:grid-cols-5 lg:grid-cols-3 md:grid-cols-3  gap-4">
             {response.attachments.map((attachment, index) => {
               const filePath = attachment.file;
