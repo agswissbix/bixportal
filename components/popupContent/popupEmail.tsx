@@ -5,6 +5,7 @@ import { AppContext } from '@/context/appContext';
 import InputEditor from '../inputEditor';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -88,18 +89,48 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             [name]: value, // Aggiorna il campo specifico
           },
         }));
-      };
+    };
+    
+    const handleEditorChange = (value: string) => {
+        setResponseData((prevData) => ({
+          ...prevData,
+          emailFields: {
+            ...prevData.emailFields,
+            text: value, // Aggiorna il campo specifico
+          },
+        }));
+    };
 
       const saveEmail = async () => {
         try {
-            await axiosInstance.post('/commonapp/save_email/');
-            alert('aasdasd')
-            toast.success('email salvata con successo');
+            const emailData = {
+                cc: responseData.emailFields.cc,
+                bcc: responseData.emailFields.bcc,
+                subject: responseData.emailFields.subject,
+                text: responseData.emailFields.text,
+            };
+    
+            // Pass the emailData to the backend
+            await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "save_email",
+                    emailData: emailData,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+    
+            toast.success('Email salvata con successo');
         } catch (error) {
             console.error('Errore durante il salvataggio della mail', error);
             toast.error('Errore durante il salvataggio della mail');
         }
-    }
+    };
+    
 
       
 
@@ -132,7 +163,7 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                       onChange={handleInputChange}
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
                     />
-                    <InputEditor initialValue={response.emailFields.text} />
+                    <InputEditor initialValue={response.emailFields.text} onChange={handleEditorChange} />
 
                   </div>
                   <div className="mt-4 flex justify-end">
