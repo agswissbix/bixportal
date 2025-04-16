@@ -120,6 +120,7 @@ export async function POST(request: Request) {
     case 'stampa_bollettino': djangoUrl = '/customapp_pitservice/stampa_bollettino/'; break;
     case 'stampa_bollettino_test': djangoUrl = '/customapp_pitservice/stampa_bollettino_test/'; break;
     case 'get_record_attachments': djangoUrl = '/commonapp/get_record_attachments/'; break;
+    case 'stampa_gasoli': djangoUrl = '/customapp_pitservice/stampa_gasoli/'; break;
     default:
       return NextResponse.json(
         { error: `apiRoute ${apiRoute} non gestito.` },

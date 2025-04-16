@@ -25,7 +25,7 @@ interface PropsInterface {
 
 export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid, type,index=0,total=1 }: PropsInterface) {
 
-  const { removeCard, cardsList, setIsPopupOpen } = useRecordsStore();
+  const { removeCard, cardsList, setIsPopupOpen, setPopUpType } = useRecordsStore();
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
   const [isMaximized, setIsMaximized] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>("");
@@ -229,7 +229,8 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                         className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
                         onClick={() => {
                           // Qui puoi inserire la logica per funzione2
-                          getEmailReady();
+                          setIsPopupOpen(true);
+                          setPopUpType('reportGasolio');
                           setShowDropdown(false);
                         }}
                       >

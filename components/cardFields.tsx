@@ -20,7 +20,7 @@ import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -311,15 +311,6 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                                 initialValue={initialValue}
                                                 onChange={(value: string | string[]) => handleInputChange(field.fieldid, value)}
                                                 isMulti={field.fieldtypewebid === 'multiselect'}
-                                            />
-                                        ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
-                                            <SelectStandard
-                                                lookupItems={field.lookupitems.map(item => ({
-                                                    itemcode: item.itemcode,
-                                                    itemdesc: item.itemdesc,
-                                                }))}
-                                                initialValue={initialValue}
-                                                onChange={(value: string | string[]) => handleInputChange(field.fieldid, value)}
                                             />
                                         ) : field.fieldtype === 'linkedmaster' ? (
                                             <InputLinked 

@@ -47,6 +47,9 @@ interface RecordsStore {
 
     isFiltersOpen: boolean;
     setIsFiltersOpen: (isFiltersOpen: boolean) => void;
+
+    popUpType: string;
+    setPopUpType: (popUpType: string) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -124,6 +127,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     isFiltersOpen: false,
     setIsFiltersOpen: (isFiltersOpen: boolean) => set({ isFiltersOpen: isFiltersOpen}),
+
+    popUpType: '',
+    setPopUpType: (popUpType: string) => set({ popUpType: popUpType }),
 
 }));
 

@@ -16,11 +16,11 @@ import CalendarComponent from '@/components/calendarComponent';
 import Dashboard from '@/components/dashboard';
 import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
-import EmailPopup from '@/components/inviaEmail';
+import PopUpManager from '@/components/popUpManager';
 import BelottiFormulari from '@/components/belottiFormulari';
 
 export default function Home() {
-  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen} = useRecordsStore();
+  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType} = useRecordsStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -42,10 +42,12 @@ export default function Home() {
         <Navbar className="w-full  bg-white shadow-md" />
 
         {/* Contenuto principale */}
-        <EmailPopup 
+        <PopUpManager 
           isOpen={isPopupOpen} 
           onClose={() => setIsPopupOpen(false)} 
+          type={popUpType}
         />
+        
         <div className="flex-1 bg-gray-100 p-4 h-5/6">
           {selectedMenu === 'TelAmicoCalendario' ? (
             <ScheduleCalendar />
