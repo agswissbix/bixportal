@@ -299,5 +299,3 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         </div>
   );
 };
-
-

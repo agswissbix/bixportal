@@ -24,6 +24,7 @@ interface ResponseInterface {
     recordid: string;
     file: string;
     type?: string;
+    note?: string;
   }>
 }
 
@@ -138,8 +139,8 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
                   
                   {/* File Info */}
                   <div className="p-3">
-                    <p className="text-sm font-medium text-gray-800 truncate mb-1" title={filename}>
-                      {filename}
+                    <p className="text-sm font-medium text-gray-800 truncate mb-1" title={attachment.note || filename}>
+                      {attachment.note || filename}
                     </p>
                     <p className="text-xs text-gray-500">
                       {attachment.type}
@@ -150,10 +151,10 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
                   <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="flex space-x-2">
                       <a
-                        href={`/api/media-proxy?url=${filePath}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-white text-gray-800 hover:bg-blue-50 rounded-full px-3 py-1 text-xs font-medium flex items-center shadow-md hover:shadow-lg transition-all"
+                        className="bg-white cursor-pointer text-gray-800 hover:bg-blue-50 rounded-full px-3 py-1 text-xs font-medium flex items-center shadow-md hover:shadow-lg transition-all"
+                        onClick={() => handleRowClick('linked', attachment.recordid, 'attachment', tableid, recordid)}
                       >
                         Apri
                       </a>
