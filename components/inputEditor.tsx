@@ -9,7 +9,7 @@ interface PropsInterface {
   onChange?: (value: string) => void;
 }
 
-export default function InputEditor({ initialValue = '', onChange }: PropsInterface) {
+export default function InputEditor({ initialValue='', onChange }: PropsInterface) {
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -23,13 +23,13 @@ export default function InputEditor({ initialValue = '', onChange }: PropsInterf
         width: '100%',
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
-        
-        initialValue, // Imposta il valore iniziale
+        initialValue: initialValue,
       });
 
       // Aggiungi un listener per l'evento di modifica
       editorRef.current.on('change', () => {
         if (onChange && editorRef.current) {
+
           // Ottieni il contenuto HTML dall'editor
           const htmlContent = editorRef.current.getHTML();
           onChange(htmlContent); // Passa l'HTML alla funzione onChange

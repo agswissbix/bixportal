@@ -218,7 +218,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                           // Qui puoi inserire la logica per funzione2
                           setPopupRecordId(recordid);
                           setIsPopupOpen(true);
-                          setPopUpType('reportGasolio');
+                          setPopUpType('email');
                           setShowDropdown(false);;
                         }}
                       >
