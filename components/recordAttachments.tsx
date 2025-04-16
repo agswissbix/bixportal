@@ -142,7 +142,7 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
                       {filename}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {extension ? extension.toUpperCase() : 'File'}
+                      {attachment.type}
                     </p>
                   </div>
                   

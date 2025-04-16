@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRecordsStore } from '../records/recordsStore';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
@@ -10,17 +10,20 @@ interface PropsInterface {
 }
 
 export default function PopupReportGasolio({ tableid, recordid }: PropsInterface) {
+  const { setPopUpType } = useRecordsStore();
 
-  const {setPopUpType, } = useRecordsStore();
+  // Stato per l'opzione selezionata
+  const [selectedOption, setSelectedOption] = useState<string>('Gennaio 2025');
 
   const stampaGasoli = async () => {
+    window.alert(selectedOption);
     try {
-
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "stampa_gasoli",
           recordid: recordid,
+          date: selectedOption,
         },
         {
           responseType: "blob",
@@ -43,20 +46,28 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
       toast.error('Errore durante la stampa dei gasoli');
     }
   }
-  
+
   return (
     <div className="h-full w-full p-4 flex flex-col gap-4">
       {/* Select */}
-      <select className="p-2 border rounded-md">
-        <option value="opzione1">Gennaio 2025</option>
-        <option value="opzione2">Febbraio 2025</option>
-        <option value="opzione3">Marzo 2025</option>
+      <select
+        className="p-2 border rounded-md"
+        value={selectedOption}
+        onChange={(e) => setSelectedOption(e.target.value)}
+      >
+        <option value="Gennaio 2025"  >Gennaio 2025</option>
+        <option value="Febbraio 2025">Febbraio 2025</option>
+        <option value="Marzo 2025">Marzo 2025</option>
       </select>
 
       {/* Bottoni */}
       <div className="flex gap-2">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={() => {setPopUpType('email')}}>Invia Email</button>
-        <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={stampaGasoli}>Stampa</button>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={() => { setPopUpType('email') }}>
+          Invia Email
+        </button>
+        <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={stampaGasoli}>
+          Stampa
+        </button>
       </div>
     </div>
   );
