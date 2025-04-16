@@ -20,7 +20,7 @@ import PopUpManager from '@/components/popUpManager';
 import BelottiFormulari from '@/components/belottiFormulari';
 
 export default function Home() {
-  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType} = useRecordsStore();
+  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId} = useRecordsStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -46,8 +46,10 @@ export default function Home() {
           isOpen={isPopupOpen} 
           onClose={() => setIsPopupOpen(false)} 
           type={popUpType}
+          tableid={selectedMenu}
+          recordid={popupRecordId}
         />
-        
+
         <div className="flex-1 bg-gray-100 p-4 h-5/6">
           {selectedMenu === 'TelAmicoCalendario' ? (
             <ScheduleCalendar />
