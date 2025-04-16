@@ -16,7 +16,6 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
   const [selectedOption, setSelectedOption] = useState<string>('Gennaio 2025');
 
   const stampaGasoli = async () => {
-    window.alert(selectedOption);
     try {
       const response = await axiosInstanceClient.post(
         "/postApi",

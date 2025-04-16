@@ -14,8 +14,8 @@ const isDev = false;
 // INTERFACCE
         // INTERFACCIA PROPS
         interface PropsInterface {
-            tableid?: string;
-            recordid?: string;
+            tableid: string;
+            recordid: string;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -26,6 +26,8 @@ const isDev = false;
             subject: string;
             text: string;
           };
+        tableid: string;
+        recordid: string;
         }
 
 export default function PopupEmail({ tableid,recordid }: PropsInterface) {
@@ -40,7 +42,9 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                   bcc: "",
                   subject: "",
                   text: ""
-                }
+                },
+                tableid : tableid,
+                recordid : recordid
               };
 
             // DATI RESPONSE PER LO SVILUPPO 
@@ -50,7 +54,10 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                     bcc: "",
                     subject: "",
                     text: ""
-                }
+                },
+                tableid : tableid,
+                recordid : recordid
+
 
             };
 
@@ -116,6 +123,8 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                 {
                     apiRoute: "save_email",
                     emailData: emailData,
+                    tableid: tableid,
+                    recordid: recordid,
                 },
                 {
                     headers: {
