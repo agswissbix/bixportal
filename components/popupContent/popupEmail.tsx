@@ -73,6 +73,8 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
         if (isDev) return null;
         return {
             apiRoute: 'prepara_email', // riferimento api per il backend
+            tableid: tableid,
+            recordid: recordid
         };
     }, [tableid, recordid]);
 
