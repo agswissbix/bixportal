@@ -21,6 +21,7 @@ const isDev = false;
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
           emailFields: {
+            to: string;
             cc: string;
             bcc: string;
             subject: string;
@@ -38,6 +39,7 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
                 emailFields: {
+                  to:"",
                   cc: "",
                   bcc: "",
                   subject: "",
@@ -50,6 +52,7 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
                 emailFields: {
+                    to:"aa",
                     cc: "aa",
                     bcc: "aa",
                     subject: "aa",
@@ -150,6 +153,14 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             {(response: ResponseInterface) => (
                 <div>
                   <div className="flex flex-col space-y-4">
+                  <input
+                      name="to"
+                      type="text"
+                      placeholder="To"
+                      value={response.emailFields.to}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
+                    />
                     <input
                       name="cc"
                       type="text"
