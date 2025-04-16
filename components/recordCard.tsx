@@ -193,31 +193,52 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
               </button>
 
               {showDropdown && (
+                
                 <div 
                   className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded shadow-lg z-50"
                 >
                   <ul className="py-1">
-                    <li 
-                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        // Qui puoi inserire la logica per funzione1
-                        toast.info('Stampa bollettino in corso...');
-                        stampaBollettino()
-                        setShowDropdown(false);
-                      }}
-                    >
-                      Stampa bollettino
-                    </li>
-                    <li 
-                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        // Qui puoi inserire la logica per funzione2
-                        getEmailReady();
-                        setShowDropdown(false);
-                      }}
-                    >
-                      Invia email
-                    </li>
+                    {tableid === 'bollettini' && (
+                        <li 
+                          className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            toast.info('Stampa bollettino in corso...');
+                            stampaBollettino();
+                            setShowDropdown(false);
+                          }}
+                        >
+                          Stampa bollettino
+                        </li>
+                    )}
+
+                    {tableid === 'rendicontolavanderia' && (
+                        <li 
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          // Qui puoi inserire la logica per funzione2
+                          getEmailReady();
+                          setShowDropdown(false);
+                        }}
+                      >
+                        Invia rendiconto
+                      </li>
+                    )}
+
+                    {tableid === 'stabile' && (
+                        <li 
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          // Qui puoi inserire la logica per funzione2
+                          getEmailReady();
+                          setShowDropdown(false);
+                        }}
+                      >
+                        Report gasolio
+                      </li>
+                    )}
+
+
+                   
                   </ul>
                 </div>
               )}
