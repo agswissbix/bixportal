@@ -20,7 +20,7 @@ import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -40,11 +40,12 @@ const isDev = false;
                 description: string;
                 value: string | { code: string; value: string };
                 fieldtype: string;
-                lookupitems?: Array<{itemcode: string, itemdesc: string, link: string, linkfield: string, linkvalue: string, linkedfield: string, linkedvalue: string}>;
+                lookupitems?: Array<{itemcode: string, itemdesc: string}>;
                 lookupitemsuser? : Array<{id: string, firstname: string, lastname: string, link: string, linkdefield: string, linkedvalue: string}>;
                 fieldtypewebid?: string;
                 linked_mastertable?: string;
                 settings: string | {calcolato: string, default: string, nascosto: string, obbligatorio: string};
+                isMulti?: boolean;
             }>,
             recordid: string;
         }
@@ -124,7 +125,6 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
             
                     },
-
                     {
                         tableid: "1",
                         fieldid: "test7",
@@ -133,7 +133,24 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         value: { code: 'test77', value: 'test7' },
                         fieldtype: "Attachment",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
-                    }
+                    },
+                    {
+                        tableid: "1",
+                        fieldid: "test8",
+                        fieldorder: "5",
+                        description: "Test 8",
+                        value: { code: '2', value: '2' },
+                        fieldtype: "Categoria",
+                        lookupitems: [
+                            {itemcode: '1', itemdesc: 'Mario'},
+                            {itemcode: '2', itemdesc: 'Luca'},
+                            {itemcode: '3', itemdesc: 'Mario'},
+                            {itemcode: '4', itemdesc: 'Mario'},
+                            {itemcode: '5', itemdesc: 'Mario'},
+                        ],
+                        fieldtypewebid: "",
+                        settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'},
+                    },
                 ],
                 recordid: "0000"
             };
@@ -260,6 +277,13 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                             <InputWord 
                                                 initialValue={initialValue} 
                                                 onChange={(value: string) => handleInputChange(field.fieldid, value)} 
+                                            />
+                                        ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
+                                            <SelectStandard
+                                                lookupItems={field.lookupitems}
+                                                initialValue={initialValue}
+                                                onChange={(value: string | string[]) => handleInputChange(field.fieldid, value)}
+                                                isMulti={field.fieldtypewebid === 'multiselect'}
                                             />
                                         ) : field.fieldtype === 'Numero' ? (
                                             <InputNumber 
