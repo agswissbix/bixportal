@@ -137,7 +137,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
           <input
             name="word"
             type="text"
-            value={valuecode && valuecode.value !== null ? valuecode.value : ''}
+            value={value}
             onChange={handleChange}
             onFocus={handleFocus}
             autoComplete='off'
