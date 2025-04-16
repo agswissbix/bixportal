@@ -173,7 +173,7 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                       value={response.emailFields.subject}
                       onChange={handleInputChange}
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
-                    />
+                    /> 
                     <InputEditor initialValue={response.emailFields.text} onChange={handleEditorChange} />
 
                   </div>
