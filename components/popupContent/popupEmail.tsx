@@ -50,10 +50,10 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
                 emailFields: {
-                    cc: "",
-                    bcc: "",
-                    subject: "",
-                    text: ""
+                    cc: "aa",
+                    bcc: "aa",
+                    subject: "aa",
+                    text: "aa"
                 },
                 tableid : tableid,
                 recordid : recordid
