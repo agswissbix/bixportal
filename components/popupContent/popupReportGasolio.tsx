@@ -16,7 +16,6 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
   const [selectedOption, setSelectedOption] = useState<string>('Gennaio 2025');
 
   const stampaGasoli = async () => {
-    window.alert(selectedOption);
     try {
       const response = await axiosInstanceClient.post(
         "/postApi",
@@ -55,9 +54,10 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
         value={selectedOption}
         onChange={(e) => setSelectedOption(e.target.value)}
       >
-        <option value="Gennaio 2025"  >Gennaio 2025</option>
-        <option value="Febbraio 2025">Febbraio 2025</option>
-        <option value="Marzo 2025">Marzo 2025</option>
+        <option value="2025-01"  >2025-01</option>
+        <option value="2025-02">2025-02</option>
+        <option value="2025-03">2025-03</option>
+        <option value="2025-04">2025-04</option>
       </select>
 
       {/* Bottoni */}
