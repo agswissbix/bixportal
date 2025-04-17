@@ -142,6 +142,7 @@ return (
   
             <div className="grid 3xl:grid-cols-2 lg:grid-cols-1 gap-3 p-3 overflow-y-auto">
               {response.attachments.map((attachment, index) => {
+                if (!attachment.file) return null;
                 const filePath = attachment.file;
                 const extension = filePath.split('.').pop()?.toLowerCase();
                 const filename = filePath.split('/').pop();
