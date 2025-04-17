@@ -18,8 +18,10 @@ interface PropsInterface {
 export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
 
   const {addCard} = useRecordsStore();
-  const [activeTab, setActiveTab] = useState('AttachmentsDemo')
 
+  const [activeTab, setActiveTab] = useState(
+    tableid === 'bollettinitrasporto' ? 'AttachmentsDemo' : 'Fields'
+  );
   return (
     <GenericComponent  title="SidebarMenu"> 
       {(data) => (
