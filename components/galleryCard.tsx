@@ -105,9 +105,9 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
 
 
 
-<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-8 ml-12 w-2/2 h-2/2 ">
+<div className=" bg-gray-50 max-w-sm rounded-lg overflow-hidden shadow-lg mb-8 ml-12 w-2/2 h-2/3 ">
     <img
-    className="w-full h-1/2"
+    className="w-full h-2/3"
     src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`}
     alt="Immagine dello stabile"
     onError={(e) => {
@@ -124,7 +124,7 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
         ) : (
           <div
             key={item.fieldid}
-            className="flex items-center gap-2 px-3 py-1 bg-black/50 rounded text-black shadow-md mb-2"
+            className="flex items-center gap-2 px-3 py-1  rounded text-black shadow-md mb-2"
           >
             <span className="font-semibold text-black">{item.fieldid}:</span>
             <span className="text-black">{item.value}</span>
