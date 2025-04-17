@@ -51,7 +51,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                         label: "Test 3"
                     },
                     {
-                        fieldid: "test4",
+                        fieldid: "Utente",
                         type: "text",
                         label: "Test 4"
                     },
