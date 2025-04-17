@@ -49,7 +49,19 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
   const deleteRecord = async (tableid: string, recordid: string) => {
         try {
-            await axiosInstance.post('/commonapp/delete_record/', { tableid, recordid });
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "delete_record",
+                    tableid: tableid,
+                    recordid: recordid,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            )
             handleRemoveCard();
             toast.success('Record eliminato con successo');
         } catch (error) {

@@ -105,7 +105,7 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
 
 
 
-<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-8 ml-12 w-1/2 h-1/2 ">
+<div className="max-w-sm rounded-lg overflow-hidden shadow-lg mb-8 ml-12 w-2/2 h-2/2 ">
     <img
     className="w-full h-1/2"
     src={`/api/media-proxy?url=${tableid}/${recordid}/fotostabile.png`}
@@ -116,7 +116,7 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
     }}
     />
 
-  <div className="px-6 py-4 h-1/2">
+  <div className="px-6 py-4 h-2/3">
     {responseData.badgeItems.map((item) => (
       (item.fieldid !== "fotostabile" && item.fieldid !== "test7") ? (
         item.fieldid === "titolo_stabile" ? (
