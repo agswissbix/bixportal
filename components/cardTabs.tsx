@@ -28,6 +28,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
           <div className="h-full">
           <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
             <ul className="flex flex-wrap -mb-px relative">
+              {/*
               <li className="me-2">
                 <button
                   className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
@@ -40,6 +41,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                   AllegatiDemo
                 </button>
               </li>
+              */}
               <li className="me-2">
                 <button
                   className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${

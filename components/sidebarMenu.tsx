@@ -131,8 +131,8 @@ export default function SidebarMenu({  }: PropsInterface) {
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg">
                     <Image 
                         //src={`/bixdata/logos/${activeServer}.png`}
-                        //src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : activeServer === 'belotti' ? 'belotti' : 'default'}.png`}
-                        src="/bixdata/logos/ptm.jpg"
+                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : activeServer === 'belotti' ? 'belotti' : 'default'}.png`}
+                        //src="/bixdata/logos/ptm.jpg"
                         alt={activeServer ?? ''}
                         width={1000}
                         height={1000}
