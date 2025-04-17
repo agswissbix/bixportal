@@ -9,7 +9,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -52,11 +52,11 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
                 emailFields: {
-                    to:"aa",
-                    cc: "aa",
-                    bcc: "aa",
-                    subject: "aa",
-                    text: "aa"
+                    to:"to",
+                    cc: "cc",
+                    bcc: "bcc",
+                    subject: "subject",
+                    text: "mailbody"
                 },
                 tableid : tableid,
                 recordid : recordid

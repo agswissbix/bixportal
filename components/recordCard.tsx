@@ -240,6 +240,20 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                         Report gasolio
                       </li>
                     )}
+                    {tableid === 'bollettinitrasporto' && (
+                        <li 
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          // Qui puoi inserire la logica per funzione2
+                          setPopupRecordId(recordid);
+                          setIsPopupOpen(true);
+                          setPopUpType('email');
+                          setShowDropdown(false);;
+                        }}
+                      >
+                        Invia email
+                      </li>
+                    )}
 
 
                    
