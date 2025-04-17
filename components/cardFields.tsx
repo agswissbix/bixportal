@@ -25,8 +25,8 @@ const isDev = false;
 // INTERFACCE
         // INTERFACCIA PROPS
         interface PropsInterface {
-          tableid?: string;
-          recordid?: string;
+          tableid: string;
+          recordid: string;
           mastertableid?: string;
           masterrecordid?: string;
         }
@@ -213,10 +213,10 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
             if (mastertableid && masterrecordid) {
                 removeCard(tableid, recordid);
                 removeCard(mastertableid, masterrecordid);
-                addCard(mastertableid, masterrecordid);
+                addCard(mastertableid, masterrecordid, 'standard');
             } else {
                 removeCard(tableid, recordid);
-                addCard(tableid, recordid);
+                addCard(tableid, recordid, 'standard');
             }
 
             
