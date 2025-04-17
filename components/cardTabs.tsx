@@ -1,29 +1,78 @@
-import React, { useMemo,useState } from 'react';
+import React, { useMemo, useContext, useState, useEffect } from 'react';
+import { useApi } from '@/utils/useApi';
+import GenericComponent from './genericComponent';
+import { AppContext } from '@/context/appContext';
 import { useRecordsStore } from './records/recordsStore';
 import CardFields from './cardFields';
 import CardLinked from './cardLinked';
-import GenericComponent from './genericComponent';
 import RecordAttachments from './recordAttachments';
 import RecordAttachmentsDemo from './recordAttachmentsDemo';
+import { set } from 'lodash';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// FLAG PER LO SVILUPPO
+const isDev = false;
 
-// INTERFACCIA PROPS
-interface PropsInterface {
-  tableid: string;
-  recordid: string;
-  mastertableid?: string;
-  masterrecordid?: string;
-}
+// INTERFACCE
+        // INTERFACCIA PROPS
+        interface PropsInterface {
+          tableid: string;
+          recordid: string;
+          mastertableid?: string;
+          masterrecordid?: string;
+        }
+
+        // INTERFACCIA RISPOSTA DAL BACKEND
+        interface ResponseInterface {
+            activeTab: string;
+        }
 
 export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
+    //DATI
+            // DATI PROPS PER LO SVILUPPO
+            const devPropExampleValue = isDev ? "Example prop" : tableid;
 
-  const {addCard} = useRecordsStore();
+            // DATI RESPONSE DI DEFAULT
+            const responseDataDEFAULT: ResponseInterface = {
+                activeTab: 'Fields'
+              };
 
-  const [activeTab, setActiveTab] = useState(
-    tableid === 'bollettinitrasporto' ? 'AttachmentsDemo' : 'Fields'
-  );
-  return (
-    <GenericComponent  title="SidebarMenu"> 
+            // DATI RESPONSE PER LO SVILUPPO 
+            const responseDataDEV: ResponseInterface = {
+                activeTab: 'Fields'
+            };
+
+            // DATI DEL CONTESTO
+            const { user } = useContext(AppContext);
+
+    // IMPOSTAZIONE DELLA RESPONSE (non toccare)
+    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+
+    // PAYLOAD (solo se non in sviluppo)
+    const payload = useMemo(() => {
+        if (isDev) return null;
+        return {
+            apiRoute: 'get_card_active_tab', // riferimento api per il backend
+            tableid: tableid
+        };
+    }, [tableid, recordid]);
+
+    const [activeTab, setActiveTab] = useState<string>('Fields');
+
+
+    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
+    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
+    useEffect(() => {
+        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+            setActiveTab(response.activeTab);
+        }
+    }, [response]);
+
+
+    return (
+      <GenericComponent> 
       {(data) => (
           <div className="h-full">
           <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
@@ -126,8 +175,8 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         </div>
       )}
     </GenericComponent>
-    
-  );
+    );
 };
+
 
 
