@@ -47,7 +47,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
     }, 300);
   };
 
-  const deleteRecord = async (tableid: string, recordid: string) => {
+  const deleteRecord = async () => {
         try {
             const response = await axiosInstanceClient.post(
                 "/postApi",
@@ -114,7 +114,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         {
             action: {
                 label: "Conferma",
-                onClick: () => deleteRecord(tableid, recordid),
+                onClick: () => deleteRecord(),
             },
         }
     );
