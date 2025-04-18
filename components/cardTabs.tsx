@@ -24,6 +24,7 @@ const isDev = false;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
+            cardTabs: []
             activeTab: string;
         }
 
@@ -34,12 +35,14 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
-                activeTab: 'Fields'
+                cardTabs: [], // Array di oggetti per le tab (esempio vuoto)
+                activeTab: 'Campi'
               };
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
-                activeTab: 'Fields'
+                cardTabs: [], // Array di oggetti per le tab (esempio vuoto)
+                activeTab: 'Campi'
             };
 
             // DATI DEL CONTESTO
@@ -57,7 +60,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         };
     }, [tableid, recordid]);
 
-    const [activeTab, setActiveTab] = useState<string>('Fields');
+    const [activeTab, setActiveTab] = useState<string>('Campi');
 
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
@@ -66,6 +69,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+            setResponseData(response);
             setActiveTab(response.activeTab);
         }
     }, [response]);
@@ -91,80 +95,35 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                 </button>
               </li>
               */}
-              <li className="me-2">
-                <button
-                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Fields'
-                      ? 'text-primary border-primary'
-                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('Fields')}
-                >
-                  Campi
-                </button>
-              </li>
-              <li className="me-2">
-                <button
-                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Linked'
-                      ? 'text-primary border-primary'
-                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('Linked')}
-                >
-                  Collegati
-                </button>
-              </li>
-              <li className="me-2">
-                <button
-                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Attachments'
-                      ? 'text-primary border-primary'
-                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('Attachments')}
-                >
-                  Allegati
-                </button>
-              </li>
-              <li className="me-2">
-                <button
-                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Analytics'
-                      ? 'text-primary border-primary'
-                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('Analytics')}
-                >
-                  Statistiche
-                </button>
-              </li>
-              <li className="me-2">
-                <button
-                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'Storical'
-                      ? 'text-primary border-primary'
-                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('Storical')}  
-                >
-                  Storico 
-                </button>
-              </li>
+              {responseData.cardTabs.map((tab, index) => (
+                <li key={index} className="me-2">
+                  <button
+                    className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                      activeTab === tab
+                        ? 'text-primary border-primary'
+                        : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                </li>
+              ))}
+              
             </ul>
           </div>
 
           <div className="h-5/6 p-4">
-            {activeTab === 'Fields' && (
+            {activeTab === 'Campi' && (
               <CardFields tableid={tableid} recordid={recordid}  mastertableid={mastertableid} masterrecordid={masterrecordid}/>
             )}
-            {activeTab === 'Linked' && (
+            {activeTab === 'Collegati' && (
               <CardLinked tableid={tableid} recordid={recordid} />
             )}
-            {activeTab !== 'Fields' && activeTab !== 'Linked' && activeTab !== 'Attachments' && activeTab !== 'AttachmentsDemo' && (
+            {activeTab !== 'Campi' && activeTab !== 'Collegati' && activeTab !== 'Allegati' && activeTab !== 'AttachmentsDemo' && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
-            {activeTab === 'Attachments' && (
+            {activeTab === 'Allegati' && (
               <RecordAttachments tableid={tableid} recordid={recordid}/>
             )}
             {activeTab === 'AttachmentsDemo' && (

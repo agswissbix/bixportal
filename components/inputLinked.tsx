@@ -3,13 +3,14 @@ import { Loader2 } from 'lucide-react';
 import _ from 'lodash';
 import { useApi } from '@/utils/useApi';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { useRecordsStore } from './records/recordsStore';
 
 interface PropsInterface {
   initialValue?: string;
   onChange?: (value: string) => void;
   tableid?: string;
   linkedmaster_tableid?: string;
-  linkedmaster_recordid?: string;
+  linkedmaster_recordid: string;
   fieldid: string;
   valuecode?: { code: string; value: string };
 }
@@ -44,14 +45,14 @@ const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string
   return res.data;
 };
 
-export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,tableid,fieldid,valuecode }: PropsInterface) {
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,linkedmaster_recordid,tableid,fieldid,valuecode }: PropsInterface) {
   const [value, setValue] = useState(valuecode?.value ?? '');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<LinkedItem[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
+  const { handleRowClick } = useRecordsStore();
   const debouncedSearch = useRef(
     _.debounce(async (searchTerm: string) => {
       if (!searchTerm.trim()) {
@@ -144,7 +145,8 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
             placeholder="Inserisci un valore"
             className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
           />
-        </div>
+          <button type="button" onClick={() => handleRowClick('linked', linkedmaster_recordid, linkedmaster_tableid)} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">+</button>
+</div>
       </div>
       
       {isOpen && (
