@@ -97,7 +97,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'bollettino.pdf');
+      link.setAttribute('download', 'bollettinoasd.pdf');
       document.body.appendChild(link);
       link.click();
       toast.success('Bollettino stampato con successo');
