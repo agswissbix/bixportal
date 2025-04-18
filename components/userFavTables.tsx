@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import SelectStandard from './selectStandard';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -46,7 +47,31 @@ export default function UserFavTables({ propExampleValue }: PropsInterface) {
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
-    const saveFavTables = axiuo
+    const saveFavTables = async () => {
+        try {
+          console.info('Cambio password in corso...');
+          
+            const response = await axiosInstanceClient.post("/postApi", {
+              apiRoute: "changePassword",
+              old_password: oldPassword,
+              new_password: newPassword,
+              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      
+            } 
+          );
+        
+          toast.success(response.data.message);
+          setTimeout(() => {
+            router.push('/login');
+          }, 450);
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            toast.error("Errore nel cambio della password: " + error.response?.data?.message);
+          } else {
+            toast.error("Errore nella verifica della password");
+          }
+        }
+      };
 
 
     // PAYLOAD (solo se non in sviluppo)
