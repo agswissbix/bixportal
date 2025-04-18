@@ -6,6 +6,8 @@ import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuIt
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image';
 import { LogOut, Settings, User } from 'lucide-react';
+import { useRecordsStore } from './records/recordsStore';
+import { set } from 'lodash';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -61,6 +63,8 @@ export default function NavBar() {
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo)
     const { response, loading, error } = { response: null, loading: false, error: null };
+
+    const{setSelectedMenu} = useRecordsStore()
 
    
 
@@ -143,7 +147,8 @@ export default function NavBar() {
                                 <MenuItem>
                                     <a
                                         href="#"
-                                        className="block px-4 py-2 text-sm text-gray-700 data-[fo+us]:bg-gray-100 data-[focus]:outline-none"
+                                        className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                        onClick={() => setSelectedMenu('userSettings')}
                                     >
                                         <div className="flex items-center gap-2">
                                             <Settings className="w-4 h-4" />

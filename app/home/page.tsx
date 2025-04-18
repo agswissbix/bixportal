@@ -18,6 +18,7 @@ import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
 import PopUpManager from '@/components/popUpManager';
 import BelottiFormulari from '@/components/belottiFormulari';
+import UserSettings from '@/components/userSettings';
 
 export default function Home() {
   const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId} = useRecordsStore();
@@ -61,6 +62,8 @@ export default function Home() {
             <CalendarComponent />
           ) : selectedMenu === 'Dashboard' ? (
             <Dashboard />
+          ) : selectedMenu === 'userSettings' ? (
+            <UserSettings />
           ) : selectedMenu === 'formularioLifestyle' ? (
             <BelottiFormulari formType='lifestyle' />
           ) : selectedMenu === 'formularioLiquidiLAC' ? (
