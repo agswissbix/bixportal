@@ -77,4 +77,19 @@ export default {
   	}
   },
   plugins: [require("tailwindcss-animate")],
+  safelist: [
+    // Elenca specificamente le classi se conosci i livelli massimi:
+    'pl-4',
+    'pl-8',
+    'pl-12',
+    'pl-16',
+    'pl-20',
+    'pl-24', // Aggiungi altri livelli se necessario
+    // Oppure usa un pattern (Regex) per includerle tutte fino a un certo punto:
+    // {
+    //   pattern: /pl-(4|8|12|16|20|24|28|32)/, // Adatta i numeri ai tuoi bisogni
+    // },
+    // Potresti anche voler mettere in safelist le classi di rotazione se usi JIT
+    'rotate-90', 
+  ],
 } satisfies Config;

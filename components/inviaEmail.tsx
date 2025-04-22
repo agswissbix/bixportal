@@ -117,6 +117,14 @@ export default function EmailPopup({ isOpen, onClose }: PropsInterface) {
                       onClick={onClose}
                   />
                   <div className="flex flex-col space-y-4">
+                  <input
+                      name="to"
+                      type="text"
+                      placeholder="To"
+                      value={response.emailFields.cc}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
+                    />
                     <input
                       name="cc"
                       type="text"

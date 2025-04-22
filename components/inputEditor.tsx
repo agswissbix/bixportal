@@ -37,6 +37,8 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
       });
     }
 
+
+
     // Distruggi l'editor quando il componente viene smontato
     return () => {
       if (editorRef.current) {
@@ -45,6 +47,16 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
       }
     };
   }, []); // Solo all'inizializzazione
+
+      /* 2. Aggiorna il contenuto quando la prop cambia */
+      useEffect(() => {
+        if (editorRef.current) {
+          const current = editorRef.current.getHTML();
+          if (current !== initialValue) {
+            editorRef.current.setHTML(initialValue ?? '');
+          }
+        }
+      }, [initialValue]);
 
   return (
     <div className="flex flex-col">
