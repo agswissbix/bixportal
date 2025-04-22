@@ -18,17 +18,19 @@ const isDev = false;
             recordid: string;
         }
 
-        // INTERFACCIA RISPOSTA DAL BACKEND
+        interface EmailFields {
+          to: string;
+          cc: string;
+          bcc: string;
+          subject: string;
+          text: string;
+          attachment_relativepath?: string;
+        }
+        
         interface ResponseInterface {
-          emailFields: {
-            to: string;
-            cc: string;
-            bcc: string;
-            subject: string;
-            text: string;
-          };
-        tableid: string;
-        recordid: string;
+          emailFields: EmailFields;
+          tableid: string;
+          recordid: string;
         }
 
 export default function PopupEmail({ tableid,recordid }: PropsInterface) {
@@ -36,14 +38,17 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + '' + recordid;
 
+            
+
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
                 emailFields: {
                   to:"",
                   cc: "",
                   bcc: "",
-                  subject: "",
-                  text: ""
+                  subject: "", // Added missing subject property
+                  text: "",
+                  attachment_relativepath: "" // Default value for the new property
                 },
                 tableid : tableid,
                 recordid : recordid
@@ -54,9 +59,10 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                 emailFields: {
                     to:"to",
                     cc: "cc",
-                    bcc: "bcc",
-                    subject: "subject",
-                    text: "mailbody"
+                    bcc: "",
+                    subject: "subject", // Added missing subject property
+                    text: "mailbody",
+                    attachment_relativepath: "example/path" // Example value for development
                 },
                 tableid : tableid,
                 recordid : recordid
@@ -115,11 +121,11 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
 
       const saveEmail = async () => {
         try {
-            const emailData = {
-                cc: responseData.emailFields.cc,
-                bcc: responseData.emailFields.bcc,
-                subject: responseData.emailFields.subject,
-                text: responseData.emailFields.text,
+            
+            const emailData: EmailFields = {
+              ...responseData.emailFields,
+              // Assicuriamoci che l’attachment abbia sempre una stringa
+              attachment_relativepath: responseData.emailFields.attachment_relativepath ?? '',
             };
     
             // Pass the emailData to the backend
@@ -149,51 +155,49 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
       
 
     return (
-        <GenericComponent response={responseData} error={error}> 
-            {(response: ResponseInterface) => (
-                <div>
-                  <div className="flex flex-col space-y-4">
-                  <input
-                      name="to"
-                      type="text"
-                      placeholder="To"
-                      value={response.emailFields.to}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
-                    />
-                    <input
-                      name="cc"
-                      type="text"
-                      placeholder="CC"
-                      value={response.emailFields.cc}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
-                    />
-                    <input
-                      name="bcc"
-                      type="text"
-                      placeholder="BCC"
-                      value={response.emailFields.bcc}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
-                    />
-                    <input
-                      name="subject"
-                      type="text"
-                      placeholder="Oggetto"
-                      value={response.emailFields.subject}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-within:ring-offset-2 transition-all duration-300"
-                    /> 
-                    <InputEditor initialValue={response.emailFields.text} onChange={handleEditorChange} />
+      <GenericComponent response={responseData} error={error}>
+      {() => (
+        <div>
+          <div className="flex flex-col space-y-4">
+            {['to', 'cc', 'bcc', 'subject'].map(field => (
+              <input
+                key={field}
+                name={field}
+                type="text"
+                placeholder={field.toUpperCase()}
+                value={(responseData.emailFields as any)[field]}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-visible:ring-offset-2 transition-all duration-300"
+              />
+            ))}
 
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                  <button type="button" onClick={() => { saveEmail() }} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">Invia</button>
-                  </div>
-                </div>
+            {/* Link all’allegato, se presente */}
+            {responseData.emailFields.attachment_relativepath && (
+              <a
+                className="text-blue-600 hover:underline"
+                href={`/api/media-proxy?url=${responseData.emailFields.attachment_relativepath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Visualizza allegato
+              </a>
             )}
-        </GenericComponent>
+
+            <InputEditor initialValue={responseData.emailFields.text} onChange={handleEditorChange} />
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={saveEmail}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5"
+            >
+              Invia
+            </button>
+          </div>
+        </div>
+      )}
+    </GenericComponent>
     );
 };
 
