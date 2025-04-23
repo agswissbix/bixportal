@@ -8,6 +8,9 @@ import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
 import { set } from 'lodash';
 
+
+
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = false;
@@ -53,6 +56,14 @@ const isDev = false;
 type SortDirection = 'asc' | 'desc' | null;
 
 export default function RecordsTable({ tableid, searchTerm, filters, view, order, context, pagination, level, masterTableid, masterRecordid }: PropsInterface) {
+
+    useEffect(() => {
+        const unsub = useRecordsStore.subscribe((state, prevState) => {
+          console.log('[zustand]', { prev: prevState, next: state });
+        });
+        return unsub;   // pulizia
+      }, []);
+
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + ' ' + searchTerm + ' ' + filters + ' ' + context;
@@ -171,7 +182,12 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         direction: null
     });
 
-    const {refreshTable, setRefreshTable, handleRowClick, setCurrentPage} = useRecordsStore();
+    // ✅ un selector per chiave
+    const refreshTable    = useRecordsStore(s => s.refreshTable);
+    const setRefreshTable = useRecordsStore(s => s.setRefreshTable);
+    const handleRowClick  = useRecordsStore(s => s.handleRowClick);
+    const setCurrentPage  = useRecordsStore(s => s.setCurrentPage);
+
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -185,7 +201,8 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             masterTableid: masterTableid,
             masterRecordid: masterRecordid
         };
-    }, [refreshTable, tableid,]);
+    }, [refreshTable, tableid, searchTerm, view, pagination.page, masterTableid, masterRecordid]);
+
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null, elapsedTime:null };
@@ -235,6 +252,14 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         setRefreshTable(refreshTable + 1); 
     }
 
+    console.log('[DEBUG] RecordsTable');
+    useEffect(() => {
+        console.log('[DEBUG] payload changed', payload);
+      }, [payload]);
+      
+      useEffect(() => {
+        console.log('[DEBUG] RecordsTable rendered');
+      });
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable' elapsedTime={elapsedTime}> 
             {(response: ResponseInterface) => (

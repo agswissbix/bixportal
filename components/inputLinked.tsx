@@ -13,6 +13,7 @@ interface PropsInterface {
   linkedmaster_recordid: string;
   fieldid: string;
   valuecode?: { code: string; value: string };
+  formValues: Record<string, any>;
 }
 
 interface LinkedItem {
@@ -25,7 +26,7 @@ interface LinkedMaster {
 }
 
 // Simulate API call - replace with your actual API call
-const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string, tableid: string, fieldid: string): Promise<LinkedItem[]> => {
+const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string, tableid: string, fieldid: string, formValues: Record<string, any>): Promise<LinkedItem[]> => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
   const payload = {
@@ -33,7 +34,8 @@ const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string
     fieldid: fieldid,
     tableid: tableid,
     linkedmaster_tableid: linkedmaster_tableid,
-    searchTerm: searchTerm
+    searchTerm: searchTerm,
+    formValues: formValues,
   };
   const res = await axiosInstanceClient.post('/postApi/', payload, {
     headers: {
@@ -45,7 +47,7 @@ const fetchLinkedItems = async (searchTerm: string, linkedmaster_tableid: string
   return res.data;
 };
 
-export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,linkedmaster_recordid,tableid,fieldid,valuecode }: PropsInterface) {
+export default function inputLinked({ initialValue='',onChange,linkedmaster_tableid,linkedmaster_recordid,tableid,fieldid,valuecode,formValues }: PropsInterface) {
   const [value, setValue] = useState(valuecode?.value ?? '');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,12 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
   const [items, setItems] = useState<LinkedItem[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { handleRowClick } = useRecordsStore();
+
+  const formValuesRef = useRef(formValues);
+  useEffect(() => {
+    formValuesRef.current = formValues;
+  }, [formValues]);
+
   const debouncedSearch = useRef(
     _.debounce(async (searchTerm: string) => {
       if (!searchTerm.trim()) {
@@ -65,13 +73,13 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
 
       try {
         if (linkedmaster_tableid && tableid) {
-          const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid);
+          const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid,formValuesRef.current);
         } else {
           setError('Missing required parameters');
           setItems([]);
           return;
         }
-        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid);
+        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid,formValuesRef.current);
         setItems(results);
       } catch (err) {
         setError('Error fetching data');

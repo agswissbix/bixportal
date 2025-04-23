@@ -164,6 +164,24 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
 
     const {removeCard,addCard,refreshTable,setRefreshTable} = useRecordsStore();
 
+    // *** NEW: oggetto con tutti i valori correnti del form ***
+    const currentValues = useMemo(() => {
+        const obj: Record<string, any> = {};
+
+        responseData.fields.forEach(f => {
+            const backendValue =
+                typeof f.value === 'object'
+                    ? (f.value as any).code ?? (f.value as any).value
+                    : f.value;
+
+            obj[f.fieldid] = updatedFields.hasOwnProperty(f.fieldid)
+                ? updatedFields[f.fieldid]
+                : backendValue ?? '';
+        });
+
+        return obj;
+    }, [responseData, updatedFields]);
+    // *** END NEW ***
 
     const handleInputChange = (fieldid: string, newValue: any | any[]) => {
         setUpdatedFields(prev => {
@@ -321,6 +339,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                                 linkedmaster_tableid={field.linked_mastertable}
                                                 linkedmaster_recordid={initialValue}
                                                 fieldid={field.fieldid}
+                                                formValues={currentValues}  
                                             />
                                         ) : field.fieldtype === 'LongText' ? (
                                             <InputEditor 

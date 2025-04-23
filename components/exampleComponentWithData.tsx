@@ -2,6 +2,7 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
+import { memoWithDebug } from '@/lib/memoWithDebug';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -18,7 +19,7 @@ const isDev = true;
           responseExampleValue: string;
         }
 
-export default function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
+function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -59,6 +60,23 @@ export default function ExampleComponentWithData({ propExampleValue }: PropsInte
         }
     }, [response, responseData]);
 
+    // PER DEVELLOPMENT 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // forza un setState con lo stesso valore, quindi re-render inutile
+            setResponseData({ responseExampleValue: 'Example' }); // stesso valore di prima
+
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const uselessMemo = useMemo(() => {
+        return Math.random(); // valore che cambia sempre
+      }, [responseData]);
+      
+
+    console.log('[DEBUG] Rendering ExampleComponentWithData', { propExampleValue, responseData });
+      
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
@@ -72,3 +90,9 @@ export default function ExampleComponentWithData({ propExampleValue }: PropsInte
         </GenericComponent>
     );
 };
+
+const MemoComponent = memoWithDebug(ExampleComponentWithData, "ExampleComponentWithData");
+console.log("MemoComponent:", MemoComponent); // Deve mostrarti l'oggetto con .whyDidYouRender === true
+console.log('[Test WDYR] MemoComponent.whyDidYouRender:', (MemoComponent as any).whyDidYouRender);
+export default MemoComponent;
+
