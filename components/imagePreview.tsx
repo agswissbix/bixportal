@@ -11,7 +11,7 @@ const ImagePreview = ({ imageUrl }: { imageUrl: string }) => {
         alt="allegato"
         onClick={() => setShowFull(true)}
         style={{
-          width: '40%',
+          width: '100%',
           height: '100%',
           cursor: 'pointer',
           borderRadius: '8px',

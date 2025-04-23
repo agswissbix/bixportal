@@ -63,31 +63,29 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
 
   const debouncedSearch = useRef(
     _.debounce(async (searchTerm: string) => {
-      if (!searchTerm.trim()) {
-        setItems([]);
-        return;
-      }
-
       setLoading(true);
       setError(null);
-
       try {
         if (linkedmaster_tableid && tableid) {
-          const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid,formValuesRef.current);
+          const results = await fetchLinkedItems(
+            searchTerm,
+            linkedmaster_tableid,
+            tableid,
+            fieldid,
+            formValuesRef.current,
+          );
+          setItems(results);
         } else {
           setError('Missing required parameters');
           setItems([]);
-          return;
         }
-        const results = await fetchLinkedItems(searchTerm, linkedmaster_tableid, tableid,fieldid,formValuesRef.current);
-        setItems(results);
-      } catch (err) {
+      } catch {
         setError('Error fetching data');
         setItems([]);
       } finally {
         setLoading(false);
       }
-    }, 300)
+    }, 300),
   ).current;
 
   useEffect(() => {
@@ -121,6 +119,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.select();
     setIsOpen(true);
+    debouncedSearch('');
   };
 
   const handleSelectOption = (item: LinkedItem) => {
@@ -153,7 +152,13 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
             placeholder="Inserisci un valore"
             className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
           />
-          <button type="button" onClick={() => handleRowClick('linked', linkedmaster_recordid, linkedmaster_tableid)} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">+</button>
+          <button type="button" onClick={() => {
+            if (linkedmaster_recordid && linkedmaster_tableid) {
+              handleRowClick('linked', linkedmaster_recordid, linkedmaster_tableid);
+            } else {
+              console.error('Missing required parameters for handleRowClick');
+            }
+          }} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">+</button>
 </div>
       </div>
       

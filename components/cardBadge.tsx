@@ -22,7 +22,7 @@ interface BadgeItem {
 }
 
 interface ResponseInterface {
-  badgeItems: Record<string, BadgeItem>;
+  badgeItems: Record<string, string>;
 }
 
 export default function CardBadge({ tableid, recordid }: PropsInterface) {
@@ -37,15 +37,9 @@ export default function CardBadge({ tableid, recordid }: PropsInterface) {
   // DATI RESPONSE PER LO SVILUPPO
   const responseDataDEV: ResponseInterface = {
     badgeItems: {
-      test1: { value: 'test1', type: 'text' },
-      test2: { value: 'test2', type: 'text' },
-      test3: { value: 'test3', type: 'text' },
-      test4: { value: 'test4', type: 'text' },
-      test5: { value: 'test5', type: 'text' },
-      test7: {
-        value: 'projecttemplatemilestone/00000000000000000000000000000003',
-        type: 'attachment',
-      },
+      test1: 'test1',
+      test2: 'test2',
+      fotostabile: 'projecttemplatemilestone/00000000000000000000000000000003',
     },
   };
 
@@ -84,7 +78,7 @@ export default function CardBadge({ tableid, recordid }: PropsInterface) {
           <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">
             {Object.entries(response.badgeItems).map(([key, item]) => (
               <p key={key} className="w-1/3 text-center text-white">
-                {item.value}
+                {item}
               </p>
             ))}
           </div>

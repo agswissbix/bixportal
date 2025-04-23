@@ -63,22 +63,17 @@ export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="cardBadge">
       {(response: ResponseInterface) => (
-        <div className="h-full w-full flex justify-center items-center">
-          <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3 overflow-hidden">
-            {Object.entries(response.badgeItems).map(([fieldid, item]) =>
-              fieldid === 'fotostabile' && item ? (
-                <div key={fieldid} className="h-full w-1/2">
-                  <p className="w-full text-center text-white"></p>
-                  <ImagePreview imageUrl={`/api/media-proxy?url=${item}`} />
-                </div>
-              ) : (
-                <div key={fieldid} className="w-1/2 h-full">
-                  <p className="w-1/3 text-center text-white">{item}</p>
-                </div>
-              )
-            )}
+        <div className="h-full w-full flex items-start">
+        <div className="flex flex-row flex-wrap w-full h-5/6 bg-secondary rounded-xl p-3 gap-4 overflow-hidden">
+          <div key="fotostabile" className="h-full w-1/6">
+            <ImagePreview imageUrl={`/api/media-proxy?url=${response.badgeItems.fotostabile}`} />
+          </div>
+          <p>{response.badgeItems.fotoingresso}</p>
+          <div key="fotoingresso" className="h-full w-1/6">
+            <ImagePreview imageUrl={`/api/media-proxy?url=${response.badgeItems.fotoingresso}`} />
           </div>
         </div>
+      </div>
       )}
     </GenericComponent>
   );
