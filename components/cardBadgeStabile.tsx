@@ -66,10 +66,12 @@ export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) 
         <div className="h-full w-full flex items-start">
         <div className="flex flex-row flex-wrap w-full h-5/6 bg-secondary rounded-xl p-3 gap-4 overflow-hidden">
           <div key="fotostabile" className="h-full w-1/6">
+          <p>{response.badgeItems.fotostabile}</p>
             <ImagePreview imageUrl={`/api/media-proxy?url=${response.badgeItems.fotostabile}`} />
           </div>
           <p>{response.badgeItems.fotoingresso}</p>
           <div key="fotoingresso" className="h-full w-1/6">
+          <p>{response.badgeItems.fotoingresso}</p>
             <ImagePreview imageUrl={`/api/media-proxy?url=${response.badgeItems.fotoingresso}`} />
           </div>
         </div>
