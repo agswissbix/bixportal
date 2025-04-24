@@ -119,6 +119,7 @@ export async function POST(request: Request) {
     case 'get_form_data': djangoUrl = '/commonapp/get_form_data/'; break;
     case 'stampa_bollettino': djangoUrl = '/customapp_pitservice/stampa_bollettino/'; break;
     case 'stampa_bollettino_test': djangoUrl = '/customapp_pitservice/stampa_bollettino_test/'; break;
+    case 'crea_lista_lavanderie': djangoUrl = '/customapp_pitservice/crea_lista_lavanderie/'; break;
     case 'get_record_attachments': djangoUrl = '/commonapp/get_record_attachments/'; break;
     case 'stampa_gasoli': djangoUrl = '/customapp_pitservice/stampa_gasoli/'; break;
     case 'get_card_active_tab': djangoUrl = '/commonapp/get_card_active_tab/'; break;
