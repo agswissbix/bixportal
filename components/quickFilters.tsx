@@ -96,12 +96,13 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
+        //setInputValue('');
         setTableView(selectedView.toString());
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
             setSelectedView(response.views[0].id);
         }
-    }, [response, responseData, selectedView]);
+    }, [response, responseData, selectedView, selectedMenu]);
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="recordFilters" > 

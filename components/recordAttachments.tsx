@@ -159,12 +159,13 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
                         Apri
                       </a>
                       <a
-                        href={`/api/media-proxy?url=${filePath}&download=true`}
-                        download
-                        className="bg-white text-gray-800 hover:bg-blue-50 rounded-full px-3 py-1 text-xs font-medium flex items-center shadow-md hover:shadow-lg transition-all" 
+                      href={`/api/media-proxy?url=${filePath}&download=true`}
+                      download={`allegato_${attachment.recordid}.${filePath.split('.').pop()}`}
+                      className="bg-white text-gray-800 hover:bg-blue-50 rounded-full px-3 py-1 text-xs font-medium flex items-center shadow-md hover:shadow-lg transition-all" 
                       >
-                        Scarica
-                      </a>
+                      Scarica
+                    </a>
+
                     </div>
                   </div>
                 </div>

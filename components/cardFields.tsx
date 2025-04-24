@@ -162,7 +162,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
-    const {removeCard,addCard,refreshTable,setRefreshTable} = useRecordsStore();
+    const {removeCard,addCard,refreshTable,setRefreshTable, handleRowClick} = useRecordsStore();
 
     // *** NEW: oggetto con tutti i valori correnti del form ***
     const currentValues = useMemo(() => {
@@ -199,6 +199,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     
       const handleSave = async () => {
         console.log("Tutti i campi aggiornati:", updatedFields);
+        let newRecordId = null;
         try {
             const formData = new FormData();
             formData.append('tableid', tableid || '');
@@ -221,28 +222,34 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
 
             console.log(formData)
             console.log("axiosInstanceClient:save_record_fields")
-            await axiosInstanceClient.post('/postApi', formData, {
+            const saveResponse = await axiosInstanceClient.post('/postApi', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 });
-            setRefreshTable(refreshTable+1)
-            if (mastertableid && masterrecordid) {
-                removeCard(tableid, recordid);
-                removeCard(mastertableid, masterrecordid);
-                addCard(mastertableid, masterrecordid, 'standard');
-            } else {
-                removeCard(tableid, recordid);
-                addCard(tableid, recordid, 'standard');
-            }
+            
+            newRecordId = saveResponse?.data?.recordid;
 
             
+                
             toast.success('Record salvato con successo');
+            recordid = responseData.recordid;
             setUpdatedFields({});
         } catch (error) {
             console.error('Errore durante il salvataggio del record:', error);
             toast.error('Errore durante il salvataggio del record');
+        } finally {
+            setRefreshTable(refreshTable+1)
+            if (mastertableid && masterrecordid) {
+                removeCard(tableid, recordid);
+                removeCard(mastertableid, masterrecordid);
+                //addCard(mastertableid, masterrecordid, 'standard');
+            } else {
+                removeCard(tableid, recordid);
+                //addCard(tableid, recordid, 'standard');
+                handleRowClick('standard', newRecordId, tableid, mastertableid, masterrecordid);
+            }
         }
     };
     
@@ -273,7 +280,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     
 
     return (
-        <GenericComponent response={responseData} loading={loading} error={error} title="CardFields"> 
+        <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
             {(response: ResponseInterface) => (
                 <div className="h-full">
                     <div className="h-full flex flex-col overflow-y-scroll space-y-3">

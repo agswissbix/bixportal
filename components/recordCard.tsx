@@ -110,6 +110,29 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
     }
   }
 
+  const sendEmail = async () => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "send_email_from_record",
+          recordid: recordid,
+        },
+
+
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success('Email inviata con successo');
+    } catch (error) {
+      console.error("Errore durante l'invio della email", error);
+      toast.error("Errore durante l'invio della email");
+    }
+  }
+
   const handleTrashClick = () => {
     toast.warning(
         "Sei sicuro di voler eliminare questo record?", 
@@ -222,6 +245,18 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                           }}
                         >
                           Stampa bollettino
+                        </li>
+                    )}
+
+                    {tableid === 'email' && (
+                        <li 
+                          className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            toast.info('Invio email in corso...');
+                            sendEmail();
+                          }}
+                        >
+                          Invia email
                         </li>
                     )}
 
