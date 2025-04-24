@@ -72,6 +72,10 @@ export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) 
           <div key="fotoingresso" className="h-full w-1/6">
             <ImagePreview imageUrl={`/api/media-proxy?url=${response.badgeItems.fotoingresso}`} />
           </div>
+          <div key="riferimentocompleto" className="h-full w-3/6 text-white text-center">
+            {response.badgeItems.riferimentocompleto}
+          </div>
+
         </div>
       </div>
       )}

@@ -25,6 +25,7 @@ const isDev = false;
           subject: string;
           text: string;
           attachment_relativepath?: string;
+          attachment_name?: string;
         }
         
         interface ResponseInterface {
@@ -48,7 +49,8 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                   bcc: "",
                   subject: "", // Added missing subject property
                   text: "",
-                  attachment_relativepath: "" // Default value for the new property
+                  attachment_relativepath: "",// Default value for the new property
+                  attachment_name: "" // Default value for the new property
                 },
                 tableid : tableid,
                 recordid : recordid
@@ -62,7 +64,8 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                     bcc: "",
                     subject: "subject", // Added missing subject property
                     text: "mailbody",
-                    attachment_relativepath: "example/path" // Example value for development
+                    attachment_relativepath: "example/path", // Example value for development
+                    attachment_name: "example.txt" // Example value for development
                 },
                 tableid : tableid,
                 recordid : recordid
@@ -172,7 +175,18 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
             ))}
 
             {/* Link all’allegato, se presente */}
+            <input
+                key='attachment_name'
+                name='attachment_name'
+                type="text"
+                placeholder='Nome allegato'
+                value={responseData.emailFields.attachment_name}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-visible:ring-offset-2 transition-all duration-300"
+              />
+              
             {responseData.emailFields.attachment_relativepath && (
+              
               <a
                 className="text-blue-600 hover:underline"
                 href={`/api/media-proxy?url=${responseData.emailFields.attachment_relativepath}`}
