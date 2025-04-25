@@ -115,7 +115,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
-          apiRoute: "send_email_from_record",
+          apiRoute: "send_emails",
           recordid: recordid,
         },
 
