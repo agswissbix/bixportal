@@ -96,7 +96,8 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
-        //setInputValue('');
+        setInputValue(''); // Resetta il valore di input quando cambia la risposta
+        setSearchTerm(inputValue); // Passa il valore al componente genitore
         setTableView(selectedView.toString());
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
@@ -128,7 +129,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
                       </svg>
                     </div>
                     <input 
-                      type="search" 
+                      type="search"
                       id="default-search" 
                       className="block w-full h-10 ps-10 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white focus:ring-gray-500 focus:border-gray-500 shadow-sm hover:border-gray-300 transition-all duration-200 outline-none" 
                       placeholder="Cerca" 

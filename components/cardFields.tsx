@@ -17,6 +17,7 @@ import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { useRecordsStore } from './records/recordsStore';
+import { Tooltip } from 'react-tooltip';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -283,7 +284,10 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
         <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
             {(response: ResponseInterface) => (
                 <div className="h-full">
+                    <Tooltip id="my-tooltip" className="tooltip" />
+                    {/* Form con select e search */}
                     <div className="h-full flex flex-col overflow-y-scroll space-y-3">
+
                         {response.fields.map(field => {
                             const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
                             const initialValue = rawValue ?? '';
@@ -293,7 +297,12 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                 <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
                                     {/* Etichetta */}
                                     <div className="w-1/4">
-                                        <p className="text-black">{field.description} </p>
+                                        <p
+                                          data-tooltip-id="my-tooltip"
+                                          data-tooltip-content={field.fieldid}
+                                          data-tooltip-place="left"
+                                        className="text-black">{field.description} 
+                                        </p>
                                     </div>
                                     
                                     {/* Input */}

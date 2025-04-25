@@ -63,6 +63,26 @@ export default function StandardContent({ tableid }: PropsInterface) {
     }
   }, [recordid]);
 
+  const exportExcel = async () => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "export_excel",
+          tableid: tableid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      // Gestisci la risposta qui, ad esempio, scarica il file Excel
+    } catch (error) {
+      console.error("Errore durante l'esportazione in Excel", error);
+    }
+  }
+
   return (
     <GenericComponent title="standardContent"> 
       {(data) => (
@@ -93,6 +113,13 @@ export default function StandardContent({ tableid }: PropsInterface) {
             {showDropdown && (
               <div className="absolute left-0 mt-2 w-28 bg-white border border-gray-200 rounded shadow-lg z-50">
                 <ul className="py-1">
+                  <li 
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => exportExcel()}
+                  >
+                    Esporta excel
+                  </li>
+                  
                   {tableid === 'rendicontolavanderia' && (
                     <li 
                       className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
