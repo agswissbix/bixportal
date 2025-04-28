@@ -267,7 +267,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                           // Qui puoi inserire la logica per funzione2
                           setPopupRecordId(recordid);
                           setIsPopupOpen(true);
-                          setPopUpType('email');
+                          setPopUpType('emailLavanderia');
                           setShowDropdown(false);;
                         }}
                       >
@@ -296,7 +296,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                           // Qui puoi inserire la logica per funzione2
                           setPopupRecordId(recordid);
                           setIsPopupOpen(true);
-                          setPopUpType('email');
+                          setPopUpType('emailBollettini');
                           setShowDropdown(false);;
                         }}
                       >

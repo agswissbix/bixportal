@@ -16,6 +16,7 @@ const isDev = false;
         interface PropsInterface {
             tableid: string;
             recordid: string;
+            type: string; // Added type to PropsInterface
         }
 
         interface EmailFields {
@@ -34,7 +35,7 @@ const isDev = false;
           recordid: string;
         }
 
-export default function PopupEmail({ tableid,recordid }: PropsInterface) {
+export default function PopupEmail({ tableid, recordid, type }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + '' + recordid;
@@ -86,7 +87,8 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
         return {
             apiRoute: 'prepara_email', // riferimento api per il backend
             tableid: tableid,
-            recordid: recordid
+            recordid: recordid,
+            type: type,
         };
     }, [tableid, recordid]);
 
@@ -180,7 +182,7 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                 name='attachment_name'
                 type="text"
                 placeholder='Nome allegato'
-                value={responseData.emailFields.attachment_name}
+                value={responseData.emailFields.attachment_name} 
                 onChange={handleInputChange}
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus-visible:ring-offset-2 transition-all duration-300"
               />
@@ -193,7 +195,7 @@ export default function PopupEmail({ tableid,recordid }: PropsInterface) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Visualizza allegato
+                Visualizza allegato: {responseData.emailFields.attachment_relativepath}
               </a>
             )}
 

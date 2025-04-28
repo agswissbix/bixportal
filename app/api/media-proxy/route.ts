@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         return new NextResponse("Missing URL parameter", { status: 400 });
     }
 
-    const remoteUrl = `${API_BASE_URL}/commonapp/media/${urlParam}`;
+    const remoteUrl = `${API_BASE_URL}/commonapp/tempfile/${urlParam}`;
     console.log("🌐 remoteUrl:", remoteUrl);
 
     try {

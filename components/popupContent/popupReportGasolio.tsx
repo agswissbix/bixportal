@@ -54,15 +54,12 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
         value={selectedOption}
         onChange={(e) => setSelectedOption(e.target.value)}
       >
-        <option value="2025-01"  >2025-01</option>
-        <option value="2025-02">2025-02</option>
-        <option value="2025-03">2025-03</option>
         <option value="2025-04">2025-04</option>
       </select>
 
       {/* Bottoni */}
       <div className="flex gap-2">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={() => { setPopUpType('email') }}>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={() => { setPopUpType('emailGasolio') }}>
           Invia Email
         </button>
         <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={stampaGasoli}>
