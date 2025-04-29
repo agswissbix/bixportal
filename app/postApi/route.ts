@@ -157,11 +157,13 @@ export async function POST(request: Request) {
   // Gestione della risposta in base al content-type
   if (resContentType && resContentType.includes('application/pdf')) {
     // Risposta Blob: PDF
+    const contentDisposition = response.headers['content-disposition'] || 'attachment; filename="file.pdf"';
+
     const nextResponse = new Response(response.data, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="bollettino.pdf"',
+        'Content-Disposition': contentDisposition,
       },
     });
 
