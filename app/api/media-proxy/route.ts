@@ -11,8 +11,14 @@ export async function GET(req: NextRequest) {
         console.log("❌ Nessun parametro URL");
         return new NextResponse("Missing URL parameter", { status: 400 });
     }
-
-    const remoteUrl = `${API_BASE_URL}/commonapp/tempfile/${urlParam}`;
+    
+    let remoteUrl = `${API_BASE_URL}/commonapp/uploads/${urlParam}`;
+    
+    if (urlParam.startsWith("commonapp/static")) {
+        remoteUrl = `${API_BASE_URL}/commonapp/tempfile/${urlParam}`;
+    } 
+    else{}
+    
     console.log("🌐 remoteUrl:", remoteUrl);
 
     try {
