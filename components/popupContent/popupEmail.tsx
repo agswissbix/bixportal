@@ -177,6 +177,8 @@ export default function PopupEmail({ tableid, recordid, type }: PropsInterface) 
             ))}
 
             {/* Link all’allegato, se presente */}
+            <br/>
+            Allegato:
             <input
                 key='attachment_name'
                 name='attachment_name'
@@ -195,7 +197,7 @@ export default function PopupEmail({ tableid, recordid, type }: PropsInterface) 
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Visualizza allegato: {responseData.emailFields.attachment_relativepath}
+                Visualizza allegato
               </a>
             )}
 
