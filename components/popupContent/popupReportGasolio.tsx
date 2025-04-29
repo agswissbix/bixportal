@@ -34,8 +34,15 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'gasolio.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
       link.href = url;
-      link.setAttribute('download', 'bollettino.pdf');
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       toast.success('Report gasoli stampato con successo');
