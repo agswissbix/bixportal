@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import '@toast-ui/editor/dist/toastui-editor.css';
-import Editor from '@toast-ui/editor';
+import Editor, { EditorOptions } from '@toast-ui/editor';
 import { defaultConfig } from 'next/dist/server/config-shared';
 
 // INTERFACCIA PROPS
@@ -18,13 +18,19 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
     if (containerRef.current && !editorRef.current) {
       // Inizializza l'editor solo se non è già stato creato
       editorRef.current = new Editor({
-        el: containerRef.current,
+        el: containerRef.current as HTMLElement,
         height: '300px',
         width: '100%',
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
-        initialValue: initialValue,
-      });
+        initialValue: '',
+        customHTMLSanitizer: (html: string): string => html, // <<< Permette HTML senza modifiche
+      } as EditorOptions);
+
+      // Imposta l’HTML **dopo** l’inizializzazione
+      if (initialValue) {
+        editorRef.current.setHTML(initialValue);
+      }
 
       // Aggiungi un listener per l'evento di modifica
       editorRef.current.on('change', () => {
