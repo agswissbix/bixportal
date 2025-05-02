@@ -178,7 +178,7 @@ export interface LogoutResponse {
 export async function logoutUser(): Promise<LogoutResponse> {
   try {
     const csrfToken = getCookie('csrftoken');
-    const response = await axiosInstanceClient.post('/auth/logout/', null, {
+    const response = await axiosInstance.post('/auth/logout/', null, {
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrfToken || '',
