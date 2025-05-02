@@ -163,7 +163,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
-    const {removeCard,addCard,refreshTable,setRefreshTable, handleRowClick} = useRecordsStore();
+    const {removeCard,addCard,refreshTable,setRefreshTable,handleRowClick,activeServer} = useRecordsStore();
 
     // *** NEW: oggetto con tutti i valori correnti del form ***
     const currentValues = useMemo(() => {
@@ -377,9 +377,17 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                             );
                         })}
                     </div>
-                    <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
-                         Salva
-                    </button>  
+                    {activeServer === 'belotti' && (
+                        <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
+                            Conferma merce ricevuta
+                        </button>
+                    )}
+                    {activeServer !== 'belotti' && (
+                        <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
+                            Salva
+                        </button>
+                    )}
+                   
                                   
                 </div>
             )}

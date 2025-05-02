@@ -17,6 +17,7 @@ interface PropsInterface {
 
 interface ResponseInterface {
     menuItems: Record<string, MenuItem>;
+    otherItems: SubItem[];
 }
 
 interface SubItem{
@@ -48,7 +49,8 @@ export default function SidebarMenu({  }: PropsInterface) {
 
     // DATI RESPONSE DI DEFAULT
     const responseDataDEFAULT: ResponseInterface = {
-        menuItems: {}
+        menuItems: {},
+        otherItems: []
     };
 
     // DATI RESPONSE PER LO SVILUPPO 
@@ -80,6 +82,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                 subItems: [],
             },
         },
+        otherItems: []
     };
 
     //DATI DEL COMPONENTE
@@ -165,25 +168,11 @@ export default function SidebarMenu({  }: PropsInterface) {
                     */}
                     {activeServer === 'belotti' ? (
                         <>
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioLifestyle')}> 
-                                Lifestyle
+                        {responseData.otherItems.map((item) => (
+                            <span key={item.id} className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick(item.id)}> 
+                                {item.description}
                             </span>
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioLiquidiLAC')}> 
-                                Liquidi LAC
-                            </span>
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioMerceVaria')}> 
-                                Merce varia
-                            </span>
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioMerceVariaBlitz')}> 
-                                Merce varia blitz
-                            </span>
-
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioMerceVariaOakley')}> 
-                                Merce varia Oakley
-                            </span>
-                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleMenuClick('formularioOrdiniUdito')}> 
-                                Ordini udito
-                            </span>
+                        ))}
                         </>
                     ) : null}
                         {Object.entries(data['menuItems']).map(([key, item]) => {

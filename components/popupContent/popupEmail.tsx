@@ -17,6 +17,7 @@ const isDev = false;
             tableid: string;
             recordid: string;
             type: string; // Added type to PropsInterface
+            onClose: () => void;
         }
 
         interface EmailFields {
@@ -35,7 +36,7 @@ const isDev = false;
           recordid: string;
         }
 
-export default function PopupEmail({ tableid, recordid, type }: PropsInterface) {
+export default function PopupEmail({ tableid, recordid, type, onClose }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : tableid + '' + recordid;
@@ -150,6 +151,8 @@ export default function PopupEmail({ tableid, recordid, type }: PropsInterface) 
             );
     
             toast.success('Email salvata con successo');
+            onClose();
+            
         } catch (error) {
             console.error('Errore durante il salvataggio della mail', error);
             toast.error('Errore durante il salvataggio della mail');

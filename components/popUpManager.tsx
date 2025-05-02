@@ -26,8 +26,8 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid }
                     className="w-6 h-6 text-gray-500 relative mb-2 float-start  cursor-pointer"
                       onClick={onClose}
                   />
-                {type === 'emailLavanderia' && <PopupEmail tableid={tableid} recordid={recordid} type='emailLavanderia' />}
-                {type === 'emailGasolio' && <PopupEmail tableid={tableid} recordid={recordid} type='emailGasolio' />}
+                {type === 'emailLavanderia' && <PopupEmail tableid={tableid} recordid={recordid} onClose={onClose} type='emailLavanderia' />}
+                {type === 'emailGasolio' && <PopupEmail tableid={tableid} recordid={recordid} onClose={onClose} type='emailGasolio' />}
                 {type === 'reportGasolio' && <PopupReportGasolio tableid={tableid} recordid={recordid} />}
 
             </div>

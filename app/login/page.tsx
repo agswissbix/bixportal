@@ -7,6 +7,7 @@ import Image from 'next/image';
 import '../globals.css';
 import { loginUserApi, getActiveServer } from '@/utils/auth';
 import LoadingComp from '@/components/loading';
+import { useRecordsStore } from '@/components/records/recordsStore';
 
 export default function Login() {
   const [username, setUsername] = useState<string>('');
@@ -15,7 +16,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const [activeServer, setActiveServer] = useState<string>('');
+  const {activeServer, setActiveServer} = useRecordsStore();
 
   useEffect(() => {
     const fetchActiveServer = async () => {

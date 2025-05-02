@@ -5,9 +5,10 @@ import { AppContext } from '@/context/appContext';
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image';
-import { LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, User, Lock } from 'lucide-react';
 import { useRecordsStore } from './records/recordsStore';
 import { set } from 'lodash';
+import { useRouter } from 'next/navigation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -65,13 +66,8 @@ export default function NavBar() {
     const { response, loading, error } = { response: null, loading: false, error: null };
 
     const{setSelectedMenu} = useRecordsStore()
-
-   
-
-
-
-
-
+    const router = useRouter();
+    
 
 
     return (
@@ -153,6 +149,19 @@ export default function NavBar() {
                                         <div className="flex items-center gap-2">
                                             <Settings className="w-4 h-4" />
                                             <span>Settings</span>
+                                        </div>
+                                    </a>
+                                </MenuItem>
+                                <MenuItem>
+                                    <a
+                                        href="#"
+                                        className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                        //change route to change-password
+                                        onClick={() => router.push('/change-password')}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Lock className="w-4 h-4" />
+                                            <span>Cambia password</span>
                                         </div>
                                     </a>
                                 </MenuItem>
