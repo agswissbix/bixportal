@@ -97,7 +97,18 @@ export default function StandardContent({ tableid }: PropsInterface) {
             </div>
             <div className="w-1/2 h-1/2 flex justify-end gap-3">
             <div className="relative">
-
+            <button 
+              className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 
+                        font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center 
+                        dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
+              type="button"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              Funzioni
+              <svg className="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+              </svg>
+            </button>
 
             {showDropdown && (
               <div className="absolute left-0 mt-2 w-28 bg-white border border-gray-200 rounded shadow-lg z-50">
@@ -121,6 +132,29 @@ export default function StandardContent({ tableid }: PropsInterface) {
               </div>
             )}
           </div>
+          <button
+                type="button"
+                className="font-bold inline-flex items-center px-5 py-2.5 text-sm text-white bg-primary rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-100 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                onClick={() => handleRowClick('', "", tableid)}
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Nuovo
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                onClick={refreshTableFunc}
+              >
+                <ArrowPathIcon className="w-5 h-5 mr-2" />
+                Ricarica
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                Esporta
+              </button>
  
             </div>
           </div>
