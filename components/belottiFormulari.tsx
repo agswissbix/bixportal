@@ -162,7 +162,8 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
 
       if (isDev) {
         console.log("Complete order (dev):", completeOrder);
-        alert("Order saved (simulation)");
+        alert("Ordine salvato");
+        location.reload();
         return;
       }
 
@@ -248,7 +249,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
                 <div className="flex flex-wrap gap-3">
                   <button type='submit' className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm">
                     <Save size={20} />
-                    <span>Save</span>
+                    <span>INVIA RICHIESTA</span>
                   </button>
                 </div>
               </div>
