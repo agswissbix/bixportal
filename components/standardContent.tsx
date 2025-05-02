@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useContext } from 'react';
 import {useRecordsStore} from './records/recordsStore';
 import QuickFilters from './quickFilters';
 import TableFilters from './TableFilters';
@@ -9,6 +9,7 @@ import { PlusIcon, ArrowPathIcon, ArrowDownTrayIcon } from '@heroicons/react/24/
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { Table } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import { AppContext } from '@/context/appContext';
 
 
 // INTERFACCIA PROPS
@@ -25,9 +26,12 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
 
 
-  const {refreshTable, setRefreshTable, setIsFiltersOpen, isFiltersOpen, activeServer} = useRecordsStore(); // Stato per il valore di ricerca
+  const {refreshTable, setRefreshTable, setIsFiltersOpen, isFiltersOpen, } = useRecordsStore(); // Stato per il valore di ricerca
 
   const {cardsList, addCard, removeCard, resetCardsList, handleRowClick} = useRecordsStore(); // Stato per il valore di ricerca
+  
+  const {activeServer } = useContext(AppContext);
+  
 
   
 

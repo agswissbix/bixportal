@@ -16,8 +16,8 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const {activeServer, setActiveServer} = useRecordsStore();
-
+  const [activeServer, setActiveServer] = useState<string>('');
+  
   useEffect(() => {
     const fetchActiveServer = async () => {
       const server = await getActiveServer();

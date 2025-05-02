@@ -163,7 +163,9 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
 
-    const {removeCard,addCard,refreshTable,setRefreshTable,handleRowClick,activeServer} = useRecordsStore();
+    const {removeCard,addCard,refreshTable,setRefreshTable,handleRowClick} = useRecordsStore();
+    const {activeServer } = useContext(AppContext);
+
 
     // *** NEW: oggetto con tutti i valori correnti del form ***
     const currentValues = useMemo(() => {

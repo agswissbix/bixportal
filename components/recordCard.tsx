@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useContext } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import { CircleX, Maximize2, Info, Trash2, Check } from 'lucide-react';
 import CardBadge from './cardBadge';
@@ -9,6 +9,7 @@ import axiosInstance from '@/utils/axiosInstance'
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SimplePopup from './inviaEmail';
 import { Card } from './ui/card';
+import { AppContext } from '@/context/appContext';
 
 
 
@@ -25,7 +26,8 @@ interface PropsInterface {
 
 export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid, type,index=0,total=1 }: PropsInterface) {
 
-  const { removeCard, cardsList, setIsPopupOpen, setPopUpType, setPopupRecordId, activeServer } = useRecordsStore();
+  const { removeCard, cardsList, setIsPopupOpen, setPopUpType, setPopupRecordId } = useRecordsStore();
+  const {activeServer} = useContext(AppContext);
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); 
   const [isMaximized, setIsMaximized] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>("");
