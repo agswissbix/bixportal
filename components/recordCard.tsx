@@ -346,12 +346,12 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
               </div>
   
               <div className="h-5/6">
-                {tableid === 'stabile' && (
-                  <CardBadgeStabile tableid={tableid} recordid={recordid} />
-                )}
-                {activeServer !== 'belotti' && (
-                  <CardBadge tableid={tableid} recordid={recordid} />
-                )}
+              {tableid === 'stabile' ? (
+              <CardBadgeStabile tableid={tableid} recordid={recordid} />
+            ) : activeServer !== 'belotti' ? (
+              <CardBadge tableid={tableid} recordid={recordid} />
+            ) : null}
+
             </div>
                 
             </div>
