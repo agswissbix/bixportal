@@ -126,6 +126,8 @@ export async function POST(request: Request) {
     case'get_favorite_tables': djangoUrl = '/commonapp/get_favorite_tables/'; break;
     case 'send_emails': djangoUrl = '/commonapp/send_emails/'; break;
     case 'export_excel': djangoUrl = '/commonapp/export_excel/'; break;
+    case 'belotti_salva_formulario': djangoUrl = '/customapp_belotti/belotti_salva_formulario/'; break;
+    
 
     default:
       return NextResponse.json(

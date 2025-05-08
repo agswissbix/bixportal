@@ -3,9 +3,10 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { PlusCircle, MinusCircle, Save } from 'lucide-react';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const isDev = true;
+const isDev = false;
 
 // Interfaces
 interface PropsInterface {
@@ -32,7 +33,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   };
 
   const devResponseData: ResponseInterface = {
-    formName: "FORMULARIO ORDINE LIFESTYLE 2024/2025",
+    formName: "FORMULARIO ORDINE "+formType+" 2025",
     categories: [
       {
         title: "Small Cases",
@@ -159,12 +160,34 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   const handleSaveOrder = async () => {
     try {
       const completeOrder = getCompleteOrder();
+      
 
       if (isDev) {
         console.log("Complete order (dev):", completeOrder);
         alert("Ordine salvato");
         location.reload();
         return;
+      }
+      else{
+        setTimeout(async () => {
+          try {
+              const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                  apiRoute: "belotti_salva_formulario",
+                  completeOrder: completeOrder
+                },
+                {
+                  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                }
+              );
+              alert("Ordine salvato");
+              console.info('Risposta:')
+              console.info(response)
+          } catch (error) {
+              alert("Errore nel salvataggio");
+          }
+        }, 0);
       }
 
       console.log(payload);
