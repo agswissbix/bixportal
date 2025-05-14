@@ -238,7 +238,7 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
             <tr
               className={`w-full border-b border-gray-100 dark:border-gray-750 transition-colors duration-150 ease-in-out ${rowIndex % 2 === 0 ? 'bg-white dark:bg-gray-800/90' : 'bg-gray-50 dark:bg-gray-800/80'} hover:bg-blue-50/50 dark:hover:bg-gray-700/70 cursor-pointer`}
               key={`${group.groupKey}-row-${row.recordid}-${rowIndex}`}
-              onClick={() => handleRowClick('standard', row.recordid, 'task')}
+              onClick={() => handleRowClick('standard', row.recordid, 'informazionigasolio')}
             >
               {/* Renderizza celle per la riga figlio */}
               {Array.from({ length: requiredColumns }).map((_, fieldIndex) => {
