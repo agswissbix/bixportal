@@ -164,6 +164,7 @@ interface GroupRowProps {
   handleRowClick: (type: string, recordid: string, context: string) => void;
   requiredColumns: number;
   level: number; // Aggiunto livello per indentazione
+  tableid?: string; 
 }
 
 const GroupRenderer: React.FC<GroupRowProps> = ({
@@ -172,7 +173,8 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
   toggleGroup,
   handleRowClick,
   requiredColumns,
-  level
+  level,
+  tableid
 }) => {
   const isExpanded = expandedGroups[group.groupKey] ?? true; // Default a espanso
   const hasSubGroups = group.subGroups && group.subGroups.length > 0;
@@ -238,7 +240,7 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
             <tr
               className={`w-full border-b border-gray-100 dark:border-gray-750 transition-colors duration-150 ease-in-out ${rowIndex % 2 === 0 ? 'bg-white dark:bg-gray-800/90' : 'bg-gray-50 dark:bg-gray-800/80'} hover:bg-blue-50/50 dark:hover:bg-gray-700/70 cursor-pointer`}
               key={`${group.groupKey}-row-${row.recordid}-${rowIndex}`}
-              onClick={() => handleRowClick('standard', row.recordid, 'informazionigasolio')}
+              onClick={() => handleRowClick('standard', row.recordid, "rendicontolavanderia")}
             >
               {/* Renderizza celle per la riga figlio */}
               {Array.from({ length: requiredColumns }).map((_, fieldIndex) => {
@@ -391,6 +393,7 @@ export default function Pivot({ tableid, searchTerm, filters, context }: PropsIn
                     handleRowClick={handleRowClick}
                     requiredColumns={requiredColumns}
                     level={0} // Livello iniziale
+                    tableid={tableid} 
                   />
                 ))}
                  {/* Messaggio se non ci sono gruppi */}
