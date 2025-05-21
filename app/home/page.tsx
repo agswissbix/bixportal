@@ -64,12 +64,12 @@ export default function Home() {
             <Dashboard />
           ) : selectedMenu === 'userSettings' ? (
             <UserSettings />
-          ) : selectedMenu === 'formularioLifestyle' ? (
-            <BelottiFormulari formType='lifestyle' />
-          ) : selectedMenu === 'formularioLiquidiLAC' ? (
-            <BelottiFormulari formType='LiquidiLAC' />
-          ) : selectedMenu === 'formularioMerceVaria' ? (
-            <BelottiFormulari formType='MerceVaria' />
+          ) : selectedMenu === 'LIFESTYLE' ? (
+            <BelottiFormulari formType='LIFESTYLE' />
+          ) : selectedMenu === 'LIQUIDI LAC' ? (
+            <BelottiFormulari formType='LIQUIDI LAC' />
+          ) : selectedMenu === 'qwe' ? (
+            <BelottiFormulari formType='asd' />
           ) : selectedMenu === 'formularioMerceVariaBlitz' ? (
             <BelottiFormulari formType='MerceVariaBlitz' />
           ) : selectedMenu === 'formularioMerceVariaOakley' ? (
