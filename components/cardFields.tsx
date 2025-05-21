@@ -294,7 +294,6 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         {response.fields.map(field => {
                             const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
                             const initialValue = rawValue ?? '';
-                           
 
                             return (
                                 <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">

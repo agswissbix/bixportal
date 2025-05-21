@@ -28,8 +28,8 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
   const {refreshTable, setRefreshTable, setIsFiltersOpen, isFiltersOpen, } = useRecordsStore(); // Stato per il valore di ricerca
 
-  const {cardsList, addCard, removeCard, resetCardsList, handleRowClick} = useRecordsStore(); // Stato per il valore di ricerca
-  
+  const {cardsList, addCard, removeCard, resetCardsList, handleRowClick, searchTerm, tableView} = useRecordsStore(); // Stato per il valore di ricerca
+
   const {activeServer } = useContext(AppContext);
   
 
@@ -70,25 +70,67 @@ export default function StandardContent({ tableid }: PropsInterface) {
     }
   }, [recordid]);
 
-  const exportExcel = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "export_excel",
-          tableid: tableid,
+const exportExcel = async () => {
+  try {
+    const response = await axiosInstanceClient.post(
+      "/postApi",
+      {
+        apiRoute: "commonapp/export_excel/",  // Assicurati che il percorso sia corretto
+        tableid: tableid,
+        searchTerm: searchTerm,
+        viewid: tableView,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      // Gestisci la risposta qui, ad esempio, scarica il file Excel
-    } catch (error) {
-      console.error("Errore durante l'esportazione in Excel", error);
+        responseType: 'blob', // Importante per i file binari
+      }
+    );
+    
+    // Verifica che la risposta non sia un errore
+    if (response.status !== 200) {
+      throw new Error(`Errore nella risposta: ${response.status}`);
     }
+    
+    // Ottieni il tipo di contenuto dalla risposta
+    const contentType = response.headers['content-type'];
+    
+    // Crea il blob con il tipo corretto
+    const blob = new Blob([response.data], { 
+      type: contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    
+    // Recupera il nome del file dall'header Content-Disposition se disponibile
+    let filename = `${tableid}.xlsx`;
+    const contentDisposition = response.headers['content-disposition'];
+    if (contentDisposition && contentDisposition.includes('filename=')) {
+      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+    
+    // Crea URL e link per il download
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Pulizia
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+    
+    toast.success('File Excel esportato con successo');
+  } catch (error) {
+    console.error("Errore durante l'esportazione in Excel", error);
+    toast.error("Errore durante l'esportazione in Excel");
   }
+}
 
   return (
     <GenericComponent title="standardContent"> 
@@ -161,6 +203,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                 <button
                   type="button"
                   className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                  onClick={() => exportExcel()}
                 >
                   <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
                   Esporta
