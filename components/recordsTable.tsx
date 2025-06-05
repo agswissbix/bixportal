@@ -35,6 +35,7 @@ const isDev = false;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
+            counter?: number;
             rows: Array<{
                 recordid: string;
                 css: string;
@@ -70,12 +71,14 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
+                counter: 0,
                 rows: [],
                 columns: []
               };
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
+                counter: 2,
                 rows: [
                     {
                         recordid: "1",
@@ -310,6 +313,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 ))}
                             </tbody>    
                         </table>
+                        <p>{response.counter}</p>
 
                         <nav aria-label="Page navigation example" className="h-1/6 text-center mt-4">
                             <ul className="inline-flex text-sm">
