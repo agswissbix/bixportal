@@ -117,7 +117,8 @@ export default function GalleryCard({ tableid, recordid }: PropsInterface) {
     />
 
   <div className="px-6 py-4 h-2/3">
-    {responseData.badgeItems.map((item) => (
+    {Array.isArray(responseData.badgeItems) &&
+      responseData.badgeItems.map((item) => (
       (item.fieldid !== "fotostabile" && item.fieldid !== "test7") ? (
         item.fieldid === "titolo_stabile" ? (
           <div key={item.fieldid} className="font-bold text-xl mb-2">{item.value}</div>
