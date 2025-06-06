@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import { Home, Package, Mail, ChevronDown, ChevronUp, HelpCircle, LucideIcon } from 'lucide-react';
+import { Home, Package, Mail, ChevronDown, ChevronUp, HelpCircle, LucideIcon, Star } from 'lucide-react';
 import '@/app/globals.css';
 import { useRecordsStore } from './records/recordsStore';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,7 @@ interface PropsInterface {
 interface ResponseInterface {
     menuItems: Record<string, MenuItem>;
     otherItems: SubItem[];
+    favoriteTables?: string[];
 }
 
 interface SubItem{
@@ -51,7 +52,8 @@ export default function SidebarMenu({  }: PropsInterface) {
     // DATI RESPONSE DI DEFAULT
     const responseDataDEFAULT: ResponseInterface = {
         menuItems: {},
-        otherItems: []
+        otherItems: [],
+        favoriteTables: []
     };
 
     // DATI RESPONSE PER LO SVILUPPO 
@@ -83,11 +85,12 @@ export default function SidebarMenu({  }: PropsInterface) {
                 subItems: [],
             },
         },
-        otherItems: []
+        otherItems: [],
+        favoriteTables: []
     };
 
     //DATI DEL COMPONENTE
-    const [openDropdown, setOpenDropdown] = useState('');
+    const [openDropdown, setOpenDropdown] = useState('favorites');
     const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
     const router = useRouter();
 
@@ -184,6 +187,33 @@ export default function SidebarMenu({  }: PropsInterface) {
                             </span>
                         </>
                     ) : null}
+
+                        {responseData.favoriteTables && responseData.favoriteTables.length > 0 && (
+                            <li>
+                                <button onClick={() => setOpenDropdown(openDropdown === 'favorites' ? '' : 'favorites')} className="w-full text-md flex items-center justify-between px-6 py-4 hover:text-primary focus:text-primary transition-colors">
+                                    <div className="flex items-center min-w-[20px]">
+                                        <Star className="w-5 h-5 min-w-[20px]" />
+                                        <span className="text-md ml-3 xl:opacity-100 opacity-0 transition-opacity duration-300">Preferiti</span>
+                                    </div>
+                                    <span className="xl:block hidden">
+                                        <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openDropdown === 'favorites' ? '-rotate-180' : ''}`} />
+                                    </span>
+                                </button>
+
+                                <div className={`xl:block hidden overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === 'favorites' ? 'max-h-[800px]' : 'max-h-0'}`}>
+                                    <ul className="py-1 ml-6">
+                                        {responseData.favoriteTables.map((table) => (
+                                            <li key={table.id}>
+                                                <span className="text-gray-200 text-sm block px-8 py-2 hover:text-primary transition-colors cursor-pointer" onClick={() => handleMenuClick(table.tableid)}>
+                                                    {table.tableid}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </li>
+                        )}
+
                         {Object.entries(data['menuItems']).map(([key, item]) => {
                             const Icon = iconMap[item.icon] || HelpCircle;
                             return (

@@ -124,6 +124,7 @@ export async function POST(request: Request) {
     case 'stampa_gasoli': djangoUrl = '/customapp_pitservice/stampa_gasoli/'; break;
     case 'get_card_active_tab': djangoUrl = '/commonapp/get_card_active_tab/'; break;
     case'get_favorite_tables': djangoUrl = '/commonapp/get_favorite_tables/'; break;
+    case 'save_favorite_tables': djangoUrl = '/commonapp/save_favorite_tables/'; break;
     case 'send_emails': djangoUrl = '/commonapp/send_emails/'; break;
     case 'export_excel': djangoUrl = '/commonapp/export_excel/'; break;
     case 'belotti_salva_formulario': djangoUrl = '/customapp_belotti/belotti_salva_formulario/'; break;

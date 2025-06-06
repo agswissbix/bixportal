@@ -4,6 +4,9 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import SelectStandard from './selectStandard';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { toast } from 'sonner';
+import axios from 'axios';
+import { set } from 'lodash';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -46,24 +49,21 @@ export default function UserFavTables({ propExampleValue }: PropsInterface) {
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    const [selectedFavorites, setSelectedFavorites] = useState<string[]>([]);
+
 
     const saveFavTables = async () => {
+        console.info(selectedFavorites)
         try {
           console.info('Cambio password in corso...');
-          
-            const response = await axiosInstanceClient.post("/postApi", {
-              apiRoute: "changePassword",
-              old_password: oldPassword,
-              new_password: newPassword,
-              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      
-            } 
-          );
-        
+          const response = await axiosInstanceClient.post("/postApi", {
+            apiRoute: "save_favorite_tables",
+            tables: selectedFavorites,
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          });
+
           toast.success(response.data.message);
-          setTimeout(() => {
-            router.push('/login');
-          }, 450);
+
         } catch (error) {
           if (axios.isAxiosError(error)) {
             toast.error("Errore nel cambio della password: " + error.response?.data?.message);
@@ -89,21 +89,33 @@ export default function UserFavTables({ propExampleValue }: PropsInterface) {
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
-        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+        if (!isDev && response) {
             setResponseData(response);
-            console.log('Response:', response); // Log della risposta
+            setSelectedFavorites(response.tables.filter(table => table.favorite).map(table => table.itemcode));
         }
-    }, [response, responseData]);
+    }, [response]);
+
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
                 <div className="w-1/3 mx-auto">
                     <SelectStandard
-                    lookupItems={response.tables}
-                    onChange={(selectedOption) => console.log('Selected option:', selectedOption)}
+                        initialValue={selectedFavorites}
+                        lookupItems={response.tables}
+                    onChange={(selectedOption) => setSelectedFavorites(
+                            Array.isArray(selectedOption) ? selectedOption : [selectedOption]
+                    )}
                     isMulti={true}
                     />
+
+                    <button
+                      onClick={saveFavTables}
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Salva preferite
+                    </button>
+
                 </div>
             )}
         </GenericComponent>
