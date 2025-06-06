@@ -246,7 +246,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
             setRefreshTable(refreshTable+1)
             if (mastertableid && masterrecordid) {
                 removeCard(tableid, recordid);
-                handleRowClick('standard', masterrecordid, mastertableid, mastertableid, masterrecordid);
+                //handleRowClick('standard', masterrecordid, mastertableid, mastertableid, masterrecordid);
 
                 //addCard(mastertableid, masterrecordid, 'standard');
             } else {
