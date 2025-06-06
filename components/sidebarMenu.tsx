@@ -6,6 +6,7 @@ import { AppContext } from '@/context/appContext';
 import { Home, Package, Mail, ChevronDown, ChevronUp, HelpCircle, LucideIcon } from 'lucide-react';
 import '@/app/globals.css';
 import { useRecordsStore } from './records/recordsStore';
+import { useRouter } from 'next/navigation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -88,6 +89,8 @@ export default function SidebarMenu({  }: PropsInterface) {
     //DATI DEL COMPONENTE
     const [openDropdown, setOpenDropdown] = useState('');
     const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+    const router = useRouter();
+
 
     const {setSelectedMenu,selectedMenu} = useRecordsStore();
 
@@ -134,7 +137,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg">
                     <Image 
                         //src={`/bixdata/logos/${activeServer}.png`}
-                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : activeServer === 'belotti' ? 'belotti' : 'default'}.png`}
+                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : activeServer === 'belotti' ? 'belotti' : activeServer === 'winteler' ? 'winteler' : 'default'}.png`}
                         //src="/bixdata/logos/ptm.jpg"
                         alt={activeServer ?? ''}
                         width={1000}
@@ -173,6 +176,12 @@ export default function SidebarMenu({  }: PropsInterface) {
                                 {item.description}
                             </span>
                         ))}
+                        </>
+                    ) : activeServer === 'winteler' ? (
+                        <>
+                            <span className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => router.push('/custom/winteler')}>
+                                Winteler custom
+                            </span>
                         </>
                     ) : null}
                         {Object.entries(data['menuItems']).map(([key, item]) => {

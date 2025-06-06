@@ -81,6 +81,7 @@ export default function UserFavTables({ propExampleValue }: PropsInterface) {
             apiRoute: 'get_favorite_tables', // riferimento api per il backend
             userid : user
         };
+        console.info(responseData)
     }, [propExampleValue]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
