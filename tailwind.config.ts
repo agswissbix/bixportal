@@ -91,5 +91,11 @@ export default {
     // },
     // Potresti anche voler mettere in safelist le classi di rotazione se usi JIT
     'rotate-90', 
+	"bg-green-100",
+	"bg-green-200",
+    "bg-red-200",
+    "bg-yellow-200",
+	"bg-blue-200",
+	
   ],
 } satisfies Config;
