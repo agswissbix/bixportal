@@ -10,6 +10,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { Table } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { AppContext } from '@/context/appContext';
+import axios from 'axios';
 
 
 // INTERFACCIA PROPS
@@ -75,62 +76,48 @@ const exportExcel = async () => {
     const response = await axiosInstanceClient.post(
       "/postApi",
       {
-        apiRoute: "commonapp/export_excel/",  // Assicurati che il percorso sia corretto
+        apiRoute: "export_excel",
         tableid: tableid,
         searchTerm: searchTerm,
-        viewid: tableView,
+        view: tableView,
       },
       {
+        responseType: "blob",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        responseType: 'blob', // Importante per i file binari
       }
     );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
     
-    // Verifica che la risposta non sia un errore
-    if (response.status !== 200) {
-      throw new Error(`Errore nella risposta: ${response.status}`);
+    // Estrai il filename dal header Content-Disposition
+    const contentDisposition = response.headers['content-disposition'] || '';
+    let filename = 'export.xlsx';
+    const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+    if (match && match[1]) {
+      filename = decodeURIComponent(match[1]);
     }
     
-    // Ottieni il tipo di contenuto dalla risposta
-    const contentType = response.headers['content-type'];
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
     
-    // Crea il blob con il tipo corretto
-    const blob = new Blob([response.data], { 
-      type: contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-    });
-    
-    // Recupera il nome del file dall'header Content-Disposition se disponibile
-    let filename = `${tableid}.xlsx`;
-    const contentDisposition = response.headers['content-disposition'];
-    if (contentDisposition && contentDisposition.includes('filename=')) {
-      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
-      if (filenameMatch) {
-        filename = filenameMatch[1];
-      }
-    }
-    
-    // Crea URL e link per il download
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    
-    // Pulizia
+    // Cleanup
     setTimeout(() => {
-      document.body.removeChild(a);
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     }, 100);
-    
-    toast.success('File Excel esportato con successo');
+
+    toast.success("File Excel esportato con successo");
   } catch (error) {
     console.error("Errore durante l'esportazione in Excel", error);
     toast.error("Errore durante l'esportazione in Excel");
   }
-}
+};
+
 
   return (
     <GenericComponent title="standardContent"> 
