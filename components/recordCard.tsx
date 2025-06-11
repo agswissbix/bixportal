@@ -340,12 +340,27 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                                 </li>
                               )}
                               {tableid === 'offerta' && (
+                                <>
                                 <li 
                                   className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
                                   onClick={() => downloadOfferta()}
                                 >
                                   Crea offerta
                                 </li>
+                                                                <li 
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => downloadOfferta()}
+                                >
+                                  Chiuso vinto
+                                </li>
+                                <li 
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => downloadOfferta()}
+                                >
+                                  Chiuso perso
+                                </li>
+
+                                </>
                               )}
                               
                             </ul>
