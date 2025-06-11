@@ -63,42 +63,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
   }
 }
 
-  const downloadOfferta = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-          "/postApi",
-          {
-              apiRoute: "download_offerta",
-          },
-          {
-              responseType: "blob",
-              headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-          }
-      )
-      //toast.success('Record creati');
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      
-      // Estrai il filename dal header Content-Disposition
-      const contentDisposition = response.headers['content-disposition'] || '';
-      let filename = 'offerta.doc';
-      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
-      if (match && match[1]) {
-        filename = decodeURIComponent(match[1]);
-      }
-      
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      
-  } catch (error) {
-      console.error('Errore durante la creazione dei record', error);
-      toast.error('Errore durante la creazione dei record');
-  }
-}
+
 
   useEffect(() => {
     if (recordid) {
@@ -201,14 +166,6 @@ const exportExcel = async () => {
                       onClick={() => handleCreaListaLavanderia("mesecorrente")}
                     >
                       Crea rendiconti lavanderia mese corrente
-                    </li>
-                  )}
-                  {tableid === 'offerta' && (
-                    <li 
-                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => downloadOfferta()}
-                    >
-                      Scarica word offerta
                     </li>
                   )}
                 </ul>
