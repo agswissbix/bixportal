@@ -4,6 +4,7 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { PlusCircle, MinusCircle, Save } from 'lucide-react';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -110,6 +111,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   const { user } = useContext(AppContext);
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? devResponseData : defaultResponseData);
   const [order, setOrder] = useState<{ [key: string]: string }>({});
+  const {setSelectedMenu} = useRecordsStore();
 
   const payload = useMemo(() => {
     if (isDev) return null;
@@ -184,15 +186,13 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
               alert("Ordine salvato");
               console.info('Risposta:')
               console.info(response)
+              setSelectedMenu("richieste");
           } catch (error) {
               alert("Errore nel salvataggio");
           }
         }, 0);
       }
-
       console.log(payload);
-
-      alert("Order saved successfully!");
     } catch (error) {
       console.error("Order save error:", error);
       alert("Error saving the order.");
@@ -270,7 +270,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <button type='submit' className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm">
+                  <button type='submit' className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm" onClick={handleSaveOrder}>
                     <Save size={20} />
                     <span>INVIA RICHIESTA</span>
                   </button>
