@@ -128,7 +128,7 @@ export async function POST(request: Request) {
     case 'send_emails': djangoUrl = '/commonapp/send_emails/'; break;
     case 'export_excel': djangoUrl = '/commonapp/export_excel/'; break;
     case 'belotti_salva_formulario': djangoUrl = '/customapp_belotti/belotti_salva_formulario/'; break;
-    case 'download_offerta': djangoUrl = '/customapp_pitservice/download_offerta/'; break;
+    case 'download_offerta': djangoUrl = '/commonapp/download_offerta/'; break;
 
     default:
       return NextResponse.json(
