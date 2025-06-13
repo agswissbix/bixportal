@@ -387,7 +387,6 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             </ul>
                         </nav>
                     </div>
-                    {tableid}
                 </div>
             )}
         </GenericComponent>
