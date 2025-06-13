@@ -72,6 +72,51 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         }
     }
 
+  const chiusoVinto = async () => {
+    try {
+      const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+              apiRoute: "chiusto_vinto",
+              recordid: recordid,
+          },
+          {
+              responseType: "blob",
+              headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+          }
+      )
+      toast.success('chiuso vinto');
+    } catch (error) {
+        console.error('Errore durante la creazione dei record', error);
+        toast.error('Errore durante la creazione dei record');
+    }
+  }
+
+
+  const chiusoPerso = async () => {
+    try {
+      const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+              apiRoute: "chiusto_perso",
+              recordid: recordid,
+          },
+          {
+              responseType: "blob",
+              headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+          }
+      )
+      toast.success('chiuso perso');
+    } catch (error) {
+        console.error('Errore durante la creazione dei record', error);
+        toast.error('Errore durante la creazione dei record');
+    }
+  }
+
   const downloadOfferta = async () => {
     try {
       const response = await axiosInstanceClient.post(
@@ -256,14 +301,14 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                   )}
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 w-full justify-end">
                   {activeServer !== 'belotti' && (
                     <>
                       {/* Dropdown menu */}
-                      <div className="relative">
+                      <div className="relative w-full">
                         <button 
-                          className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 
-                                    font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center 
+                          className="text-white w-1/2 float-end bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 
+                                    font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center justify-center
                                     dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
                           type="button"
                           onClick={() => setShowDropdown(!showDropdown)}
@@ -275,7 +320,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                         </button>
 
                         {showDropdown && (
-                          <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded shadow-lg z-50">
+                          <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded shadow-lg z-50">
                             <ul className="py-1">
                               {tableid === 'bollettini' && (
                                 <li 
@@ -348,14 +393,14 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                                   Crea offerta
                                 </li>
                                                                 <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => downloadOfferta()}
+                                  className="px-4 py-2 text-green-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => chiusoVinto()}
                                 >
                                   Chiuso vinto
                                 </li>
                                 <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => downloadOfferta()}
+                                  className="px-4 py-2 text-red-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => chiusoPerso()}
                                 >
                                   Chiuso perso
                                 </li>
