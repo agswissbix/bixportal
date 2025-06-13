@@ -4,9 +4,9 @@ import Select, { SingleValue, MultiValue, ActionMeta } from 'react-select';
 // INTERFACCIA PROPS
 interface PropsInterface {
   lookupItems: Array<{ itemcode: string; itemdesc: string}>;
-  initialValue?: string | string[];
-  // onChange accetta sia string che array di string a seconda della modalità usata
-  onChange?: (value: string | string[]) => void;
+  initialValue?: string;  // Es: "123;456"
+  onChange?: (value: string) => void;  // Es: "123;456"
+
   isMulti?: boolean;
 }
 
@@ -49,17 +49,24 @@ export default function SelectStandard({
   );
 
   
-  // Funzione per calcolare il valore iniziale in base a initialValue e isMulti
   const getInitialValue = () => {
     if (isMulti) {
-      const initialValues = Array.isArray(initialValue)
-        ? initialValue.map(val => String(val))
-        : [String(initialValue)].filter(Boolean);
+      const initialValues = typeof initialValue === 'string'
+        ? initialValue.split(';').filter(Boolean)
+        : Array.isArray(initialValue)
+          ? initialValue.map(String)
+          : [];
+
       return options.filter((option) => initialValues.includes(option.value));
     } else {
-      return options.find((option) => option.value === String(initialValue)) || null;
+      const value = typeof initialValue === 'string'
+        ? initialValue.split(';')[0]  // usa solo il primo valore se separati da ;
+        : String(initialValue);
+
+      return options.find((option) => option.value === value) || null;
     }
   };
+
 
   // Stato per gestire l'opzione selezionata
   const [selectedOption, setSelectedOption] = useState<
@@ -87,20 +94,18 @@ export default function SelectStandard({
     actionMeta: ActionMeta<OptionType>
   ) => {
     setSelectedOption(newValue);
+
     if (onChange) {
       if (isMulti) {
-        const values = (newValue as MultiValue<OptionType>).map(
-          (option) => option.value
-        );
-        onChange(values);
+        const values = (newValue as MultiValue<OptionType>).map((option) => option.value);
+        onChange(values.join(';')); // <-- importante
       } else {
-        const value = newValue
-          ? (newValue as SingleValue<OptionType>).value
-          : '';
+        const value = newValue ? (newValue as OptionType).value : '';
         onChange(value);
       }
     }
   };
+
 
   // Gestione del tasto Invio: simula il click sulla prima opzione del menu se presente
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

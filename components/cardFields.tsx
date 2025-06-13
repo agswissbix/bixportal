@@ -21,7 +21,7 @@ import { Tooltip } from 'react-tooltip';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -149,7 +149,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                             {itemcode: '4', itemdesc: 'Mario'},
                             {itemcode: '5', itemdesc: 'Mario'},
                         ],
-                        fieldtypewebid: "",
+                        fieldtypewebid: "multiselect",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'},
                     },
                 ],
@@ -318,7 +318,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                             <SelectStandard
                                                 lookupItems={field.lookupitems}
                                                 initialValue={initialValue}
-                                                onChange={(value: string | string[]) => handleInputChange(field.fieldid, value)}
+                                                onChange={(value: string) => handleInputChange(field.fieldid, value)}
                                                 isMulti={field.fieldtypewebid === 'multiselect'}
                                             />
                                         ) : field.fieldtype === 'Numero' ? (
