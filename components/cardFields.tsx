@@ -21,7 +21,7 @@ import { Tooltip } from 'react-tooltip';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -349,7 +349,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                                 isMulti={field.fieldtypewebid === 'multiselect'}
                                             />
                                         ) : field.fieldtype === 'linkedmaster' ? (
-                                            <InputLinked 
+                                             <InputLinked 
                                                 initialValue={initialValue}
                                                 valuecode={field.value}
                                                 onChange={(value: string) => handleInputChange(field.fieldid, value)}
