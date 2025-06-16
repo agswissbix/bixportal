@@ -208,7 +208,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
-        <form onSubmit={(e) => { e.preventDefault(); handleSaveOrder(); }} className="w-full h-full">
+        <form className="w-full h-full">
           <div className="w-full h-full mx-auto bg-white shadow-lg rounded-lg overflow-scroll">
             <div className="bg-blue-800 text-white p-6">
               <h1 className="text-2xl font-bold text-center">{response.formName}</h1>
@@ -270,7 +270,7 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <button type='submit' className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm" onClick={handleSaveOrder}>
+                  <button type='button' className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm" onClick={handleSaveOrder}>
                     <Save size={20} />
                     <span>INVIA RICHIESTA</span>
                   </button>
