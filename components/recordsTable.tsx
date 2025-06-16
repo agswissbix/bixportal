@@ -273,12 +273,13 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 table table-fixed w-full rounded-t-xl">
                                 <tr>
                                     {response.columns.map((column) => (
-                                        <th 
-                                            scope=""
-                                            className="px-6 py-3 cursor-pointer select-none" 
-                                            key={column.desc}
-                                            onClick={() => handleSort(column.desc)}
+                                        <th
+                                        scope=""
+                                        className="px-4 py-3 cursor-pointer select-none whitespace-nowrap text-ellipsis overflow-hidden min-w-[120px] max-w-[200px]"
+                                        key={column.desc}
+                                        onClick={() => handleSort(column.desc)}
                                         >
+
                                             <div className="flex items-center justify-between">
                                                 <span>{column.desc}</span>
                                                 <div className="w-4 h-4 ml-1">
@@ -304,10 +305,13 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 {response.rows.map((row) => (
                                     <tr className="table table-fixed w-full bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
                                         {row.fields.map((field) => (
-                                            <td className={`px-6 py-4 ${field.css}`} key={`${row.recordid}-${field.fieldid}`}>
-                                                {/* RENDER HTML QUI */}
+                                            <td
+                                            className={`px-4 py-3 whitespace-nowrap text-ellipsis overflow-hidden min-w-[120px] max-w-[200px] ${field.css}`}
+                                            key={`${row.recordid}-${field.fieldid}`}
+                                            >
                                                 <span dangerouslySetInnerHTML={{ __html: field.value }} />
                                             </td>
+
                                         ))}
                                     </tr>
                                 ))}

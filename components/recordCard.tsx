@@ -288,7 +288,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 )}
 
             <div className="h-1/5 w-full">
-              <div className="h-1/6 w-full flex justify-between items-center px-4">
+              <div className="h-1/6 w-full flex justify-between items-center px-4 mb-2">
                 <div className="flex-grow">
                   {activeServer !== 'belotti' && (
                     <button 
@@ -412,17 +412,8 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                           </div>
                         )}
                       </div>
-
                       <button 
-                        onClick={() => setIsMaximized(!isMaximized)} 
-                        title="Visualizza informazioni"
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out"
-                      >
-                        <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                      </button>
-
-                      <button 
-                        onClick={() => setIsMaximized(!isMaximized)} 
+                        onClick={() => setIsMaximized(!isMaximized)}
                         title="Ingrandisci"
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out"
                       >
