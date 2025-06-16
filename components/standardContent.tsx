@@ -11,6 +11,7 @@ import { Table } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { AppContext } from '@/context/appContext';
 import axios from 'axios';
+import LoadingComp from './loading';
 
 
 // INTERFACCIA PROPS
@@ -74,6 +75,8 @@ export default function StandardContent({ tableid }: PropsInterface) {
   }, [recordid]);
 
 const exportExcel = async () => {
+  // crea un toast con dentro il componente LoadingComp e salva l'id
+  const loadingToastId = toast.loading("Esportazione in corso...");
   try {
     const response = await axiosInstanceClient.post(
       "/postApi",
@@ -86,7 +89,7 @@ const exportExcel = async () => {
       {
         responseType: "blob",
         headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       }
     );
@@ -113,9 +116,11 @@ const exportExcel = async () => {
       window.URL.revokeObjectURL(url);
     }, 100);
 
+    toast.dismiss(loadingToastId);
     toast.success("File Excel esportato con successo");
   } catch (error) {
     console.error("Errore durante l'esportazione in Excel", error);
+    toast.dismiss(loadingToastId);
     toast.error("Errore durante l'esportazione in Excel");
   }
 };
