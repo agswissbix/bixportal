@@ -72,48 +72,52 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         }
     }
 
-  const chiusoVinto = async () => {
+  //TODO
+  //CUSTOM PITSERVICE
+  const offertaChiusaVinta = async () => {
     try {
-      const response = await axiosInstanceClient.post(
-          "/postApi",
-          {
-              apiRoute: "chiusto_vinto",
-              recordid: recordid,
-          },
-          {
-              responseType: "blob",
-              headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-          }
-      )
-      toast.success('chiuso vinto');
-    } catch (error) {
-        console.error('Errore durante la creazione dei record', error);
-        toast.error('Errore durante la creazione dei record');
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "pitservice_offerta_chiusa_vinta",
+                    tableid: tableid,
+                    recordid: recordid,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            )
+            handleRemoveCard();
+            toast.success('Offerta chiusa vinta');
+        } catch (error) {
+        console.error('Errore durante la chiusura dell offerta', error);
+        toast.error('Errore durante la chiusura dell offerta');
     }
   }
 
 
-  const chiusoPerso = async () => {
+  const offertaChiusaPersa = async () => {
     try {
-      const response = await axiosInstanceClient.post(
-          "/postApi",
-          {
-              apiRoute: "chiusto_perso",
-              recordid: recordid,
-          },
-          {
-              responseType: "blob",
-              headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-          }
-      )
-      toast.success('chiuso perso');
-    } catch (error) {
-        console.error('Errore durante la creazione dei record', error);
-        toast.error('Errore durante la creazione dei record');
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "pitservice_offerta_chiusa_persa",
+                    tableid: tableid,
+                    recordid: recordid,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            )
+            handleRemoveCard();
+            toast.success('Offerta chiusa persa');
+        } catch (error) {
+        console.error('Errore durante la chiusura persa dell offerta', error);
+        toast.error('Errore durante la chiusura persa dell offerta');
     }
   }
 
