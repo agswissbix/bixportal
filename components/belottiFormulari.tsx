@@ -177,7 +177,8 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
                 "/postApi",
                 {
                   apiRoute: "belotti_salva_formulario",
-                  completeOrder: completeOrder
+                  completeOrder: completeOrder,
+                  formType: formType,
                 },
                 {
                   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
