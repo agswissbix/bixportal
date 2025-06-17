@@ -29,44 +29,38 @@ const isDev = false;
         }
 
 export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
-    //DATI
-            // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : tableid;
+    const isNewRecord = !recordid;
 
-            // DATI RESPONSE DI DEFAULT
-            const responseDataDEFAULT: ResponseInterface = {
-                cardTabs: [], // Array di oggetti per le tab (esempio vuoto)
-                activeTab: 'Campi'
-              };
+    const responseDataDEFAULT: ResponseInterface = {
+        cardTabs: isNewRecord ? ['Campi'] : [],
+        activeTab: 'Campi'
+    };
 
-            // DATI RESPONSE PER LO SVILUPPO 
-            const responseDataDEV: ResponseInterface = {
-                cardTabs: [], // Array di oggetti per le tab (esempio vuoto)
-                activeTab: 'Campi'
-            };
+    const responseDataDEV: ResponseInterface = {
+        cardTabs: isNewRecord ? ['Campi'] : [],
+        activeTab: 'Campi'
+    };
 
-            // DATI DEL CONTESTO
-            const { user } = useContext(AppContext);
+    const { user } = useContext(AppContext);
 
-    // IMPOSTAZIONE DELLA RESPONSE (non toccare)
-    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    const [responseData, setResponseData] = useState<ResponseInterface>(
+        isDev ? responseDataDEV : responseDataDEFAULT
+    );
 
-    // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
-        if (isDev) return null;
+        if (isDev || isNewRecord) return null;
         return {
-            apiRoute: 'get_card_active_tab', // riferimento api per il backend
+            apiRoute: 'get_card_active_tab',
             tableid: tableid
         };
     }, [tableid, recordid]);
 
     const [activeTab, setActiveTab] = useState<string>('Campi');
 
+    const { response, loading, error } = !isDev && payload
+        ? useApi<ResponseInterface>(payload)
+        : { response: null, loading: false, error: null };
 
-    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
-
-    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
@@ -74,68 +68,74 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         }
     }, [response]);
 
-
     return (
-      <GenericComponent> 
-      {(data) => (
-          <div className="h-full">
-          <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
-            <ul className="flex flex-wrap -mb-px relative">
-              {/*
-              <li className="me-2">
-                <button
-                  className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                    activeTab === 'AttachmentsDemo'
-                      ? 'text-primary border-primary'
-                      : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveTab('AttachmentsDemo')}
-                >
-                  AllegatiDemo
-                </button>
-              </li>
-              */}
-              {responseData.cardTabs.map((tab, index) => (
-                <li key={index} className="me-2">
-                  <button
-                    className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                      activeTab === tab
-                        ? 'text-primary border-primary'
-                        : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
-                  </button>
-                </li>
-              ))}
-              
-            </ul>
-          </div>
+        <GenericComponent>
+            {(data) => (
+                <div className="h-full">
+                    {/* Tabs */}
+                    {!isNewRecord && (
+                      <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
+                        <ul className="flex flex-wrap -mb-px relative">
+                          {responseData.cardTabs.map((tab, index) => (
+                            <li key={index} className="me-2">
+                              <button
+                                className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                                  activeTab === tab
+                                    ? 'text-primary border-primary'
+                                    : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
+                                }`}
+                                onClick={() => setActiveTab(tab)}
+                              >
+                                {tab}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-          <div className="h-5/6 p-4">
-            {activeTab === 'Campi' && (
-              <CardFields tableid={tableid} recordid={recordid}  mastertableid={mastertableid} masterrecordid={masterrecordid}/>
+
+                    {/* Tab Content */}
+                    <div className="h-5/6 p-4">
+                    {/* Mostra solo CardFields se recordid è nullo */}
+                    {isNewRecord ? (
+                      <CardFields
+                        tableid={tableid}
+                        recordid={recordid}
+                        mastertableid={mastertableid}
+                        masterrecordid={masterrecordid}
+                      />
+                    ) : (
+                      <>
+                        {activeTab === 'Campi' && (
+                          <CardFields
+                            tableid={tableid}
+                            recordid={recordid}
+                            mastertableid={mastertableid}
+                            masterrecordid={masterrecordid}
+                          />
+                        )}
+                        {activeTab === 'Collegati' && (
+                          <CardLinked tableid={tableid} recordid={recordid} />
+                        )}
+                        {activeTab === 'Allegati' && (
+                          <RecordAttachments tableid={tableid} recordid={recordid} />
+                        )}
+                        {activeTab === 'AttachmentsDemo' && (
+                          <RecordAttachmentsDemo tableid={tableid} recordid={recordid} />
+                        )}
+                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo'].indexOf(activeTab) === -1 && (
+                          <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
             )}
-            {activeTab === 'Collegati' && (
-              <CardLinked tableid={tableid} recordid={recordid} />
-            )}
-            {activeTab !== 'Campi' && activeTab !== 'Collegati' && activeTab !== 'Allegati' && activeTab !== 'AttachmentsDemo' && (
-              <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
-            )}
-            {activeTab === 'Allegati' && (
-              <RecordAttachments tableid={tableid} recordid={recordid}/>
-            )}
-            {activeTab === 'AttachmentsDemo' && (
-              <RecordAttachmentsDemo tableid={tableid} recordid={recordid}/>
-            )}
-            
-          </div>
-        </div>
-      )}
-    </GenericComponent>
+        </GenericComponent>
     );
-};
+}
+
 
 
 

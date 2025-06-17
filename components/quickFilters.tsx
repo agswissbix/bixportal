@@ -63,9 +63,10 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
 
             const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               const keyword = e.target.value;
-              setInputValue(keyword); // Aggiorna stato locale
-              setSearchTerm(keyword); // Passa il valore al componente genitore
+              setInputValue(keyword); // Solo aggiorna lo stato locale
+              // RIMOSSO: setSearchTerm(keyword);
             };
+
 
             const handleViewChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               const viewid = e.target.value;
@@ -75,8 +76,10 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
             }
 
             const researchTableSubmit = () => {
-              setRefreshTable(refreshTable + 1);
-            }
+              setSearchTerm(inputValue); // Imposta il termine di ricerca solo quando invii
+              setRefreshTable(refreshTable + 1); // Ricarica la tabella
+            };
+
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
@@ -89,7 +92,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
             apiRoute: 'get_table_views', // riferimento api per il backend
             tableid: selectedMenu, 
         };
-    }, [propExampleValue]);
+    }, [selectedMenu]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };

@@ -30,8 +30,11 @@ interface RecordsStore {
     tableView: string;
     setTableView: (tableView: string) => void;
 
-    columnOrder: string[];
-    setColumnOrder: (column_order: string[]) => void;
+    columnOrder: {
+        columnDesc: string | null;
+        direction: 'asc' | 'desc' | null;
+    }
+    setColumnOrder: (columnOrder: { columnDesc: string | null; direction: 'asc' | 'desc' | null }) => void;
 
     currentPage: number;
     setCurrentPage: (currentPage: number) => void;
@@ -47,6 +50,19 @@ interface RecordsStore {
 
     isFiltersOpen: boolean;
     setIsFiltersOpen: (isFiltersOpen: boolean) => void;
+
+    filtersList: Array<{
+        fieldid: string;
+        type: string;
+        label: string;
+        value: string 
+    }>;
+    setFiltersList: (filtersList: Array<{
+        fieldid: string;
+        type: string;
+        label: string;
+        value: string
+    }>) => void;
 
     popUpType: string;
     setPopUpType: (popUpType: string) => void;
@@ -109,8 +125,11 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     tableView: '',
     setTableView: (tableView: string) => set({ tableView }),
 
-    columnOrder: [],
-    setColumnOrder: (columnOrder: string[]) => set({ columnOrder }),
+    columnOrder: {
+      columnDesc: null,
+      direction: "asc"
+    },
+    setColumnOrder: (columnOrder: { columnDesc: string | null; direction: 'asc' | 'desc' | null }) => set({ columnOrder }),
 
     currentPage: 1,
     setCurrentPage: (currentPage: number) => set({ currentPage }),
@@ -120,7 +139,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     
     tableid: '',
     setTableid: (tableid: string) => {
-        const { resetCardsList } = get(); // Ottieni la funzione resetCardsList
+        const { resetCardsList } = get(); // Ottieni la funzione resetCardsList                                                     
         resetCardsList(); // Resetta la lista delle carte
         set({ tableid });
     },
@@ -130,6 +149,14 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     isFiltersOpen: false,
     setIsFiltersOpen: (isFiltersOpen: boolean) => set({ isFiltersOpen: isFiltersOpen}),
+
+    filtersList: [],
+    setFiltersList: (filtersList: Array<{
+        fieldid: string;
+        type: string;
+        label: string;
+        value: string
+    }>) => set({ filtersList }),
 
     popUpType: '',
     setPopUpType: (popUpType: string) => set({ popUpType: popUpType }),

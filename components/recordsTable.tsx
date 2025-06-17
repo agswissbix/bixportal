@@ -22,13 +22,22 @@ const isDev = false;
           searchTerm?: string;
           filters?: string;
           view?: string;
-          order?: string[];
+          order?: {
+            columnDesc: string | null;
+            direction: 'asc' | 'desc' | null;
+          };
           context?: string;
-          pagination: {
+          pagination?: {
             page: number;
             limit: number;
-          }
+          };
           level?: number;
+          filtersList?: Array<{
+            fieldid: string;
+            type: string;
+            label: string;
+            value: string;
+            }>;
           masterTableid?: string;
           masterRecordid?: string;
         }
@@ -174,7 +183,6 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
-    const [cardLevel, setCardLevel] = useState<number>(0);
 
     // STATO PER L'ORDINAMENTO (solo parte grafica)
     const [sortConfig, setSortConfig] = useState<{
@@ -190,6 +198,8 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     const setRefreshTable = useRecordsStore(s => s.setRefreshTable);
     const handleRowClick  = useRecordsStore(s => s.handleRowClick);
     const setCurrentPage  = useRecordsStore(s => s.setCurrentPage);
+    
+    const {columnOrder, setColumnOrder} = useRecordsStore();
 
 
     // PAYLOAD (solo se non in sviluppo)
@@ -200,11 +210,19 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             tableid: tableid,
             searchTerm: searchTerm,
             view: view,
-            currentPage: pagination.page,
+            pagination: {
+                page: pagination?.page || 1,
+                limit: pagination?.limit || 10
+            },
+            order: {
+                columnDesc: columnOrder.columnDesc,
+                direction: columnOrder.direction
+            },
+            filtersList: filters,
             masterTableid: masterTableid,
             masterRecordid: masterRecordid
         };
-    }, [refreshTable, tableid, searchTerm, view, pagination.page, masterTableid, masterRecordid]);
+    }, [refreshTable, tableid, searchTerm, view, pagination, masterTableid, masterRecordid, columnOrder.columnDesc, columnOrder.direction, filters]);
 
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
@@ -236,19 +254,13 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         
         // Qui in futuro potresti aggiungere la chiamata al backend per il vero ordinamento
         console.log(`Ordinamento colonna ${columnDesc} in direzione ${direction}`);
-        setOrderColumn(columnDesc, direction);
+        setColumnOrder({ columnDesc, direction });
     };
-
-
-    const setOrderColumn = async (columnDesc: string, direction: SortDirection ) => {
-        
-    }
-
     const setTablePage = async (page: number) => {
         if (page < 1) {
             page = 1;
         }
-        if (page > pagination.limit) {
+        if (pagination && page > pagination.limit) {
             page = pagination.limit;
         }
         setCurrentPage(page);       
@@ -324,10 +336,10 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 {/* Pulsante Previous */}
                                 <li>
                                     <button 
-                                        onClick={() => setTablePage(pagination.page - 1)} 
-                                        disabled={pagination.page === 1} 
+                                        onClick={() => pagination && setTablePage(pagination.page - 1)} 
+                                        disabled={!pagination || pagination.page === 1} 
                                         className={`flex items-center justify-center px-3 h-8 ms-0 leading-tight border border-e-0 rounded-s-lg 
-                                            ${pagination.page === 1 ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
+                                            ${!pagination || pagination.page === 1 ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
                                             dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
                                     >Previous</button>
                                 </li>
@@ -337,20 +349,20 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                     <button 
                                         onClick={() => setTablePage(1)} 
                                         className={`flex items-center justify-center px-3 h-8 border 
-                                            ${pagination.page === 1 ? 'text-white bg-blue-600' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
-                                            dark:border-gray-700 ${pagination.page === 1 ? 'dark:bg-blue-600' : 'dark:bg-gray-800'} dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
+                                            ${pagination && pagination.page === 1 ? 'text-white bg-blue-600' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
+                                            dark:border-gray-700 ${pagination && pagination.page === 1 ? 'dark:bg-blue-600' : 'dark:bg-gray-800'} dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
                                     >1</button>
                                 </li>
                                 
                                 {/* Puntini di sospensione (se necessario) */}
-                                {pagination.page > 3 && (
+                                {pagination && pagination.page > 3 && (
                                     <li>
                                         <span className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">...</span>
                                     </li>
                                 )}
                                 
                                 {/* Pagina corrente (se non è la prima o l'ultima) */}
-                                {pagination.page !== 1 && pagination.page !== pagination.limit && (
+                                {pagination && pagination.page !== 1 && pagination.page !== pagination.limit && (
                                     <li>
                                         <button 
                                             className="flex items-center justify-center px-3 h-8 border text-white bg-blue-600 
@@ -360,14 +372,14 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 )}
                                 
                                 {/* Puntini di sospensione (se necessario) */}
-                                {pagination.page < pagination.limit - 2 && (
+                                {pagination && pagination.page < pagination.limit - 2 && (
                                     <li>
                                         <span className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">...</span>
                                     </li>
                                 )}
                                 
                                 {/* Ultima pagina (se diversa dalla prima) */}
-                                {pagination.limit > 1 && (
+                                {pagination && pagination.limit > 1 && (
                                     <li>
                                         <button 
                                             onClick={() => setTablePage(pagination.limit)} 
@@ -381,10 +393,10 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 {/* Pulsante Next */}
                                 <li>
                                     <button 
-                                        onClick={() => setTablePage(pagination.page + 1)} 
-                                        disabled={pagination.page === pagination.limit} 
+                                        onClick={() => pagination && setTablePage(pagination.page + 1)} 
+                                        disabled={!pagination || pagination.page === pagination.limit} 
                                         className={`flex items-center justify-center px-3 h-8 leading-tight border rounded-e-lg 
-                                            ${pagination.page === pagination.limit ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
+                                            ${!pagination || pagination.page === pagination.limit ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
                                             dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
                                     >Next</button>
                                 </li>
