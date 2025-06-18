@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { useApi } from '@/utils/useApi';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { useRecordsStore } from './records/recordsStore';
+import { Plus,ExternalLink } from 'lucide-react';
 
 interface PropsInterface {
   initialValue?: string;
@@ -55,6 +56,8 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
   const [items, setItems] = useState<LinkedItem[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { handleRowClick } = useRecordsStore();
+
+  linkedmaster_tableid = linkedmaster_tableid ? String(linkedmaster_tableid) : '';
 
   const formValuesRef = useRef(formValues);
   useEffect(() => {
@@ -158,7 +161,15 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
             } else {
               console.error('Missing required parameters for handleRowClick');
             }
-          }} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">+</button>
+          }} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"><ExternalLink></ExternalLink></button>
+
+          <button type="button" onClick={() => {
+            if (linkedmaster_recordid && linkedmaster_tableid) {
+              handleRowClick('','', linkedmaster_tableid );
+            } else {
+              console.error('Missing required parameters for handleRowClick');
+            }
+          }} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"><Plus></Plus></button>
 </div>
       </div>
       

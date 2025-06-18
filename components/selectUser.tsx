@@ -3,7 +3,7 @@ import Select, { SingleValue, MultiValue, ActionMeta } from 'react-select';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
-  lookupItems: Array<{ id: string; firstname: string; lastname: string }>;
+  lookupItems: Array<{ userid: string; firstname: string; lastname: string; }>;
   initialValue?: string | string[];
   // onChange accetta sia string che array di string a seconda della modalità usata
   onChange?: (value: string | string[]) => void;
@@ -13,6 +13,8 @@ interface PropsInterface {
 interface OptionType {
   value: string;
   label: string;
+  imageUrl: string;
+
 }
 
 // Stili custom per react-select
@@ -42,13 +44,16 @@ export default function SelectUser({
   const options: OptionType[] = useMemo(
     () =>
       lookupItems.map((item) => ({
-        value: String(item.id),
+        value: String(item.userid),
         label: `${item.firstname} ${item.lastname}`,
+        imageUrl: `/api/media-proxy?url=userProfilePic/${item.userid}.png`
+
+
       })),
     [lookupItems]
   );
 
-  
+  console.log(lookupItems);
   // Funzione per calcolare il valore iniziale in base a initialValue e isMulti
   const getInitialValue = () => {
     if (isMulti) {
@@ -132,9 +137,24 @@ export default function SelectUser({
         onKeyDown={handleKeyDown}
         placeholder="Seleziona un utente"
         isClearable
-        // Fornisci le funzioni per far riconoscere i valori delle opzioni
         getOptionValue={(option: OptionType) => option.value}
         getOptionLabel={(option: OptionType) => option.label}
+        formatOptionLabel={(option: OptionType) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={option.imageUrl}
+              alt={option.label}
+              className="w-6 h-6 rounded-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes("default.jpg")) {
+                  target.src = "/api/media-proxy?url=userProfilePic/default.jpg";
+                }
+              }}
+            />
+            <span>{option.label}</span>
+          </div>
+        )}
         classNames={{
           container: () => "relative",
           control: () => customStyles.control(),

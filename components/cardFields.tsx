@@ -42,7 +42,7 @@ const isDev = false;
                 value: string | { code: string; value: string };
                 fieldtype: string;
                 lookupitems?: Array<{itemcode: string, itemdesc: string}>;
-                lookupitemsuser? : Array<{id: string, firstname: string, lastname: string, link: string, linkdefield: string, linkedvalue: string}>;
+                lookupitemsuser? : Array<{userid: string, firstname: string, lastname: string, link: string, linkdefield: string, linkedvalue: string}>;
                 fieldtypewebid?: string;
                 linked_mastertable?: string;
                 settings: string | {calcolato: string, default: string, nascosto: string, obbligatorio: string};
@@ -113,14 +113,11 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         value: { code: '2', value: '2' },
                         fieldtype: "Utente",
                         lookupitemsuser: [
-                            {id: '1', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '1'},
-                            {id: '2', firstname: 'Luca', lastname: 'Bianchi', link: 'user', linkdefield: 'id', linkedvalue: '2'},
-                            {id: '3', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '3'},
-                            {id: '4', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '4'},
-                            {id: '5', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '5'},
-            
-            
-            
+                            {userid: '1', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '1'},
+                            {userid: '2', firstname: 'Luca', lastname: 'Bianchi', link: 'user', linkdefield: 'id', linkedvalue: '2'},
+                            {userid: '3', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '3'},
+                            {userid: '4', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '4'},
+                            {userid: '5', firstname: 'Mario', lastname: 'Rossi', link: 'user', linkdefield: 'id', linkedvalue: '5'},
                         ],
                         fieldtypewebid: "multiselect",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
@@ -355,7 +352,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                                 onChange={(value: string) => handleInputChange(field.fieldid, value)}
                                                 tableid={tableid}
                                                 linkedmaster_tableid={field.linked_mastertable}
-                                                linkedmaster_recordid={initialValue}
+                                                linkedmaster_recordid={field.value?.code || ''}
                                                 fieldid={field.fieldid}
                                                 formValues={currentValues}  
                                             />
