@@ -90,7 +90,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
             }
             return state;
         }),
-    removeCard: (tableid: string, recordid: string) => 
+    removeCard: (tableid: string, recordid: string) =>
         set((state) => ({ 
             cardsList: state.cardsList.filter(
                 (card) => card.tableid !== tableid || card.recordid !== recordid
