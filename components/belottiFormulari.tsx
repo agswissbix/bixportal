@@ -112,6 +112,22 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? devResponseData : defaultResponseData);
   const [order, setOrder] = useState<{ [key: string]: string }>({});
   const {setSelectedMenu} = useRecordsStore();
+  const [diottrie, setDiottrie] = useState<{ [key: string]: string }>({});
+const [colori, setColori] = useState<{ [key: string]: string }>({});
+
+const handleDiottriaChange = (productId: string, value: string) => {
+  setDiottrie({
+    ...diottrie,
+    [productId]: value,
+  });
+};
+
+const handleColoreChange = (productId: string, value: string) => {
+  setColori({
+    ...colori,
+    [productId]: value,
+  });
+};
 
   const payload = useMemo(() => {
     if (isDev) return null;
@@ -155,6 +171,8 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
         id: p.id,
         name: p.name,
         quantity: parseInt(order[p.id]) || 0,
+        diottria: diottrie[p.id] || "",
+        colore: colori[p.id] || "",
       })),
     }));
   };
@@ -226,30 +244,72 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Code</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Quantity</th>
+                          <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>Codice</th>
+                          <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '30%' }}>Prodotto</th>
+                          {formType === 'RIORDINO LAC' && (
+                            <>
+                              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>Diottria</th>
+                              <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>Colore</th>
+                            </>
+                          )}
+                          <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: formType === 'RIORDINO LAC' ? '25%' : '40%' }}>Quantità</th>
                         </tr>
                       </thead>
+
+
+
                       <tbody className="bg-white divide-y divide-gray-200">
                         {category.products.map((product) => (
                           <tr key={product.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{product.id}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-2 py-4 text-sm font-medium text-blue-600" style={{ width: '15%' }}>{product.id}</td>
+                            <td className="px-2 py-4 text-sm text-gray-900" style={{ width: '30%' }}>{product.name}</td>
+
+                            {formType === 'RIORDINO LAC' && (
+                              <>
+                                <td className="px-2 py-4 text-sm" style={{ width: '15%' }}>
+                                  <input
+                                    type="text"
+                                    className="w-full border rounded-md p-1 text-sm"
+                                    value={diottrie[product.id] || ""}
+                                    onChange={(e) => handleDiottriaChange(product.id, e.target.value)}
+                                  />
+                                </td>
+                                <td className="px-2 py-4 text-sm" style={{ width: '15%' }}>
+                                  <select
+                                    className="w-full border rounded-md p-1 text-sm"
+                                    value={colori[product.id] || ""}
+                                    onChange={(e) => handleColoreChange(product.id, e.target.value)}
+                                  >
+                                    <option value="">--</option>
+                                    <option value="Green">Green</option>
+                                    <option value="Gray">Gray</option>
+                                    <option value="P.Hazel">P.Hazel</option>
+                                    <option value="Blue">Blue</option>
+                                    <option value="Honey">Honey</option>
+                                    <option value="Amethyst">Amethyst</option>
+                                    <option value="Turquoise">Turquoise</option>
+                                    <option value="T.Sapphire">T.Sapphire</option>
+                                    <option value="Sterl. Gray">Sterl. Gray</option>
+                                    <option value="Brown">Brown</option>
+                                    <option value="Brown">Gem. Green</option>
+                                    <option value="Brown">Brl. Blue</option>
+                                  </select>
+                                </td>
+                              </>
+                            )}
+
+                            <td className="px-2 py-4 text-sm text-gray-500" style={{ width: formType === 'RIORDINO LAC' ? '25%' : '40%' }}>
                               <div className="flex items-center justify-end">
-                                <button type="button" onClick={() => decrementQuantity(product.id)} className="text-gray-500 hover:text-red-500 focus:outline-none">
+                                <button type="button" onClick={() => decrementQuantity(product.id)} className="text-gray-500 hover:text-red-500">
                                   <MinusCircle size={20} />
                                 </button>
-
                                 <input
                                   type="text"
                                   className="mx-2 w-16 text-center border rounded-md p-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   value={order[product.id] || ""}
                                   onChange={(e) => handleChange(product.id, e.target.value)}
                                 />
-
-                                <button type="button" onClick={() => incrementQuantity(product.id)} className="text-gray-500 hover:text-green-500 focus:outline-none">
+                                <button type="button" onClick={() => incrementQuantity(product.id)} className="text-gray-500 hover:text-green-500">
                                   <PlusCircle size={20} />
                                 </button>
                               </div>
@@ -257,6 +317,8 @@ export default function BelottiFormulari({ formType }: PropsInterface) {
                           </tr>
                         ))}
                       </tbody>
+
+
                     </table>
                   </div>
                 </div>
