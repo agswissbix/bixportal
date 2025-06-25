@@ -61,6 +61,7 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
         value={selectedOption}
         onChange={(e) => setSelectedOption(e.target.value)}
       >
+        <option value="2025-06">2025-06</option>
         <option value="2025-05">2025-05</option>
         <option value="2025-04">2025-04</option>
         
