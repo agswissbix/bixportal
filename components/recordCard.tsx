@@ -411,7 +411,17 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
                                 </>
                               )}
-                              
+                              {tableid === 'printinginvoice' && (
+                                <>
+                                  <li 
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => window.open(`http://bixcrm01:8822/bixdata/custom/api_bexio_set_printing_invoices.php?recordid=${recordid}`, '_blank')}  
+                                >
+                                  Carica in bexio
+                                </li>
+                                
+                                </>
+                              )}
                             </ul>
                           </div>
                         )}
