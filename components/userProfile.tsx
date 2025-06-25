@@ -97,9 +97,23 @@ function UserSettings({ propExampleValue }: PropsInterface) {
                         <span className="font-semibold">{userName}</span>
                         <span className="text-sm text-gray-500">{user}</span>
                         </div>
+                        <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => alert('Settings clicked!')}>
+                            Modifica immagine
+                        </button>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    // Logica per caricare l'immagine
+                                    console.log('File selected:', file);
+                                }
+                            }}
+                        />
                     </div>
                 </div>
-
             )}
         </GenericComponent>
     );
