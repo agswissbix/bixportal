@@ -31,7 +31,9 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     dashboard: dynamic(() => import('@/components/dashboard')),
     scanner: dynamic(() => import('@/components/scannerTest')),
     belotti: dynamic(() => import('@/components/belotti1')),
-
+    planner: dynamic(() => import('@/components/planner')),
+    gantt: dynamic(() => import('@/components/gantt')),
+    timeline: dynamic(() => import('@/components/timeline')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
