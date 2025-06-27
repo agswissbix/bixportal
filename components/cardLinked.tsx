@@ -2,9 +2,11 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import { ChevronDown, SquarePlus } from 'lucide-react';
+import { ChevronDown, SquarePlus, Download } from 'lucide-react';
 import RecordsTable from './recordsTable';
 import { useRecordsStore } from './records/recordsStore';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { toast } from 'sonner';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = false;
@@ -79,6 +81,55 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
         });
     };
 
+    const exportExcel = async (tableid: string) => {
+        const loadingToastId = toast.loading("Esportazione in corso...");
+        try {
+            const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+                apiRoute: "export_excel",
+                tableid: tableid,
+                searchTerm: '',
+                view: 'linked',
+            },
+            {
+                responseType: "blob",
+                headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+            );
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            
+            // Estrai il filename dal header Content-Disposition
+            const contentDisposition = response.headers['content-disposition'] || '';
+            let filename = 'export.xlsx';
+            const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+            if (match && match[1]) {
+            filename = decodeURIComponent(match[1]);
+            }
+            
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.dismiss(loadingToastId);
+            toast.success("File Excel esportato con successo");
+        } catch (error) {
+            console.error("Errore durante l'esportazione in Excel", error);
+            toast.dismiss(loadingToastId);
+            toast.error("Errore durante l'esportazione in Excel");
+        }
+    };
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -121,26 +172,32 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                     <p className="text-black float-start">{` ${table.description}`}</p>
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
+                                       
                             </div>
                             <div
-                                className={`w-full h-4/6 rounded-md p-3 transition-all duration-300 
+                                className={`w-full h-min rounded-md p-3 transition-all duration-300 flex items start justify-between 
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
+                                <button className=" font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
                                     <SquarePlus name="Plus" className="mr-2" /> 
                                     Aggiungi    
                                 </button>
 
-                                <RecordsTable
-                                    tableid={table.tableid}
-                                    searchTerm={''}
-                                    context="linked"
-                                    pagination={{ page: 1, limit: 10 }}
-                                    masterTableid={tableid}
-                                    masterRecordid={recordid}
-
-                                />
+                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => exportExcel(table.tableid)}>
+                                    <Download name="Export"  className="mr-2" /> 
+                                    Esporta    
+                                </button>
+                            </div>
+                                <div className={`w-full h-full rounded-md p-3 transition-all duration-300 flex items-start justify-between ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'} ${!openCards[index] && 'hidden'}`}>
+                                    <RecordsTable
+                                        tableid={table.tableid}
+                                        searchTerm={''}
+                                        context="linked"
+                                        pagination={{ page: 1, limit: 10 }}
+                                        masterTableid={tableid}
+                                        masterRecordid={recordid}
+                                    />
                                 </div>
                         </React.Fragment>
                     
