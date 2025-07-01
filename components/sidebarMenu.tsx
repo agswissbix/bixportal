@@ -165,8 +165,13 @@ export default function SidebarMenu({  }: PropsInterface) {
                                 Agenda TelAmico
                             </span>
                         </>
-                    ) : null
-                    }
+                    ) : activeServer === 'swissbix' ? (
+                        <>
+                            <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
+                                Dashboard
+                            </span>
+                        </>
+                    ) : null}
                     {/*
                         <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
                             Dashboard
