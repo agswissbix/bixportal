@@ -320,14 +320,23 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                             const column = response.columns[index]; // Prende la colonna corrispondente
                                             return (
                                                 <td
-                                                    className={`px-4 py-3 whitespace-nowrap text-ellipsis overflow-hidden min-w-[120px] max-w-[200px] ${field.css}`}
-                                                    key={`${row.recordid}-${field.fieldid}`}
+                                                className={`px-4 py-3 whitespace-nowrap text-ellipsis overflow-hidden min-w-[120px] max-w-[200px] ${field.css}`}
+                                                key={`${row.recordid}-${field.fieldid}`}
                                                 >
                                                     {column?.fieldtypeid === 'Utente' && (
-                                                        <img src={`/api/media-proxy?url=userProfilePic/${field.value}.png`} alt="Utente" className="w-6 h-6 rounded-full" />
+                                                        <img
+                                                        src={`/api/media-proxy?url=userProfilePic/${field.value}.png`}
+                                                        alt="Utente"
+                                                        className="w-6 h-6 rounded-full"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null; // evita loop infinito
+                                                            e.target.src = '/api/media-proxy?url=userProfilePic/default.jpg';
+                                                        }}
+                                                        />
                                                     )}
                                                     <span dangerouslySetInnerHTML={{ __html: field.value }} />
                                                 </td>
+
                                             );
                                              })}
                                     </tr>
