@@ -145,6 +145,7 @@ export async function POST(request: Request) {
     case 'belotti_salva_formulario': djangoUrl = '/customapp_belotti/belotti_salva_formulario/'; break;
     case 'download_offerta': djangoUrl = '/customapp_pitservice/download_offerta/'; break;
     case 'get_table_active_tab': djangoUrl = '/commonapp/get_table_active_tab/'; break;
+    case 'update_user_profile_pic': djangoUrl = '/commonapp/update_user_profile_pic/'; break;
 
     default:
       return NextResponse.json(

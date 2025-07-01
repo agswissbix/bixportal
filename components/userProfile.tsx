@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -76,7 +77,31 @@ function UserSettings({ propExampleValue }: PropsInterface) {
       
 
     console.log('[DEBUG] Rendering ExampleComponentWithData', { propExampleValue, responseData });
-      
+
+    async function updateUserProfilePic(file: File) {
+
+    const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+            apiRoute: "update_user_profile_pic",
+            image: file, // Passa il file immagine
+            user: user, // Passa l'utente corrente
+        },
+        {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        }
+    );
+
+    if (response.status !== 200) {
+        throw new Error("Errore durante l'aggiornamento dell'immagine del profilo");
+    }
+
+    return response.data;
+    }
+
+
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
@@ -97,7 +122,9 @@ function UserSettings({ propExampleValue }: PropsInterface) {
                         <span className="font-semibold">{userName}</span>
                         <span className="text-sm text-gray-500">{user}</span>
                         </div>
-                        <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => alert('Settings clicked!')}>
+                        <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={() => document.querySelector('input[type=file]')?.click()}
+                        >
                             Modifica immagine
                         </button>
                         <input
@@ -107,8 +134,7 @@ function UserSettings({ propExampleValue }: PropsInterface) {
                             onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                    // Logica per caricare l'immagine
-                                    console.log('File selected:', file);
+                                    updateUserProfilePic(file);
                                 }
                             }}
                         />

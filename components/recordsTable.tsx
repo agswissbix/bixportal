@@ -281,7 +281,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                 <div className="h-full w-full ">
                     
                     <div className="w-full h-full relative rounded-lg drop-shadow-md ">
-                        <table className="max-h-fit block w-full h-5/6 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 ">
+                        <table className="max-h-full block w-full h-11/12 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 ">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 table table-fixed w-full rounded-t-xl">
                                 <tr>
                                     {response.columns.map((column) => (
@@ -313,7 +313,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="max-h-5/6 h-fit overflow-y-auto overflow-x-hidden block w-full rounded-b-xl">
+                            <tbody className="max-h-full h-11/12 overflow-y-auto overflow-x-hidden block w-full rounded-b-xl">
                                 {response.rows.map((row) => (
                                     <tr className={`table table-fixed w-full bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${row.css}`} key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
                                         {row.fields.map((field, index) => {
@@ -329,15 +329,22 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                                     <span dangerouslySetInnerHTML={{ __html: field.value }} />
                                                 </td>
                                             );
-
-                                        })}
+                                             })}
                                     </tr>
                                 ))}
-                            </tbody>    
-                        </table>
-                        <p>{response.counter}</p>
 
-                        <nav aria-label="Page navigation example" className="h-1/6 text-center mt-4">
+                            </tbody>
+                            <tfoot className="h-1/12 bg-gray-200 dark:bg-gray-700">
+                                <tr>
+                                    <td colSpan={response.columns.length} className="px-4 py-3 text-right rounded-b-xl">
+                                        <span className="font-medium">Totale:</span> {response.counter}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        
+
+                        <nav aria-label="Page navigation example" className="h-min text-center">
                             <ul className="inline-flex text-sm">
                                 {/* Pulsante Previous */}
                                 <li>
