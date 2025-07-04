@@ -146,6 +146,7 @@ export async function POST(request: Request) {
     case 'download_offerta': djangoUrl = '/customapp_pitservice/download_offerta/'; break;
     case 'get_table_active_tab': djangoUrl = '/commonapp/get_table_active_tab/'; break;
     case 'update_user_profile_pic': djangoUrl = '/commonapp/update_user_profile_pic/'; break;
+    case 'get_dashboard_blocks': djangoUrl = '/commonapp/get_dashboard_blocks/'; break;
 
     default:
       return NextResponse.json(
