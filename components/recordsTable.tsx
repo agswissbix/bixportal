@@ -329,8 +329,9 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                                         alt="Utente"
                                                         className="w-6 h-6 rounded-full"
                                                         onError={(e) => {
-                                                            e.target.onerror = null; // evita loop infinito
-                                                            e.target.src = '/api/media-proxy?url=userProfilePic/default.jpg';
+                                                            const img = e.target as HTMLImageElement;
+                                                            img.onerror = null; // evita loop infinito
+                                                            img.src = '/api/media-proxy?url=userProfilePic/default.jpg';
                                                         }}
                                                         />
                                                     )}

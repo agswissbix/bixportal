@@ -9,7 +9,7 @@ import 'gridstack/dist/gridstack.min.css';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true; // Cambiato a true per test
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -19,8 +19,17 @@ const isDev = false;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
-          responseExampleValue: string;
+          blocks?: {
+            id: string;
+            type: string;
+            content?: string;
+            gsw?: number;
+            gsh?: number;
+            gsx?: number;
+            gsy?: number;
+          }[];
         }
+
 
 function Dashboard({ propExampleValue }: PropsInterface) {
     //DATI
@@ -29,12 +38,37 @@ function Dashboard({ propExampleValue }: PropsInterface) {
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
-                responseExampleValue: "Default"
-              };
+                blocks: [] // Aggiunto array vuoto
+            };
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
-              responseExampleValue: "Example"
+              blocks: [
+                {
+                  id: 'block-1',
+                  type: 'text',
+                  gsw: 2,
+                  gsh: 2,
+                  gsx: 0,
+                  gsy: 0
+                },
+                {
+                  id: 'block-2',
+                  type: 'chart',
+                  gsw: 3,
+                  gsh: 2,
+                  gsx: 2,
+                  gsy: 0
+                },
+                {
+                  id: 'block-3',
+                  type: 'widget',
+                  gsw: 2,
+                  gsh: 3,
+                  gsx: 0,
+                  gsy: 2
+                }
+              ]
             };
 
             // DATI DEL CONTESTO
@@ -43,8 +77,7 @@ function Dashboard({ propExampleValue }: PropsInterface) {
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const gridRef = useRef<HTMLDivElement>(null);
-
-
+    const gridInstanceRef = useRef<GridStack | null>(null);
 
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
@@ -58,7 +91,7 @@ function Dashboard({ propExampleValue }: PropsInterface) {
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
-    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
+    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
@@ -66,52 +99,69 @@ function Dashboard({ propExampleValue }: PropsInterface) {
         }
     }, [response, responseData]);
 
-    // PER DEVELLOPMENT 
+    // INIZIALIZZAZIONE GRIDSTACK
     useEffect(() => {
+        if (!gridRef.current) return;
 
-       if (gridRef.current) {
-          const options: GridStackOptions = {
-            float: true,
-            cellHeight: 80,
-            draggable: { handle: '.grid-stack-item-content' },
-          };
+        // Inizializza GridStack solo se non esiste già
+        if (!gridInstanceRef.current) {
+            const options: GridStackOptions = {
+                float: true,
+                cellHeight: 80,
+                draggable: { handle: '.grid-stack-item-content' },
+                resizable: { handles: 'e, se, s, sw, w' }
+            };
 
-          const grid = GridStack.init(options, gridRef.current);
-
-          // Aggiungi widget di esempio (solo una volta)
-          if (grid.engine.nodes.length === 0) {
-            grid.addWidget({ w: 2, h: 2, x: 0, y: 2, content: 'Widget 1', id: 'widget-1' });
-            grid.addWidget({ w: 3, h: 2, x: 2, y: 0, content: 'Widget 2', id: 'widget-2' });
-          }
-
-          return () => { grid.destroy(false); }; // pulizia
+            gridInstanceRef.current = GridStack.init(options, gridRef.current);
+            console.info('[DEBUG] GridStack initialized');
         }
-        return undefined;
+
+        const grid = gridInstanceRef.current;
         
-        const interval = setInterval(() => {
-            // forza un setState con lo stesso valore, quindi re-render inutile
-            setResponseData({ responseExampleValue: 'Example' }); // stesso valore di prima
+        // Pulisci widgets esistenti
+        grid.removeAll();
 
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
+        // Aggiungi widgets dai dati response
+        if (responseData.blocks && responseData.blocks.length > 0) {
+            responseData.blocks.forEach(block => {
+                const widget = {
+                    w: block.gsw || 2,
+                    h: block.gsh || 2,
+                    x: block.gsx || 0,
+                    y: block.gsy || 0,
+                    id: block.id,
+                    content: block.content || '',
+                };
+                grid.addWidget(widget);
+            });
+        } else {
+           
+        }
 
-    const uselessMemo = useMemo(() => {
-        return Math.random(); // valore che cambia sempre
-      }, [responseData]);
-      
+        console.info('[DEBUG] Widgets added to grid', responseData.blocks);
 
-    console.log('[DEBUG] Rendering ExampleComponentWithData', { propExampleValue, responseData });
+        // Cleanup function
+        return () => {
+            if (gridInstanceRef.current) {
+                gridInstanceRef.current.destroy(false);
+                gridInstanceRef.current = null;
+            }
+        };
+    }, [responseData]); // Dipende solo da responseData
+
+    console.log('[DEBUG] Rendering Dashboard', { propExampleValue, responseData });
       
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-              <div className="grid-stack" ref={gridRef}></div>
+              <div 
+                className="grid-stack" 
+                ref={gridRef}
+                style={{ minHeight: '500px', width: '100%' }}
+              ></div>
             )}
         </GenericComponent>
     );
 };
 
 export default Dashboard;
-
-
