@@ -280,7 +280,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             {(response: ResponseInterface) => (
                 <div className="h-full w-full ">
                     
-                    <div className="w-full h-full relative rounded-lg drop-shadow-md ">
+                    <div className="w-full h-full relative rounded-lg">
                         <table className="max-h-full block w-full h-11/12 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 ">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 table table-fixed w-full rounded-t-xl">
                                 <tr>
