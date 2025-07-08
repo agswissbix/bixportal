@@ -12,24 +12,21 @@ const isDev = true;
 // INTERFACCE
 // INTERFACCIA PROPS
 interface PropsInterface {
-    dashboardBlockId: number;
-    blockId: number;
-    gridReady: boolean;
+    values: string[];
+    labels: string[];
+    name: string;
+    fields: string[];
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
 interface ResponseInterface {
-    values: string[];
-    labels: string[];
-    name: string;
-    fields: string[]
 }
 
-export default function BarChart({ dashboardBlockId, blockId, gridReady }: PropsInterface) {
+export default function BarChart({ values, labels, name, fields}: PropsInterface) {
 
     //DATI
             // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : dashboardBlockId;
+            const devPropExampleValue = isDev ? "Example prop" : "";
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
@@ -59,9 +56,8 @@ export default function BarChart({ dashboardBlockId, blockId, gridReady }: Props
         if (isDev) return null;
         return {
             apiRoute: 'examplepost', // riferimento api per il backend
-            example1: dashboardBlockId,
         };
-    }, [dashboardBlockId, blockId]);    
+    }, []);    
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -73,50 +69,68 @@ export default function BarChart({ dashboardBlockId, blockId, gridReady }: Props
         }
     }, [response, responseData]);
 
-    const chartData = {
-        series: [
-          {
-            name: responseDataDEV.name,
-            data: responseDataDEV.values.map(value => parseFloat(value)), // Converte i valori in numeri
-          },
-        ],
-        options: {
-          plotOptions: {
-            bar: {
-              horizontal: false, // Le barre sono verticali
-            },
-          },
-          xaxis: {
-            categories: responseDataDEV.labels, // Etichette dinamiche
-          },
-          title: {
-            text: responseDataDEV.name,
-            align: 'center' as 'center',
-            style: {
-              fontSize: '20px',
-              fontWeight: 'bold',
-              color: '#333',
-            },
-          },
+const chartData = {
+  series: [
+    {
+      name: name,
+      data: values
+    },
+  ],
+  options: {
+    chart: {
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150
         },
-      };
-    if (!gridReady) {
-      return <LoadingComp />;
-    } else {
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
+      },
+      toolbar: {
+        show: false
+      },
+      responsive: true,
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+      },
+    },
+    xaxis: {
+      categories: labels,
+    },
+    title: {
+      text: name,
+      align: 'center' as const,
+      style: {
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#333',
+      },
+    },
+  },
+};
+
+console.log('Chart Data:', chartData);
+
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2">
+                <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2 overflow-hidden">
                  <ReactApexChart
                    options={chartData.options}
                    series={chartData.series}
                    type="bar"
-                   height='100%'
-                   width='100%'
+                   className="h-full w-full"
+                    height="100%"
                  />
                </div>
             )}  
         </GenericComponent>
     );
-  }
 };
