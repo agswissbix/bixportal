@@ -337,7 +337,6 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                                     )}
                                                     <span dangerouslySetInnerHTML={{ __html: field.value }} />
                                                 </td>
-
                                             );
                                              })}
                                     </tr>
