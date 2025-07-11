@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { LogOut, User, Calendar, Phone, MessageCircle, Lock } from 'lucide-react';
+import { LogOut, User, Calendar, Phone, MessageCircle, Lock, Smartphone  } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ScheduleCalendarContent from './scheduleCalendarContent';
@@ -63,6 +63,16 @@ const AppLayout = () => {
   const handleChangePassword = () => {
     router.push("/change-password");
   }
+
+  const handleRedirectHome = () => {
+    router.push("/home");
+  }
+
+  const handleRedirectMobile = () => {
+    router.push("/ta_mobile2");
+  }
+
+  
 
   // Chiudi il dropdown quando si clicca fuori
   useEffect(() => {
@@ -155,14 +165,30 @@ const AppLayout = () => {
                   </button>
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={handleRedirectHome}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Amministrazione
+                  </button>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     onClick={handleChangePassword}
                   >
                     <Lock className="w-4 h-4 mr-2" />
                     Cambia Password
                   </button>
+                  
                 </div>
               )}
             </div>
+            <Button
+                variant="ghost"
+                className="text-gray-600 hover:text-gray-900"
+                onClick={handleRedirectMobile}
+              >
+              <Smartphone className="w-5 h-5 mr-2 text-gray-500" />
+             Mobile
+            </Button>
           </div>
         </div>
       </header>

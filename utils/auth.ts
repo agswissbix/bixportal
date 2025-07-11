@@ -147,7 +147,6 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
     const response = await axios.post('/postApi', {
       apiRoute: 'checkAuth',
     });
-    console.info(response);
     const { activeServer } = await getActiveServer();
 
     return {
