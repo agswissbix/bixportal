@@ -63,11 +63,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async function verifyAuth() {
       console.info('Verifica autenticazione...verifyAuth');
       const result = await checkAuth();
+      console.info(result)
       if (!result.isAuthenticated || !result.username) {
         router.push('/login');
       } else {
         setUser(result.username);
         setRole(result.role || null);
+        //TODO CUSTOM TELEFONO AMICO
         setChat(result.chat || null);
         setTelefono(result.telefono || null);
         setUserName(result.name ?? null);

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { LogOut, User, Calendar, Phone, MessageCircle, Lock } from 'lucide-react';
+import { LogOut, User, Calendar, Phone, MessageCircle, Lock, Smartphone  } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ScheduleCalendarContent from './scheduleCalendarContent';
@@ -63,6 +63,20 @@ const AppLayout = () => {
   const handleChangePassword = () => {
     router.push("/change-password");
   }
+
+  const handleRedirectHome = () => {
+    router.push("/home");
+  }
+
+  const handleRedirectMobile2 = () => {
+    router.push("/ta_mobile2");
+  }
+
+  const handleRedirectMobile = () => {
+    router.push("/ta_mobile1");
+  }
+
+  
 
   // Chiudi il dropdown quando si clicca fuori
   useEffect(() => {
@@ -153,6 +167,15 @@ const AppLayout = () => {
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </button>
+                  {['alessandro.galli2', 'mariangela', 'marsal'].includes(user || '') && (
+                    <button
+                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      onClick={handleRedirectHome}
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Amministrazione
+                    </button>
+                  )}
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     onClick={handleChangePassword}
@@ -160,6 +183,21 @@ const AppLayout = () => {
                     <Lock className="w-4 h-4 mr-2" />
                     Cambia Password
                   </button>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={handleRedirectMobile}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Mobile
+                  </button>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={handleRedirectMobile2}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Mobile2
+                  </button>
+                  
                 </div>
               )}
             </div>
