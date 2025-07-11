@@ -68,8 +68,12 @@ const AppLayout = () => {
     router.push("/home");
   }
 
-  const handleRedirectMobile = () => {
+  const handleRedirectMobile2 = () => {
     router.push("/ta_mobile2");
+  }
+
+  const handleRedirectMobile = () => {
+    router.push("/ta_mobile");
   }
 
   
@@ -185,6 +189,13 @@ const AppLayout = () => {
                   >
                     <Lock className="w-4 h-4 mr-2" />
                     Mobile
+                  </button>
+                  <button
+                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    onClick={handleRedirectMobile2}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Mobile2
                   </button>
                   
                 </div>
