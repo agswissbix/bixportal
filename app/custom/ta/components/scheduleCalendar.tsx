@@ -163,13 +163,15 @@ const AppLayout = () => {
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </button>
-                  <button
-                    className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                    onClick={handleRedirectHome}
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Amministrazione
-                  </button>
+                  {['alessandro.galli', 'mariangela.rosa', 'marsal'].includes(user || '') && (
+                    <button
+                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      onClick={handleRedirectHome}
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Amministrazione
+                    </button>
+                  )}
                   <button
                     className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     onClick={handleChangePassword}
