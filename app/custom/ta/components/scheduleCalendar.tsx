@@ -163,7 +163,7 @@ const AppLayout = () => {
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </button>
-                  {['alessandro.galli2', 'mariangela.rosa', 'marsal'].includes(user || '') && (
+                  {['alessandro.galli2', 'mariangela', 'marsal'].includes(user || '') && (
                     <button
                       className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                       onClick={handleRedirectHome}
