@@ -73,7 +73,7 @@ const AppLayout = () => {
   }
 
   const handleRedirectMobile = () => {
-    router.push("/ta_mobile");
+    router.push("/ta_mobile1");
   }
 
   
