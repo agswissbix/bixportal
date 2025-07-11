@@ -148,6 +148,7 @@ export async function POST(request: Request) {
     case 'update_user_profile_pic': djangoUrl = '/commonapp/update_user_profile_pic/'; break;
     case 'get_dashboard_blocks': djangoUrl = '/commonapp/get_dashboard_blocks/'; break;
     case 'save_dashboard_disposition': djangoUrl = '/commonapp/save_dashboard_disposition/'; break;
+    case 'add_dashboard_block': djangoUrl = '/commonapp/add_dashboard_block/'; break;
 
     default:
       return NextResponse.json(

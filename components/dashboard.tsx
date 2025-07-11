@@ -204,9 +204,11 @@ function Dashboard({ propExampleValue }: PropsInterface) {
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
-          apiRoute: "save_dashboard_disposition",
+          apiRoute: "add_dashboard_block",
           'blockid': blockid,
-
+          'userid': user,
+          'size': 'full',
+          'dashboardid': 3,
         },
         {
           headers: {
