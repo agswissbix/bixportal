@@ -1,274 +1,478 @@
-import React, { useMemo, useContext, useState, useEffect } from 'react';
+// ...import e setup invariati
+import React, { useMemo, useContext, useState, useEffect, useRef } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useRecordsStore } from './records/recordsStore';
+import { MoreVertical, X, Plus } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// FLAG PER LO SVILUPPO
 const isDev = true;
 
-// INTERFACCE
-        // INTERFACCIA PROPS
-        interface PropsInterface {
-          tableid: string;
-        }
+interface PropsInterface {
+    tableid: string;
+}
 
-        // INTERFACCIA RISPOSTA DAL BACKEND
-        interface ResponseInterface {
-          filters: Array<{
-            fieldid: string;
-            type: string;
-            label: string;
-            }>
-    }
+interface ResponseInterface {
+    filters: Array<{
+        fieldid: string;
+        type: string;
+        label: string;
+    }>;
+}
 
 export default function TableFilters({ tableid }: PropsInterface) {
-    //DATI
-            // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : tableid;
+    const devPropExampleValue = isDev ? "Example prop" : tableid;
+    const responseDataDEFAULT: ResponseInterface = { filters: [] };
+    const responseDataDEV: ResponseInterface = {
+        filters: [
+            { fieldid: "Parola", type: "Parola", label: "Parola" },
+            { fieldid: "Numero", type: "Numero", label: "Numero" },
+            { fieldid: "Data", type: "Data", label: "Data" },
+            { fieldid: "Text", type: "text", label: "Text" },
+        ],
+    };
 
-            // DATI RESPONSE DI DEFAULT
-            const responseDataDEFAULT: ResponseInterface = {
-                filters: []
-              };
-
-            // DATI RESPONSE PER LO SVILUPPO 
-            const responseDataDEV: ResponseInterface = {
-                filters: [
-                    {
-                        fieldid: "test1",
-                        type: "Parola",
-                        label: "Test 1"
-                    },
-                    {
-                        fieldid: "test2",
-                        type: "Numero",
-                        label: "Test 2"
-                    },
-                    {
-                        fieldid: "test3",
-                        type: "Data",
-                        label: "Test 3"
-                    },
-                    {
-                        fieldid: "Utente",
-                        type: "text",
-                        label: "Test 4"
-                    },
-                ]
-            };
-
-            // DATI DEL CONTESTO
-            const { user } = useContext(AppContext);
-
-    // STORE ZUSTAND
+    const { user } = useContext(AppContext);
     const { filtersList, setFiltersList } = useRecordsStore();
 
-    // STATE LOCALE PER I VALORI DEI FILTRI
-    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+    const [filterValues, setFilterValues] = useState<Record<string, string[]>>({});
 
-    // IMPOSTAZIONE DELLA RESPONSE (non toccare)
-    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    const [responseData, setResponseData] = useState<ResponseInterface>(
+        isDev ? responseDataDEV : responseDataDEFAULT
+    );
 
-    // FUNZIONE PER AGGIORNARE UN FILTRO SPECIFICO
-    const updateFilter = (fieldid: string, type: string, label: string, value: string) => {
-        // Aggiorna lo state locale
-        setFilterValues(prev => ({
-            ...prev,
-            [fieldid]: value
-        }));
 
-        // Aggiorna lo store
-        const existingFilterIndex = filtersList.findIndex(filter => filter.fieldid === fieldid);
-        
-        if (existingFilterIndex >= 0) {
-            // Aggiorna il filtro esistente
-            const updatedFilters = [...filtersList];
-            updatedFilters[existingFilterIndex] = { fieldid, type, label, value };
-            setFiltersList(updatedFilters);
-        } else {
-            // Aggiungi nuovo filtro se il valore non è vuoto
-            if (value.trim() !== '') {
-                setFiltersList([...filtersList, { fieldid, type, label, value }]);
+
+    const [openMenuFieldId, setOpenMenuFieldId] = useState<string | null>(null);
+    const [filterConditions, setFilterConditions] = useState<Record<string, string>>({});
+
+    const menuRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuFieldId(null);
             }
-        }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
-        // Rimuovi il filtro se il valore è vuoto
-        if (value.trim() === '' && existingFilterIndex >= 0) {
-            const updatedFilters = filtersList.filter(filter => filter.fieldid !== fieldid);
-            setFiltersList(updatedFilters);
-        }
+    const addInputForFilter = (fieldid: string) => {
+        setFilterValues(prev => {
+            const prevArray = prev[fieldid] || [''];
+            // aggiungi un nuovo valore vuoto alla fine
+            return { ...prev, [fieldid]: [...prevArray, ''] };
+        });
     };
 
-    // FUNZIONE PER AGGIORNARE FILTRI COMPOSTI (es. range numerico o data)
-    const updateRangeFilter = (fieldid: string, type: string, label: string, rangeType: 'min' | 'max' | 'from' | 'to', value: string) => {
-        const currentValues = filterValues[fieldid] || {};
-        const newValues = { ...currentValues, [rangeType]: value };
-        
-        setFilterValues(prev => ({
-            ...prev,
-            [fieldid]: newValues
-        }));
+    const removeInputForFilter = (fieldId: string, indexToRemove: number) => {
+        setFilterValues((prev) => {
+            const updated = [...(prev[fieldId] || [])];
+            updated.splice(indexToRemove, 1);
+            return { ...prev, [fieldId]: updated };
+        });
 
-        // Crea il valore combinato per lo store
-        let combinedValue = '';
-        if (type === 'Numero') {
-            const min = newValues.min || '';
-            const max = newValues.max || '';
-            combinedValue = `${min}|${max}`;
-        } else if (type === 'Data' || type === 'Utente') {
-            const from = newValues.from || '';
-            const to = newValues.to || '';
-            combinedValue = `${from}|${to}`;
+        // Rimuove la condizione associata a quell’indice (se presente)
+        setFilterConditions((prev) => {
+            const updated = { ...prev };
+            delete updated[`${fieldId}_${indexToRemove}`];
+
+            // 🔄 Aggiorna anche gli indici successivi per evitare mismatch
+            const newUpdated: typeof updated = {};
+            Object.entries(updated).forEach(([key, val]) => {
+                if (key.startsWith(`${fieldId}_`)) {
+                    const idx = parseInt(key.split('_')[1], 10);
+                    if (idx > indexToRemove) {
+                        newUpdated[`${fieldId}_${idx - 1}`] = val;
+                    } else {
+                        newUpdated[key] = val;
+                    }
+                } else {
+                    newUpdated[key] = val;
+                }
+            });
+
+            return newUpdated;
+        });
+    };
+
+
+    async function sendFiltersToBackend() {
+        const payload = {
+            filters: responseData.filters.map(filter => {
+                const valuesArray = filterValues[filter.fieldid] || [''];
+                const conditionsArray = valuesArray.map((_, idx) =>
+                    filterConditions[`${filter.fieldid}_${idx}`] || "Valore esatto"
+                );
+
+                return {
+                    fieldid: filter.fieldid,
+                    type: filter.type,
+                    label: filter.label,
+                    values: valuesArray,
+                    conditions: conditionsArray,
+                };
+            }),
+        };
+
+        console.log("Invio filtri al backend:", payload);
+
+        try {
+            const response = await fetch('/api/filter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Errore nella risposta: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Risposta backend:", data);
+            return data;
+
+        } catch (error) {
+            console.error("Errore invio filtri:", error);
+            return null;
         }
+    }
 
-        // Aggiorna lo store solo se almeno un valore è presente
-        if (newValues.min || newValues.max || newValues.from || newValues.to) {
-            const existingFilterIndex = filtersList.findIndex(filter => filter.fieldid === fieldid);
-            
-            if (existingFilterIndex >= 0) {
-                const updatedFilters = [...filtersList];
-                updatedFilters[existingFilterIndex] = { fieldid, type, label, value: combinedValue };
+
+
+    const updateFilter = (
+        fieldid: string,
+        type: string,
+        label: string,
+        value: string,
+        index: number
+    ) => {
+        setFilterValues(prev => {
+            const prevArray = prev[fieldid] || [];
+            const newArray = [...prevArray];
+            newArray[index] = value;
+
+            // Costruisce il valore combinato aggiornato
+            const combinedValue = newArray.map(v => v || '').join('|');
+
+            // Costruisce il nuovo filtro
+            const newFilter = { fieldid, type, label, value: combinedValue };
+
+            // Rimuove il filtro se tutti i valori sono vuoti o solo separatori
+            const isAllEmpty = combinedValue.trim() === '' || /^(\|)+$/.test(combinedValue);
+
+            if (isAllEmpty) {
+                const updatedFilters = filtersList.filter(filter => filter.fieldid !== fieldid);
                 setFiltersList(updatedFilters);
             } else {
-                setFiltersList([...filtersList, { fieldid, type, label, value: combinedValue }]);
+                const existingFilterIndex = filtersList.findIndex(filter => filter.fieldid === fieldid);
+                if (existingFilterIndex >= 0) {
+                    const updatedFilters = [...filtersList];
+                    updatedFilters[existingFilterIndex] = newFilter;
+                    setFiltersList(updatedFilters);
+                } else {
+                    setFiltersList([...filtersList, newFilter]);
+                }
             }
-        } else {
-            // Rimuovi il filtro se tutti i valori sono vuoti
-            const updatedFilters = filtersList.filter(filter => filter.fieldid !== fieldid);
-            setFiltersList(updatedFilters);
-        }
+
+            return { ...prev, [fieldid]: newArray };
+        });
     };
 
-    // PAYLOAD (solo se non in sviluppo)
-    const payload = useMemo(() => {
-        if (isDev) return null;
-        return {
-            apiRoute: 'examplepost', // riferimento api per il backend
-            example1: tableid
-        };
-    }, [tableid]);
 
-    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+    const toggleConditionMenu = (key: string) => {
+        setOpenMenuFieldId(prev => (prev === key ? null : key));
+    };
 
-    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
+    const selectCondition = (key: string, condition: string) => {
+        setFilterConditions(prev => ({ ...prev, [key]: condition }));
+        setOpenMenuFieldId(null);
+    };
+
+    const resetFilters = () => {
+        setFilterValues({});
+        setFiltersList([]);
+        setFilterConditions({});
+    };
+
+    const { response, loading, error } = !isDev ? useApi<ResponseInterface>({
+        apiRoute: 'examplepost',
+        example1: tableid
+    }) : { response: null, loading: false, error: null };
+
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
         }
     }, [response, responseData]);
 
+    const renderConditionMenu = (fieldid: string, type: string) => {
+        if (openMenuFieldId !== fieldid) return null;
+
+        const baseConditions = [
+            'Valore esatto',
+            'Diverso da',
+            'Nessun valore',
+            'Almeno un valore'
+        ];
+
+        const dateExtraConditions = [
+            'Oggi',
+            'Questa settimana',
+            'Questo mese',
+            'Passato',
+            'Futuro'
+        ];
+
+        const allConditions = type === 'Data'
+            ? [...baseConditions, ...dateExtraConditions]
+            : baseConditions;
+
+        return (
+            <div
+                ref={menuRef}
+                className="absolute right-0 z-10 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-md"
+            >
+                {allConditions.map((condition, idx) => (
+                    <button
+                        key={idx}
+                        onClick={() => selectCondition(fieldid, condition)}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                    >
+                        {condition}
+                    </button>
+                ))}
+
+            </div>
+
+        );
+    };
+
+
+
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
+        <GenericComponent response={responseData} loading={loading} error={error}>
             {(response: ResponseInterface) => (
-                <div>
-                    {response.filters.map((filter, index) => (
-                        <div key={index}>
-                            <label className="text-sm font-medium text-gray-900">Filtra per {filter.label}</label>
-                            {filter.type === "Parola" && (
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="word"
-                                        type="text"
-                                        placeholder="Inserisci un valore"
-                                        value={filterValues[filter.fieldid] || ''}
-                                        onChange={(e) => updateFilter(filter.fieldid, filter.type, filter.label, e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
-                            )}
-                            {filter.type === "Numero" && (
-                                <>
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="number-min"
-                                        type="number"
-                                        placeholder="min"
-                                        value={filterValues[filter.fieldid]?.min || ''}
-                                        onChange={(e) => updateRangeFilter(filter.fieldid, filter.type, filter.label, 'min', e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
+                <div className="h-[90%] overflow-y-auto p-2 w-full">
+                    <div className="space-y-4 relative">
+                        {response.filters.map((filter, index) => (
+                            <div key={index} className="relative">
+                                <label className="block text-sm font-medium text-gray-900 mb-1">
+                                    Filtra per {filter.label}
+                                </label>
 
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="number-max"
-                                        type="number"
-                                        placeholder="max"
-                                        value={filterValues[filter.fieldid]?.max || ''}
-                                        onChange={(e) => updateRangeFilter(filter.fieldid, filter.type, filter.label, 'max', e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
-                                </>
-                            )}
-                            {filter.type === "Data" && (
-                                <>
-                                <br></br>
-                                <label className="text-sm font-medium text-gray-900">dopo il</label>
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="date-from"
-                                        type="date"
-                                        placeholder="dopo il"
-                                        value={filterValues[filter.fieldid]?.from || ''}
-                                        onChange={(e) => updateRangeFilter(filter.fieldid, filter.type, filter.label, 'from', e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
-                                <label className="text-sm font-medium text-gray-900">prima del</label>
+                                {(filter.type === "Parola" || filter.type === "text") && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        {(filterValues[filter.fieldid] || ['']).map((val, idx) => (
+                                            <div key={idx} className="flex flex-col gap-1 relative">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder={`Inserisci un valore`}
+                                                        value={val}
+                                                        onChange={(e) =>
+                                                            updateFilter(filter.fieldid, filter.type, filter.label, e.target.value, idx)
+                                                        }
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                    />
 
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="date-to"
-                                        type="date"
-                                        placeholder="prima del"
-                                        value={filterValues[filter.fieldid]?.to || ''}
-                                        onChange={(e) => updateRangeFilter(filter.fieldid, filter.type, filter.label, 'to', e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
-                                </>
-                            )}
-                            {filter.type === "Utente" && (
-                                <>
-                                <br></br>
-                                <label className="text-sm font-medium text-gray-900">dopo il</label>
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="user-from"
-                                        type="date"
-                                        placeholder="dopo il"
-                                        value={filterValues[filter.fieldid]?.from || ''}
-                                        onChange={(e) => updateRangeFilter(filter.fieldid, filter.type, filter.label, 'from', e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
-                                <label className="text-sm font-medium text-gray-900">prima del</label>
+                                                    {/* Menu condizione */}
+                                                    <div className="relative flex items-center">
+                                                        <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
+                                                            <MoreVertical className="text-gray-500 hover:text-gray-700" />
+                                                        </button>
+                                                        {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
+                                                    </div>
 
-                                <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                                    <input
-                                        name="user-to"
-                                        type="date"
-                                        placeholder="prima del"
-                                        value={filterValues[filter.fieldid]?.to || ''}
-                                        onChange={(e) => updateRangeFilter(filter.fieldid, filter.type, filter.label, 'to', e.target.value)}
-                                        className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-                                    />
-                                </div>
-                                </>
-                            )}
-                        <br></br>
+                                                    {/* Bottone ✕ per rimuovere input (solo se più di uno) */}
+                                                    {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
+                                                        <button
+                                                            onClick={() => removeInputForFilter(filter.fieldid, idx)}
+                                                            className="text-red-500 hover:text-red-700 text-sm flex items-center"
+                                                            title="Rimuovi questo campo"
+                                                        >
+                                                            <X className="w-4 h-4 text-red-500 hover:text-red-600" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {filterConditions[`${filter.fieldid}_${idx}`] && (
+                                                    <span className="text-xs text-gray-500 ml-1 mt-1">
+                                                        Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {/* Bottone per aggiungere un nuovo campo */}
+                                        <button
+                                            type="button"
+                                            onClick={() => addInputForFilter(filter.fieldid)}
+                                            className="text-indigo-600 text-sm mt-1 hover:underline"
+                                        >
+                                            <Plus className="w-4 h-4 inline-block mr-1" />
+                                            Aggiungi filtro
+                                        </button>
+                                    </div>
+                                )}
+
+
+                                {filter.type === "Numero" && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        {(filterValues[filter.fieldid] || ['']).map((val, idx) => (
+                                            <div key={idx} className="flex flex-col gap-1">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="flex gap-2 items-center w-full">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Min"
+                                                            value={val?.min || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...val, min: e.target.value }, idx)
+                                                            }
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Max"
+                                                            value={val?.max || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...val, max: e.target.value }, idx)
+                                                            }
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                        />
+                                                    </div>
+
+                                                    <div className="relative flex items-center">
+                                                        <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
+                                                            <MoreVertical className="text-gray-500 hover:text-gray-700" />
+                                                        </button>
+                                                        {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
+                                                    </div>
+
+                                                    {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
+                                                        <button
+                                                            onClick={() => removeInputForFilter(filter.fieldid, idx)}
+                                                            className="text-red-500 hover:text-red-700 flex items-center"
+                                                            title="Rimuovi questo campo"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {filterConditions[`${filter.fieldid}_${idx}`] && (
+                                                    <span className="text-xs text-gray-500 ml-1 mt-1">
+                                                        Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => addInputForFilter(filter.fieldid)}
+                                            className="text-indigo-600 text-sm hover:underline"
+                                        >
+                                            <Plus className="w-4 h-4 inline-block mr-1" />
+                                            Aggiungi range
+                                        </button>
+                                    </div>
+                                )}
+
+
+                                {filter.type === "Data" && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        {(filterValues[filter.fieldid] || [{ from: '', to: '' }]).map((range, idx) => (
+                                            <div key={idx} className="flex flex-col gap-1">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="flex gap-2 items-center w-full">
+                                                        <input
+                                                            type="date"
+                                                            placeholder="Dal"
+                                                            value={range?.from || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...range, from: e.target.value }, idx)
+                                                            }
+                                                            className="w-1/2 rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                        />
+                                                        <input
+                                                            type="date"
+                                                            placeholder="Al"
+                                                            value={range?.to || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...range, to: e.target.value }, idx)
+                                                            }
+                                                            className="w-1/2 rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                        />
+                                                    </div>
+
+                                                    <div className="relative flex items-center">
+                                                        <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
+                                                            <MoreVertical className="text-gray-500 hover:text-gray-700" />
+                                                        </button>
+                                                        {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
+                                                    </div>
+
+                                                    {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
+                                                        <button
+                                                            onClick={() => removeInputForFilter(filter.fieldid, idx)}
+                                                            className="text-red-500 hover:text-red-700 flex items-center"
+                                                            title="Rimuovi questo campo"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {filterConditions[`${filter.fieldid}_${idx}`] && (
+                                                    <span className="text-xs text-gray-500 ml-1 mt-1">
+                                                        Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => addInputForFilter(filter.fieldid)}
+                                            className="text-indigo-600 text-sm hover:underline"
+                                        >
+                                            <Plus className="w-4 h-4 inline-block mr-1" />
+                                            Aggiungi range
+                                        </button>
+                                    </div>
+                                )}
+
+
+
+                            </div>
+                        ))}
+
+                        <div className="mt-6 flex gap-3">
+                            <button
+                                type="button"
+                                className="w-1/2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5"
+                                onClick={() => sendFiltersToBackend(filtersList)}
+                            >
+                                Applica
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="w-1/2 text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 font-medium rounded-md text-sm px-5 py-2.5"
+                            >
+                                Reset
+                            </button>
                         </div>
-                    ))}
-                        <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
-                            Applica filtri
-                        </button>
-
+                    </div>
                 </div>
             )}
         </GenericComponent>
     );
-};
+}
