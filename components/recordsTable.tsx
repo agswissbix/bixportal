@@ -194,12 +194,19 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
     });
 
     // ✅ un selector per chiave
-    const refreshTable    = useRecordsStore(s => s.refreshTable);
-    const setRefreshTable = useRecordsStore(s => s.setRefreshTable);
-    const handleRowClick  = useRecordsStore(s => s.handleRowClick);
-    const setCurrentPage  = useRecordsStore(s => s.setCurrentPage);
+
+        const {
+        isTableChanging,
+        setTableChangeCompleted,
+        refreshTable,
+        setRefreshTable,
+        handleRowClick,
+        setCurrentPage,
+        columnOrder,
+        setColumnOrder
+    } = useRecordsStore();
     
-    const {columnOrder, setColumnOrder} = useRecordsStore();
+    
 
 
     // PAYLOAD (solo se non in sviluppo)
@@ -222,12 +229,14 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             masterTableid: masterTableid,
             masterRecordid: masterRecordid
         };
-    }, [refreshTable, tableid, searchTerm, view, pagination, masterTableid, masterRecordid, columnOrder.columnDesc, columnOrder.direction, filters]);
+    }, [tableid, refreshTable, pagination, masterTableid, masterRecordid, columnOrder.columnDesc, columnOrder.direction, filters]);
 
 
-    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null, elapsedTime:null };
+   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
+    const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: true, error: null };
 
+  
+    
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
@@ -264,7 +273,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             page = pagination.limit;
         }
         setCurrentPage(page);       
-        setRefreshTable(refreshTable + 1); 
+        setRefreshTable(v => v + 1)
     }
 
     console.log('[DEBUG] RecordsTable');

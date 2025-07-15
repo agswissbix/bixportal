@@ -87,7 +87,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
           {/* Tab Content */}
           <div className="h-11/12 p-4">
             {activeTab === 'Tabella' && (
-              <RecordsTable tableid={tableid} context='standard' searchTerm={searchTerm} view={tableView}/>
+              <RecordsTable  tableid={tableid} context='standard' searchTerm={searchTerm} view={tableView}/>
             )}
             {activeTab === 'Kanban' && (
               <Kanban tableid={tableid} />

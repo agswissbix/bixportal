@@ -58,8 +58,14 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
             const [inputValue, setInputValue] = useState('');
             const [selectedView, setSelectedView] = useState(1);
 
-            const {setSearchTerm,setTableView, isFiltersOpen, setIsFiltersOpen} = useRecordsStore();
-            const {refreshTable,setRefreshTable,selectedMenu} = useRecordsStore();
+            const {
+                setSearchTerm,
+                setTableView,             // usa lo setter aggiornato
+                isFiltersOpen,
+                setIsFiltersOpen,
+                setRefreshTable,          // ★ MOD (nuova firma)
+                selectedMenu,
+              } = useRecordsStore();
 
             const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               const keyword = e.target.value;
@@ -77,7 +83,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
 
             const researchTableSubmit = () => {
               setSearchTerm(inputValue); // Imposta il termine di ricerca solo quando invii
-              setRefreshTable(refreshTable + 1); // Ricarica la tabella
+              setRefreshTable(v => v + 1); // Ricarica la tabella
             };
 
 
@@ -99,14 +105,17 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
-        setInputValue(''); // Resetta il valore di input quando cambia la risposta
-        setSearchTerm(inputValue); // Passa il valore al componente genitore
-        setTableView(selectedView.toString());
-        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response);
-            setSelectedView(response.views[0].id);
-        }
-    }, [response, responseData, selectedView, selectedMenu]);
+        // azzera input + filtri
+        setInputValue('');
+        setSearchTerm('');
+
+        if (response?.views?.length) {
+            setResponseData(response);          // ★ QUI: aggiorna lo state
+            const first = String(response.views[0].id);
+            setSelectedView(parseInt(first));
+            setTableView(first);                // auto-refresh via store
+          }
+      }, [selectedMenu, response, setSearchTerm, setTableView]);
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="recordFilters" > 

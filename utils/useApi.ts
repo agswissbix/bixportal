@@ -1,48 +1,66 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { consoleDebug } from '@/utils/develop';
 import axios from 'axios';
 
 export const useApi = <T>(
-  payload: Record<string, any>
+    payload: Record<string, any> | null
 ) => {
-  console.info('useApi:'+JSON.stringify(payload)); 
-  const [response, setResponse] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+    const [response, setResponse] = useState<T | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [elapsedTime, setElapsedTime] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const startTime = performance.now();
-      try {
-        consoleDebug('Fetching data with payload:', payload);
-        setLoading(true);
-        setError(null);
+    const serializedPayload = useMemo(() => JSON.stringify(payload), [payload]);
 
-        // Esegui una POST verso /postApi con axios
-        const res = await axios.post<T>('/postApi', payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // Se vuoi includere i cookie (es. per CSRF) abilita le credenziali
-          withCredentials: true,
-        });
+    useEffect(() => {
+        // Se il payload non è valido, semplicemente attendi senza fare nulla.
+        // Non modificare lo stato di loading.
+        if (!payload) {
+            // ★ LA MODIFICA CHIAVE: Abbiamo rimosso setLoading(false) da qui.
+            return;
+        }
 
-        // Se la risposta è andata a buon fine
-        setResponse(res.data);
-      } catch (err: any) {
-        setError(err.message || 'Errore durante il recupero dei dati');
-      } finally {
-        // Calcola il tempo trascorso dalla richiesta
-        const timeTaken = performance.now() - startTime;
-        setElapsedTime(timeTaken);
-        setLoading(false);
-      }
-    };
+        const controller = new AbortController();
 
-    console.log('Fetching data with payload:', payload);
-    fetchData();
-  }, [payload]);
+        const fetchData = async () => {
+            const startTime = performance.now();
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const currentPayload = JSON.parse(serializedPayload);
+                consoleDebug('Fetching data with payload:', currentPayload);
 
-  return { response, loading, error, elapsedTime  };
+                const res = await axios.post<T>('/postApi', currentPayload, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    withCredentials: true,
+                    signal: controller.signal,
+                });
+
+                setResponse(res.data);
+
+            } catch (err: any) {
+                if (axios.isCancel(err)) {
+                    console.log('Request canceled:', err.message);
+                } else {
+                    setError(err.message || 'Errore durante il recupero dei dati');
+                }
+            } finally {
+                const timeTaken = performance.now() - startTime;
+                setElapsedTime(timeTaken);
+                if (!controller.signal.aborted) setLoading(false);
+            }
+        };
+
+        fetchData();
+
+        return () => {
+            controller.abort();
+        };
+
+    }, [serializedPayload]);
+
+    return { response, loading, error, elapsedTime };
 };

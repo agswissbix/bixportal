@@ -51,7 +51,7 @@ function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
     }, [propExampleValue]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+    const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {

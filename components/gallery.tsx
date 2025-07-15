@@ -233,7 +233,7 @@ export default function GalleryView({ tableid, searchTerm, filters, view, order,
             page = pagination.limit;
         }
         setCurrentPage(page);       
-        setRefreshTable(refreshTable + 1); 
+        setRefreshTable(v => v + 1) 
     }
 
     return (

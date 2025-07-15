@@ -28,19 +28,18 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
 
 
-  const {refreshTable, setRefreshTable, setIsFiltersOpen, isFiltersOpen, } = useRecordsStore(); // Stato per il valore di ricerca
+  const {refreshTable, setIsFiltersOpen, isFiltersOpen, } = useRecordsStore(); // Stato per il valore di ricerca
 
   const {cardsList, addCard, removeCard, resetCardsList, handleRowClick, searchTerm, tableView} = useRecordsStore(); // Stato per il valore di ricerca
 
   const {activeServer } = useContext(AppContext);
   
+  const { setRefreshTable } = useRecordsStore();  
 
   
 
 
-  const refreshTableFunc = () => {
-    setRefreshTable(refreshTable + 1);
-  }
+  const refreshTableFunc = () => setRefreshTable(v => v + 1);
   
 
   const handleCreaListaLavanderia = async (mese: string) => {
