@@ -65,7 +65,7 @@ export default function Home() {
           ) : selectedMenu === 'userSettings' ? (
             <UserSettings />
           ) : selectedMenu === 'FORMULARIO' ? (
-            <BelottiFormulari formType='LIFESTYLE' />
+            <BelottiFormulari formType='LIFESTYLE' /> 
           ) : (
             <StandardContent tableid={selectedMenu} />
           )}
