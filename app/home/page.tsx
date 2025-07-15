@@ -64,8 +64,28 @@ export default function Home() {
             <Dashboard />
           ) : selectedMenu === 'userSettings' ? (
             <UserSettings />
-          ) : selectedMenu === 'FORMULARIO' ? (
-            <BelottiFormulari formType='LIFESTYLE' /> 
+          ) : selectedMenu === 'LIFESTYLE' ? (
+            <BelottiFormulari formType='LIFESTYLE' />
+          ) : selectedMenu === 'LIQUIDI LAC' ? (
+            <BelottiFormulari formType='LIQUIDI LAC' />
+          ) : selectedMenu === 'MERCE VARIA BELOTTI' ? (
+            <BelottiFormulari formType='MERCE VARIA BELOTTI' />
+          ) : selectedMenu === 'MERCE VARIA BLITZ' ? (
+            <BelottiFormulari formType='MERCE VARIA BLITZ' />
+          ) : selectedMenu === 'MERCE VARIA OAKLEY' ? (
+            <BelottiFormulari formType='MERCE VARIA OAKLEY' />
+          ) : selectedMenu === 'RIORDINO LAC' ? (
+            <BelottiFormulari formType='RIORDINO LAC' />
+          ) : selectedMenu === 'UDITO' ? (
+            <BelottiFormulari formType='UDITO' />
+          ) : selectedMenu === 'qwe' ? (
+            <BelottiFormulari formType='asd' />
+          ) : selectedMenu === 'formularioMerceVariaBlitz' ? (
+            <BelottiFormulari formType='MerceVariaBlitz' />
+          ) : selectedMenu === 'formularioMerceVariaOakley' ? (
+            <BelottiFormulari formType='MerceVariaOakley' />
+          ) : selectedMenu === 'formularioOrdiniUdito' ? (
+            <BelottiFormulari formType='OrdiniUdito' />
           ) : (
             <StandardContent tableid={selectedMenu} />
           )}
