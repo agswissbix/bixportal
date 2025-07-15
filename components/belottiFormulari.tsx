@@ -77,7 +77,7 @@ export default function OrdinePage() {
         {/* Lista scrollabile */}
         <div className="flex-1 overflow-y-auto px-4 pb-24">
           {cartItems.length === 0 ? (
-            <p className="mt-4">Il carrello è vuoto.</p>
+            <p className="mt-7">Il carrello è vuoto.</p>
           ) : (
             <ul className="space-y-3 mt-4">
               {cartItems.map((item, index) => (
