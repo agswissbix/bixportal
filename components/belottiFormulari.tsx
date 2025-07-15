@@ -107,7 +107,7 @@ export default function OrdinePage() {
               /* Per ora niente */
             }}
           >
-            Acquista
+            Invia richiesta
           </button>
         </div>
       </div>

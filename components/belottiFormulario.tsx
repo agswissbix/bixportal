@@ -190,7 +190,7 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
 
       if (isDev) {
         console.log("Complete order (dev):", completeOrder);
-        alert("Ordine salvato");
+        //alert("Ordine salvato");
         //location.reload();
         return;
       }
@@ -208,7 +208,7 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
               }
             );
-            alert("Ordine salvato");
+            //alert("Ordine salvato");
             console.info('Risposta:')
             console.info(response)
             setSelectedMenu("richieste");
@@ -335,7 +335,7 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm"
               onClick={handleSaveOrder}>
               <Save size={20} />
-              <span>AGGIUNGI AL CARRELLO DELLA RICHIESTA</span>
+              <span>AGGIUNGI ALLA RICHIESTA</span>
             </button>
           </div>
         </div>
