@@ -97,7 +97,7 @@ export default function OrdinePage() {
         {/* Bottone fisso in fondo */}
         <div className="absolute bottom-100 left-100 w-full bg-gray-100 p-5 border-t flex justify-between items-center gap-4">
           <div className="text-gray-700 text-lg">
-            <span className="font-medium">Total items: </span>
+            <span className="font-medium">Totale articoli: </span>
             <span className="font-bold text-blue-800">{getTotalItems()}</span>
           </div>
           <button
