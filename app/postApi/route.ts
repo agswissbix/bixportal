@@ -149,6 +149,7 @@ export async function POST(request: Request) {
     case 'get_dashboard_blocks': djangoUrl = '/commonapp/get_dashboard_blocks/'; break;
     case 'save_dashboard_disposition': djangoUrl = '/commonapp/save_dashboard_disposition/'; break;
     case 'add_dashboard_block': djangoUrl = '/commonapp/add_dashboard_block/'; break;
+    case 'send_order': djangoUrl = '/customapp_belotti/send_order/'; break;
 
     default:
       return NextResponse.json(

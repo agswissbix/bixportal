@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
 import BelottiFormulario from './belottiFormulario';
+import axios from 'axios';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { toast } from 'sonner';
+
+// You can configure your axios instance as needed
+const axiosInstanceClient = axios.create({
+  // baseURL: 'https://your-api-url.com', // Uncomment and set your API base URL
+  // headers: { ... } // Add any custom headers if needed
+});
 
 export default function OrdinePage() {
   const [selectedFormType, setSelectedFormType] = useState<'LIFESTYLE' | 'RIORDINO LAC'>('LIFESTYLE');
@@ -42,6 +51,28 @@ export default function OrdinePage() {
 
   };
 
+  const inviaRichiesta = async () => {
+     try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "send_order",
+                    items: cartItems,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            )
+            toast.success('Richiesta inviata con successo');
+            setCartItems([]); // Pulisce il carrello dopo l'invio
+        } catch (error) {
+            console.error('Errore durante l\'invio della richiesta', error);
+            toast.error('Errore durante l\'invio della richiesta');
+        }
+
+  };
 
   return (
 
@@ -104,7 +135,7 @@ export default function OrdinePage() {
             type="button"
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md shadow"
             onClick={() => {
-              /* Per ora niente */
+              inviaRichiesta();
             }}
           >
             Invia richiesta
