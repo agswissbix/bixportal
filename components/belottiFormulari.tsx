@@ -52,26 +52,26 @@ export default function OrdinePage() {
   };
 
   const inviaRichiesta = async () => {
-     try {
-            const response = await axiosInstanceClient.post(
-                "/postApi",
-                {
-                    apiRoute: "send_order",
-                    items: cartItems,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                }
-            )
-            toast.success('Richiesta inviata con successo');
-            setCartItems([]); // Pulisce il carrello dopo l'invio
-        } catch (error) {
-            console.error('Errore durante l\'invio della richiesta', error);
-            toast.error('Errore durante l\'invio della richiesta');
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "send_order",
+          formType: selectedFormType,
+          items: cartItems,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-
+      );
+      toast.success('Richiesta inviata con successo');
+      setCartItems([]); // Svuota il carrello
+    } catch (error) {
+      console.error('Errore durante l\'invio della richiesta', error);
+      toast.error('Errore durante l\'invio della richiesta');
+    }
   };
 
   return (
@@ -106,7 +106,7 @@ export default function OrdinePage() {
         </div>
 
         {/* Lista scrollabile */}
-        <div className="flex-1 overflow-y-auto px-4 pb-24">
+        <div className="flex-1 overflow-y-auto px-4 pb-24 mt-12">
           {cartItems.length === 0 ? (
             <p className="mt-7">Il carrello è vuoto.</p>
           ) : (
