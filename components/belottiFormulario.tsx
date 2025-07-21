@@ -7,7 +7,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { useRecordsStore } from './records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const isDev = true;
+const isDev = false;
 
 // Interfaces
 interface PropsInterface {

@@ -11,7 +11,7 @@ const axiosInstanceClient = axios.create({
 });
 
 export default function OrdinePage() {
-  const [selectedFormType, setSelectedFormType] = useState<'LIFESTYLE' | 'RIORDINO LAC'>('LIFESTYLE');
+  const [selectedFormType, setSelectedFormType] = useState<'LIFESTYLE' | 'RIORDINO LAC' | 'LIQUIDI LAC' | 'UDITO' | 'MERCE VARIA BELOTTI' | 'MERCE VARIA OAKLEY'>('LIFESTYLE');
   const [cartItems, setCartItems] = useState<any[]>([]);
 
   const getTotalItems = () => {
@@ -87,10 +87,34 @@ export default function OrdinePage() {
             LIFESTYLE
           </button>
           <button
+            onClick={() => setSelectedFormType('MERCE VARIA BELOTTI')}
+            className={`px-4 py-2 rounded ${selectedFormType === 'MERCE VARIA BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+          >
+            MERCE VARIA BELOTTI
+          </button>
+          <button
             onClick={() => setSelectedFormType('RIORDINO LAC')}
             className={`px-4 py-2 rounded ${selectedFormType === 'RIORDINO LAC' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
           >
             RIORDINO LAC
+          </button>
+          <button
+            onClick={() => setSelectedFormType('LIQUIDI LAC')}
+            className={`px-4 py-2 rounded ${selectedFormType === 'LIQUIDI LAC' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+          >
+            LIQUIDI LAC
+          </button>
+          <button
+            onClick={() => setSelectedFormType('UDITO')}
+            className={`px-4 py-2 rounded ${selectedFormType === 'UDITO' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+          >
+            UDITO
+          </button>
+          <button
+            onClick={() => setSelectedFormType('MERCE VARIA OAKLEY')}
+            className={`px-4 py-2 rounded ${selectedFormType === 'MERCE VARIA OAKLEY' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+          >
+            MERCE VARIA OAKLEY
           </button>
         </div>
 

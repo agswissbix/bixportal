@@ -135,17 +135,18 @@ export interface CheckAuthResponse {
   username?: string;
   name?: string;
   role?: string | null; // Add the role property
-  chat?: string | null;
+  chat?: string | null; //TODO CUSTOM TELEFONO AMICO
   telefono?: string | null;
   activeServer?: string;
 }
 
 // Funzione per controllare se l'utente è autenticato (endpoint: /auth/user/)
-export async function checkAuth(): Promise<CheckAuthResponse> {
+export async function checkAuth(page?: string): Promise<CheckAuthResponse> {
   try {
     console.info('Verifica autenticazione...checkAuth');
     const response = await axios.post('/postApi', {
       apiRoute: 'checkAuth',
+      page,
     });
     const { activeServer } = await getActiveServer();
 
@@ -154,7 +155,7 @@ export async function checkAuth(): Promise<CheckAuthResponse> {
       username: response.data.username,
       name: response.data.name,
       role: response.data.role,
-      chat: response.data.chat,
+      chat: response.data.chat, //TODO CUSTOM TELEFONO AMICO
       telefono: response.data.telefono,
       activeServer: activeServer,
     };

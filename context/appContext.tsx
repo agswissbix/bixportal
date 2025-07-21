@@ -62,7 +62,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     async function verifyAuth() {
       console.info('Verifica autenticazione...verifyAuth');
-      const result = await checkAuth();
+      const result = await checkAuth(pathname);
       console.info(result)
       if (!result.isAuthenticated || !result.username) {
         router.push('/login');
