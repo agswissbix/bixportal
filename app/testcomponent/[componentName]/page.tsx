@@ -34,6 +34,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     planner: dynamic(() => import('@/components/planner')),
     gantt: dynamic(() => import('@/components/gantt')),
     timeline: dynamic(() => import('@/components/timeline')),
+    trasferta: dynamic(() => import('@/components/trasferta')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

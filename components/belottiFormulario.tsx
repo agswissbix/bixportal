@@ -164,20 +164,21 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
 
 
 
-  const getCompleteOrder = () => {
-    return responseData.categories.map((category) => ({
-      title: category.title,
-      products: category.products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        quantity: parseInt(order[p.id]) || 0,
-        diottria: diottrie[p.id] || "",
-        colore: colori[p.id] || "",
-      })),
-    }));
-  };
-
-  const handleSaveOrder = async () => {
+const getCompleteOrder = () => {
+  return responseData.categories.map((category) => ({
+    title: category.title,
+    products: category.products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      quantity: parseInt(order[p.id]) || 0,
+      diottria: diottrie[p.id] || "",
+      colore: colori[p.id] || "",
+      categoria: category.title,
+    })),
+  }));
+};
+  const handleSaveOrder = async (e) => {
+    e.preventDefault(); // blocca il redirect del form
     try {
       const completeOrder = getCompleteOrder();
 
@@ -211,7 +212,7 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
             //alert("Ordine salvato");
             console.info('Risposta:')
             console.info(response)
-            setSelectedMenu("richieste");
+            //setSelectedMenu("richieste");
           } catch (error) {
             alert("Errore nel salvataggio");
           }

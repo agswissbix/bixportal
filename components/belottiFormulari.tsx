@@ -3,6 +3,7 @@ import BelottiFormulario from './belottiFormulario';
 import axios from 'axios';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
+import { useRecordsStore } from './records/recordsStore';
 
 // You can configure your axios instance as needed
 const axiosInstanceClient = axios.create({
@@ -13,6 +14,7 @@ const axiosInstanceClient = axios.create({
 export default function OrdinePage() {
   const [selectedFormType, setSelectedFormType] = useState<'LIFESTYLE' | 'RIORDINO LAC' | 'LIQUIDI LAC' | 'UDITO' | 'MERCE VARIA BELOTTI' | 'MERCE VARIA OAKLEY'>('LIFESTYLE');
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const { setSelectedMenu } = useRecordsStore();
 
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
@@ -51,28 +53,37 @@ export default function OrdinePage() {
 
   };
 
-  const inviaRichiesta = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "send_order",
-          formType: selectedFormType,
-          items: cartItems,
+const inviaRichiesta = async () => {
+  // Controllo se il carrello è vuoto o tutte le quantità sono zero
+  if (cartItems.length === 0 || getTotalItems() === 0) {
+    toast.error('Il carrello è vuoto. Aggiungi almeno un prodotto prima di inviare la richiesta.');
+    return; // Esce senza fare la chiamata API
+  }
+
+  try {
+    const response = await axiosInstanceClient.post(
+      "/postApi",
+      {
+        apiRoute: "send_order",
+        formType: selectedFormType,
+        items: cartItems,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      toast.success('Richiesta inviata con successo');
-      setCartItems([]); // Svuota il carrello
-    } catch (error) {
-      console.error('Errore durante l\'invio della richiesta', error);
-      toast.error('Errore durante l\'invio della richiesta');
-    }
-  };
+      }
+    );
+    toast.success('Richiesta inviata con successo');
+    setCartItems([]);
+
+    // Qui vai sulla pagina "richieste" senza cambiare URL
+    setSelectedMenu("richieste");
+  } catch (error) {
+    console.error("Errore durante l'invio della richiesta", error);
+    toast.error("Errore durante l'invio della richiesta");
+  }
+};
 
   return (
 
@@ -150,7 +161,7 @@ export default function OrdinePage() {
         </div>
 
         {/* Bottone fisso in fondo */}
-        <div className="absolute bottom-100 left-100 w-full bg-gray-100 p-5 border-t flex justify-between items-center gap-4">
+        <div className="absolute w-full bg-gray-100 p-5 border-t flex justify-between items-center gap-4">
           <div className="text-gray-700 text-lg">
             <span className="font-medium">Totale articoli: </span>
             <span className="font-bold text-blue-800">{getTotalItems()}</span>
