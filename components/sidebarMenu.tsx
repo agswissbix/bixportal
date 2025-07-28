@@ -20,6 +20,7 @@ interface ResponseInterface {
     menuItems: Record<string, MenuItem>;
     otherItems: SubItem[];
     favoriteTables?: string[];
+    userid ?: string; // Aggiunto per l'ID utente
 }
 
 interface SubItem{
@@ -95,10 +96,13 @@ export default function SidebarMenu({  }: PropsInterface) {
     const router = useRouter();
 
 
-    const {setSelectedMenu,selectedMenu} = useRecordsStore();
+    const {setSelectedMenu,selectedMenu, setUserid} = useRecordsStore();
 
     // DATI DEL CONTESTO
     const { user, activeServer } = useContext(AppContext);
+
+
+
 
     //FUNZIONI DEL COMPONENTE
     const handleMouseEnter = (section: string) => {
@@ -131,6 +135,9 @@ export default function SidebarMenu({  }: PropsInterface) {
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
+            if (response.userid) {
+                setUserid(response.userid);
+            }
         }
     }, [response, responseData]);
 

@@ -3,7 +3,9 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
-import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import axiosInstanceClient from '@/utils/axiosInstanceClient'
+import { useRecordsStore } from './records/recordsStore';
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -17,7 +19,7 @@ const isDev = true;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
-          responseExampleValue: string;
+            responseExampleValue?: string;
         }
 
 function UserSettings({ propExampleValue }: PropsInterface) {
@@ -27,12 +29,12 @@ function UserSettings({ propExampleValue }: PropsInterface) {
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
-                responseExampleValue: "Default"
-              };
+                responseExampleValue: "Default response"    
+            };
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
-              responseExampleValue: "Example"
+                responseExampleValue: "Development response"
             };
 
             // DATI DEL CONTESTO
@@ -41,8 +43,8 @@ function UserSettings({ propExampleValue }: PropsInterface) {
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
+    const { userid } = useRecordsStore();
 
-    // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
@@ -80,26 +82,30 @@ function UserSettings({ propExampleValue }: PropsInterface) {
 
     async function updateUserProfilePic(file: File) {
 
+    // Create FormData object
+    const formData = new FormData();
+    formData.append('apiRoute', 'update_user_profile_pic');
+    formData.append('image', file);
+
+
     const response = await axiosInstanceClient.post(
         "/postApi",
+        formData, // Send FormData directly
         {
-            apiRoute: "update_user_profile_pic",
-            image: file, // Passa il file immagine
-            user: user, // Passa l'utente corrente
-        },
-        {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+            headers: {
+                // Don't set Content-Type manually - let browser set it with boundary
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
         }
     );
+    toast.success("Immagine del profilo aggiornata con successo!");
 
     if (response.status !== 200) {
-        throw new Error("Errore durante l'aggiornamento dell'immagine del profilo");
+        toast.error("Errore durante l'aggiornamento dell'immagine del profilo.");
     }
 
     return response.data;
-    }
+}
 
 
     return (
@@ -108,7 +114,7 @@ function UserSettings({ propExampleValue }: PropsInterface) {
                 <div className="flex justify-center mb-10">
                     <div className="flex items-center gap-2">
                         <img
-                        src={`/api/media-proxy?url=userProfilePic/${user}.png`}
+                        src={`/api/media-proxy?url=userProfilePic/${userid}.png`}
                         alt="ciao"
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-400"
                         onError={(e) => {

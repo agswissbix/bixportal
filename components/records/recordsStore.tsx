@@ -70,6 +70,9 @@ interface RecordsStore {
 
     popupRecordId: string;
     setPopupRecordId: (recordid: string) => void;
+
+     userid: string;
+     setUserid: (userid: string) => void; 
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -172,7 +175,10 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     setPopUpType: (popUpType: string) => set({ popUpType: popUpType }),
 
     popupRecordId: '',
-    setPopupRecordId: (recordid: string) => set({ popupRecordId: recordid })
+    setPopupRecordId: (recordid: string) => set({ popupRecordId: recordid }),
+
+    userid: '',
+    setUserid: (userid: string) => set({ userid: userid })
 
 }));
 

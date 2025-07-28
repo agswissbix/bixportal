@@ -203,7 +203,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         handleRowClick,
         setCurrentPage,
         columnOrder,
-        setColumnOrder
+        setColumnOrder,
     } = useRecordsStore();
     
     
@@ -339,8 +339,8 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                                         className="w-6 h-6 rounded-full"
                                                         onError={(e) => {
                                                             const img = e.target as HTMLImageElement;
-                                                            img.onerror = null; // evita loop infinito
-                                                            //img.src = '/api/media-proxy?url=userProfilePic/default.jpg';
+                                                            //img.onerror = null; // evita loop infinito
+                                                            img.src = '/api/media-proxy?url=userProfilePic/default.jpg';
                                                         }}
                                                         />
                                                     )}
@@ -369,7 +369,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                     <button 
                                         onClick={() => pagination && setTablePage(pagination.page - 1)} 
                                         disabled={!pagination || pagination.page === 1} 
-                                        className={`flex items-center justify-center px-3 h-8 ms-0 leading-tight border border-e-0 rounded-s-lg 
+                                        className={`flex items-center justify-center px-3 h-8 ms-0 leading-tight border border-e-0 rounded-s-lg     
                                             ${!pagination || pagination.page === 1 ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'} 
                                             dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white`}
                                     >Previous</button>
