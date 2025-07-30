@@ -195,30 +195,6 @@ const getCompleteOrder = () => {
         //location.reload();
         return;
       }
-      else {
-        setTimeout(async () => {
-          try {
-            const response = await axiosInstanceClient.post(
-              "/postApi",
-              {
-                apiRoute: "belotti_salva_formulario",
-                completeOrder: completeOrder,
-                formType: formType,
-              },
-              {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-              }
-            );
-            //alert("Ordine salvato");
-            console.info('Risposta:')
-            console.info(response)
-            //setSelectedMenu("richieste");
-          } catch (error) {
-            alert("Errore nel salvataggio");
-          }
-        }, 0);
-      }
-      console.log(payload);
     } catch (error) {
       console.error("Order save error:", error);
       alert("Error saving the order.");
