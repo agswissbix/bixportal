@@ -384,20 +384,23 @@ export default function Pivot({
           <div className="w-full flex-grow relative overflow-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm text-left text-gray-700 dark:text-gray-300 table-auto">
               <thead className="text-xs sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 shadow-sm">
-                <tr>
-                  {finalColumns.map((c, i) => (
-                    <th
-                      key={`${c.desc}-${i}`}
-                      scope="col"
-                      className={`px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-200 uppercase ${
-                        i === 0 ? "w-2/5" : ""
-                      }`}
-                    >
-                      {c.desc}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+  <tr>
+    {finalColumns.map((c, i) => (
+      <th
+        key={`${c.desc}-${i}`}
+        scope="col"
+        className={`px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-200 uppercase
+          ${i === 0 ? "sticky left-0 z-20 bg-gray-100 dark:bg-gray-800" : ""}
+          ${i === 1 ? "sticky left-[200px] z-10 bg-gray-100 dark:bg-gray-800" : ""}
+        `}
+        style={i === 0 ? { minWidth: 200, maxWidth: 200 } : i === 1 ? { minWidth: 200, maxWidth: 200 } : {}}
+      >
+        {c.desc}
+      </th>
+    ))}
+  </tr>
+</thead>
+
 
               <tbody>
                 {resp.groups.map((g) => (
