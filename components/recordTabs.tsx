@@ -24,12 +24,12 @@ export default function RecordTabs({ tableid }: PropsInterface) {
   const { user } = useContext(AppContext);
 
   const responseDataDEFAULT: ResponseInterface = {
-    tableTabs: ['Tabella', 'Kanban', 'Calendario', 'Galleria', 'Pivot'],
+    tableTabs: ['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'],
     activeTab: 'Tabella'
   };
 
   const responseDataDEV: ResponseInterface = {
-    tableTabs: ['Tabella', 'Kanban', 'Calendario', 'Galleria', 'Pivot'],
+    tableTabs: ['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'],
     activeTab: 'Tabella'
   };
 
@@ -95,13 +95,13 @@ export default function RecordTabs({ tableid }: PropsInterface) {
             {activeTab === 'Calendario' && (
               <PitCalendar tableid={tableid} />
             )}
-            {activeTab === 'Galleria' && (
+            {activeTab === 'Gallery' && (
               <GalleryView tableid={tableid} />
             )}
             {activeTab === 'Pivot' && (
               <Pivot tableid={tableid} />
             )}
-            {['Tabella', 'Kanban', 'Calendario', 'Galleria', 'Pivot'].indexOf(activeTab) === -1 && (
+            {['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'].indexOf(activeTab) === -1 && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
           </div>

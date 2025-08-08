@@ -40,7 +40,6 @@ export default function Home() {
 
       {/* Contenitore principale con Navbar e contenuto */}
       <div className="flex flex-col w-full h-full">
-        <Navbar className="w-full  bg-white shadow-md" />
 
         {/* Contenuto principale */}
         <PopUpManager 

@@ -34,7 +34,7 @@ const isDev = false;
           level?: number;
           filtersList?: Array<{
             fieldid: string;
-            type: string;
+            type: string;   
             label: string;
             value: string;
             }>;
@@ -91,7 +91,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                 rows: [
                     {
                         recordid: "1",
-                        css: "bg-red-500",
+                        css: "bg-green-500",
                         fields: [
                             {
                                 recordid: "",
@@ -285,7 +285,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         console.log('[DEBUG] RecordsTable rendered');
       });
     return (
-        <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable' elapsedTime={elapsedTime}> 
+        <GenericComponent response={responseData}  error={error} title='recordsTable' elapsedTime={elapsedTime}> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full ">
                     
@@ -324,7 +324,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             </thead>
                             <tbody className="max-h-full h-11/12 overflow-y-auto overflow-x-hidden block w-full rounded-b-xl">
                                 {response.rows.map((row) => (
-                                    <tr className={`table table-fixed w-full bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${row.css}`} key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
+                                    <tr className={`table table-fixed w-full  border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${row.css}`} key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
                                         {row.fields.map((field, index) => {
                                             const column = response.columns[index]; // Prende la colonna corrispondente
                                             return (

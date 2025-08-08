@@ -3,10 +3,11 @@ import Image from 'next/image';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import { Home, Package, Mail, ChevronDown, ChevronUp, HelpCircle, LucideIcon, Star } from 'lucide-react';
+import { Home, Package, Mail, ChevronDown, ChevronUp, HelpCircle, LucideIcon, Star, Menu as LucideMenu, LogOut, Settings, User, Lock } from 'lucide-react';
 import '@/app/globals.css';
 import { useRecordsStore } from './records/recordsStore';
 import { useRouter } from 'next/navigation';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -96,10 +97,11 @@ export default function SidebarMenu({  }: PropsInterface) {
     const router = useRouter();
 
 
-    const {setSelectedMenu,selectedMenu, setUserid} = useRecordsStore();
+    const {setSelectedMenu,selectedMenu, setUserid, userid} = useRecordsStore();
 
     // DATI DEL CONTESTO
     const { user, activeServer } = useContext(AppContext);
+
 
 
 
@@ -144,7 +146,8 @@ export default function SidebarMenu({  }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu" elapsedTime={elapsedTime}> 
             {(data) => (
-                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg">
+                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg flex flex-col justify-between">
+                    <div>
                     <Image 
                         //src={`/bixdata/logos/${activeServer}.png`}
                         src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : activeServer === 'belotti' ? 'belotti' : activeServer === 'winteler' ? 'winteler' : 'default'}.png`}
@@ -288,6 +291,77 @@ export default function SidebarMenu({  }: PropsInterface) {
                             );
                         })}
                     </ul>
+                    </div>
+                    <Menu as="div" className="relative ml-4 mb-4">
+                        <div className="flex items-center gap-2">
+                            <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                                <span className="absolute -inset-1.5" />
+                                <span className="sr-only">Open user menu</span>
+                                <img
+                                    src={`/api/media-proxy?url=userProfilePic/${userid}.png`}
+                                    alt="ciao"
+                                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-400"
+                                    onError={(e) => {
+                                        const target = e.currentTarget;
+                                        if (!target.src.includes("default.jpg")) {
+                                        target.src = "/api/media-proxy?url=userProfilePic/default.jpg";
+                                        }
+                                    }}
+                                />
+                                <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-gradient-to-br from-indigo-200 to-green-500 rounded-full border-2 border-gray-800 shadow-lg"></div>
+                            </MenuButton>
+                            <span className="text-white text-sm font-medium">{user}</span>
+
+                        </div>
+
+                        <MenuItems
+                            transition
+                            className="absolute right-0 bottom-full w-48 origin-bottom-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none"
+                        >
+                            <MenuItem>
+                                <div className="px-4 py-3 border-b border-gray-700/50">
+                                    <p className="text-sm font-medium text-black">{user}</p>
+                                    <p className="text-xs text-gray-700">Utente attivo</p>
+                                </div>
+                            </MenuItem>
+                            <MenuItem>
+                                <a
+                                    href="#"
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                    onClick={() => setSelectedMenu('userSettings')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Settings className="w-4 h-4" />
+                                        <span>Settings</span>
+                                    </div>
+                                </a>
+                            </MenuItem>
+                            <MenuItem>
+                                <a
+                                    href="#"
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                    onClick={() => router.push('/change-password')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Lock className="w-4 h-4" />
+                                        <span>Cambia password</span>
+                                    </div>
+                                </a>
+                            </MenuItem>
+                            <MenuItem>
+                                <a
+                                    href="#"
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <LogOut className="w-4 h-4" />
+                                        <span>Logout</span>
+                                    </div>
+                                </a>
+                            </MenuItem>
+                        </MenuItems>
+                    </Menu>
+
                 </div>
             )}
         </GenericComponent>

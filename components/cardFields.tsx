@@ -12,7 +12,7 @@ import SelectStandard from './selectStandard';
 import InputLinked from './inputLinked';
 import InputEditor from './inputEditor';
 import InputFile from './inputFile';
-import { forEach, update } from 'lodash';
+import { forEach, random, update } from 'lodash';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
@@ -240,14 +240,12 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
             console.error('Errore durante il salvataggio del record:', error);
             toast.error('Errore durante il salvataggio del record');
         } finally {
-            setRefreshTable(v => v + 1)
+            setRefreshTable((prev: number) => prev + 1);
             if (mastertableid && masterrecordid) {
                 removeCard(tableid, recordid);
-                handleRowClick('standard', masterrecordid, mastertableid, mastertableid, masterrecordid);
 
                 //addCard(mastertableid, masterrecordid, 'standard');
             } else {
-                removeCard(tableid, recordid);
                 //addCard(tableid, recordid, 'standard');
                 handleRowClick('standard', newRecordId, tableid, mastertableid, masterrecordid);
             }
