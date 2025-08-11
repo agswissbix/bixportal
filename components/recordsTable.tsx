@@ -285,7 +285,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
         console.log('[DEBUG] RecordsTable rendered');
       });
     return (
-        <GenericComponent response={responseData}  error={error} title='recordsTable' elapsedTime={elapsedTime}> 
+        <GenericComponent response={responseData} loading={loading} error={error} title='recordsTable' elapsedTime={elapsedTime}> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full ">
                     

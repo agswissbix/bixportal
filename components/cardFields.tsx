@@ -240,7 +240,10 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
             console.error('Errore durante il salvataggio del record:', error);
             toast.error('Errore durante il salvataggio del record');
         } finally {
-            setRefreshTable((prev: number) => prev + 1);
+
+            setRefreshTable(v => v + 1);
+
+            //add delay
             if (mastertableid && masterrecordid) {
                 removeCard(tableid, recordid);
 
@@ -249,6 +252,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                 //addCard(tableid, recordid, 'standard');
                 handleRowClick('standard', newRecordId, tableid, mastertableid, masterrecordid);
             }
+
         }
     };
     
