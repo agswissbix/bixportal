@@ -122,13 +122,13 @@ const exportExcel = async () => {
     toast.dismiss(loadingToastId);
     toast.error("Errore durante l'esportazione in Excel");
   }
-};
+}; 
 
 
   return (
     <GenericComponent title="standardContent"> 
       {(data) => (
-          <div className="h-full w-full shadow-2xl bg-white rounded-lg p-4">
+          <div className="h-full w-full shadow-2xl bg-records-background rounded-lg p-4">
           {/*
           <h2>Contenuto</h2>
           <p>Hai selezionato: <strong>{tableid}</strong></p>

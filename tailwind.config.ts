@@ -44,12 +44,21 @@ export default {
 			navbar: 'var(--navbar-background)',
 			primary: 'var(--color-primary)',
 			secondary: 'var(--color-secondary)',
+			tertiary: 'var(--color-tertiary)',
   			background: 'var(--background)',
   			foreground: 'hsl(var(--foreground))',
+			records: {
+				background: 'var(--records-background)',
+			},
   			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
+				background: 'var(--card-background)',
+				border: 'var(--card-border)',
   			},
+			table : {
+				background: 'var(--table-background)',
+				border: 'var(--table-border)',
+				header: 'var(--table-head)',
+			},
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'

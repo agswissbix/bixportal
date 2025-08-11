@@ -264,7 +264,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
   return (
     <div
-            className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 z-10 rounded-xl border-2 border-gray-50 p-3 ${animationClass} ${
+            className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-card-background z-10 rounded-xl border-2 border-card-border p-3 ${animationClass} ${
                 isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-5/6'
             } transition-all duration-300`}
             style={{

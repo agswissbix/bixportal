@@ -2,6 +2,8 @@
 
 import './globals.css';
 import { AppContext, AppProvider } from '@/context/appContext';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { use, useEffect } from 'react';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
