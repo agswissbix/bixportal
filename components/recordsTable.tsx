@@ -54,6 +54,9 @@ const isDev = false;
                     type: string;
                     value: string;
                     fieldid: string;
+                    userid?: string;
+                    linkedmaster_tableid?: string;
+                    linkedmaster_recordid?: string;
                 }>
             }>;
             columns: Array<{    
@@ -334,7 +337,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                                 >
                                                     {column?.fieldtypeid === 'Utente' && (
                                                         <img
-                                                        src={`/api/media-proxy?url=userProfilePic/${field.value}.png`}
+                                                        src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
                                                         alt="Utente"
                                                         className="w-6 h-6 rounded-full"
                                                         onError={(e) => {
