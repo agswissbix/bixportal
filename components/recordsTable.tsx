@@ -294,7 +294,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                     
                     <div className="w-full h-full relative rounded-lg">
                         <table className="max-h-full block w-full h-11/12 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl ">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 table table-fixed w-full rounded-t-xl">
+                            <thead className="text-xs text-gray-700 uppercase bg-table-header  dark:text-gray-400 table table-fixed w-full rounded-t-xl">
                                 <tr>
                                     {response.columns.map((column) => (
                                         <th
@@ -355,9 +355,9 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                 ))}
 
                             </tbody>
-                            <tfoot className="h-1/12 bg-gray-200 dark:bg-gray-700">
+                            <tfoot className=" table table-fixed w-full rounded-b-xl bg-table-header dark:bg-gray-700">
                                 <tr>
-                                    <td colSpan={response.columns.length} className="px-4 py-3 text-right rounded-b-xl">
+                                    <td colSpan={response.columns.length} className="px-4 py-3 text-right rounded-b-xl float-start">
                                         <span className="font-medium">Totale:</span> {response.counter}
                                     </td>
                                 </tr>

@@ -4,17 +4,25 @@
     --background: white;
     
     --color-primary: #ff5b5b;
+    --color-primary-hover: #ff3b3b;
+
     --color-secondary: #074048;
+    --color-secondary-hover: #062d36;
+
     --color-tertiary: #ffd900;
+    --color-tertiary-hover: #e6c700;
 
     --card-background: #f8f9fa;
     --card-border: #dee2e6;
 
-    --table-background: #f8f9fa;
+    --table-background: whitesmoke;
     --table-border: #dee2e6;
-    --table-header: #f1f3f5;
+    --table-header: #e5e7eb;
 
     --records-background: rgb(255, 255, 255);
+
+    --badge-background: #074048;
+    --badge-border: red;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
@@ -35,30 +43,187 @@
     --radius: 0.5rem;
     --font-body: 'Poppins', sans-serif;
   }
-  .theme-test {
-    --sidebar-background: linear-gradient(180deg, #ffd900 90%, #ede4e4 200%);
-    --navbar-background: #ff0000;
-    --background: white;
-    --color-primary: #ff00d496;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --font-body: 'Revert', sans-serif;
-  }
+
+  .forest {
+  --sidebar-background: linear-gradient(180deg, #1d4320 90%, #3a753d 200%);
+  --navbar-background: #2b542e;
+  --background: #f8fcf8;
+
+  --color-primary: #4a914c;
+  --color-primary-hover: #3b7a3a;
+
+  --color-secondary: #1d4320;
+  --color-secondary-hover: #1a3a1b;
+
+  --color-tertiary: #f0b721;
+  --color-tertiary-hover: #d9a620;
+
+  --card-background: #ffffff;
+  --card-border: #e6e9e6;
+
+  --table-background: #ffffff;
+  --table-border: #e6e9e6;
+  --table-header: #f0f5f0;
+
+  --records-background: #ffffff;
+
+  --badge-background: #1d4320;
+  --badge-border: #4a914c;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --muted: 120 10% 95%;
+  --muted-foreground: 120 10% 40%;
+  --accent: 120 10% 95%;
+  --accent-foreground: 120 15% 20%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 120 15% 90%;
+  --input: 120 15% 90%;
+  --ring: 120 50% 30%;
+  --chart-1: 150 70% 40%;
+  --chart-2: 100 50% 30%;
+  --chart-3: 80 60% 50%;
+  --chart-4: 60 70% 60%;
+  --chart-5: 40 80% 70%;
+  --radius: 0.5rem;
+  --font-body: 'Inter', sans-serif;
+}
+
+.oceanic {
+  --sidebar-background: linear-gradient(180deg, #0f1c2e 90%, #004e92 200%);
+  --navbar-background: #1a2a40;
+  --background: #f0f4f8;
+
+  --color-primary: #007bff;
+  --color-primary-hover: #0056b3;
+
+  --color-secondary: #0f1c2e;
+  --color-secondary-hover: #0d1a24;
+
+  --color-tertiary: #20c997;
+  --color-tertiary-hover: #1aa76d;
+
+  --card-background: #ffffff;
+  --card-border: #e0e6ed;
+
+  --table-background: #ffffff;
+  --table-border: #e0e6ed;
+  --table-header: #f0f4f8;
+
+  --records-background: #ffffff;
+
+  --badge-background: #0f1c2e;
+  --badge-border: #007bff;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --chart-1: 200 60% 50%;
+  --chart-2: 170 50% 40%;
+  --chart-3: 240 30% 20%;
+  --chart-4: 210 70% 60%;
+  --chart-5: 230 40% 30%;
+  --radius: 0.5rem;
+  --font-body: 'Roboto', sans-serif;
+}
+
+.sunset {
+  --sidebar-background: linear-gradient(180deg, #5b0f49 90%, #d82b4a 200%);
+  --navbar-background: #7a1d60;
+  --background: #fdf5f5;
+
+  --color-primary: #d82b4a;
+  --color-primary-hover: #b21f3c;
+
+  --color-secondary: #5b0f49;
+  --color-secondary-hover: #4a0e3a;
+  
+  --color-tertiary: #f9d423;
+  --color-tertiary-hover: #d9a620;
+
+  --card-background: #ffffff;
+  --card-border: #f0e6e6;
+
+  --table-background: #ffffff;
+  --table-border: #f0e6e6;
+  --table-header: #f9f0f0;
+
+  --records-background: #ffffff;
+
+  --badge-background: #5b0f49;
+  --badge-border: #d82b4a;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --muted: 350 10% 95%;
+  --muted-foreground: 340 10% 40%;
+  --accent: 350 10% 95%;
+  --accent-foreground: 340 15% 20%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 350 15% 90%;
+  --input: 350 15% 90%;
+  --ring: 340 50% 30%;
+  --chart-1: 330 60% 50%;
+  --chart-2: 300 40% 30%;
+  --chart-3: 15 80% 60%;
+  --chart-4: 50 90% 70%;
+  --chart-5: 25 70% 50%;
+  --radius: 0.5rem;
+  --font-body: 'Montserrat', sans-serif;
+}
+
+.bixhub {
+  --sidebar-background: linear-gradient(180deg, #111111 90%, #202020 200%);
+  --navbar-background: #181818;
+  --background: #282828;
+  
+  --color-primary: #ff9900;
+  --color-primary-hover: #ff5c00;
+
+  --color-secondary: #282828;
+  --color-secondary-hover: #1f1f1f;
+
+  --color-tertiary: #ffffff;
+  --color-tertiary-hover: #e6c700;
+
+  --card-background: #f8f9fa;
+  --card-border: #dee2e6;
+
+  --table-background: whitesmoke;
+  --table-border: #dee2e6;
+  --table-header: #e5e7eb;
+
+  --records-background: rgb(255, 255, 255);
+
+  --badge-background: #ff9900;
+  --badge-border: #ff005c;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 0 0% 3.9%;
+  --chart-1: 30 100% 50%;
+  --chart-2: 330 100% 50%;
+  --chart-3: 0 0% 100%;
+  --chart-4: 0 0% 80%;
+  --chart-5: 0 0% 60%;
+  --radius: 0.5rem;
+  --font-body: 'Poppins', sans-serif;
+}

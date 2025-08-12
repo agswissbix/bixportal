@@ -151,6 +151,7 @@ export async function POST(request: Request) {
     case 'add_dashboard_block': djangoUrl = '/commonapp/add_dashboard_block/'; break;
     case 'send_order': djangoUrl = '/customapp_belotti/send_order/'; break;
     case 'get_user_theme': djangoUrl = '/commonapp/get_user_theme/'; break;
+    case 'set_user_theme': djangoUrl = '/commonapp/set_user_theme/'; break;
 
     default:
       return NextResponse.json(

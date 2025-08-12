@@ -435,11 +435,11 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                       </button>
 
                       <button 
-                        className="p-2 rounded-full hover:bg-red-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out" 
+                        className="p-2 rounded-full hover:bg-gray-200 transition-colors hover:scale-110 transition-all duration-100 ease-in-out" 
                         onClick={handleTrashClick}
                         title="Elimina"
                       >
-                        <Trash2 className="w-6 h-6 text-primary hover:text-red-500" />
+                        <Trash2 className="w-6 h-6 text-primary hover:text-primaryHover" />
                       </button>
                     </>
                   )}

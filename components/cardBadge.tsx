@@ -75,7 +75,7 @@ export default function CardBadge({ tableid, recordid }: PropsInterface) {
     <GenericComponent response={responseData} loading={loading} error={error} title="cardBadge">
       {(response: ResponseInterface) => (
         <div className="h-full w-full flex justify-center items-center">
-          <div className="flex flex-wrap justify-center w-full h-5/6 bg-secondary rounded-xl p-3">
+          <div className="flex flex-wrap justify-center w-full h-5/6 bg-badge-background border-badge-border rounded-xl p-3">
             {Object.entries(response.badgeItems).map(([key, item]) => (
               <p key={key} className="w-1/3 text-center text-white">
                 {item}

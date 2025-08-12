@@ -72,7 +72,10 @@ interface RecordsStore {
     setPopupRecordId: (recordid: string) => void;
 
      userid: string;
-     setUserid: (userid: string) => void; 
+     setUserid: (userid: string) => void;
+
+     theme: string;
+     setTheme: (theme: string) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -178,7 +181,10 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     setPopupRecordId: (recordid: string) => set({ popupRecordId: recordid }),
 
     userid: '',
-    setUserid: (userid: string) => set({ userid: userid })
+    setUserid: (userid: string) => set({ userid: userid }),
+
+    theme: 'default',
+    setTheme: (theme: string) => set({ theme: theme }),
 
 }));
 

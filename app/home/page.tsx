@@ -22,8 +22,7 @@ import UserSettings from '@/components/userSettings';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 export default function Home() {
-  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId} = useRecordsStore();
-  const [theme, setTheme] = useState('');
+  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme} = useRecordsStore();
   const router = useRouter();
 
 useEffect(() => {
@@ -38,7 +37,12 @@ useEffect(() => {
         { apiRoute: "get_user_theme" },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
-      setTheme(response.data.theme.value);
+      if (!response.data || !response.data.theme) {
+        console.log('Nessun tema trovato nella risposta dell\'API');
+        return;
+      } else {
+        setTheme(response.data.theme.value);
+      }
     } catch (error) {
       console.error('Errore ', error);
       toast.error('Errore durante il recupero del tema');
@@ -67,7 +71,7 @@ useEffect(() => {
 
         {/* Contenuto principale */}
         <PopUpManager 
-          isOpen={isPopupOpen} 
+          isOpen={isPopupOpen}
           onClose={() => setIsPopupOpen(false)} 
           type={popUpType}
           tableid={selectedMenu}
