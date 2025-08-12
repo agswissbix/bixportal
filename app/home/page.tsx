@@ -14,6 +14,7 @@ import Agenda from '@/components/agenda';
 import PitCalendar from '@/components/pitCalendar';
 import CalendarComponent from '@/components/calendarComponent';
 import Dashboard from '@/components/dashboard';
+import DashboardSection from '@/components/dashboardSection';
 import { set } from 'lodash';
 import SimplePopup from '@/components/inviaEmail';
 import PopUpManager from '@/components/popUpManager';
@@ -88,7 +89,7 @@ useEffect(() => {
           ) : selectedMenu === 'Calendario' ? (
             <CalendarComponent />
           ) : selectedMenu === 'Dashboard' ? (
-            <Dashboard />
+            <DashboardSection />
           ) : selectedMenu === 'userSettings' ? (
             <UserSettings />
           ) : selectedMenu === 'LIFESTYLE' ? (

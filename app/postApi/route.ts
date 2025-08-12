@@ -146,12 +146,15 @@ export async function POST(request: Request) {
     case 'download_offerta': djangoUrl = '/customapp_pitservice/download_offerta/'; break;
     case 'get_table_active_tab': djangoUrl = '/commonapp/get_table_active_tab/'; break;
     case 'update_user_profile_pic': djangoUrl = '/commonapp/update_user_profile_pic/'; break;
+    case 'get_dashboard_data': djangoUrl = '/commonapp/get_dashboard_data/'; break;
     case 'get_dashboard_blocks': djangoUrl = '/commonapp/get_dashboard_blocks/'; break;
     case 'save_dashboard_disposition': djangoUrl = '/commonapp/save_dashboard_disposition/'; break;
     case 'add_dashboard_block': djangoUrl = '/commonapp/add_dashboard_block/'; break;
     case 'send_order': djangoUrl = '/customapp_belotti/send_order/'; break;
     case 'get_user_theme': djangoUrl = '/commonapp/get_user_theme/'; break;
     case 'set_user_theme': djangoUrl = '/commonapp/set_user_theme/'; break;
+    case 'new_dashboard': djangoUrl = '/commonapp/new_dashboard/'; break;
+    case'delete_dashboard_block': djangoUrl = '/commonapp/delete_dashboard_block/'; break;
 
     default:
       return NextResponse.json(
