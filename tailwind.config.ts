@@ -43,13 +43,29 @@ export default {
 			},
 			navbar: 'var(--navbar-background)',
 			primary: 'var(--color-primary)',
+			primaryHover: 'var(--color-primary-hover)',
 			secondary: 'var(--color-secondary)',
+			secondaryHover: 'var(--color-secondary-hover)',
+			tertiary: 'var(--color-tertiary)',
+			tertiaryHover: 'var(--color-tertiary-hover)',
   			background: 'var(--background)',
   			foreground: 'hsl(var(--foreground))',
+			records: {
+				background: 'var(--records-background)',
+			},
   			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
+				background: 'var(--card-background)',
+				border: 'var(--card-border)',
   			},
+			table: {
+				background: 'var(--table-background)',
+				border: 'var(--table-border)',
+				header: 'var(--table-header)',
+			},
+			badge : {
+				background: 'var(--badge-background)',
+				border: 'var(--badge-border)',
+			},
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'

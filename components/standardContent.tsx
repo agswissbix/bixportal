@@ -122,13 +122,13 @@ const exportExcel = async () => {
     toast.dismiss(loadingToastId);
     toast.error("Errore durante l'esportazione in Excel");
   }
-};
+}; 
 
 
   return (
     <GenericComponent title="standardContent"> 
       {(data) => (
-          <div className="h-full w-full shadow-2xl bg-white rounded-lg p-4">
+          <div className="h-full w-full shadow-2xl bg-records-background rounded-lg p-4">
           {/*
           <h2>Contenuto</h2>
           <p>Hai selezionato: <strong>{tableid}</strong></p>
@@ -179,7 +179,7 @@ const exportExcel = async () => {
 
                 <button
                   type="button"
-                  className="font-bold inline-flex items-center px-5 py-2.5 text-sm text-white bg-primary rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-100 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  className="font-bold inline-flex items-center px-5 py-2.5 text-sm text-white bg-primary rounded-lg hover:bg-primaryHover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-100 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   onClick={() => handleRowClick('', "", tableid)}
                 >
                   <PlusIcon className="w-5 h-5 mr-2" />

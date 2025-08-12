@@ -97,7 +97,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     const router = useRouter();
 
 
-    const {setSelectedMenu,selectedMenu, setUserid, userid} = useRecordsStore();
+    const {setSelectedMenu,selectedMenu, setUserid, userid, theme} = useRecordsStore();
 
     // DATI DEL CONTESTO
     const { user, activeServer } = useContext(AppContext);
@@ -149,8 +149,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg flex flex-col justify-between">
                     <div>
                     <Image 
-                        //src={`/bixdata/logos/${activeServer}.png`}
-                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer === 'pitservice' ? 'pitservice' : activeServer === 'belotti' ? 'belotti' : activeServer === 'winteler' ? 'winteler' : 'default'}.png`}
+                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer || 'default'}_${theme}.png`}
                         //src="/bixdata/logos/ptm.jpg"
                         alt={activeServer ?? ''}
                         width={1000}

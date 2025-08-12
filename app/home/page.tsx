@@ -19,31 +19,59 @@ import SimplePopup from '@/components/inviaEmail';
 import PopUpManager from '@/components/popUpManager';
 import BelottiFormulari from '@/components/belottiFormulari';
 import UserSettings from '@/components/userSettings';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 export default function Home() {
-  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId} = useRecordsStore();
+  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme} = useRecordsStore();
   const router = useRouter();
 
-  useEffect(() => {
-    if (selectedMenu) {
-      setTableid(selectedMenu);
-    }
-  }, [selectedMenu]);
+useEffect(() => {
+  if (selectedMenu) {
+    setTableid(selectedMenu);
+  }
 
-  return (    
-   <div className="w-full h-screen flex">
-    
+  const fetchTheme = async () => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        { apiRoute: "get_user_theme" },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      if (!response.data || !response.data.theme) {
+        console.log('Nessun tema trovato nella risposta dell\'API');
+        return;
+      } else {
+        setTheme(response.data.theme.value);
+      }
+    } catch (error) {
+      console.error('Errore ', error);
+      toast.error('Errore durante il recupero del tema');
+    }
+  };
+
+  fetchTheme();
+}, [selectedMenu]);
+
+useEffect(() => {
+  if (theme) {
+    document.documentElement.classList.add(theme);
+  }
+}, [theme]);
+
+  return (
+    <div className="w-full h-screen flex">
+
       <Toaster richColors position="top-right" />
       
       {/* Sidebar occupa tutta l'altezza */}
       <Sidebar className="h-screen  bg-gray-800 text-white" />
 
       {/* Contenitore principale con Navbar e contenuto */}
-      <div className="flex flex-col w-full h-full">
+      <div className=" flex flex-col w-full h-full">
 
         {/* Contenuto principale */}
         <PopUpManager 
-          isOpen={isPopupOpen} 
+          isOpen={isPopupOpen}
           onClose={() => setIsPopupOpen(false)} 
           type={popUpType}
           tableid={selectedMenu}

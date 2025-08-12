@@ -264,7 +264,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
   return (
     <div
-            className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 z-10 rounded-xl border-2 border-gray-50 p-3 ${animationClass} ${
+            className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-card-background z-10 rounded-xl border-2 border-card-border p-3 ${animationClass} ${
                 isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-5/6'
             } transition-all duration-300`}
             style={{
@@ -435,11 +435,11 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                       </button>
 
                       <button 
-                        className="p-2 rounded-full hover:bg-red-100 transition-colors hover:scale-110 transition-all duration-100 ease-in-out" 
+                        className="p-2 rounded-full hover:bg-gray-200 transition-colors hover:scale-110 transition-all duration-100 ease-in-out" 
                         onClick={handleTrashClick}
                         title="Elimina"
                       >
-                        <Trash2 className="w-6 h-6 text-primary hover:text-red-500" />
+                        <Trash2 className="w-6 h-6 text-primary hover:text-primaryHover" />
                       </button>
                     </>
                   )}
