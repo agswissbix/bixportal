@@ -12,6 +12,7 @@ import { useRecordsStore } from '@/components/records/recordsStore';
 import ScheduleCalendar from '@/app/custom/ta/components/scheduleCalendar';
 import Agenda from '@/components/agenda';
 import PitCalendar from '@/components/pitCalendar';
+import recordsCalendar from '@/components/recordsCalendar';
 import CalendarComponent from '@/components/calendarComponent';
 import Dashboard from '@/components/dashboard';
 import DashboardSection from '@/components/dashboardSection';
