@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: {
+    appIsrStatus: false,     // nasconde il badge "Static/Dynamic route"
+    buildActivity: false,    // nasconde lo spinner di compilazione
+    // buildActivityPosition: 'bottom-left', // opzionale
+  },
+  //TODO: Rivedere questa configurazione per la produzione per le porte
   images: {
     remotePatterns: [
       {
