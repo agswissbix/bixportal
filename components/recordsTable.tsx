@@ -230,7 +230,8 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
             },
             filtersList: filters,
             masterTableid: masterTableid,
-            masterRecordid: masterRecordid
+            masterRecordid: masterRecordid,
+            _refreshTick: refreshTable
         };
     }, [tableid, refreshTable, pagination, masterTableid, masterRecordid, columnOrder.columnDesc, columnOrder.direction, filters]);
 
@@ -332,23 +333,29 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                                             const column = response.columns[index]; // Prende la colonna corrispondente
                                             return (
                                                 <td
-                                                className={`px-4 py-3 whitespace-nowrap text-ellipsis overflow-hidden min-w-[120px] max-w-[200px] ${field.css}`}
-                                                key={`${row.recordid}-${field.fieldid}`}
-                                                >
-                                                    {column?.fieldtypeid === 'Utente' && (
-                                                        <img
-                                                        src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
-                                                        alt="Utente"
-                                                        className="w-6 h-6 rounded-full"
-                                                        onError={(e) => {
-                                                            const img = e.target as HTMLImageElement;
-                                                            //img.onerror = null; // evita loop infinito
-                                                            img.src = '/api/media-proxy?url=userProfilePic/default.jpg';
-                                                        }}
-                                                        />
-                                                    )}
-                                                    <span dangerouslySetInnerHTML={{ __html: field.value }} />
-                                                </td>
+    className={`px-4 py-3 min-w-[120px] max-w-[200px] ${field.css}`} // Rimosse le classi di layout del testo dal <td>
+    key={`${row.recordid}-${field.fieldid}`}
+>
+    {/* Questo è il wrapper che gestisce il layout interno della cella */}
+    <div className="flex items-center gap-x-2">
+        {column?.fieldtypeid === 'Utente' && (
+            <img
+                src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
+                alt="Utente"
+                className="w-6 h-6 rounded-full flex-shrink-0" // flex-shrink-0 impedisce all'immagine di rimpicciolirsi
+                onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.src = '/api/media-proxy?url=userProfilePic/default.jpg';
+                }}
+            />
+        )}
+
+        {/* Le classi per la gestione del testo (truncation) vanno qui */}
+        <span className="whitespace-nowrap text-ellipsis overflow-hidden">
+            <span dangerouslySetInnerHTML={{ __html: field.value }} />
+        </span>
+    </div>
+</td>
                                             );
                                              })}
                                     </tr>

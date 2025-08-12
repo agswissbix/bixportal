@@ -87,7 +87,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
           {/* Tab Content */}
           <div className="h-11/12 p-4">
             {activeTab === 'Tabella' && (
-              <RecordsTable  tableid={tableid} context='standard' searchTerm={searchTerm} view={tableView}/>
+              <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Kanban' && (
               <Kanban tableid={tableid} />
@@ -99,7 +99,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
               <GalleryView tableid={tableid} />
             )}
             {activeTab === 'Pivot' && (
-              <Pivot tableid={tableid} />
+              <Pivot tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm}  />
             )}
             {['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'].indexOf(activeTab) === -1 && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>

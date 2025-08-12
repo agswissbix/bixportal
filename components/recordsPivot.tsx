@@ -16,12 +16,31 @@ const isDev = false;
 
 const AppContext = createContext({ user: { name: "" } });
 
-interface PropsInterface {
-  tableid?: string;
-  searchTerm?: string;
-  filters?: string;
-  context?: string;
-}
+// INTERFACCIA PROPS
+  interface PropsInterface {
+    tableid?: string;
+    searchTerm?: string;
+    filters?: string;
+    view?: string;
+    order?: {
+      columnDesc: string | null;
+      direction: 'asc' | 'desc' | null;
+    };
+    context?: string;
+    pagination?: {
+      page: number;
+      limit: number;
+    };
+    level?: number;
+    filtersList?: Array<{
+      fieldid: string;
+      type: string;   
+      label: string;
+      value: string;
+      }>;
+    masterTableid?: string;
+    masterRecordid?: string;
+  }
 
 interface FieldInterface {
   fieldid?: string;
@@ -302,12 +321,7 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
 
 /* -------------------------------------- COMPONENTE PIVOT -------------------------------------- */
 
-export default function Pivot({
-  tableid,
-  searchTerm,
-  filters,
-  context,
-}: PropsInterface) {
+export default function Pivot({ tableid, searchTerm, filters, view, order, context, pagination, level, masterTableid, masterRecordid }: PropsInterface) {
   const responseDataDEFAULT: ResponseInterface = { groups: [], columns: [] };
   const { user } = useContext(AppContext);
 
@@ -326,6 +340,7 @@ export default function Pivot({
     return {
       apiRoute: "getPitservicePivotLavanderie",
       tableid,
+      view,
       searchTerm,
     };
   }, [refreshTable, tableid]);
