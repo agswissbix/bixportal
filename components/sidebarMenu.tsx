@@ -97,7 +97,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     const router = useRouter();
 
 
-    const {setSelectedMenu,selectedMenu, setUserid, userid, theme} = useRecordsStore();
+    const {setSelectedMenu,selectedMenu, setUserid, userid, theme, timestamp} = useRecordsStore();
 
     // DATI DEL CONTESTO
     const { user, activeServer } = useContext(AppContext);
@@ -149,16 +149,18 @@ export default function SidebarMenu({  }: PropsInterface) {
                 <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg flex flex-col justify-between">
                     <div>
                     <Image 
-                        src={`/bixdata/logos/${activeServer === 'swissbix' ? 'bixdata' : activeServer || 'default'}_${theme}.png`}
-                        //src="/bixdata/logos/ptm.jpg"
-                        alt={activeServer ?? ''}
-                        width={1000}
-                        height={1000}
-                        className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all ease-in-out duration-150"
-                        onClick ={() => window.location.reload()}
-                        //onClick={() => handleMenuClick('Home')}
-                        
-                    />
+                            src={
+                                theme == 'default'
+                                    ? `/bixdata/logos/${activeServer}.png`
+                                    : theme == 'bixhub' ? `/bixdata/logos/bixhub.png`
+                                    : `/bixdata/logos/${activeServer || '_' + theme}.png`
+                            }
+                            alt={activeServer ?? ''}
+                            width={1000}
+                            height={1000}
+                            className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all ease-in-out duration-150"
+                            onClick={() => window.location.reload()}
+                        />
                     <ul className="list-none p-0 m-0">
                     {activeServer === 'telamico' ? (
                         <>
@@ -297,7 +299,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                                 <span className="absolute -inset-1.5" />
                                 <span className="sr-only">Open user menu</span>
                                 <img
-                                    src={`/api/media-proxy?url=userProfilePic/${userid}.png`}
+                                    src={`/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`}
                                     alt="ciao"
                                     className="w-8 h-8 rounded-full object-cover border-2 border-gray-400"
                                     onError={(e) => {

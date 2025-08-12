@@ -15,9 +15,9 @@
     --card-background: #f8f9fa;
     --card-border: #dee2e6;
 
-    --table-background: whitesmoke;
+    --table-background: #00b7ff07;
     --table-border: #dee2e6;
-    --table-header: #e5e7eb;
+    --table-header: #f0f3f5;
 
     --records-background: rgb(255, 255, 255);
 
@@ -180,50 +180,4 @@
   --chart-5: 25 70% 50%;
   --radius: 0.5rem;
   --font-body: 'Montserrat', sans-serif;
-}
-
-.bixhub {
-  --sidebar-background: linear-gradient(180deg, #111111 90%, #202020 200%);
-  --navbar-background: #181818;
-  --background: #282828;
-  
-  --color-primary: #ff9900;
-  --color-primary-hover: #ff5c00;
-
-  --color-secondary: #282828;
-  --color-secondary-hover: #1f1f1f;
-
-  --color-tertiary: #ffffff;
-  --color-tertiary-hover: #e6c700;
-
-  --card-background: #f8f9fa;
-  --card-border: #dee2e6;
-
-  --table-background: whitesmoke;
-  --table-border: #dee2e6;
-  --table-header: #e5e7eb;
-
-  --records-background: rgb(255, 255, 255);
-
-  --badge-background: #ff9900;
-  --badge-border: #ff005c;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 89.8%;
-  --input: 0 0% 89.8%;
-  --ring: 0 0% 3.9%;
-  --chart-1: 30 100% 50%;
-  --chart-2: 330 100% 50%;
-  --chart-3: 0 0% 100%;
-  --chart-4: 0 0% 80%;
-  --chart-5: 0 0% 60%;
-  --radius: 0.5rem;
-  --font-body: 'Poppins', sans-serif;
 }

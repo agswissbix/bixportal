@@ -76,6 +76,9 @@ interface RecordsStore {
 
      theme: string;
      setTheme: (theme: string) => void;
+
+     timestamp: number;
+     setTimestamp: (timestamp: number) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -185,6 +188,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     theme: 'default',
     setTheme: (theme: string) => set({ theme: theme }),
+
+    timestamp: Date.now(),
+    setTimestamp: (timestamp: number) => set({ timestamp }),
 
 }));
 

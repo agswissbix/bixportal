@@ -24,7 +24,7 @@ function UserProfilePic() {
   const { user } = useContext(AppContext);
   const { userid } = useRecordsStore();
   const [loading, setLoading] = useState(false);
-  const [timestamp, setTimestamp] = useState(Date.now());
+  const { setTimestamp, timestamp} = useRecordsStore();
 
   const profilePicUrl = `/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`;
   const defaultPicUrl = "/api/media-proxy?url=userProfilePic/default.jpg";
