@@ -161,7 +161,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
             } else {
               console.error('Missing required parameters for handleRowClick');
             }
-          }} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"><ExternalLink></ExternalLink></button>
+          }} className="p-2 text-tertiary hover:text-tertiaryHover focus:outline-none"><ExternalLink></ExternalLink></button>
 
           <button type="button" onClick={() => {
             if (linkedmaster_recordid && linkedmaster_tableid) {
@@ -169,7 +169,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
             } else {
               console.error('Missing required parameters for handleRowClick');
             }
-          }} className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"><Plus></Plus></button>
+          }} className="p-2 text-tertiary hover:text-tertiaryHover focus:outline-none"><Plus></Plus></button>
 </div>
       </div>
       

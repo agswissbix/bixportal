@@ -257,7 +257,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
             {(response: ResponseInterface) => (
-                <div className="h-[90%] overflow-y-auto p-2 w-full">
+                <div className="h- overflow-y-auto p-2 w-full">
                     <div className="space-y-4 relative">
                         {response.filters.map((filter, index) => (
                             <div key={index} className="relative">

@@ -39,7 +39,7 @@ export default function UserSettings() {
       <AccordionItem title="Tabelle Preferite">
         <UserFavTables />
       </AccordionItem>
-      <AccordionItem title="Tema dell'Applicazione">
+      <AccordionItem title="Tema di BixData">
         <UserTheme />
       </AccordionItem>
     </div>
