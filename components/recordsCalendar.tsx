@@ -1,415 +1,360 @@
-import React, { useMemo, useContext, useState, useEffect, useCallback } from 'react';
-import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent'; // Assumendo esista come in RecordsTable
+import React, { useMemo, useContext, useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+// Assumendo che questi percorsi siano corretti nel tuo progetto
+import { useApi } from '@/utils/useApi'; 
+import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import { useRecordsStore } from './records/recordsStore'; // Assumendo esista
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Clock, Plus, Check } from 'lucide-react';
+import { memoWithDebug } from '@/lib/memoWithDebug';
+import { useRecordsStore } from './records/recordsStore';
+
+// --- CONFIGURAZIONE E COSTANTI ---
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// FLAG PER LO SVILUPPO
-const isDev = true; // Impostare su 'false' per usare l'API reale
+// FLAG PER LO SVILUPPO: true per usare dati mock, false per chiamare l'API reale
+const isDev = false; 
 
-// INTERFACCE (identiche a RecordsTable)
-// INTERFACCIA PROPS
+// --- INTERFACCE ---
+
+// Interfaccia per le Props del componente
 interface PropsInterface {
-  tableid?: string;
-  searchTerm?: string;
-  filters?: string;
-  view?: string;
-  order?: {
-    columnDesc: string | null;
-    direction: 'asc' | 'desc' | null;
-  };
-  context?: string;
-  pagination?: {
-    page: number;
-    limit: number;
-  };
-  level?: number;
-  filtersList?: Array<{
-    fieldid: string;
-    type: string;
-    label: string;
-    value: string;
-  }>;
-  masterTableid?: string;
-  masterRecordid?: string;
-}
+          tableid?: string;
+          searchTerm?: string;
+          filters?: string;
+          view?: string;
+          context?: string;
+          level?: number;
+          filtersList?: Array<{
+            fieldid: string;
+            type: string;   
+            label: string;
+            value: string;
+            }>;
+          masterTableid?: string;
+          masterRecordid?: string;
+        }
 
-// INTERFACCIA RISPOSTA DAL BACKEND
+// Interfaccia per la risposta attesa dal backend (e per i dati mock)
 interface ResponseInterface {
     counter?: number;
     rows: Array<{
         recordid: string;
+        title: string;
+        startDate: string;
+        endDate?: string;
         css: string;
-        fields: Array<{
-            recordid?: string;
-            css: string;
-            type: string; // Es: 'title', 'start_date', 'end_date', 'resourceId', 'color', 'description'
-            value: string;
-            fieldid: string;
-            userid?: string;
-            linkedmaster_tableid?: string;
-            linkedmaster_recordid?: string;
-        }>
+        fields: Array<any>;
     }>;
-    columns: Array<{
-        fieldtypeid: string;
-        desc: string;
-        fieldid: string; // Aggiunto per mappare i campi
-    }>;
-    // Potremmo aggiungere una sezione per le risorse/dipendenti
-    resources?: Array<{ id: string; name: string }>; 
+    columns: Array<any>;
 }
 
-// TIPO PER GLI EVENTI INTERNI DEL CALENDARIO
-type CalendarEventType = {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  description: string;
-  color: string;
-  resourceId: string;
-};
+type CalendarView = 'month' | 'week' | 'day';
 
-export default function recordsCalendar({ tableid, view, filtersList, masterTableid, masterRecordid }: PropsInterface) {
+// --- COMPONENTE CALENDARIO ---
 
-  // DATI RESPONSE DI DEFAULT
-  const responseDataDEFAULT: ResponseInterface = {
-    counter: 0,
-    rows: [],
-    columns: [],
-    resources: [],
-  };
+function RecordsCalendar({ tableid, initialView = 'month', context, searchTerm, filters, masterTableid, masterRecordid }: PropsInterface) {
+    
+    // --- SEZIONE DATI ---
 
-  // DATI RESPONSE PER LO SVILUPPO 
-  const responseDataDEV: ResponseInterface = {
-    counter: 2,
-    columns: [
-        { fieldid: "title", desc: "Titolo Evento", fieldtypeid: "text" },
-        { fieldid: "start_date", desc: "Inizio", fieldtypeid: "datetime" },
-        { fieldid: "end_date", desc: "Fine", fieldtypeid: "datetime" },
-        { fieldid: "description", desc: "Descrizione", fieldtypeid: "text" },
-        { fieldid: "color", desc: "Colore", fieldtypeid: "color" },
-        { fieldid: "resourceId", desc: "Risorsa", fieldtypeid: "lookup" },
-    ],
-    rows: [
-      {
-        recordid: "1",
-        css: "",
-        fields: [
-          { fieldid: "title", value: "Pulizia completa Condominio Lucino", type: "text", css: "" },
-          { fieldid: "start_date", value: new Date(2025, 7, 12, 10, 0).toISOString(), type: "datetime", css: "" },
-          { fieldid: "end_date", value: new Date(2025, 7, 12, 11, 30).toISOString(), type: "datetime", css: "" },
-          { fieldid: "description", value: "Pulizia completa Condominio Lucino", type: "text", css: "" },
-          { fieldid: "color", value: "#3b82f6", type: "color", css: "" },
-          { fieldid: "resourceId", value: "antonijevictoplica", type: "lookup", css: "" },
-        ],
-      },
-      {
-        recordid: "2",
-        css: "",
-        fields: [
-          { fieldid: "title", value: "Pulizia entrata Residenza Nettuno", type: "text", css: "" },
-          { fieldid: "start_date", value: new Date(2025, 7, 13, 14, 0).toISOString(), type: "datetime", css: "" },
-          { fieldid: "end_date", value: new Date(2025, 7, 13, 15, 0).toISOString(), type: "datetime", css: "" },
-          { fieldid: "description", value: "Pulizia entrata Residenza Nettuno", type: "text", css: "" },
-          { fieldid: "color", value: "#10b981", type: "color", css: "" },
-          { fieldid: "resourceId", value: "BasarabaTomislav", type: "lookup", css: "" },
-        ],
-      },
-    ],
-    resources: [
-        { id: 'antonijevictoplica', name: 'Antonijevic Toplica' },
-        { id: 'BasarabaTomislav', name: 'Basaraba Tomislav' },
-        { id: 'BerishaBekim', name: 'Berisha Bekim' },
-    ]
-  };
-  
-  // IMPOSTAZIONE DELLA RESPONSE
-  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
-
-  // STATI SPECIFICI DEL CALENDARIO
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 12));
-  const [selectedWeek, setSelectedWeek] = useState(3); // Basato sulla data corrente
-  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>([]);
-  const [draggedEvent, setDraggedEvent] = useState<Partial<CalendarEventType> & { id: string } | null>(null);
-
-  // STATI PER LA UI (modali, form, etc)
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEventType | null>(null);
-  const [showEventDialog, setShowEventDialog] = useState(false);
-  
-  // STATO PER GLI EVENTI NON PIANIFICATI (per ora locale, potrebbe venire dall'API)
-  const [unplannedEvents, setUnplannedEvents] = useState([
-     { id: 'u1', title: 'Pulizia finestre Stabile fortuna', description: 'Note aggiuntive', color: '#f97316' },
-     { id: 'u2', title: 'Pulizie finestre Lisano 1 Massagno', description: 'Note aggiuntive', color: '#8b5cf6' }
-  ]);
-  
-  // ZUSTAND STORE
-  const { refreshTable } = useRecordsStore();
-
-  // PAYLOAD PER LA CHIAMATA API
-  const payload = useMemo(() => {
-    if (isDev) return null;
-    return {
-      apiRoute: 'get_calendar_records', // API route specifica per il calendario
-      tableid: tableid,
-      view: view,
-      // Passiamo i filtri del calendario al backend
-      filters: {
-        date: currentDate.toISOString(),
-        week: selectedWeek,
-        resources: selectedResourceIds,
-        // Altri filtri possono essere aggiunti qui
-      },
-      masterTableid: masterTableid,
-      masterRecordid: masterRecordid,
-      _refreshTick: refreshTable
+    // 1. PROPS PER LO SVILUPPO
+    // Se isDev è true, usiamo valori di default per le props per facilitare il testing
+    const devTableId = isDev ? "calendar_demo" : tableid;
+    const devInitialView = isDev ? "month" : initialView;
+    
+    // 2. DATI DI DEFAULT PER LA RESPONSE (usati prima che l'API risponda)
+    const responseDataDEFAULT: ResponseInterface = {
+        counter: 0,
+        rows: [],
+        columns: []
     };
-  }, [tableid, view, currentDate, selectedWeek, selectedResourceIds, masterTableid, masterRecordid, refreshTable]);
 
-  // CHIAMATA AL BACKEND (solo se non in sviluppo)
-  const { response, loading, error, elapsedTime } = !isDev && payload 
-      ? useApi<ResponseInterface>(payload) 
-      : { response: responseDataDEV, loading: false, error: null, elapsedTime: 0 };
+    // 3. DATI MOCK PER LO SVILUPPO (usati quando isDev è true)
+    const responseDataDEV: ResponseInterface = {
+        counter: 4,
+        rows: [
+            { recordid: "1", title: "Team Sync Meeting", startDate: "2025-08-12T10:00:00", endDate: "2025-08-12T11:30:00", css: "bg-blue-100 border-l-4 border-blue-500 text-blue-800 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-200", fields: [] },
+            { recordid: "2", title: "Project Alpha Deadline", startDate: "2025-08-15T17:00:00", endDate: "2025-08-15T17:30:00", css: "bg-red-100 border-l-4 border-red-500 text-red-800 dark:bg-red-900/50 dark:border-red-400 dark:text-red-200", fields: [] },
+            { recordid: "3", title: "Deploy to Production", startDate: "2025-08-20T09:00:00", endDate: "2025-08-22T18:00:00", css: "bg-green-100 border-l-4 border-green-500 text-green-800 dark:bg-green-900/50 dark:border-green-400 dark:text-green-200", fields: [] },
+            { recordid: "4", title: "Client Call", startDate: "2025-08-12T15:00:00", endDate: "2025-08-12T15:30:00", css: "bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 dark:bg-yellow-900/50 dark:border-yellow-400 dark:text-yellow-200", fields: [] }
+        ],
+        columns: [
+            { fieldtypeid: 'Testo', desc: 'Event Title' },
+            { fieldtypeid: 'Data', desc: 'Start Date' },
+        ]
+    };
 
-  // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND
-  useEffect(() => {
-    if (!isDev && response) {
-      setResponseData(response);
-    }
-  }, [response]);
+    // 4. DATI DAL CONTESTO GLOBALE (opzionale, per coerenza con lo schema)
+    const { user } = useContext(AppContext);
 
-  // TRASFORMAZIONE: da responseData.rows a un array di eventi utilizzabile dalla UI
-  const { events, resources } = useMemo(() => {
-    const transformedEvents = responseData.rows.map(row => {
-      const event: Partial<CalendarEventType> = { id: row.recordid };
-      row.fields.forEach(field => {
-        switch (field.fieldid) {
-          case 'title': event.title = field.value; break;
-          case 'start_date': event.start = new Date(field.value); break;
-          case 'end_date': event.end = new Date(field.value); break;
-          case 'description': event.description = field.value; break;
-          case 'color': event.color = field.value; break;
-          case 'resourceId': event.resourceId = field.value; break;
+    
+    // --- SEZIONE STATO E LOGICA ---
+
+    // Stato principale per i dati del calendario. Inizializzato con dati mock o vuoti.
+    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+    
+    // Stati per la UI del calendario
+    const [view, setView] = useState<CalendarView>(devInitialView);
+    const [currentDate, setCurrentDate] = useState(new Date('2025-08-12T10:00:00Z')); // Data fissa per la demo
+
+    const {
+            refreshTable,
+            setRefreshTable,
+            handleRowClick,
+        } = useRecordsStore();
+
+    // PAYLOAD PER LA CHIAMATA API (solo se non in sviluppo)
+    const payload = useMemo(() => {
+            if (isDev) return null;
+            return {
+                apiRoute: 'get_calendar_records', // riferimento api per il backend
+                tableid: tableid,
+                searchTerm: searchTerm,
+                view: view,
+                filtersList: filters,
+                masterTableid: masterTableid,
+                masterRecordid: masterRecordid,
+                _refreshTick: refreshTable
+            };
+        }, [tableid, refreshTable, masterTableid, masterRecordid, filters]);
+
+    // CHIAMATA AL BACKEND (solo se non in sviluppo)
+    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+    // AGGIORNAMENTO DELLO STATO CON I DATI DAL BACKEND (solo se non in sviluppo)
+    useEffect(() => {
+        if (!isDev && response) {
+            setResponseData(response);
         }
-      });
-      return event as CalendarEventType;
-    });
+    }, [response]);
+    
+    // --- FUNZIONI DI UTILITY E RENDERING ---
+    
+    const handlePrev = () => {
+        setCurrentDate(prevDate => {
+            const newDate = new Date(prevDate);
+            if (view === 'month') newDate.setMonth(newDate.getMonth() - 1);
+            if (view === 'week') newDate.setDate(newDate.getDate() - 7);
+            if (view === 'day') newDate.setDate(newDate.getDate() - 1);
+            return newDate;
+        });
+    };
 
-    // Usa le risorse dalla response, altrimenti quelle di default per dev
-    const availableResources = responseData.resources && responseData.resources.length > 0 
-      ? responseData.resources
-      : responseDataDEV.resources || [];
-      
-    return { events: transformedEvents, resources: availableResources };
-  }, [responseData]);
-  
-  // Il resto della logica del calendario (handleDrop, etc.) rimane simile ma usa setResponseData
-  
-  const handleDrop = useCallback((dropDate: Date, newResourceId: string) => {
-    if (!draggedEvent) return;
+    const handleNext = () => {
+        setCurrentDate(prevDate => {
+            const newDate = new Date(prevDate);
+            if (view === 'month') newDate.setMonth(newDate.getMonth() + 1);
+            if (view === 'week') newDate.setDate(newDate.getDate() + 7);
+            if (view === 'day') newDate.setDate(newDate.getDate() + 1);
+            return newDate;
+        });
+    };
 
-    const duration = (draggedEvent.end && draggedEvent.start)
-      ? draggedEvent.end.getTime() - draggedEvent.start.getTime()
-      : 3600000; // 1 ora di default
+    const handleToday = () => setCurrentDate(new Date('2025-08-12T10:00:00Z'));
 
-    const newStart = new Date(dropDate);
-    newStart.setHours(draggedEvent.start ? draggedEvent.start.getHours() : 9, draggedEvent.start ? draggedEvent.start.getMinutes() : 0, 0, 0);
-    const newEnd = new Date(newStart.getTime() + duration);
+    const renderHeaderTitle = () => {
+        if (view === 'month') {
+            return currentDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+        }
+        if (view === 'day') {
+            return currentDate.toLocaleString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        if (view === 'week') {
+            const firstDayOfWeek = new Date(currentDate);
+            const day = firstDayOfWeek.getDay();
+            const diff = firstDayOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+            firstDayOfWeek.setDate(diff);
+            
+            const lastDayOfWeek = new Date(firstDayOfWeek);
+            lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+            
+            const startMonth = firstDayOfWeek.toLocaleString('it-IT', { month: 'long' });
+            const endMonth = lastDayOfWeek.toLocaleString('it-IT', { month: 'long' });
 
-    // Aggiornamento ottimistico: modifichiamo lo stato locale `responseData`
-    setResponseData(currentData => {
-      const newData = JSON.parse(JSON.stringify(currentData)); // Deep copy
-      const existingRowIndex = newData.rows.findIndex((r: any) => r.recordid === draggedEvent.id);
+            if (startMonth === endMonth) {
+                return `${firstDayOfWeek.getDate()} - ${lastDayOfWeek.getDate()} ${startMonth} ${lastDayOfWeek.getFullYear()}`;
+            }
+            return `${firstDayOfWeek.getDate()} ${startMonth} - ${lastDayOfWeek.getDate()} ${endMonth} ${lastDayOfWeek.getFullYear()}`;
+        }
+    };
 
-      if (existingRowIndex > -1) { // L'evento era già pianificato
-        const fieldsToUpdate = newData.rows[existingRowIndex].fields;
-        fieldsToUpdate.find((f: any) => f.fieldid === 'start_date').value = newStart.toISOString();
-        fieldsToUpdate.find((f: any) => f.fieldid === 'end_date').value = newEnd.toISOString();
-        fieldsToUpdate.find((f: any) => f.fieldid === 'resourceId').value = newResourceId;
-      } else { // L'evento non era pianificato
-        setUnplannedEvents(prev => prev.filter(e => e.id !== draggedEvent.id));
-        const newRow = {
-          recordid: draggedEvent.id,
-          css: '',
-          fields: [
-            { fieldid: 'title', value: draggedEvent.title || '', type: 'text', css: '' },
-            { fieldid: 'start_date', value: newStart.toISOString(), type: 'datetime', css: '' },
-            { fieldid: 'end_date', value: newEnd.toISOString(), type: 'datetime', css: '' },
-            { fieldid: 'description', value: draggedEvent.description || '', type: 'text', css: '' },
-            { fieldid: 'color', value: draggedEvent.color || '#3b82f6', type: 'color', css: '' },
-            { fieldid: 'resourceId', value: newResourceId, type: 'lookup', css: '' },
-          ],
-        };
-        newData.rows.push(newRow);
-      }
-      return newData;
-    });
+    const renderCalendar = (data: ResponseInterface) => {
+        switch (view) {
+            case 'week': return renderWeekView(data);
+            case 'day': return renderDayView(data);
+            default: return renderMonthView(data);
+        }
+    };
 
-    // In una app reale, qui si farebbe una chiamata API per persistere la modifica
-    // ad es. `updateEventOnBackend(draggedEvent.id, { start: newStart, end: newEnd, resourceId: newResourceId })`
+    const renderMonthView = (data: ResponseInterface) => {
+        const month = currentDate.getMonth();
+        const year = currentDate.getFullYear();
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
-    setDraggedEvent(null);
-  }, [draggedEvent]);
+        const dayCells = Array.from({ length: dayOffset + daysInMonth }, (_, i) => {
+            if (i < dayOffset) return <div key={`empty-${i}`} className="border-t border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"></div>;
+            
+            const dayNumber = i - dayOffset + 1;
+            const cellDate = new Date(year, month, dayNumber);
+            const isToday = cellDate.toDateString() === new Date('2025-08-12').toDateString();
+            
+            const eventsForDay = data.rows.filter(event => new Date(event.startDate).toDateString() === cellDate.toDateString());
 
-  
-  // MANTENIAMO IL RESTO DELLA LOGICA UI (FUNZIONI HELPER, COMPONENTI INTERNI, ECC.)
-  const handleDragStart = (e: React.DragEvent, event: CalendarEventType) => {
-    e.stopPropagation();
-    setDraggedEvent(event);
-  };
-  
-  const handleUnplannedDragStart = (e: React.DragEvent, event: any) => {
-    e.stopPropagation();
-    setDraggedEvent(event);
-  };
-  
-  const filteredResources = selectedResourceIds.length > 0
-    ? resources.filter(resource => selectedResourceIds.includes(resource.id))
-    : resources;
-
-  const getWorkDaysInWeek = (date: Date, week: number) => {
-    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    let dayOfWeek = startOfMonth.getDay();
-    if (dayOfWeek === 0) dayOfWeek = 7;
-    const firstMonday = new Date(startOfMonth);
-    if (dayOfWeek !== 1) {
-      firstMonday.setDate(firstMonday.getDate() + (8 - dayOfWeek));
-    }
-    const offsetStart = new Date(firstMonday);
-    offsetStart.setDate(offsetStart.getDate() + (week - 1) * 7);
-    const days = [];
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(offsetStart);
-      d.setDate(offsetStart.getDate() + i);
-      days.push(d);
-    }
-    return days;
-  };
-  
-  const formatEventTime = (date: Date) => {
-    return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
-  };
-  
-  // ... (altre funzioni e componenti interni come MonthDropdown, WeekDropdown, ResourcesDropdown, etc. possono essere inseriti qui)
-
-  return (
-    <GenericComponent response={responseData} loading={loading} error={error} title='pitCalendar' elapsedTime={elapsedTime}>
-        {(response: ResponseInterface) => (
-            <div className="flex h-screen">
-                <div className="flex-1 p-4">
-                    {/* UI del Calendario, filtri, etc. */}
-                    {/* I filtri (es. MonthDropdown) ora aggiornano stati (es. currentDate) che sono nel payload */}
-                    {/* La griglia del calendario ora usa l'array `events` derivato da useMemo */}
-                    
-                    <div className="mb-4">
-                        {/* Qui andrebbero i componenti per i filtri come ResourcesDropdown, MonthDropdown, WeekDropdown */}
-                        <p>Filtri del calendario (es. per Mese, Settimana, Dipendente)</p>
-                    </div>
-
-                    <Card className="p-4 overflow-auto">
-                        <div className="grid grid-cols-6 gap-1">
-                            <div className="p-2 border-b border-r border-gray-200 bg-gray-200 font-semibold">
-                                Dipendenti
-                            </div>
-                            {getWorkDaysInWeek(currentDate, selectedWeek).map(day => (
-                                <div key={day.toISOString()} className="p-2 text-center border-b border-gray-200 bg-gray-50 font-semibold">
-                                    {day.toLocaleDateString('it-IT', { weekday: 'short' })}<br />
-                                    {day.getDate()}
-                                </div>
-                            ))}
-
-                            {filteredResources.map(resource => (
-                                <React.Fragment key={resource.id}>
-                                    <div className="p-2 border-r border-b border-gray-200 font-medium">
-                                        {resource.name}
-                                    </div>
-                                    {getWorkDaysInWeek(currentDate, selectedWeek).map(day => (
-                                        <div
-                                            key={`${resource.id}-${day.toISOString()}`}
-                                            className="min-h-40 p-2 border border-gray-200"
-                                            onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('bg-blue-50'); }}
-                                            onDragLeave={(e) => e.currentTarget.classList.remove('bg-blue-50')}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                handleDrop(day, resource.id);
-                                                e.currentTarget.classList.remove('bg-blue-50');
-                                            }}
-                                        >
-                                            {events
-                                                .filter(event =>
-                                                    event.resourceId === resource.id &&
-                                                    event.start.toDateString() === day.toDateString()
-                                                )
-                                                .sort((a, b) => a.start.getTime() - b.start.getTime())
-                                                .map(event => (
-                                                    <div
-                                                        key={event.id}
-                                                        draggable="true"
-                                                        onDragStart={(e) => handleDragStart(e, event)}
-                                                        onClick={() => {
-                                                          setSelectedEvent(event);
-                                                          setShowEventDialog(true);
-                                                        }}
-                                                        className="p-2 mb-2 rounded text-sm cursor-move text-white select-none"
-                                                        style={{ backgroundColor: event.color, opacity: draggedEvent?.id === event.id ? 0.5 : 1 }}
-                                                    >
-                                                        <div className="font-semibold">{event.title}</div>
-                                                        <div className="text-xs">
-                                                            {formatEventTime(event.start)} - {formatEventTime(event.end)}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    ))}
-                                </React.Fragment>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* DIALOG EVENTO */}
-                    <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>{selectedEvent?.title}</DialogTitle>
-                            </DialogHeader>
-                            {selectedEvent && (
-                                <div className="space-y-4">
-                                  <div className="flex items-center"><Calendar className="mr-2" /><span>{selectedEvent.start.toLocaleDateString()}</span></div>
-                                  <div className="flex items-center"><Clock className="mr-2" /><span>{formatEventTime(selectedEvent.start)} - {formatEventTime(selectedEvent.end)}</span></div>
-                                  <p>{selectedEvent.description}</p>
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
-                </div>
-
-                {/* SEZIONE DESTRA: Eventi da pianificare */}
-                <div className="w-80 border-l p-4">
-                    <h3 className="text-lg font-semibold mb-4">Eventi da pianificare</h3>
-                    <div className="space-y-2">
-                        {unplannedEvents.map(ev => (
-                            <div
-                                key={ev.id}
-                                draggable="true"
-                                onDragStart={(e) => handleUnplannedDragStart(e, ev)}
-                                className="p-2 rounded cursor-move text-white"
-                                style={{ backgroundColor: ev.color }}
-                            >
-                                <div className="font-semibold">{ev.title}</div>
-                                {ev.description && <div className="text-xs">{ev.description}</div>}
-                            </div>
+            return (
+                <div key={dayNumber} className="relative border-t border-r border-gray-200 dark:border-gray-700 p-1 min-h-[120px] flex flex-col">
+                    <span className={`font-semibold text-sm ${isToday ? 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center' : ''}`}>{dayNumber}</span>
+                    <div className="mt-1 space-y-1 flex-grow overflow-y-auto">
+                        {eventsForDay.map(event => (
+                             <div key={event.recordid} className={`p-1.5 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity ${event.css}`} >
+                                 <p className="font-bold truncate">{event.title}</p>
+                                 <p>{new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                             </div>
                         ))}
                     </div>
                 </div>
+            );
+        });
+
+        return (
+            <>
+                <div className="grid grid-cols-7 text-center font-semibold text-sm py-2 text-gray-600 dark:text-gray-300 border-b dark:border-gray-700">
+                    <div>Lunedì</div> <div>Martedì</div> <div>Mercoledì</div> <div>Giovedì</div> <div>Venerdì</div> <div>Sabato</div> <div>Domenica</div>
+                </div>
+                <div className="grid grid-cols-7 h-full">{dayCells}</div>
+            </>
+        );
+    };
+    
+    const renderWeekView = (data: ResponseInterface) => {
+        const weekDays = [];
+        const firstDayOfWeek = new Date(currentDate);
+        const day = firstDayOfWeek.getDay();
+        const diff = firstDayOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+        firstDayOfWeek.setDate(diff);
+
+        for (let i = 0; i < 7; i++) {
+            const day = new Date(firstDayOfWeek);
+            day.setDate(firstDayOfWeek.getDate() + i);
+            weekDays.push(day);
+        }
+
+        return (
+            <div className="flex flex-col h-full">
+                <div className="grid grid-cols-7 text-center font-semibold text-sm py-2 text-gray-600 dark:text-gray-300 border-b dark:border-gray-700">
+                    {weekDays.map(day => (
+                        <div key={day.toISOString()} className={day.toDateString() === new Date('2025-08-12').toDateString() ? 'text-blue-600' : ''}>
+                            <p>{day.toLocaleString('it-IT', { weekday: 'short' })}</p>
+                            <p className="text-2xl">{day.getDate()}</p>
+                        </div>
+                    ))}
+                </div>
+                <div className="grid grid-cols-7 flex-grow overflow-auto">
+                    {weekDays.map(day => {
+                        const eventsForDay = data.rows.filter(event => new Date(event.startDate).toDateString() === day.toDateString());
+                        return (
+                            <div key={day.toISOString()} className="border-r dark:border-gray-700 p-1 space-y-2">
+                                {eventsForDay.map(event => (
+                                    <div key={event.recordid} className={`p-2 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity ${event.css}`} >
+                                        <p className="font-bold">{event.title}</p>
+                                        <p>{new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {event.endDate ? new Date(event.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-        )}
-    </GenericComponent>
-  );
-};
+        );
+    };
+
+    const renderDayView = (data: ResponseInterface) => {
+        const hours = Array.from({ length: 24 }, (_, i) => i);
+        const eventsForDay = data.rows.filter(event => new Date(event.startDate).toDateString() === currentDate.toDateString());
+        
+        const getEventPosition = (event) => {
+            const start = new Date(event.startDate);
+            const end = event.endDate ? new Date(event.endDate) : new Date(start.getTime() + 60 * 60 * 1000); // Default 1 ora
+            const top = (start.getHours() * 60 + start.getMinutes());
+            const bottom = (end.getHours() * 60 + end.getMinutes());
+            const height = bottom - top;
+            
+            return { top: top / (24*60) * 100, height: height / (24*60) * 100 };
+        };
+
+        return (
+            <div className="flex h-full overflow-auto">
+                <div className="w-16 text-right pr-2 border-r dark:border-gray-700">
+                    {hours.map(hour => (
+                        <div key={hour} className="h-16 flex items-start justify-end">
+                            <span className="text-xs text-gray-500 -mt-2">{hour.toString().padStart(2, '0')}:00</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="relative flex-grow">
+                    {hours.map(hour => (
+                        <div key={hour} className="h-16 border-b dark:border-gray-700"></div>
+                    ))}
+                    <div className="absolute inset-0">
+                        {eventsForDay.map(event => {
+                            const {top, height} = getEventPosition(event);
+                            return (
+                                <div 
+                                    key={event.recordid} 
+                                    className={`absolute left-2 right-2 p-2 rounded text-xs cursor-pointer ${event.css}`}
+                                    style={{ top: `${top}%`, height: `${height}%` }}
+                                >
+                                    <p className="font-bold">{event.title}</p>
+                                    <p>{new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {event.endDate ? new Date(event.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // --- SEZIONE RENDER JSX ---
+    
+    console.log('[DEBUG] Rendering RecordsCalendar', { tableid, responseData });
+
+    return (
+        <GenericComponent response={responseData} loading={loading} error={error}> 
+            {(data: ResponseInterface) => (
+                <div className="h-full w-full flex flex-col bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+                    <header className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center gap-x-2">
+                            <button onClick={handleToday} className="px-4 py-1.5 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Oggi</button>
+                            <div className="flex items-center">
+                                <button onClick={handlePrev} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><ChevronLeft className="h-5 w-5"/></button>
+                                <button onClick={handleNext} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><ChevronRight className="h-5 w-5"/></button>
+                            </div>
+                            <h2 className="text-xl font-semibold ml-2 capitalize">{renderHeaderTitle()}</h2>
+                        </div>
+                        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-md">
+                            <button onClick={() => setView('month')} className={`px-3 py-1 text-sm rounded ${view === 'month' ? 'bg-white dark:bg-gray-700 shadow' : 'hover:bg-gray-200 dark:hover:bg-gray-700/50'}`}>Mese</button>
+                            <button onClick={() => setView('week')} className={`px-3 py-1 text-sm rounded ${view === 'week' ? 'bg-white dark:bg-gray-700 shadow' : 'hover:bg-gray-200 dark:hover:bg-gray-700/50'}`}>Settimana</button>
+                            <button onClick={() => setView('day')} className={`px-3 py-1 text-sm rounded ${view === 'day' ? 'bg-white dark:bg-gray-700 shadow' : 'hover:bg-gray-200 dark:hover:bg-gray-700/50'}`}>Giorno</button>
+                        </div>
+                    </header>
+                    <main className="flex-grow overflow-auto">{renderCalendar(data)}</main>
+                     <footer className="text-right p-2 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+                         <span className="font-medium">Eventi totali:</span> {data.counter}
+                    </footer>
+                </div>
+            )}
+        </GenericComponent>
+    );
+}
+
+
+// --- ESPORTAZIONE CON MEMOIZATION ---
+
+const MemoizedRecordsCalendar = memoWithDebug(RecordsCalendar, "RecordsCalendar");
+
+// Log per verificare l'applicazione di why-did-you-render
+console.log("MemoizedRecordsCalendar:", MemoizedRecordsCalendar); 
+console.log('[Test WDYR] MemoizedRecordsCalendar.whyDidYouRender:', (MemoizedRecordsCalendar as any).whyDidYouRender);
+
+export default MemoizedRecordsCalendar;

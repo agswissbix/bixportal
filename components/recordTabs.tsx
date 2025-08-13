@@ -4,6 +4,7 @@ import RecordsTable from './recordsTable';
 import Kanban from './kanban';
 import Pivot from './recordsPivot';
 import PitCalendar from './pitCalendar';
+import RecordsCalendar from './recordsCalendar';
 import GalleryView from './gallery';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -93,7 +94,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
               <Kanban tableid={tableid} />
             )}
             {activeTab === 'Calendario' && (
-              <PitCalendar tableid={tableid} />
+              <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Gallery' && (
               <GalleryView tableid={tableid} />

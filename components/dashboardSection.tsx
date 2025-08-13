@@ -533,30 +533,7 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
         className="w-fit bg-white rounded-xl shadow-sm border border-gray-200 p-4"
         data-oid="w9b7-qc"
     >
-        <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Anni di riferimento
-            </label>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {availableYears.map((year) => (
-                    <div key={year} className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id={`compare-${year}`}
-                            checked={selectedYears.includes(year)}
-                            onChange={() => handleYearToggle(year)}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <label
-                            htmlFor={`compare-${year}`}
-                            className="ml-2 text-sm text-gray-700"
-                        >
-                            {year}
-                        </label>
-                    </div>
-                ))}
-            </div>
-        </div>
+        
     </div>
 
   </div>

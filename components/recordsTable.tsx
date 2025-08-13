@@ -198,7 +198,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
 
     // ✅ un selector per chiave
 
-        const {
+    const {
         isTableChanging,
         setTableChangeCompleted,
         refreshTable,
