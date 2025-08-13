@@ -110,15 +110,17 @@ function UserSettings({ propExampleValue }: PropsInterface) {
           <UserProfilePic />
 
           <div className="text-center mt-4">
-            <h2 className="text-2xl font-bold text-gray-900">{userName}</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{userName}</h2>
             <p className="text-sm text-gray-500">{user}</p>
           </div>
 
+          {/*
           <div className="w-full border-t border-gray-200 my-8"></div>
 
           <div className="w-full">
+            
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Impostazioni account</h3>
-            {/* Qui puoi aggiungere altre opzioni */}
+            
             <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
               <span className="text-gray-700">Notifiche Email</span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -126,7 +128,9 @@ function UserSettings({ propExampleValue }: PropsInterface) {
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
+            
           </div>
+          */}
         </div>
       )}
     </GenericComponent>

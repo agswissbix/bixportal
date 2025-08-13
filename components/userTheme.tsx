@@ -149,8 +149,10 @@ function UserTheme({ propExampleValue }: PropsInterface) {
             ))}
             <br />
           </div>
-          <div className="mt-6 mx-auto justify-items-center">
-            <h5 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Anteprima del Tema Selezionato</h5>
+          <div className="mt-16 mx-auto justify-items-center">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Anteprima del tema attuale
+            </h3>
             <RecordsCardPreview />
         </div>
         </div>

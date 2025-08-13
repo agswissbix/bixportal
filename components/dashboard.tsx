@@ -512,9 +512,9 @@ useEffect(() => {
           {/* 👆 FINE ELEMENTO DI DEBUG 👆 */}
                       
                 
-                <div className="flex mb-4 ml-4">
+                <div className="flex mt-2 ml-4">
         <button 
-            className="flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5" 
+            className="flex items-center text-white bg-primary hover:bg-primaryHover focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5" 
             onClick={onOpenPopup}
         >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -524,7 +524,7 @@ useEffect(() => {
         </button>
 
         <button 
-            className="flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm ml-4 px-5 py-2.5" 
+            className="flex items-center text-white bg-secondary hover:bg-secondaryHover focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm ml-4 px-5 py-2.5" 
             
             onClick={saveDashboardDisposition}
         >

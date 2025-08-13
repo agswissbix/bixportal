@@ -1,3 +1,4 @@
+import { color } from "framer-motion";
 import type { Config } from "tailwindcss";
 
 export default {
@@ -45,7 +46,7 @@ export default {
 			primary: 'var(--color-primary)',
 			primaryHover: 'var(--color-primary-hover)',
 			secondary: 'var(--color-secondary)',
-			secondaryHover: 'var(--color-secondary-hover)',
+			secondaryHover: 'var(--color-secondary-hover)',	
 			tertiary: 'var(--color-tertiary)',
 			tertiaryHover: 'var(--color-tertiary-hover)',
   			background: 'var(--background)',
@@ -53,6 +54,7 @@ export default {
 			records: {
 				background: 'var(--records-background)',
 			},
+			qwes: 'hsl(var(--sidebar-text))',
   			card: {
 				background: 'var(--card-background)',
 				border: 'var(--card-border)',

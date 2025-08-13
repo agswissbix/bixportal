@@ -20,6 +20,8 @@
     --table-header: #f0f3f5;
 
     --records-background: rgb(255, 255, 255);
+    
+    --sidebar-text: rgb(68, 0, 255);
 
     --badge-background: #074048;
     --badge-border: red;
@@ -67,6 +69,8 @@
 
   --records-background: #ffffff;
 
+  --sidebar-text: rgb(68, 0, 255);
+
   --badge-background: #1d4320;
   --badge-border: #4a914c;
 
@@ -113,6 +117,8 @@
 
   --records-background: #ffffff;
 
+  --sidebar-text: rgb(68, 0, 255);
+
   --badge-background: #0f1c2e;
   --badge-border: #007bff;
 
@@ -158,6 +164,8 @@
   --table-header: #f9f0f0;
 
   --records-background: #ffffff;
+
+  --sidebar-text: rgb(68, 0, 255);
 
   --badge-background: #5b0f49;
   --badge-border: #d82b4a;

@@ -220,9 +220,9 @@ export default function SidebarMenu({  }: PropsInterface) {
                                     <ul className="py-1 ml-6">
                                         {responseData.favoriteTables.map((table) => (
                                             <li key={table.id}>
-                                                <span className="text-gray-200 text-sm block px-8 py-2 hover:text-primary transition-colors cursor-pointer" onClick={() => handleMenuClick(table.tableid)}>
+                                                <span className="text-qwes text-sm block px-8 py-2 hover:text-primary transition-colors cursor-pointer" onClick={() => handleMenuClick(table.tableid)}>
                                                     {table.tableid}
-                                                </span>
+                                                 </span>
                                             </li>
                                         ))}
                                     </ul>
@@ -315,33 +315,35 @@ export default function SidebarMenu({  }: PropsInterface) {
 
                         </div>
 
-                        <MenuItems
+                    <MenuItems
                             transition
                             className="absolute right-0 bottom-full w-48 origin-bottom-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none"
                         >
                             <MenuItem>
-                                <div className="px-4 py-3 border-b border-gray-700/50">
+                                <div className="px-4 py-3 border-b border-gray-200"> {/* Divisore leggero */}
                                     <p className="text-sm font-medium text-black">{user}</p>
-                                    <p className="text-xs text-gray-700">Utente attivo</p>
+                                    <p className="text-xs text-gray-700">Profilo attivo</p>
                                 </div>
                             </MenuItem>
+                            
                             <MenuItem>
                                 <a
                                     href="#"
-                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
                                     onClick={() => setSelectedMenu('userSettings')}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
                                 >
                                     <div className="flex items-center gap-2">
                                         <Settings className="w-4 h-4" />
-                                        <span>Settings</span>
+                                        <span>Impostazioni</span>
                                     </div>
                                 </a>
                             </MenuItem>
+                            
                             <MenuItem>
                                 <a
                                     href="#"
-                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
                                     onClick={() => router.push('/change-password')}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
                                 >
                                     <div className="flex items-center gap-2">
                                         <Lock className="w-4 h-4" />
@@ -349,14 +351,17 @@ export default function SidebarMenu({  }: PropsInterface) {
                                     </div>
                                 </a>
                             </MenuItem>
+                            
+                            <div className="my-1 h-px bg-gray-200" /> {/* Divisore orizzontale */}
+                            
                             <MenuItem>
                                 <a
                                     href="#"
-                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                    className="block px-4 py-2 text-sm text-red-500 data-[focus]:bg-gray-100 data-[focus]:outline-none"
                                 >
                                     <div className="flex items-center gap-2">
                                         <LogOut className="w-4 h-4" />
-                                        <span>Logout</span>
+                                        <span>Esci</span>
                                     </div>
                                 </a>
                             </MenuItem>
