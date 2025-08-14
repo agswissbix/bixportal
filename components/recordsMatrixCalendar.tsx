@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Clock, Plus, Check } from 'lucide-react';
-import { useApi } from '@/utils/useApi'; // Assicurati che il path sia corretto
-import GenericComponent from './genericComponent'; // Assicurati che il path sia corretto
-import { AppContext } from '@/context/appContext'; // Assicurati che il path sia corretto
-import { memoWithDebug } from '@/lib/memoWithDebug'; // Assicurati che il path sia corretto
+import { useApi } from '@/utils/useApi';
+import GenericComponent from './genericComponent';
+import { AppContext } from '@/context/appContext';
+import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // ===================================================================================
 // FLAG PER LO SVILUPPO
@@ -137,51 +137,6 @@ const MonthDropdown: React.FC<{ selectedMonth: number, onMonthChange: (month: nu
   );
 };
 
-const ResourcesDropdown: React.FC<{ resources: Resource[], selectedIds: string[], onSelectionChange: (ids: string[]) => void }> = React.memo(({ resources, selectedIds, onSelectionChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setIsOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-  
-  const handleToggle = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setIsOpen(prev => !prev);
-  }
-
-  const handleSelection = (e: React.MouseEvent, resourceId: string) => {
-    e.stopPropagation();
-    const newSelection = selectedIds.includes(resourceId)
-      ? selectedIds.filter(id => id !== resourceId)
-      : [...selectedIds, resourceId];
-    onSelectionChange(newSelection);
-  };
-
-  return (
-    <div ref={dropdownRef} className="relative">
-      <Button variant="outline" onClick={handleToggle} className="w-64">
-        {selectedIds.length === 0 ? "Seleziona dipendenti" : `${selectedIds.length} dipendenti selezionati`}
-      </Button>
-      {isOpen && (
-        <div className="absolute z-50 mt-1 w-64 bg-white border rounded-md shadow-lg">
-          {resources.map(resource => (
-            <div key={resource.id} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={(e) => handleSelection(e, resource.id)}>
-              <div className="w-6">
-                {selectedIds.includes(resource.id) && <Check className="h-4 w-4 text-blue-600" />}
-              </div>
-              <span>{resource.name}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
 
 // ===================================================================================
 // COMPONENTE PRINCIPALE
@@ -362,16 +317,11 @@ function PitCalendar({ initialDate }: PropsInterface) {
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(data: ResponseInterface) => (
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex h-11/12 bg-gray-50">
           <div className="flex-1 p-4 flex flex-col min-w-0">
             <header className="mb-4 space-y-4 bg-white p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center">
                 <div className="flex space-x-4">
-                  <ResourcesDropdown 
-                    resources={data.resources}
-                    selectedIds={selectedResourceIds}
-                    onSelectionChange={setSelectedResourceIds}
-                  />
                   <MonthDropdown 
                     selectedMonth={currentDate.getMonth()}
                     onMonthChange={handleMonthChange}
@@ -390,13 +340,15 @@ function PitCalendar({ initialDate }: PropsInterface) {
               </div>
             </header>
 
-            {/* --- INIZIO MODIFICA SOLUZIONE 2 --- */}
-            {/* 1. Wrapper con position: relative per creare un contesto di posizionamento.
-                   flex-grow fa in modo che occupi tutto lo spazio verticale disponibile. */}
+            {/* Questo wrapper è la chiave della soluzione.
+                1. `relative` crea un contesto di posizionamento per il suo figlio (la Card).
+                2. `flex-grow` lo fa espandere per riempire tutto lo spazio verticale disponibile. */}
             <div className="relative flex-grow">
-              {/* 2. La Card viene posizionata in modo assoluto all'interno del wrapper.
-                     inset-0 la espande per riempire il wrapper.
-                     flex-grow non è più necessario qui. */}
+              {/* La Card del calendario
+                  1. `absolute inset-0` la fa espandere per riempire completamente il wrapper `relative`.
+                     Questo le dà una dimensione definita (l'altezza del suo genitore).
+                  2. `overflow-auto` aggiunge le barre di scorrimento (orizzontale e verticale)
+                     solo se il contenuto interno (la griglia) è più grande della Card stessa. */}
               <Card className="absolute inset-0 p-4 overflow-auto">
                 <div className="grid" style={gridColsStyle}>
                   {/* Headers */}
@@ -419,7 +371,7 @@ function PitCalendar({ initialDate }: PropsInterface) {
                       {displayedDays.map(day => (
                         <div
                           key={`${resource.id}-${day.toISOString()}`}
-                          className="min-h-40 p-1 border-b border-r border-gray-200 transition-colors duration-200 space-y-1"
+                          className="min-h-20 p-1 border-b border-r border-gray-200 transition-colors duration-200 space-y-1"
                           onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('bg-blue-50'); }}
                           onDragLeave={(e) => e.currentTarget.classList.remove('bg-blue-50')}
                           onDrop={(e) => {
@@ -454,37 +406,10 @@ function PitCalendar({ initialDate }: PropsInterface) {
                 </div>
               </Card>
             </div>
-            {/* --- FINE MODIFICA SOLUZIONE 2 --- */}
-
+            
           </div>
           
-          {/* Sidebar Destra */}
-          <aside className="w-80 border-l bg-white flex flex-col">
-              <div className="p-4 border-b">
-                <h3 className="text-lg font-semibold mb-4">Nuovo Evento</h3>
-                <Button onClick={handleAddEvent} className="w-full">
-                  <Plus className="mr-2 h-4 w-4" /> Aggiungi Evento (Form)
-                </Button>
-              </div>
 
-              <div className="p-4 flex-grow overflow-y-auto">
-                <h3 className="text-lg font-semibold mb-4">Eventi da pianificare</h3>
-                <div className="space-y-2">
-                  {data.unplannedEvents.map(ev => (
-                    <div
-                      key={ev.id}
-                      draggable="true"
-                      onDragStart={(e) => handleDragStart(e, ev)}
-                      className="p-2 rounded cursor-move text-white shadow"
-                      style={{ backgroundColor: ev.color }}
-                    >
-                      <div className="font-semibold">{ev.title}</div>
-                      {ev.description && <div className="text-xs opacity-90">{ev.description}</div>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-          </aside>
 
           {/* Dialog Dettaglio Evento */}
           <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
