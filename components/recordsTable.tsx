@@ -352,7 +352,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
 
         {/* Le classi per la gestione del testo (truncation) vanno qui */}
         <span className="whitespace-nowrap text-ellipsis overflow-hidden">
-            <span dangerouslySetInnerHTML={{ __html: field.value }} />
+            <span dangerouslySetInnerHTML={{ __html: field.value }}  />
         </span>
     </div>
 </td>
