@@ -5,6 +5,8 @@ import Kanban from './kanban';
 import Pivot from './recordsPivot';
 import PitCalendar from './pitCalendar';
 import RecordsCalendar from './recordsCalendar';
+import RecordsMatrixCalendar from './recordsMatrixCalendar';
+import RecordsPlanner from './recordsPlanner';
 import GalleryView from './gallery';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -25,12 +27,12 @@ export default function RecordTabs({ tableid }: PropsInterface) {
   const { user } = useContext(AppContext);
 
   const responseDataDEFAULT: ResponseInterface = {
-    tableTabs: ['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'],
+    tableTabs: ['Tabella', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
     activeTab: 'Tabella'
   };
 
   const responseDataDEV: ResponseInterface = {
-    tableTabs: ['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'],
+    tableTabs: ['Tabella', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
     activeTab: 'Tabella'
   };
 
@@ -95,6 +97,12 @@ export default function RecordTabs({ tableid }: PropsInterface) {
             )}
             {activeTab === 'Calendario' && (
               <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
+            )}
+            {activeTab === 'MatrixCalendar' && (
+              <RecordsMatrixCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
+            )}
+            {activeTab === 'Planner' && (
+              <RecordsPlanner tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Gallery' && (
               <GalleryView tableid={tableid} />

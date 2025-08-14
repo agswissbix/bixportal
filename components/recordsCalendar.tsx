@@ -52,7 +52,7 @@ type CalendarView = 'month' | 'week' | 'day';
 
 // --- COMPONENTE CALENDARIO ---
 
-function RecordsCalendar({ tableid, initialView = 'month', context, searchTerm, filters, masterTableid, masterRecordid }: PropsInterface) {
+export default function RecordsCalendar({ tableid, initialView = 'month', context, searchTerm, filters, masterTableid, masterRecordid }: PropsInterface) {
     
     // --- SEZIONE DATI ---
 
@@ -349,12 +349,3 @@ function RecordsCalendar({ tableid, initialView = 'month', context, searchTerm, 
 }
 
 
-// --- ESPORTAZIONE CON MEMOIZATION ---
-
-const MemoizedRecordsCalendar = memoWithDebug(RecordsCalendar, "RecordsCalendar");
-
-// Log per verificare l'applicazione di why-did-you-render
-console.log("MemoizedRecordsCalendar:", MemoizedRecordsCalendar); 
-console.log('[Test WDYR] MemoizedRecordsCalendar.whyDidYouRender:', (MemoizedRecordsCalendar as any).whyDidYouRender);
-
-export default MemoizedRecordsCalendar;
