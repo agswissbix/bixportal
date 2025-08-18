@@ -109,24 +109,30 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
   safelist: [
-    // Elenca specificamente le classi se conosci i livelli massimi:
+    // Padding
     'pl-4',
     'pl-8',
     'pl-12',
     'pl-16',
     'pl-20',
-    'pl-24', // Aggiungi altri livelli se necessario
-    // Oppure usa un pattern (Regex) per includerle tutte fino a un certo punto:
-    // {
-    //   pattern: /pl-(4|8|12|16|20|24|28|32)/, // Adatta i numeri ai tuoi bisogni
-    // },
-    // Potresti anche voler mettere in safelist le classi di rotazione se usi JIT
-    'rotate-90', 
-	"bg-green-100",
-	"bg-green-200",
-    "bg-red-200",
-    "bg-yellow-200",
-	"bg-blue-200",
-	
+    'pl-24',
+
+    // Rotazioni
+    'rotate-90',
+
+    // Colori di testo
+    { pattern: /text-(.*)/ },
+
+    // Colori di sfondo
+    { pattern: /bg-(.*)/ },
+
+    // Colori di bordo
+    { pattern: /border-(.*)/ },
+
+    // Colori del fill (per SVG)
+    { pattern: /fill-(.*)/ },
+
+    // Colori dello stroke (per SVG)
+    { pattern: /stroke-(.*)/ },
   ],
 } satisfies Config;
