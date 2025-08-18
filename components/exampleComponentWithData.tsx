@@ -19,7 +19,7 @@ const isDev = true;
           responseExampleValue: string;
         }
 
-function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
+export default function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -91,8 +91,4 @@ function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
     );
 };
 
-const MemoComponent = memoWithDebug(ExampleComponentWithData, "ExampleComponentWithData");
-console.log("MemoComponent:", MemoComponent); // Deve mostrarti l'oggetto con .whyDidYouRender === true
-console.log('[Test WDYR] MemoComponent.whyDidYouRender:', (MemoComponent as any).whyDidYouRender);
-export default MemoComponent;
 
