@@ -12,14 +12,14 @@
     --color-tertiary: #ffd900;
     --color-tertiary-hover: #e6c700;
 
-    --card-background: #f8f9fa;
-    --card-border: #dee2e6;
+    --card-background: #ffffff;
+    --card-border: #e0e6ed;
 
-    --table-background: #00b7ff07;
-    --table-border: #dee2e6;
-    --table-header: #f0f3f5;
+    --table-background: #ffffff;
+    --table-border: #e0e6ed;
+    --table-header: #f0f4f8;
 
-    --records-background: rgb(255, 255, 255);
+    --records-background: whitesmoke;
     
     --sidebar-text: rgb(68, 0, 255);
 
