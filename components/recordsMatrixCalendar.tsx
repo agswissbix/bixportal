@@ -12,7 +12,7 @@ import { memoWithDebug } from '@/lib/memoWithDebug';
 // ===================================================================================
 // FLAG PER LO SVILUPPO
 // ===================================================================================
-const isDev = true;
+const isDev = false;
 
 // ===================================================================================
 // INTERFACCE E TIPI
@@ -45,9 +45,31 @@ interface ResponseInterface {
   unplannedEvents: UnplannedEvent[];
 }
 
-interface PropsInterface {
-  initialDate?: Date;
-}
+// INTERFACCIA PROPS
+        interface PropsInterface {
+          tableid?: string;
+          searchTerm?: string;
+          filters?: string;
+          view?: string;
+          order?: {
+            columnDesc: string | null;
+            direction: 'asc' | 'desc' | null;
+          };
+          context?: string;
+          pagination?: {
+            page: number;
+            limit: number;
+          };
+          level?: number;
+          filtersList?: Array<{
+            fieldid: string;
+            type: string;   
+            label: string;
+            value: string;
+            }>;
+          masterTableid?: string;
+          masterRecordid?: string;
+        }
 
 type ViewMode = 'week' | 'month';
 
@@ -142,14 +164,14 @@ const MonthDropdown: React.FC<{ selectedMonth: number, onMonthChange: (month: nu
 // COMPONENTE PRINCIPALE
 // ===================================================================================
 
-function PitCalendar({ initialDate }: PropsInterface) {
+export default function RecordsMatrixCalendar({ tableid, searchTerm, filters, view, order, context, pagination, level, masterTableid, masterRecordid }: PropsInterface) {
   // DATI
   const { user } = useContext(AppContext);
   
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
   
   const [viewMode, setViewMode] = useState<ViewMode>('week');
-  const [currentDate, setCurrentDate] = useState(initialDate || new Date(2025, 0, 21));
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 21));
   const [selectedWeek, setSelectedWeek] = useState(3);
   const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -160,9 +182,12 @@ function PitCalendar({ initialDate }: PropsInterface) {
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
-      apiRoute: 'getCalendarData',
+      apiRoute: 'get_records_matrixcalendar',
       month: currentDate.getMonth(),
-      year: currentDate.getFullYear()
+      year: currentDate.getFullYear(),
+      tableid: tableid,
+            searchTerm: searchTerm,
+            view: view
     };
   }, [currentDate]);
 
@@ -430,6 +455,3 @@ function PitCalendar({ initialDate }: PropsInterface) {
     </GenericComponent>
   );
 };
-
-const MemoizedPitCalendar = memoWithDebug(PitCalendar, "PitCalendar");
-export default MemoizedPitCalendar;
