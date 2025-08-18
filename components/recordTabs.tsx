@@ -11,6 +11,7 @@ import GalleryView from './gallery';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useApi } from '@/utils/useApi';
+import RecordsKanban from './recordsKanban';
 
 const isDev = false;
 
@@ -93,7 +94,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
               <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Kanban' && (
-              <Kanban tableid={tableid} />
+              <RecordsKanban tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Calendario' && (
               <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
