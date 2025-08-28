@@ -10,7 +10,7 @@ import Section1SystemAssurance from "./sections/section1SystemAssurance"
 import Section2Conditions from "./sections/section2Conditions"
 import Section3Services from "./sections/section3Services"
 import Section4Summary from "./sections/section4Summary"
-import axiosInstanceClient from "@/utils/axiosInstance"
+import axiosInstanceClient from "@/utils/axiosInstanceClient"
 
 interface ServiceData {
   section1: {
