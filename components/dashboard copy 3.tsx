@@ -291,7 +291,7 @@ function Dashboard({ propExampleValue }: PropsInterface) {
                     root.render(
                         <div className="p-3 w-full h-full bg-white">
                             <h4 className="text-lg font-semibold mb-2">{block.name}</h4>
-                            <p>Block type: {block.type}</p>
+                            <p>Block type 2: {block.type}</p>
                             {block.content && <div dangerouslySetInnerHTML={{ __html: block.content }} />}
                         </div>
                     );

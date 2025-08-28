@@ -480,7 +480,7 @@ useEffect(() => {
                                             {block.content ? (
                                                 <div dangerouslySetInnerHTML={{ __html: block.content }} />
                                             ) : (
-                                                <p>Block type: {block.type}</p>
+                                                <p>Block type 2:  {block.type}</p>
                                             )}
                                         </div>
                                     </div>
