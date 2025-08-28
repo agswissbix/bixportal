@@ -58,7 +58,7 @@ export default function CompanyHeader({propExampleValue}: PropsInterface) {
 	const payload = useMemo(() => {
 			if (isDev) return null;
 			return {
-					apiRoute: 'examplepost', // riferimento api per il backend
+					apiRoute: 'get_activemind', // riferimento api per il backend
 					example1: propExampleValue
 			};
 	}, [propExampleValue]);

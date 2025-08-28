@@ -115,7 +115,7 @@ export default function ActiveMindServices() {
   }
 
   return (
-    <div className="w-full mx-auto p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl">
+    <div className="w-full mx-auto p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl overflow-y-auto overflow-x-hidden h-screen">
       <CompanyHeader />
 
       {/* Stepper Navigation */}
