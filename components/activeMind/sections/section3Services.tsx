@@ -280,7 +280,7 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
+      <div className="grid gap-4 grid-cols-1">
         {services.map((service) => {
           const Icon = service.icon
           const isExpanded = expandedServices.includes(service.id)
@@ -381,18 +381,18 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
 
       {/* Total Summary */}
       {getTotalForAllServices() > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-green-50 border-green-200">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
               <div>
-                <h3 className="text-lg font-semibold text-blue-900">Totale Servizi Sezione 3</h3>
-                <p className="text-sm text-blue-700">
+                <h3 className="text-lg font-semibold text-green-900">Totale Servizi Sezione 3</h3>
+                <p className="text-sm text-green-700">
                   {Object.values(data).filter((s) => s.quantity > 0).length} servizi selezionati
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-900">CHF {getTotalForAllServices().toFixed(2)}</div>
-                <div className="text-sm text-blue-700">Totale</div>
+                <div className="text-3xl font-bold text-green-900">CHF {getTotalForAllServices().toFixed(2)}.-</div>
+                <div className="text-sm text-green-700">Totale</div>
               </div>
             </div>
           </CardContent>

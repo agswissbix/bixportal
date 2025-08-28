@@ -150,17 +150,21 @@ export default function Section4Summary({ serviceData }: Section4Props) {
       <Card className="bg-green-50 border-green-200">
         <CardContent className="p-6">
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-green-900 mb-2">Totale Complessivo</h3>
-            <div className="text-4xl font-bold text-green-900 mb-4">CHF {grandTotal.toLocaleString("it-CH")}.-</div>
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-green-800">
-              <div className="flex justify-between">
+            <div className="gap-4 text-sm text-green-800">
+              {/* <h3 className="text-2xl font-bold text-green-900 mb-2">Totale Complessivo</h3>
+              <div className="text-4xl font-bold text-green-900 mb-4">CHF {grandTotal.toLocaleString("it-CH")}.-</div> */}
+              <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900 mb-4 border-b border-green-200 pb-2">
                 <span>System Assurance:</span>
                 <span>CHF {serviceData.section1.price.toLocaleString("it-CH")}.-</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900 mt-4">
                 <span>Servizi aggiuntivi:</span>
-                <span>CHF {section3Total.toFixed(2)}</span>
+                <span>CHF {section3Total.toFixed(2)}.-</span>
               </div>
+                {/* <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">System Assurance:</span>
+                <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">CHF {serviceData.section1.price.toLocaleString("it-CH")}.-</span>
+                <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">Servizi aggiuntivi:</span>
+                <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">CHF {section3Total.toFixed(2)}.-</span> */}
             </div>
           </div>
         </CardContent>

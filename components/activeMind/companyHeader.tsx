@@ -101,10 +101,11 @@ export default function CompanyHeader({propExampleValue}: PropsInterface) {
 				</div>
 				<Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 print:bg-white print:border-gray-300">
 					<CardContent className="p-6">
-						<div className="grid md:grid-cols-2 gap-6">
+						<div className="grid md:grid-cols-2 gap-6 items-end">
 							{/* Company Info */}
 							<div>
-								<h1 className="text-3xl font-bold text-blue-900 mb-2">Swissbix SA</h1>
+								<img src={"/bixdata/logos/swissbix_company.png"} alt="swissbix" />
+								{/* <h1 className="text-3xl font-bold text-blue-900 mb-2">Swissbix SA</h1> */}
 								<div className="space-y-2 text-sm text-gray-700">
 									<div className="flex items-center">
 										<Building2 className="w-4 h-4 mr-2 text-blue-600" />

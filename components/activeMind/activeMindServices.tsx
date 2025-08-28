@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ChevronLeft, ChevronRight, Save, Printer, Check } from "lucide-react"
 import CompanyHeader from "./companyHeader"
 import Section1SystemAssurance from "./sections/section1SystemAssurance"
@@ -115,13 +116,68 @@ export default function ActiveMindServices() {
   }
 
   return (
+    <TooltipProvider>
     <div className="w-full mx-auto p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl overflow-y-auto overflow-x-hidden h-screen">
       <CompanyHeader />
 
       {/* Stepper Navigation */}
       <div className="print:hidden">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-2 lg:space-x-4 overflow-x-auto pb-2 lg:pb-0">
+          {/* Mobile: Vertical compact stepper */}
+          <div className="lg:hidden">
+            <div className="flex flex-col space-y-2">
+              {/* Current step - full size */}
+              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-center items-end w-10 h-10 rounded-full bg-blue-600 text-white">
+                  <span className="text-sm font-medium">{currentStep}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-600">{steps[currentStep - 1].title}</p>
+                  <p className="text-xs text-gray-500">{steps[currentStep - 1].description}</p>
+                </div>
+                <Badge variant="secondary" className="ml-auto print:hidden self-start">
+                  {currentStep}/{steps.length}
+                </Badge>
+              </div>
+
+              {/* Other steps - compact */}
+              <div className="flex items-center justify-center space-x-1">
+                {steps.map((step, index) => (
+                  <div key={step.id} className="flex items-center">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                    <div
+                      className={`flex items-center justify-center w-6 h-6 rounded-full border cursor-pointer ${
+                        currentStep === step.id
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : currentStep > step.id
+                            ? "bg-green-600 border-green-600 text-white"
+                            : "border-gray-300 text-gray-400"
+                      }`}
+                    >
+                      {currentStep > step.id ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        <span className="text-xs">{step.id}</span>
+                      )}
+                    </div>
+                    </TooltipTrigger>
+                        <TooltipContent className="bg-gray-100 text-gray-900 border border-gray-300">
+                          <p className="font-medium">{step.title}</p>
+                          <p className="text-xs text-gray-600">{step.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    {index < steps.length - 1 && (
+                      <div className={`w-4 h-0.5 mx-1 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal stepper */}
+          <div className="hidden lg:flex items-center space-x-4">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-shrink-0">
                 <div
@@ -146,15 +202,16 @@ export default function ActiveMindServices() {
                   <p className="text-xs text-gray-400">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`w-8 lg:w-12 h-0.5 mx-2 lg:mx-4 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`}
-                  />
+                  <div className={`w-12 h-0.5 mx-4 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`} />
                 )}
               </div>
             ))}
           </div>
 
-          <div className="flex items-center space-x-2 flex-shrink-0">
+          
+        </div>
+      </div>
+      <div className="flex items-center space-x-2 flex-shrink-0">
             <Button
               onClick={handleSave}
               variant="outline"
@@ -174,8 +231,6 @@ export default function ActiveMindServices() {
               Stampa PDF
             </Button>
           </div>
-        </div>
-      </div>
 
       {/* Step Content */}
       <Card className="print:shadow-none print:border-none">
@@ -185,7 +240,7 @@ export default function ActiveMindServices() {
               <CardTitle className="text-2xl font-bold text-gray-900">{steps[currentStep - 1].title}</CardTitle>
               <p className="text-gray-600 mt-1">{steps[currentStep - 1].description}</p>
             </div>
-            <Badge variant="secondary" className="print:hidden self-start lg:self-center">
+            <Badge variant="secondary" className="print:hidden self-start lg:self-center lg:block hidden">
               Sezione {currentStep} di {steps.length}
             </Badge>
           </div>
@@ -215,5 +270,6 @@ export default function ActiveMindServices() {
         </Button>
       </div>
     </div>
+    </TooltipProvider>
   )
 }
