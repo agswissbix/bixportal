@@ -19,7 +19,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-dialog": "^1.1.5",
-    "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/postcss": "^4.0.0",
     "@toast-ui/editor": "^3.2.2",
     "@types/lodash": "^4.17.15",

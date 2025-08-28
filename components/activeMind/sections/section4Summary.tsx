@@ -1,0 +1,232 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Calculator, FileText, Phone, Mail, Clock } from "lucide-react"
+
+interface Section4Props {
+  serviceData: {
+    section1: {
+      selectedTier: string
+      price: number
+    }
+    section2: {
+      selectedFrequency: string
+    }
+    section3: {
+      [key: string]: {
+        quantity: number
+        unitPrice: number
+        total: number
+      }
+    }
+  }
+}
+
+const tierLabels: { [key: string]: string } = {
+  tier1: "Fino a 5 PC + server",
+  tier2: "Fino a 10 PC + server",
+  tier3: "Fino a 15 PC + server",
+  tier4: "Fino a 20 PC + server",
+}
+
+const frequencyLabels: { [key: string]: string } = {
+  monthly: "Mensile (1 uscita al mese)",
+  quarterly: "Trimestrale (1 uscita ogni 3 mesi)",
+  biannual: "Semestrale (1 uscita ogni 6 mesi)",
+  annual: "Annuale (1 uscita ogni 12 mesi)",
+}
+
+const serviceLabels: { [key: string]: string } = {
+  windowsServerVM: "Windows server (VM)",
+  windowsServerPhysical: "Windows server (fisico)",
+  clientPC: "Client Personal computer (windows)",
+  ups: "Gruppo di continuità",
+  rack: "Armadio Rack",
+  firewall: "Servizi Firewall",
+  wifi: "Rete WIFI (access point)",
+  nas: "Storage NAS",
+  antivirus: "Servizi di antivirus/EDR",
+  backupServer: "Servizi di backup (server)",
+  backupClient: "Servizi di backup (client)",
+  backup365: "Servizi di backup Microsoft 365",
+  tenant365: "Tenant Microsoft 365",
+  sharepoint: "Sharepoint/OneDrive",
+}
+
+export default function Section4Summary({ serviceData }: Section4Props) {
+  const section3Total = Object.values(serviceData.section3).reduce((sum, service) => sum + service.total, 0)
+  const grandTotal = serviceData.section1.price + section3Total
+
+  const selectedServices = Object.entries(serviceData.section3)
+    .filter(([_, service]) => service.quantity > 0)
+    .map(([id, service]) => ({ id, ...service }))
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Header */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center text-blue-900">
+            <Calculator className="w-5 h-5 mr-2" />
+            Definizione Economica
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-blue-800">Riepilogo completo dei servizi selezionati e calcolo del totale finale.</p>
+        </CardContent>
+      </Card>
+
+      {/* Section 1 Summary */}
+      {serviceData.section1.selectedTier && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Sezione 1 - System Assurance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">{tierLabels[serviceData.section1.selectedTier]}</h4>
+                <p className="text-sm text-gray-600">RMM di sistema (intervento propedeutico)</p>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-gray-900">
+                  CHF {serviceData.section1.price.toLocaleString("it-CH")}.-
+                </div>
+                <Badge variant="secondary">Prezzo fisso</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section 2 Summary */}
+      {serviceData.section2.selectedFrequency && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Sezione 2 - Pianificazione</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">Frequenza interventi selezionata</h4>
+              <p className="text-gray-700">{frequencyLabels[serviceData.section2.selectedFrequency]}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section 3 Summary */}
+      {selectedServices.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Sezione 3 - Servizi Inclusi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {selectedServices.map((service) => (
+                <div key={service.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-gray-900">{serviceLabels[service.id]}</h4>
+                    <p className="text-sm text-gray-600">
+                      {service.quantity} × CHF {service.unitPrice.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-gray-900">CHF {service.total.toFixed(2)}</div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="border-t pt-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-900">Subtotale Servizi</h4>
+                  <div className="text-lg font-bold text-gray-900">CHF {section3Total.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Grand Total */}
+      <Card className="bg-green-50 border-green-200">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-green-900 mb-2">Totale Complessivo</h3>
+            <div className="text-4xl font-bold text-green-900 mb-4">CHF {grandTotal.toLocaleString("it-CH")}.-</div>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-green-800">
+              <div className="flex justify-between">
+                <span>System Assurance:</span>
+                <span>CHF {serviceData.section1.price.toLocaleString("it-CH")}.-</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Servizi aggiuntivi:</span>
+                <span>CHF {section3Total.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contract Terms */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileText className="w-5 h-5 mr-2" />
+            Condizioni contrattuali di vendita
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                <Phone className="w-4 h-4 mr-2" />
+                Contatti per Assistenza Tecnica
+              </h4>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex items-center">
+                  <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                  <span>helpdesk@swissbix.ch</span>
+                </div>
+                <div className="flex items-center">
+                  <Phone className="w-4 h-4 mr-2 text-blue-600" />
+                  <span>091 960 22 09</span>
+                </div>
+                <div className="flex items-center">
+                  <Clock className="w-4 h-4 mr-2 text-blue-600" />
+                  <span>Lun-Ven: 9:00-12:00, 14:00-17:00</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Metodo di pagamento</h4>
+              <p className="text-sm text-gray-700">Fatturazione ad intervento eseguito, pagamento a 20gg</p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h4 className="font-semibold text-gray-900 mb-3">Condizioni generali</h4>
+            <div className="space-y-2 text-sm text-gray-700">
+              <p>• Condizioni generali di vendita: https://www.swissbix.ch/cgv.pdf</p>
+              <p>• Offerta valida fino al _______________</p>
+              <p>• I prezzi indicati sono IVA Esclusa</p>
+              <p>• Sono esclusi: supporto applicativi terze parti, lavori di cablaggio, lavori elettrici</p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">Massagno, {new Date().toLocaleDateString("it-IT")}</p>
+                <p className="font-medium">Mauro Gallani</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>
+                <div className="border-b border-gray-400 w-48 h-8"></div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

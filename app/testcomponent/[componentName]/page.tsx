@@ -34,7 +34,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     planner: dynamic(() => import('@/components/planner')),
     timeline: dynamic(() => import('@/components/timeline')),
     trasferta: dynamic(() => import('@/components/trasferta')),
-    activeMind: dynamic(() => import('@/components/activeMind')),
+    activeMind: dynamic(() => import('@/components/activeMind/activeMind')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
@@ -50,7 +50,7 @@ export default function DynamicComponentPage({ params }: { params: Promise<{ com
     return (
         <div>
             {/*<h1 className='text-red-600'>Componente: {componentName}</h1><br/><br/> */}
-            <Component /> {/* Renderizza il componente senza passare props */}
+            <Component className="overflow-auto" /> {/* Renderizza il componente senza passare props */}
         </div>
     );
 }

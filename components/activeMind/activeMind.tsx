@@ -1,8 +1,9 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent';
+import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
+import ActiveMindServices from '@/components/activeMind/activeMindServices';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -16,7 +17,11 @@ const isDev = true;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
-          responseExampleValue: string;
+          cliente: {
+            nome: string;
+            indirizzo: string;
+            citta: string;
+          }
         }
 
 export default function ActiveMind({ propExampleValue }: PropsInterface) {
@@ -26,12 +31,20 @@ export default function ActiveMind({ propExampleValue }: PropsInterface) {
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
-                responseExampleValue: "Default"
+                cliente: {
+									nome: "Farmacia MGM Azione Sagl",
+									indirizzo: "Via Franco Zorzi 36a",
+									citta: "Bellinzona"
+                }
               };
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
-              responseExampleValue: "Example"
+              cliente: {
+                nome: "Farmacia MGM Azione Sagl",
+                indirizzo: "Via Franco Zorzi 36a",
+                citta: "Bellinzona"
+              }
             };
 
             // DATI DEL CONTESTO
@@ -45,7 +58,7 @@ export default function ActiveMind({ propExampleValue }: PropsInterface) {
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
+            apiRoute: 'get_activemind', // riferimento api per il backend
             example1: propExampleValue
         };
     }, [propExampleValue]);
@@ -60,11 +73,17 @@ export default function ActiveMind({ propExampleValue }: PropsInterface) {
         }
     }, [response, responseData]);
 
-    // PER DEVELLOPMENT 
+    // PER DEVELOPMENT 
     useEffect(() => {
         const interval = setInterval(() => {
             // forza un setState con lo stesso valore, quindi re-render inutile
-            setResponseData({ responseExampleValue: 'Example' }); // stesso valore di prima
+            setResponseData({ 
+							cliente: {
+                nome: "Farmacia MGM Azione Sagl",
+                indirizzo: "Via Franco Zorzi 36a",
+                citta: "Bellinzona"
+              } 
+						}); // stesso valore di prima
 
         }, 3000);
         return () => clearInterval(interval);
@@ -74,13 +93,7 @@ export default function ActiveMind({ propExampleValue }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div>
-                    <b>ActiveMind Component</b> <br/><br/>
-                    <b>propExampleValue:</b> {devPropExampleValue}<br/>
-                    <b>responseExampleValue:</b> {response.responseExampleValue} <br/>
-                    <b>Utente loggato</b> (da context): {user ?? 'Nessun utente'} <br/>
-                    <b>Server:</b> {API_BASE_URL}
-                </div>
+                <ActiveMindServices />
             )}
         </GenericComponent>
     );
