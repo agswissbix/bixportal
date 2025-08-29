@@ -136,7 +136,7 @@ export default function QrGenerator() {
             <Input
               id="employee-id"
               type="text"
-              placeholder="Inserisci Employee ID"
+              placeholder="es: E001"
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
             />
@@ -149,7 +149,7 @@ export default function QrGenerator() {
             <Input
               id="company-id"
               type="text"
-              placeholder="Inserisci Company ID"
+              placeholder="es: 1"
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
             />
