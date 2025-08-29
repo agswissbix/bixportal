@@ -298,7 +298,7 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
                     <Icon className="w-6 h-6 text-gray-700" />
                     <div>
                       <CardTitle className="text-lg">{service.title}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">CHF {service.unitPrice.toFixed(2)} per unità</p>
+                      <p className="text-sm text-gray-600 mt-1">CHF {service.unitPrice} per unità</p>
                     </div>
                   </div>
 
@@ -324,10 +324,13 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
                         type="number"
                         min="0"
                         value={serviceData.quantity}
-                        onChange={(e) => updateQuantity(service.id, Number.parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          updateQuantity(service.id, Number.parseInt(e.target.value) || 0)
+                        }
                         onClick={(e) => e.stopPropagation()}
-                        className="w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-10"
+                        className="w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-10 no-spinner"
                       />
+
                       <button
                           type="button"
                           onClick={(e) => {
@@ -343,7 +346,7 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
 
                     {serviceData.quantity > 0 && (
                       <div className="text-right">
-                        <div className="text-lg font-bold text-blue-700">CHF {serviceData.total.toFixed(2)}</div>
+                        <div className="text-lg font-bold text-blue-700">CHF {serviceData.total}</div>
                         <div className="text-xs text-gray-600">Totale</div>
                       </div>
                     )}
@@ -391,7 +394,7 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-green-900">CHF {getTotalForAllServices().toFixed(2)}.-</div>
+                <div className="text-3xl font-bold text-green-900">CHF {getTotalForAllServices()}.-</div>
                 <div className="text-sm text-green-700">Totale</div>
               </div>
             </div>

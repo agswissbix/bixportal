@@ -126,11 +126,11 @@ export default function Section4Summary({ serviceData }: Section4Props) {
                   <div>
                     <h4 className="font-medium text-gray-900">{serviceLabels[service.id]}</h4>
                     <p className="text-sm text-gray-600">
-                      {service.quantity} × CHF {service.unitPrice.toFixed(2)}
+                      {service.quantity} × CHF {service.unitPrice}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-gray-900">CHF {service.total.toFixed(2)}</div>
+                    <div className="font-bold text-gray-900">CHF {service.total}.-</div>
                   </div>
                 </div>
               ))}
@@ -138,7 +138,7 @@ export default function Section4Summary({ serviceData }: Section4Props) {
               <div className="border-t pt-3 mt-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-gray-900">Subtotale Servizi</h4>
-                  <div className="text-lg font-bold text-gray-900">CHF {section3Total.toFixed(2)}</div>
+                  <div className="text-lg font-bold text-gray-900">CHF {section3Total}.-</div>
                 </div>
               </div>
             </div>
@@ -159,12 +159,8 @@ export default function Section4Summary({ serviceData }: Section4Props) {
               </div>
               <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900 mt-4">
                 <span>Servizi aggiuntivi:</span>
-                <span>CHF {section3Total.toFixed(2)}.-</span>
+                <span>CHF {section3Total}.-</span>
               </div>
-                {/* <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">System Assurance:</span>
-                <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">CHF {serviceData.section1.price.toLocaleString("it-CH")}.-</span>
-                <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">Servizi aggiuntivi:</span>
-                <span className=" flex justify-between text-2xl font-bold text-green-900 mb-2">CHF {section3Total.toFixed(2)}.-</span> */}
             </div>
           </div>
         </CardContent>

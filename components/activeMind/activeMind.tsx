@@ -91,7 +91,7 @@ export default function ActiveMind({ propExampleValue }: PropsInterface) {
 
  
     return (
-			<div className=''>
+			<div className='overflow-y-auto overflow-x-hidden h-screen'>
 
 			<GenericComponent response={responseData} loading={loading} error={error}> 
 					{(response: ResponseInterface) => (
