@@ -4,6 +4,8 @@ import { useState, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ChevronLeft, ChevronRight, Save, Printer, Check } from "lucide-react"
 import CompanyHeader from "./companyHeader"
 import Section1SystemAssurance from "./sections/section1SystemAssurance"
@@ -120,23 +122,91 @@ export default function ActiveMindServices() {
 
       {/* Stepper Navigation */}
       <div className="print:hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-2 lg:space-x-4 overflow-x-auto pb-2 lg:pb-0">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center mb-8 space-y-4 lg:space-y-0">
+          {/* Mobile: Vertical compact stepper */}
+          <div className="lg:hidden bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex flex-col">
+              {/* Current step - full size */}
+              <div className="flex items-center justify-between space-x-3 p-5">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center items-end w-10 h-10 rounded-full bg-blue-600 text-white">
+                    <span className="text-md font-medium">{currentStep}</span>
+                  </div>
+                  <div>
+                    <p className="text-md font-medium text-blue-600">{steps[currentStep - 1].title}</p>
+                    <p className="text-sm text-gray-500">{steps[currentStep - 1].description}</p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="ml-auto text-sm print:hidden">
+                  {currentStep}/{steps.length}
+                </Badge>
+              </div>
+
+              {/* Other steps - compact */}
+              <div className="flex items-center justify-center space-x-1 space-y-0 mb-3">
+                {steps.map((step, index) => (
+                  <div key={step.id} className="flex items-center">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                    <div
+                      className={`flex items-center justify-center w-6 h-6 rounded-full border cursor-pointer ${
+                        currentStep === step.id
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : currentStep > step.id
+                            ? "bg-green-600 border-green-600 text-white"
+                            : "border-gray-300 text-gray-400"
+                      }`}
+                    >
+                      {currentStep > step.id ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        <span className="text-xs">{step.id}</span>
+                      )}
+                    </div>
+                    </PopoverTrigger>
+                        <PopoverContent className="bg-gray-100 text-gray-900 border border-gray-300 max-w-max p-3">
+                          <p className="text-sm font-medium">{step.title}</p>
+                          <p className="text-xs text-gray-600">{step.description}</p>
+                        </PopoverContent>
+                      </Popover>
+                    {index < steps.length - 1 && (
+                      <div className={`w-4 h-0.5 mx-1 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal stepper */}
+          <div className="hidden lg:flex items-center space-x-4">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-shrink-0">
                 <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                    currentStep === step.id
-                      ? "bg-blue-600 border-blue-600 text-white"
-                      : currentStep > step.id
-                        ? "bg-green-600 border-green-600 text-white"
-                        : "border-gray-300 text-gray-500"
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 cursor-pointer ${
+                  currentStep === step.id
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : currentStep > step.id
+                    ? "bg-green-600 border-green-600 text-white"
+                    : "border-gray-300 text-gray-500"
                   }`}
+                  onClick={() => {
+                    if (
+                      (currentStep === 1 && serviceData.section1.selectedTier === "") ||
+                      (currentStep === 2 && serviceData.section2.selectedFrequency === "")
+                    ) {
+                      return
+                    }
+                    setCurrentStep(step.id)
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Vai allo step ${step.title}`}
                 >
                   {currentStep > step.id ? (
-                    <Check className="w-5 h-5" />
+                  <Check className="w-5 h-5" />
                   ) : (
-                    <span className="text-sm font-medium">{step.id}</span>
+                  <span className="text-sm font-medium">{step.id}</span>
                   )}
                 </div>
                 <div className="ml-3">
@@ -146,36 +216,16 @@ export default function ActiveMindServices() {
                   <p className="text-xs text-gray-400">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`w-8 lg:w-12 h-0.5 mx-2 lg:mx-4 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`}
-                  />
+                  <div className={`w-12 h-0.5 mx-4 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`} />
                 )}
               </div>
             ))}
           </div>
 
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            <Button
-              onClick={handleSave}
-              variant="outline"
-              size="sm"
-              className="border-blue-200 text-blue-700 hover:bg-blue-50 bg-transparent"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Salva
-            </Button>
-            <Button
-              onClick={handlePrint}
-              variant="outline"
-              size="sm"
-              className="border-blue-200 text-blue-700 hover:bg-blue-50 bg-transparent"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Stampa PDF
-            </Button>
-          </div>
+          
         </div>
       </div>
+      
 
       {/* Step Content */}
       <Card className="print:shadow-none print:border-none">
@@ -185,7 +235,7 @@ export default function ActiveMindServices() {
               <CardTitle className="text-2xl font-bold text-gray-900">{steps[currentStep - 1].title}</CardTitle>
               <p className="text-gray-600 mt-1">{steps[currentStep - 1].description}</p>
             </div>
-            <Badge variant="secondary" className="print:hidden self-start lg:self-center">
+            <Badge variant="secondary" className="print:hidden self-start lg:self-center lg:block hidden">
               Sezione {currentStep} di {steps.length}
             </Badge>
           </div>
@@ -194,7 +244,49 @@ export default function ActiveMindServices() {
       </Card>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between print:hidden">
+      <div className="print:hidden">
+          {/* Mobile Layout */}
+          <div className="flex flex-col space-y-3 sm:hidden">
+            <div className="flex justify-between">
+            <Button
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              variant="outline"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent h-12 text-base font-medium"
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              Precedente
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={currentStep === steps.length}
+              className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-medium"
+            >
+              Successivo
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+            </div>
+            
+            <Button
+              onClick={handleSave}
+              variant="outline"
+              className="bg-green-50 hover:bg-green-200 text-green-900 h-12 text-base font-medium"
+            >
+              <Save className="w-5 h-5 mr-2" />
+              Salva
+            </Button>
+            <Button
+              onClick={handlePrint}
+              variant="outline"
+              className="text-gray-700 hover:bg-gray-50 bg-transparent h-12 text-base font-medium"
+            >
+              <Printer className="w-5 h-5 mr-2" />
+              Stampa PDF
+            </Button>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex justify-between">
         <Button
           onClick={handlePrevious}
           disabled={currentStep === 1}
@@ -205,14 +297,36 @@ export default function ActiveMindServices() {
           Precedente
         </Button>
 
-        <Button
-          onClick={handleNext}
-          disabled={currentStep === steps.length}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Successivo
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </Button>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Button
+              onClick={handlePrint}
+              variant="outline"
+              className="text-gray-700 hover:bg-gray-50 bg-transparent"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Stampa PDF
+            </Button>
+            <Button
+              onClick={handleSave}
+              variant="outline"
+              className="bg-green-50 hover:bg-green-200 text-green-900"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Salva
+            </Button>
+          </div>
+          <Button
+            onClick={handleNext}
+            disabled={currentStep === steps.length || (currentStep === 1 && serviceData.section1.selectedTier === "") || (currentStep === 2 && serviceData.section2.selectedFrequency === "")}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Successivo
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
+          </div>
+        </div>
+        <div></div>
       </div>
     </div>
   )

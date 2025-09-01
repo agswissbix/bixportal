@@ -262,13 +262,25 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
     })
   }
 
+  const incrementQuantity = (serviceId: string) => {
+    const currentQuantity = data[serviceId]?.quantity || 0
+    updateQuantity(serviceId, currentQuantity + 1)
+  }
+
+  const decrementQuantity = (serviceId: string) => {
+    const currentQuantity = data[serviceId]?.quantity || 0
+    if (currentQuantity > 0) {
+      updateQuantity(serviceId, currentQuantity - 1)
+    }
+  }
+
   const getTotalForAllServices = () => {
     return Object.values(data).reduce((sum, service) => sum + service.total, 0)
   }
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
+      <div className="grid gap-4 grid-cols-1">
         {services.map((service) => {
           const Icon = service.icon
           const isExpanded = expandedServices.includes(service.id)
@@ -286,26 +298,55 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
                     <Icon className="w-6 h-6 text-gray-700" />
                     <div>
                       <CardTitle className="text-lg">{service.title}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">CHF {service.unitPrice.toFixed(2)} per unità</p>
+                      <p className="text-sm text-gray-600 mt-1">CHF {service.unitPrice} per unità</p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between lg:justify-end space-x-4">
                     <div className="flex items-center space-x-2">
                       <label className="text-sm font-medium text-gray-700">Quantità:</label>
+                      <div
+                        className="flex items-center border border-gray-300 rounded-md bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            decrementQuantity(service.id)
+                          }}
+                          className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={serviceData.quantity <= 0}
+                        >
+                          <span className="text-lg font-bold">−</span>
+                        </button>
                       <Input
                         type="number"
                         min="0"
                         value={serviceData.quantity}
-                        onChange={(e) => updateQuantity(service.id, Number.parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          updateQuantity(service.id, Number.parseInt(e.target.value) || 0)
+                        }
                         onClick={(e) => e.stopPropagation()}
-                        className="w-20 text-center"
+                        className="w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-10 no-spinner"
                       />
+
+                      <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            incrementQuantity(service.id)
+                          }}
+                          className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-r-md border-l border-gray-300"
+                        >
+                          <span className="text-lg font-bold">+</span>
+                        </button>
+                      </div>
                     </div>
 
                     {serviceData.quantity > 0 && (
                       <div className="text-right">
-                        <div className="text-lg font-bold text-blue-700">CHF {serviceData.total.toFixed(2)}</div>
+                        <div className="text-lg font-bold text-blue-700">CHF {serviceData.total}</div>
                         <div className="text-xs text-gray-600">Totale</div>
                       </div>
                     )}
@@ -343,18 +384,18 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
 
       {/* Total Summary */}
       {getTotalForAllServices() > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-green-50 border-green-200">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
               <div>
-                <h3 className="text-lg font-semibold text-blue-900">Totale Servizi Sezione 3</h3>
-                <p className="text-sm text-blue-700">
+                <h3 className="text-lg font-semibold text-green-900">Totale Servizi Sezione 3</h3>
+                <p className="text-sm text-green-700">
                   {Object.values(data).filter((s) => s.quantity > 0).length} servizi selezionati
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-900">CHF {getTotalForAllServices().toFixed(2)}</div>
-                <div className="text-sm text-blue-700">Totale</div>
+                <div className="text-3xl font-bold text-green-900">CHF {getTotalForAllServices()}.-</div>
+                <div className="text-sm text-green-700">Totale</div>
               </div>
             </div>
           </CardContent>

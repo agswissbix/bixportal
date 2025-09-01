@@ -161,6 +161,7 @@ export async function POST(request: Request) {
     case'delete_dashboard_block': djangoUrl = '/commonapp/delete_dashboard_block/'; break;
     case'get_activemind': djangoUrl = '/customapp_swissbix/get_activemind/'; break;
     case'save_activemind': djangoUrl = '/customapp_swissbix/save_activemind/'; break;
+    case'qr_issue': djangoUrl = '/customapp_swissbix/qr/issue'; break;
 
     default:
       return NextResponse.json(

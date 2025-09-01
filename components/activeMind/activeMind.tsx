@@ -91,11 +91,14 @@ export default function ActiveMind({ propExampleValue }: PropsInterface) {
 
  
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
-            {(response: ResponseInterface) => (
-                <ActiveMindServices />
-            )}
-        </GenericComponent>
+			<div className='overflow-y-auto overflow-x-hidden h-screen'>
+
+			<GenericComponent response={responseData} loading={loading} error={error}> 
+					{(response: ResponseInterface) => (
+						<ActiveMindServices />
+					)}
+			</GenericComponent>
+			</div>
     );
 };
 
