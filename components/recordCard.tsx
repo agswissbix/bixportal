@@ -202,6 +202,87 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
     }
   }
 
+
+  const stampaPdfTest = async () => {
+    try {
+      //download a file from the response
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_pdf_test",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'pdftest.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('PDF test stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del PDF test', error);
+      toast.error('Errore durante la stampa del PDF test');
+    }
+
+  }
+
+  const stampaWordTest = async () => {
+    try {
+      //download a file from the response
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_pdf_test",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'pdftest.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('PDF test stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del PDF test', error);
+      toast.error('Errore durante la stampa del PDF test');
+    }
+    
+  }
+
   const sendEmail = async () => {
     try {
       const response = await axiosInstanceClient.post(
@@ -374,6 +455,31 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                                 >
                                   Report gasolio
                                 </li>
+                              )}
+                              {tableid === 'devtest' && (
+                                <>
+                                <li 
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => {
+                                    toast.info('Stampa test in corso...');
+                                    stampaPdfTest();
+                                    setShowDropdown(false);
+                                  }}
+                                >
+                                  Stampa pdf test
+                                </li>
+                                <li 
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => {
+                                    toast.info('Stampa test in corso...');
+                                    stampaWordTest();
+                                    setShowDropdown(false);
+                                  }}
+                                >
+                                  Stampa word test
+                                </li>
+                                </>
+                                
                               )}
                               {tableid === 'bollettinitrasporto' && (
                                 <li 
