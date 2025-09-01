@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp, Server, Monitor, Shield, Wifi, HardDrive, Datab
 interface Section3Props {
   data: {
     [key: string]: {
+      title: string
       quantity: number
       unitPrice: number
       total: number
@@ -255,6 +256,7 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
 
     onUpdate({
       [serviceId]: {
+        title: service.title,
         quantity,
         unitPrice: service.unitPrice,
         total,

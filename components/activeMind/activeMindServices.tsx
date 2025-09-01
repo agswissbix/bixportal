@@ -13,6 +13,7 @@ import Section2Conditions from "./sections/section2Conditions"
 import Section3Services from "./sections/section3Services"
 import Section4Summary from "./sections/section4Summary"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
+import axiosInstance from '@/utils/axiosInstance';
 
 interface ServiceData {
   section1: {
@@ -24,6 +25,7 @@ interface ServiceData {
   }
   section3: {
     [key: string]: {
+      title: string,
       quantity: number
       unitPrice: number
       total: number
@@ -90,8 +92,49 @@ export default function ActiveMindServices() {
     }
   }
 
-  const handlePrint = () => {
-    window.print()
+  const handlePrint = async () => {
+    try {
+        const clientInfo = {
+          nome: "Farmacia MGM Azione Sagl",
+          indirizzo: "Via Franco Zorzi 36a, Bellinzona",
+          data: new Date().toLocaleDateString("it-CH"),
+          termine: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString("it-CH")
+        }
+
+        const dataToPrint = {
+          ...serviceData,
+        }
+    
+        const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+                apiRoute: "stampa_pdf",
+                data: dataToPrint,
+                cliente: clientInfo,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+        );
+
+        if (response.status === 200) {
+          const blob = new Blob([response.data], { type: "application/pdf" })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = `ActiveMind_Preventivo_${new Date().toISOString().split("T")[0]}.pdf`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        } else {
+          throw new Error("Errore nella generazione del PDF")
+        }
+    } catch (error) {
+        console.error("Errore durante il salvataggio dei dati:", error);
+    }
   }
 
   const renderStepContent = () => {
@@ -192,7 +235,6 @@ export default function ActiveMindServices() {
                   }`}
                   onClick={() => {
                     if (
-                      (currentStep === 1 && serviceData.section1.selectedTier === "") ||
                       (currentStep === 2 && serviceData.section2.selectedFrequency === "")
                     ) {
                       return
@@ -316,14 +358,16 @@ export default function ActiveMindServices() {
               Salva
             </Button>
           </div>
+          { currentStep !== steps.length ? (
           <Button
             onClick={handleNext}
-            disabled={currentStep === steps.length || (currentStep === 1 && serviceData.section1.selectedTier === "") || (currentStep === 2 && serviceData.section2.selectedFrequency === "")}
+            disabled={(currentStep === 2 && serviceData.section2.selectedFrequency === "")}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             Successivo
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
+          ) : null}
           </div>
         </div>
         <div></div>

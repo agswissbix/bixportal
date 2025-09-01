@@ -151,13 +151,7 @@ export default function Section4Summary({ serviceData }: Section4Props) {
         <CardContent className="p-6">
           <div className="text-center">
             <div className="gap-4 text-sm text-green-800">
-              {/* <h3 className="text-2xl font-bold text-green-900 mb-2">Totale Complessivo</h3>
-              <div className="text-4xl font-bold text-green-900 mb-4">CHF {grandTotal.toLocaleString("it-CH")}.-</div> */}
-              <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900 mb-4 border-b border-green-200 pb-2">
-                <span>System Assurance:</span>
-                <span>CHF {serviceData.section1.price.toLocaleString("it-CH")}.-</span>
-              </div>
-              <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900 mt-4">
+              <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900">
                 <span>Servizi aggiuntivi:</span>
                 <span>CHF {section3Total}.-</span>
               </div>
@@ -207,7 +201,7 @@ export default function Section4Summary({ serviceData }: Section4Props) {
             <h4 className="font-semibold text-gray-900 mb-3">Condizioni generali</h4>
             <div className="space-y-2 text-sm text-gray-700">
               <p>• Condizioni generali di vendita: https://www.swissbix.ch/cgv.pdf</p>
-              <p>• Offerta valida fino al _______________</p>
+              <p>• Offerta valida fino al {new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString("it-IT")}</p>
               <p>• I prezzi indicati sono IVA Esclusa</p>
               <p>• Sono esclusi: supporto applicativi terze parti, lavori di cablaggio, lavori elettrici</p>
             </div>

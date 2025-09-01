@@ -104,12 +104,12 @@ export default function CompanyHeader({propExampleValue}: PropsInterface) {
 						<div className="grid md:grid-cols-2 gap-6 items-end">
 							{/* Company Info */}
 							<div>
-								<img src={"/bixdata/logos/swissbix_company.png"} alt="swissbix" />
+								<img src={"/bixdata/logos/swissbix_company.png"} alt="swissbix" className="w-80 mb-4"/>
 								{/* <h1 className="text-3xl font-bold text-blue-900 mb-2">Swissbix SA</h1> */}
 								<div className="space-y-2 text-sm text-gray-700">
 									<div className="flex items-center">
 										<Building2 className="w-4 h-4 mr-2 text-blue-600" />
-										Via Baroffio 6, 6900 Lugano
+										Via Lisano 3, 6900 Massagno
 									</div>
 									<div className="flex items-center">
 										<Mail className="w-4 h-4 mr-2 text-blue-600" />
@@ -123,7 +123,7 @@ export default function CompanyHeader({propExampleValue}: PropsInterface) {
 							</div>
 
 							{/* Banking Info */}
-							<div>
+							{/* <div>
 								<h3 className="font-semibold text-gray-900 mb-2">Informazioni Bancarie</h3>
 								<div className="space-y-1 text-sm text-gray-700">
 									<div className="flex items-center">
@@ -140,7 +140,7 @@ export default function CompanyHeader({propExampleValue}: PropsInterface) {
 										<span className="font-medium">N. IVA UE:</span> CHE-136.887.933
 									</p>
 								</div>
-							</div>
+							</div> */}
 						</div>
 
 						{/* Client Info */}
