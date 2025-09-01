@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calculator, FileText, Phone, Mail, Clock } from "lucide-react"
+import DigitalSignature from "@/components/activeMind/DigitalSignature"
 
 interface Section4Props {
   serviceData: {
@@ -19,6 +20,7 @@ interface Section4Props {
       }
     }
   }
+  onSignatureChange?: (signature: string | null) => void
 }
 
 const tierLabels: { [key: string]: string } = {
@@ -52,7 +54,7 @@ const serviceLabels: { [key: string]: string } = {
   sharepoint: "Sharepoint/OneDrive",
 }
 
-export default function Section4Summary({ serviceData }: Section4Props) {
+export default function Section4Summary({ serviceData, onSignatureChange }: Section4Props) {
   const section3Total = Object.values(serviceData.section3).reduce((sum, service) => sum + service.total, 0)
   const grandTotal = serviceData.section1.price + section3Total
 
@@ -213,10 +215,11 @@ export default function Section4Summary({ serviceData }: Section4Props) {
                 <p className="text-sm text-gray-600">Massagno, {new Date().toLocaleDateString("it-IT")}</p>
                 <p className="font-medium">Mauro Gallani</p>
               </div>
-              <div className="text-right">
+              {/* <div className="text-right">
                 <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>
                 <div className="border-b border-gray-400 w-48 h-8"></div>
-              </div>
+              </div> */}
+              <DigitalSignature onSignatureChange={onSignatureChange} />
             </div>
           </div>
         </CardContent>

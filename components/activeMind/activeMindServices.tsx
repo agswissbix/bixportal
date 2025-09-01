@@ -47,12 +47,17 @@ export default function ActiveMindServices() {
     section2: { selectedFrequency: "" },
     section3: {},
   })
+  const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
 
   const updateServiceData = useCallback((section: keyof ServiceData, data: any) => {
     setServiceData((prev) => ({
       ...prev,
       [section]: { ...prev[section], ...data },
     }))
+  }, [])
+
+  const handleSignatureChange = useCallback((signature: string | null) => {
+    setDigitalSignature(signature)
   }, [])
 
   const handleNext = () => {
@@ -71,6 +76,7 @@ export default function ActiveMindServices() {
     try {
         const dataToSave = {
           ...serviceData,
+          digitalSignature,
           timestamp: new Date().toISOString(),
           cliente: "Farmacia MGM Azione Sagl",
         }
@@ -109,6 +115,7 @@ export default function ActiveMindServices() {
             "/postApi",
             {
                 apiRoute: "stampa_pdf",
+                digitalSignature,
                 data: dataToPrint,
                 cliente: clientInfo,
             },
@@ -153,7 +160,7 @@ export default function ActiveMindServices() {
       case 3:
         return <Section3Services data={serviceData.section3} onUpdate={(data) => updateServiceData("section3", data)} />
       case 4:
-        return <Section4Summary serviceData={serviceData} />
+        return <Section4Summary serviceData={serviceData} onSignatureChange={handleSignatureChange}/>
       default:
         return null
     }
@@ -288,28 +295,28 @@ export default function ActiveMindServices() {
       {/* Navigation Buttons */}
       <div className="print:hidden">
           {/* Mobile Layout */}
-          <div className="flex flex-col space-y-3 sm:hidden">
+          <div className="flex flex-col space-y-3 sm:hidden mb-8">
             <div className="flex justify-between">
-            <Button
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              variant="outline"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent h-12 text-base font-medium"
-            >
-              <ChevronLeft className="w-5 h-5 mr-2" />
-              Precedente
-            </Button>
-            <Button
-              onClick={handleNext}
-              disabled={currentStep === steps.length}
-              className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-medium"
-            >
-              Successivo
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-            </div>
-            
-            <Button
+              <Button
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent h-12 text-base font-medium"
+              >
+                <ChevronLeft className="w-5 h-5 mr-2" />
+                Precedente
+              </Button>
+              {currentStep === steps.length ?
+              null :
+                <Button
+                  onClick={handleNext}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-medium"
+                >
+                  Successivo
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              }
+              <Button
               onClick={handleSave}
               variant="outline"
               className="bg-green-50 hover:bg-green-200 text-green-900 h-12 text-base font-medium"
@@ -325,6 +332,8 @@ export default function ActiveMindServices() {
               <Printer className="w-5 h-5 mr-2" />
               Stampa PDF
             </Button>
+            </div>
+            <div className="h-20"></div>
           </div>
 
           {/* Desktop Layout */}

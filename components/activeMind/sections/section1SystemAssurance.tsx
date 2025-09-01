@@ -31,10 +31,18 @@ const features = [
 
 export default function Section1SystemAssurance({ data, onUpdate }: Section1Props) {
   const handleTierSelect = (tier: (typeof tiers)[0]) => {
-    onUpdate({
-      selectedTier: tier.id,
-      price: tier.price,
-    })
+    if (data.selectedTier === tier.id) {
+      onUpdate({
+        selectedTier: null,
+        price: null,
+      })
+    }else {
+      onUpdate({
+        selectedTier: tier.id,
+        price: tier.price,
+      })
+    }
+    
   }
 
   return (
@@ -101,7 +109,7 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
                     <div className="text-2xl font-bold text-gray-900 mb-2">
                       CHF {tier.price.toLocaleString("it-CH")}.-
                     </div>
-                    {isSelected && <Badge className="bg-blue-600 text-white">Selezionato</Badge>}
+                    {isSelected && <Badge className="bg-blue-600 text-white hover:bg-blue-600">Selezionato</Badge>}
                   </CardContent>
                 </Card>
               )
