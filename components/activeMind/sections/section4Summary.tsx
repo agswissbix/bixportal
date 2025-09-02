@@ -149,7 +149,7 @@ export default function Section4Summary({ serviceData, onSignatureChange }: Sect
       )}
 
       {/* Grand Total */}
-      <Card className="bg-green-50 border-green-200">
+      {/* <Card className="bg-green-50 border-green-200">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="gap-4 text-sm text-green-800">
@@ -160,7 +160,7 @@ export default function Section4Summary({ serviceData, onSignatureChange }: Sect
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Contract Terms */}
       <Card>

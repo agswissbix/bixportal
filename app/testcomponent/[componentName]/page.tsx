@@ -36,6 +36,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     trasferta: dynamic(() => import('@/components/trasferta')),
     activeMind: dynamic(() => import('@/components/activeMind/activeMind')),
     bixverify: dynamic(() => import('@/components/bixverify')),
+    recordsKanban: dynamic(() => import('@/components/recordsKanban/page')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
