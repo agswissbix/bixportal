@@ -11,6 +11,7 @@ import SimplePopup from './inviaEmail';
 import { Card } from './ui/card';
 import { AppContext } from '@/context/appContext';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 
 
@@ -205,7 +206,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
 
   const compilaActiveMind = async () => {
-    redirect(`/activeMind/${recordid}`)
+    window.open(`/activeMind/${recordid}`, "_blank");
   }
 
   const stampaPdfTest = async () => {

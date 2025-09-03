@@ -4,7 +4,6 @@ import * as React from "react";
 import ActiveMind from "@/components/activeMind/activeMind";
 
 
-
 interface ActiveMindPageProps {
   params: {
     recordId: string;
