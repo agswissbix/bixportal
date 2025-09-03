@@ -117,7 +117,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
         const response = await axiosInstanceClient.post(
             "/postApi",
             {
-                apiRoute: "stampa_pdf",
+                apiRoute: "print_pdf_activemind",
                 signature: digitalSignature,
                 data: dataToPrint,
                 cliente: clientInfo, // TODO: Passare il recordIdTrattativa

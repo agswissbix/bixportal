@@ -8,7 +8,7 @@ import { useRecordsStore } from './records/recordsStore';
 import { Palette } from 'lucide-react'; 
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
-import ThemePreview from './ThemePreview'; // Importa il nuovo componente
+import ThemePreview from './themePreview';
 import ProductList from './recordsCardPreview';
 import RecordsCardPreview from './recordsCardPreview';
 
@@ -25,33 +25,13 @@ interface ResponseInterface {
 }
 
 // Configurazione dei temi in un unico punto
-const themeConfig = {
-  'default': {
-    primary: '#ff5b5b',
-    secondary: '#074048',
-    tertiary: '#ffd900'
-  },
-  'oceanic': {
-    primary: '#007bff',
-    secondary: '#0f1c2e',
-    tertiary: '#20c997'
-  },
-  'sunset': {
-    primary: '#d82b4a',
-    secondary: '#5b0f49',
-    tertiary: '#f9d423'
-  },
-  'forest': {
-    primary: '#4a914c',
-    secondary: '#1d4320',
-    tertiary: '#f0b721'
-  },
-  'bixhub': {
-    primary: '#ff9900',
-    secondary: '#282828',
-    tertiary: '#ffffff'
-  },
-};
+const themeConfig = [
+  'default',
+  'oceanic',
+  'sunset',
+  'forest',
+  'bixhub',
+]
 function UserTheme({ propExampleValue }: PropsInterface) {
   // DATI
   const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -132,7 +112,7 @@ function UserTheme({ propExampleValue }: PropsInterface) {
             Scegli il tuo tema preferito per personalizzare l'aspetto di BixData.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 justify-items-center">
-            {Object.keys(themeConfig).map(themeName => (
+            {themeConfig.map((themeName) => (
               <div key={themeName} className="flex flex-col items-center ">
                 <button
                   onClick={() => handleThemeChange(themeName)}
