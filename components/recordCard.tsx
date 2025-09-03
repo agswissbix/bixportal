@@ -10,6 +10,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SimplePopup from './inviaEmail';
 import { Card } from './ui/card';
 import { AppContext } from '@/context/appContext';
+import { redirect } from 'next/navigation';
 
 
 
@@ -204,12 +205,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
 
   const compilaActiveMind = async () => {
-    try {
-
-    } catch (error) {
-      console.error('Errore durante compila ActiveMind', error);
-      toast.error('Errore durante compila ActiveMind');
-    }
+    redirect(`/activeMind/${recordid}`)
   }
 
   const stampaPdfTest = async () => {
