@@ -40,7 +40,11 @@ const steps = [
   { id: 4, title: "Riepilogo", description: "Definizione economica" },
 ]
 
-export default function ActiveMindServices() {
+interface propsServices {
+  recordIdTrattativa: string;
+}
+
+export default function ActiveMindServices({ recordIdTrattativa }: propsServices) {
   const [currentStep, setCurrentStep] = useState(1)
   const [serviceData, setServiceData] = useState<ServiceData>({
     section1: { selectedTier: "", price: 0 },
@@ -77,8 +81,7 @@ export default function ActiveMindServices() {
         const dataToSave = {
           ...serviceData,
           digitalSignature,
-          timestamp: new Date().toISOString(),
-          cliente: "Farmacia MGM Azione Sagl",
+          recordIdTrattativa
         }
     
         await axiosInstanceClient.post(
@@ -117,7 +120,7 @@ export default function ActiveMindServices() {
                 apiRoute: "stampa_pdf",
                 signature: digitalSignature,
                 data: dataToPrint,
-                cliente: clientInfo,
+                cliente: clientInfo, // TODO: Passare il recordIdTrattativa
             },
             {
                 headers: {
@@ -168,7 +171,7 @@ export default function ActiveMindServices() {
 
   return (
     <div className="w-full mx-auto p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl">
-      <CompanyHeader />
+      <CompanyHeader recordIdTrattativa={recordIdTrattativa} />
 
       {/* Stepper Navigation */}
       <div className="print:hidden">
