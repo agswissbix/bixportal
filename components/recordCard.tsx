@@ -203,6 +203,15 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
   }
 
 
+  const compilaActiveMind = async () => {
+    try {
+
+    } catch (error) {
+      console.error('Errore durante compila ActiveMind', error);
+      toast.error('Errore durante compila ActiveMind');
+    }
+  }
+
   const stampaPdfTest = async () => {
     try {
       //download a file from the response
@@ -524,6 +533,17 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                                   onClick={() => window.open(`http://bixcrm01:8822/bixdata/custom/api_bexio_set_printing_invoices.php?recordid=${recordid}`, '_blank')}  
                                 >
                                   Carica in bexio
+                                </li>
+                                
+                                </>
+                              )}
+                              {tableid === 'deal' && (
+                                <>
+                                  <li 
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => compilaActiveMind()}  
+                                >
+                                  Compila ActiveMind
                                 </li>
                                 
                                 </>
