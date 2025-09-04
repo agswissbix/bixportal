@@ -5,14 +5,6 @@ interface ThemePreviewProps {
   themeName: string;
 }
 
-const themeColors = {
-  'default': { sidebar: '#074048', header: '#ffd900', elements: '#ff5b5b', text: '#d1d5db' },
-  'oceanic': { sidebar: '#0f1c2e', header: '#20c997', elements: '#007bff', text: '#d1d5db' },
-  'sunset': { sidebar: '#5b0f49', header: '#f9d423', elements: '#d82b4a', text: '#d1d5db' },
-  'forest': { sidebar: '#1d4320', header: '#f0b721', elements: '#4a914c', text: '#d1d5db' },
-  'bixhub': { sidebar: '#282828', header: '#ffffff', elements: '#ff9900', text: '#9ca3af' },
-};
-
 const ThemePreview: React.FC<ThemePreviewProps> = ({ themeName }) => {
   return (
     <div
@@ -20,7 +12,7 @@ const ThemePreview: React.FC<ThemePreviewProps> = ({ themeName }) => {
     >
       {/* Sidebar */}
       <div className="bg-sidebar w-12 h-full float-left flex flex-col p-2 space-y-2">
-        <div className={`${themeName} h-4 w-4 rounded-full bg-primary`}></div>
+        <div className={`${themeName} h-4 w-4 rounded-full bg-accent`}></div>
         <div className="h-2 w-full rounded-sm opacity-50 bg-border"></div>
         <div className="h-2 w-full rounded-sm opacity-50 bg-border"></div>
         <div className="h-2 w-full rounded-sm opacity-50 bg-border"></div>

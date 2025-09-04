@@ -320,7 +320,7 @@ export default function RecordsTable({
     >
       {(response: ResponseInterface) => (
         <div className="h-full w-full ">
-          <div className="w-10/12 h-11/12 relative rounded-lg overflow-auto">
+          <div className="w-full h-full relative rounded-lg overflow-overlay">
               <table className="w-full table-auto text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
     <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
       <tr>
@@ -365,7 +365,7 @@ export default function RecordsTable({
       </tr>
     </thead>
 
-    <tbody className="w-11/12 h-11/12">
+    <tbody className="w-11/12 h-11/12 overflow-y-auto overflow-x-auto">
       {response.rows.map((row) => (
         <tr
           key={row.recordid}

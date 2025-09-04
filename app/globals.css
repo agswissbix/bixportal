@@ -200,41 +200,50 @@ body {
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
+
+  --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
@@ -248,51 +257,55 @@ body {
   }
 }
 
-/* Added print styles for PDF generation */
-@media print {
-  @page {
-    margin: 1cm;
-    size: A4;
+@layer utilities {
+  .theme-primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
   }
 
-  body {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
+  .theme-primary:hover {
+    background-color: var(--color-primary-hover);
   }
 
-  .print\\:hidden {
-    display: none !important;
+  .theme-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-foreground);
   }
 
-  .print\\:p-0 {
-    padding: 0 !important;
+  .theme-secondary:hover {
+    background-color: var(--color-secondary-hover);
   }
 
-  .print\\:max-w-none {
-    max-width: none !important;
+  .theme-tertiary {
+    background-color: var(--color-tertiary);
+    color: var(--color-tertiary-foreground);
   }
 
-  .print\\:shadow-none {
-    box-shadow: none !important;
+  .theme-tertiary:hover {
+    background-color: var(--color-tertiary-hover);
   }
 
-  .print\\:border-none {
-    border: none !important;
+  .theme-accent {
+    background-color: var(--color-accent);
+    color: var(--color-accent-foreground);
   }
 
-  .print\\:bg-white {
-    background-color: white !important;
+  .theme-accent:hover {
+    background-color: var(--color-accent-hover);
   }
 
-  .print\\:border-gray-300 {
-    border-color: #d1d5db !important;
+  .theme-card {
+    background-color: var(--card-background);
+    border-color: var(--card-border);
   }
 
-  .print\\:pb-2 {
-    padding-bottom: 0.5rem !important;
+  .theme-table {
+    background-color: var(--table-background);
+    border-color: var(--table-border);
   }
 
-  .print\\:pt-0 {
-    padding-top: 0 !important;
+  .theme-table-header {
+    background-color: var(--table-header);
   }
 }
+

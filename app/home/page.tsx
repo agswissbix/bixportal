@@ -22,6 +22,7 @@ import PopUpManager from '@/components/popUpManager';
 import BelottiFormulari from '@/components/belottiFormulari';
 import UserSettings from '@/components/userSettings';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default function Home() {
   const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme} = useRecordsStore();
@@ -61,6 +62,8 @@ useEffect(() => {
 }, [theme]);
 
   return (
+    <TooltipProvider>
+
     <div className="w-full h-screen flex">
 
       <Toaster richColors position="top-right" />
@@ -78,7 +81,7 @@ useEffect(() => {
           type={popUpType}
           tableid={selectedMenu}
           recordid={popupRecordId}
-        />
+          />
 
         <div className="flex-1 bg-gray-100 p-4 h-5/6">
           {selectedMenu === 'TelAmicoCalendario' ? (
@@ -121,5 +124,6 @@ useEffect(() => {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

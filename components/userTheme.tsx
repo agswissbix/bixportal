@@ -31,6 +31,7 @@ const themeConfig = [
   'sunset',
   'forest',
   'bixhub',
+  'midnight'
 ]
 function UserTheme({ propExampleValue }: PropsInterface) {
   // DATI

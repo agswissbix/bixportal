@@ -1,0 +1,203 @@
+.default {
+  /* Theme colors */
+  --primary: #ff5b5b;
+  --primary-hover: #ff3b3b;
+  --primary-foreground: #ffffff;
+
+  --secondary: #074048;
+  --secondary-hover: #062d36;
+  --secondary-foreground: #ffffff;
+
+  --tertiary: #ffd900;
+  --tertiary-hover: #e6c700;
+  --tertiary-foreground: #000000;
+
+  /* Layout colors */
+  --background: #ffffff;
+  --foreground: #000000;
+
+  --card: #ffffff;
+  --card-foreground: #000000;
+
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+
+  --accent: #f5f5f5;
+  --accent-foreground: #000000;
+
+  --border: #e0e6ed;
+  --input: #e0e6ed;
+  --ring: #ff5b5b;
+
+  /* Component specific */
+  --sidebar-background: linear-gradient(180deg, #074048 90%, #ede4e4 200%);
+  --navbar-background: #ffffff;
+  --table-background: #ffffff;
+  --table-border: #e0e6ed;
+  --table-header: #e4e7eb;
+  --records-background: #f5f5f5;
+  --sidebar-text: #4400ff;
+  --badge-background: #074048;
+  --badge-border: #ff0000;
+
+  /* Shadcn variables */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.5rem;
+  --font-body: "Poppins", sans-serif;
+}
+
+.forest {
+  /* Theme colors */
+  --primary: #4a914c;
+  --primary-hover: #3b7a3a;
+  --primary-foreground: #ffffff;
+
+  --secondary: #1d4320;
+  --secondary-hover: #1a3a1b;
+  --secondary-foreground: #ffffff;
+
+  --tertiary: #f0b721;
+  --tertiary-hover: #d9a620;
+  --tertiary-foreground: #000000;
+
+  /* Layout colors */
+  --background: #f8fcf8;
+  --foreground: #1d4320;
+
+  --card: #ffffff;
+  --card-foreground: #1d4320;
+
+  --muted: #f0f5f0;
+  --muted-foreground: #4a914c;
+
+  --accent: #f0f5f0;
+  --accent-foreground: #1d4320;
+
+  --border: #e6e9e6;
+  --input: #e6e9e6;
+  --ring: #4a914c;
+
+  /* Component specific */
+  --sidebar-background: linear-gradient(180deg, #1d4320 90%, #3a753d 200%);
+  --navbar-background: #2b542e;
+  --table-background: #ffffff;
+  --table-border: #e6e9e6;
+  --table-header: #f0f5f0;
+  --records-background: #ffffff;
+  --sidebar-text: #4400ff;
+  --badge-background: #1d4320;
+  --badge-border: #4a914c;
+
+  /* Shadcn variables */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.5rem;
+  --font-body: "Inter", sans-serif;
+}
+
+.oceanic {
+  /* Theme colors */
+  --primary: #007bff;
+  --primary-hover: #0056b3;
+  --primary-foreground: #ffffff;
+
+  --secondary: #0f1c2e;
+  --secondary-hover: #0d1a24;
+  --secondary-foreground: #ffffff;
+
+  --tertiary: #20c997;
+  --tertiary-hover: #1aa76d;
+  --tertiary-foreground: #000000;
+
+  /* Layout colors */
+  --background: #f0f4f8;
+  --foreground: #0f1c2e;
+
+  --card: #ffffff;
+  --card-foreground: #0f1c2e;
+
+  --muted: #e6f2ff;
+  --muted-foreground: #007bff;
+
+  --accent: #e6f2ff;
+  --accent-foreground: #0f1c2e;
+
+  --border: #e0e6ed;
+  --input: #e0e6ed;
+  --ring: #007bff;
+
+  /* Component specific */
+  --sidebar-background: linear-gradient(180deg, #0f1c2e 90%, #004e92 200%);
+  --navbar-background: #1a2a40;
+  --table-background: #ffffff;
+  --table-border: #e0e6ed;
+  --table-header: #f0f4f8;
+  --records-background: #ffffff;
+  --sidebar-text: #4400ff;
+  --badge-background: #0f1c2e;
+  --badge-border: #007bff;
+
+  /* Shadcn variables */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.5rem;
+  --font-body: "Roboto", sans-serif;
+}
+
+.sunset {
+  /* Theme colors */
+  --primary: #d82b4a;
+  --primary-hover: #b21f3c;
+  --primary-foreground: #ffffff;
+
+  --secondary: #5b0f49;
+  --secondary-hover: #4a0e3a;
+  --secondary-foreground: #ffffff;
+
+  --tertiary: #f9d423;
+  --tertiary-hover: #d9a620;
+  --tertiary-foreground: #000000;
+
+  /* Layout colors */
+  --background: #fdf5f5;
+  --foreground: #5b0f49;
+
+  --card: #ffffff;
+  --card-foreground: #5b0f49;
+
+  --muted: #f9f0f0;
+  --muted-foreground: #d82b4a;
+
+  --accent: #f9f0f0;
+  --accent-foreground: #5b0f49;
+
+  --border: #f0e6e6;
+  --input: #f0e6e6;
+  --ring: #d82b4a;
+
+  /* Component specific */
+  --sidebar-background: linear-gradient(180deg, #5b0f49 90%, #d82b4a 200%);
+  --navbar-background: #7a1d60;
+  --table-background: #ffffff;
+  --table-border: #f0e6e6;
+  --table-header: #f9f0f0;
+  --records-background: #ffffff;
+  --sidebar-text: #4400ff;
+  --badge-background: #5b0f49;
+  --badge-border: #d82b4a;
+
+  /* Shadcn variables */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.5rem;
+  --font-body: "Montserrat", sans-serif;
+}

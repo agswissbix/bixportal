@@ -398,7 +398,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                       {/* Dropdown menu */}
                       <div className="relative w-full">
                         <button 
-                          className="text-white w-1/2 float-end bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 
+                          className="theme-secondary w-1/2 float-end focus:outline-none focus:ring-2 focus:ring-accent/20
                                     font-medium rounded-md text-sm px-5 py-2.5 text-center inline-flex items-center justify-center
                                     dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" 
                           type="button"
@@ -562,7 +562,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                         onClick={handleTrashClick}
                         title="Elimina"
                       >
-                        <Trash2 className="w-6 h-6 text-primary hover:text-primaryHover" />
+                        <Trash2 className="w-6 h-6 text-red-500 hover:text-red-700" />
                       </button>
                     </>
                   )}

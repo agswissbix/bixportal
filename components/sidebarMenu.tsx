@@ -146,7 +146,7 @@ export default function SidebarMenu({  }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error} title="SidebarMenu" elapsedTime={elapsedTime}> 
             {(data) => (
-                <div id="sidebar" className="bg-sidebar text-white h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg flex flex-col justify-between">
+                <div id="sidebar" className="bg-sidebar text-primary-foreground h-full xl:w-full w-full transition-all duration-300 rounded-r-xl shadow-lg flex flex-col justify-between">
                     <div>
                     <Image 
                             src={
@@ -206,7 +206,7 @@ export default function SidebarMenu({  }: PropsInterface) {
 
                         {responseData.favoriteTables && responseData.favoriteTables.length > 0 && (
                             <li>
-                                <button onClick={() => setOpenDropdown(openDropdown === 'favorites' ? '' : 'favorites')} className="w-full text-md flex items-center justify-between px-6 py-4 hover:text-primary focus:text-primary transition-colors">
+                                <button onClick={() => setOpenDropdown(openDropdown === 'favorites' ? '' : 'favorites')} className="w-full text-md flex items-center justify-between px-6 py-4 hover:bg-secondary hover:text-secondary-foreground focus:text-primary-foreground transition-colors">
                                     <div className="flex items-center min-w-[20px]">
                                         <Star className="w-5 h-5 min-w-[20px]" />
                                         <span className="text-md ml-3 xl:opacity-100 opacity-0 transition-opacity duration-300">Preferiti</span>
@@ -220,7 +220,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                                     <ul className="py-1 ml-6">
                                         {responseData.favoriteTables.map((table) => (
                                             <li key={table.id}>
-                                                <span className="text-qwes text-sm block px-8 py-2 hover:text-primary transition-colors cursor-pointer" onClick={() => handleMenuClick(table.tableid)}>
+                                                <span className="text-primary-foreground text-sm block px-8 py-2 hover:bg-secondary hover:text-secondary-foreground transition-colors cursor-pointer" onClick={() => handleMenuClick(table.tableid)}>
                                                     {table.tableid}
                                                  </span>
                                             </li>
@@ -237,7 +237,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                                     {item.subItems ? (
                                         // Dropdown section
                                         <div>
-                                            <button onClick={() => setOpenDropdown(openDropdown === item.id ? '' : item.id)} className="w-full text-md flex items-center justify-between px-6 py-4 hover:text-primary focus:text-primary transition-colors">
+                                            <button onClick={() => setOpenDropdown(openDropdown === item.id ? '' : item.id)} className="w-full text-md flex items-center justify-between px-6 py-4 hover:bg-secondary hover:text-secondary-foreground transition-colors">
                                                 <div className="flex items-center min-w-[20px]">
                                                     <Icon className="w-5 h-5 min-w-[20px]"/>
                                                     <span className="text-md ml-3 xl:opacity-100 opacity-0 transition-opacity duration-300">{item.title}</span>
@@ -268,7 +268,7 @@ export default function SidebarMenu({  }: PropsInterface) {
                                                 <ul className="py-1 ml-6">
                                                     {item.subItems.map((subItem) => (
                                                         <li key={subItem.id} className='cursor-pointer'>
-                                                            <span className="text-gray-200 text-sm block px-8 py-2 hover:text-primary transition-colors" onClick={() => handleMenuClick(subItem.id)}>{subItem.title}</span>
+                                                            <span className="text-primary-foreground text-sm block px-8 py-2 hover:bg-secondary hover:text-secondary-foreground transition-colors" onClick={() => handleMenuClick(subItem.id)}>{subItem.title}</span>
                                                         </li>
                                                     ))}
                                                 </ul>

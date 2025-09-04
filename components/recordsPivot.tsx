@@ -215,6 +215,8 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
               key={`${group.groupKey}-fld-${idx}`}
               className={`px-4 py-3 align-middle
                           ${idx === 0 ? `flex items-center ${indent}` : ""}
+                          ${idx === 0 ? "sticky left-0 z-20 bg-gray-100 dark:bg-gray-800" : ""}
+                          ${idx === 1 ? "sticky left-[200px] z-20 bg-gray-100 dark:bg-gray-800" : ""}
                           ${field?.css || ""}`}
             >
               {idx === 0 ? (
@@ -251,7 +253,7 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
                   </span>
                 </>
               ) : (
-                <span className={`truncate ${field?.css || ""}`}>
+                <span className={`truncate ${field?.css || ""} `}>
                   {field?.value || ""}
                 </span>
               )}
@@ -300,9 +302,14 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
                   return (
                     <td
                       key={`${group.groupKey}-row-${row.recordid}-cell-${cIdx}`}
-                      className={`px-4 py-2.5 align-middle ${indentRow} ${
-                        field?.css || ""
-                      }`}
+                      className={`px-4 py-2.5 align-middle ${indentRow} 
+                        ${field?.css || ""}
+                        ${cIdx === 0 ? "sticky left-0 z-20" : ""}
+                        ${cIdx === 1 ? "sticky left-[100px] z-20" : ""}
+                        ${rIdx % 2 === 0
+                                ? "bg-white dark:bg-gray-800/90"
+                                : "bg-gray-50 dark:bg-gray-800/80"}
+                      `}
                     >
                       {/* -------- CSS su contenuto -------- */}
                       <div className={`truncate ${field?.css || ""}`}>
@@ -406,7 +413,7 @@ export default function Pivot({ tableid, searchTerm, filters, view, order, conte
         scope="col"
         className={`px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-200 uppercase
           ${i === 0 ? "sticky left-0 z-20 bg-gray-100 dark:bg-gray-800" : ""}
-          ${i === 1 ? "sticky left-[200px] z-10 bg-gray-100 dark:bg-gray-800" : ""}
+          ${i === 1 ? "sticky left-[100px] z-20 bg-gray-100 dark:bg-gray-800" : ""}
         `}
         style={i === 0 ? { minWidth: 200, maxWidth: 200 } : i === 1 ? { minWidth: 200, maxWidth: 200 } : {}}
       >
