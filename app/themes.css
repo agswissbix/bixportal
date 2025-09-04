@@ -16,10 +16,11 @@
     --card-border: #e0e6ed;
 
     --table-background: #ffffff;
-    --table-border: #e0e6ed;
-    --table-header: #e4e7eb;
+    --table-border: #f4f4f4;
+    --table-header: #f4f4f4;
+    --table-row-border: #e2e2e2;
 
-    --records-background: whitesmoke;
+    --records-background: #ffffff;
     
     --sidebar-text: rgb(68, 0, 255);
 

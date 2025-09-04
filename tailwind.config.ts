@@ -43,15 +43,9 @@ export default {
   				light: '#006664'
   			},
   			navbar: 'var(--navbar-background)',
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
+  			primary: 'var(--color-primary)',
   			primaryHover: 'var(--color-primary-hover)',
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
+  			secondary: 'var(--color-secondary)',
   			secondaryHover: 'var(--color-secondary-hover)',
   			tertiary: 'var(--color-tertiary)',
   			tertiaryHover: 'var(--color-tertiary-hover)',
@@ -70,7 +64,8 @@ export default {
   			table: {
   				background: 'var(--table-background)',
   				border: 'var(--table-border)',
-  				header: 'var(--table-header)'
+  				header: 'var(--table-header)',
+				rowBorder: 'var(--table-row-border)'
   			},
   			badge: {
   				background: 'var(--badge-background)',

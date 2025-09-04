@@ -328,7 +328,7 @@ export default function RecordsTable({ tableid, searchTerm, filters, view, order
                             </thead>
                             <tbody className="max-h-full h-11/12 overflow-y-auto overflow-x-hidden block w-full rounded-b-xl">
                                 {response.rows.map((row) => (
-                                    <tr className={`table table-fixed w-full  border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${row.css}`} key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
+                                    <tr className={`table table-fixed w-full  border-b border-table-rowBorder cursor-pointer hover:bg-gray-50  ${row.css}`} key={row.recordid} onClick={() => handleRowClick && tableid && context && handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid)}>
                                         {row.fields.map((field, index) => {
                                             const column = response.columns[index]; // Prende la colonna corrispondente
                                             return (
