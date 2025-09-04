@@ -7,7 +7,7 @@ import ActiveMindServices from '@/components/activeMind/activeMindServices';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
 // INTERFACCIA PROPS
