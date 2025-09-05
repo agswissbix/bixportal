@@ -12,7 +12,11 @@ import { Card } from './ui/card';
 import { AppContext } from '@/context/appContext';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
+import {useApi} from '@/utils/useApi';
+import GenericComponent from './genericComponent';
 
+const isDev = false;
 
 
 // INTERFACCIA PROPS
@@ -25,6 +29,9 @@ interface PropsInterface {
   index?: number;
   total?: number;	
 }
+interface ResponseInterface {
+  fn: CustomFunction[]
+}
 
 export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid, type,index=0,total=1 }: PropsInterface) {
 
@@ -36,7 +43,34 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   // Nuovo stato per il menu a tendina
   const [showDropdown, setShowDropdown] = useState(false);
-
+  const responseDataDEFAULT: ResponseInterface = {
+      fn: []
+    };
+    const responseDataDEV: ResponseInterface = {
+      fn: []
+    };
+  
+    const { user } = useContext(AppContext);
+    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+  
+    // PAYLOAD (solo se non in sviluppo)
+      const payload = useMemo(() => {
+          if (isDev) return null;
+          return {
+              apiRoute: 'get_custom_functions',
+              tableid: tableid,
+          };
+      }, [tableid]);
+  
+    // CHIAMATA AL BACKEND (solo se non in sviluppo)
+    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+  
+    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo)
+    useEffect(() => {
+      if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+        setResponseData(response);
+      }
+    }, [response, responseData]);
 
   const getOffset = () => {
     if (isMaximized) return 0;
@@ -350,6 +384,8 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
 
   return (
+    <GenericComponent title="recordCard" response={responseData} loading={loading} error={error}>
+        {(response: ResponseInterface) => (
     <div
             className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-card-background z-10 rounded-xl border-2 border-card-border p-3 ${animationClass} ${
                 isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-5/6'
@@ -520,7 +556,6 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                                 >
                                   Chiuso perso
                                 </li>
-
                                 </>
                               )}
                               {tableid === 'printinginvoice' && (
@@ -534,17 +569,12 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                                 
                                 </>
                               )}
-                              {tableid === 'deal' && (
-                                <>
-                                  <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => compilaActiveMind()}  
-                                >
-                                  Compila ActiveMind
-                                </li>
-                                
-                                </>
-                              )}
+
+                              {response.fn.map((fn) => (
+                                fn.context === 'cards' && (
+                                  <DynamicMenuItem key={fn.title} fn={fn} params={recordid} />
+                                )
+                              ))}
                             </ul>
                           </div>
                         )}
@@ -593,5 +623,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                 <CardTabs tableid={tableid} recordid={recordid} mastertableid={mastertableid} masterrecordid={masterrecordid}></CardTabs>
             </div>
         </div>
+        )}
+        </GenericComponent>
   );
 };

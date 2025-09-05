@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, useMemo } from "react"
 import { useRecordsStore } from "./records/recordsStore"
 import QuickFilters from "./quickFilters"
 import TableFilters from "./TableFilters"
@@ -11,10 +11,19 @@ import { PlusIcon, ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
 import { AppContext } from "@/context/appContext"
+import type { CustomFunction } from "./dynamicMenuItem"
+import DynamicMenuItem from "./dynamicMenuItem"
+import { useApi } from "@/utils/useApi"
+
+const isDev = false;
 
 // INTERFACCIA PROPS
 interface PropsInterface {
   tableid: string
+}
+
+interface ResponseInterface {
+  fn: CustomFunction[]
 }
 
 export default function StandardContent({ tableid }: PropsInterface) {
@@ -30,6 +39,37 @@ export default function StandardContent({ tableid }: PropsInterface) {
   const { setRefreshTable } = useRecordsStore()
 
   const refreshTableFunc = () => setRefreshTable((v) => v + 1)
+
+  const devPropExampleValue = isDev ? "Example prop" : tableid;
+  const responseDataDEFAULT: ResponseInterface = {
+    fn: []
+  };
+  const responseDataDEV: ResponseInterface = {
+    fn: []
+  };
+
+  const { user } = useContext(AppContext);
+  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+
+  // PAYLOAD (solo se non in sviluppo)
+    const payload = useMemo(() => {
+        if (isDev) return null;
+        return {
+            apiRoute: 'get_custom_functions',
+            tableid: tableid,
+        };
+    }, [tableid]);
+
+  // CHIAMATA AL BACKEND (solo se non in sviluppo)
+  const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+  // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo)
+  useEffect(() => {
+    if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+      setResponseData(response);
+      console.log("Custom functions loaded:", response);
+    }
+  }, [response, responseData]);
 
   const handleCreaListaLavanderia = async (mese: string) => {
     try {
@@ -111,8 +151,8 @@ export default function StandardContent({ tableid }: PropsInterface) {
   }
 
   return (
-    <GenericComponent title="standardContent">
-      {(data) => (
+    <GenericComponent title="standardContent" response={responseData} loading={loading} error={error}>
+      {(response: ResponseInterface) => (
         <div className="h-full w-full shadow-lg bg-records-background rounded-lg p-6">
           <div className="flex flex-wrap w-full mb-6 gap-4">
             <div className="flex-1 min-w-0">
@@ -156,15 +196,19 @@ export default function StandardContent({ tableid }: PropsInterface) {
                           >
                             Esporta excel
                           </li>
-
-                          {tableid === "rendicontolavanderia" && (
+                            {response?.fn?.map((fn, index) => (
+                              fn.context === 'results' && (
+                                <DynamicMenuItem key={fn.title} fn={fn}/>
+                              )
+                            ))}
+                          {/* {tableid === "rendicontolavanderia" && (
                             <li
                               className="px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer transition-colors duration-150"
                               onClick={() => handleCreaListaLavanderia("mesecorrente")}
                             >
                               Crea rendiconti lavanderia mese corrente
                             </li>
-                          )}
+                          )} */}
                         </ul>
                       </div>
                     )}
