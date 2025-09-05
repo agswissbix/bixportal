@@ -218,7 +218,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
             />
           ))}
 
-          <div className="w-full h-full flex gap-6 mb-4">
+          <div className="w-full h-11/12 flex gap-6 mb-4">
             {isFiltersOpen && (
               <div className="w-1/4 h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
                 <TableFilters tableid={tableid}></TableFilters>

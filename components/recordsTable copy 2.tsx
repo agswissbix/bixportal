@@ -320,152 +320,148 @@ export default function RecordsTable({
     >
       {(response: ResponseInterface) => (
         <div className="h-full w-full ">
-          <div className="w-full h-max relative rounded-lg overflow-auto">
-            <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
-              <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
-                <tr>
-                  {response.columns.map((column) => (
-                    <th
-                      key={column.desc}
-                      scope="col"
-                      onClick={() => handleSort(column.desc)}
-                      className={`
-              px-4 py-3 cursor-pointer select-none truncate
-              ${
-                column.fieldtypeid === "Numero"
-                  ? "min-w-[60px] text-right"
-                  : "min-w-[80px] text-left"
-              }
+          <div className="w-full h-full relative rounded-lg overflow-auto">
+              <table className="min-w-max text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
+    <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl truncate">
+      <tr>
+        {response.columns.map((column) => (
+          <th
+            key={column.desc}
+            scope="col"
+            onClick={() => handleSort(column.desc)}
+            className={`
+              px-4 py-3 cursor-pointer select-none whitespace-nowrap overflow-hidden text-clip
+              ${column.fieldtypeid === "Numero"
+                ? " max-w-[80px] text-right"
+                : " max-w-[180px] text-left"}
             `}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center justify-between">
-                            <span className="truncate">{column.desc}</span>
-                            <div className="w-4 h-4 ml-1">
-                              {sortConfig.columnDesc === column.desc &&
-                                sortConfig.direction === "asc" && (
-                                  <ArrowUp className="h-4 w-4" />
-                                )}
-                              {sortConfig.columnDesc === column.desc &&
-                                sortConfig.direction === "desc" && (
-                                  <ArrowDown className="h-4 w-4" />
-                                )}
-                              {(sortConfig.columnDesc !== column.desc ||
-                                sortConfig.direction === null) && (
-                                <span className="invisible h-4 w-4">
-                                  <ArrowUp className="h-4 w-4" />
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>{column.desc}</TooltipContent>
-                      </Tooltip>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-between">
+                  <span className="truncate">{column.desc}</span>
+                  <div className="w-4 h-4 ml-1">
+                    {sortConfig.columnDesc === column.desc &&
+                      sortConfig.direction === "asc" && (
+                        <ArrowUp className="h-4 w-4" />
+                      )}
+                    {sortConfig.columnDesc === column.desc &&
+                      sortConfig.direction === "desc" && (
+                        <ArrowDown className="h-4 w-4" />
+                      )}
+                    {(sortConfig.columnDesc !== column.desc ||
+                      sortConfig.direction === null) && (
+                      <span className="invisible h-4 w-4">
+                        <ArrowUp className="h-4 w-4" />
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{column.desc}</TooltipContent>
+            </Tooltip>
+          </th>
+        ))}
+      </tr>
+    </thead>
 
-              <tbody>
-                {response.rows.map((row) => (
-                  <tr
-                    key={row.recordid}
-                    className={`theme-table border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
-                    onClick={() =>
-                      handleRowClick &&
-                      tableid &&
-                      context &&
-                      handleRowClick(
-                        context,
-                        row.recordid,
-                        tableid,
-                        masterTableid,
-                        masterRecordid
-                      )
-                    }
-                  >
-                    {row.fields.map((field, index) => {
-                      const column = response.columns[index];
-                      return (
-                        <td
-                          key={`${row.recordid}-${field.fieldid}`}
-                          className={`
+    <tbody className="w-11/12 h-11/12">
+      {response.rows.map((row) => (
+        <tr
+          key={row.recordid}
+          className={`theme-table table-fixed border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
+          onClick={() =>
+            handleRowClick &&
+            tableid &&
+            context &&
+            handleRowClick(
+              context,
+              row.recordid,
+              tableid,
+              masterTableid,
+              masterRecordid
+            )
+          }
+        >
+          {row.fields.map((field, index) => {
+            const column = response.columns[index];
+            return (
+              <td
+                key={`${row.recordid}-${field.fieldid}`}
+                className={`
                   px-4 py-3 align-middle
                   ${field.css}
-                  ${
-                    column?.fieldtypeid === "Numero"
-                      ? "min-w-[60px] text-right"
-                      : "min-w-[80px]  text-left"
-                  }
+                  ${column?.fieldtypeid === "Numero"
+                    ? "min-w-max max-w-max text-right"
+                    : "min-w-max max-w-fit text-left"}
                 `}
-                        >
-                          <div className="flex items-center gap-x-2">
-                            {column?.fieldtypeid === "Utente" && (
-                              <img
-                                src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
-                                alt="Utente"
-                                className="w-6 h-6 rounded-full flex-shrink-0"
-                                onError={(e) => {
-                                  const img = e.target as HTMLImageElement;
-                                  img.src =
-                                    "/api/media-proxy?url=userProfilePic/default.jpg";
-                                }}
-                              />
-                            )}
-                            <span
-                              className="block truncate"
-                              dangerouslySetInnerHTML={{ __html: field.value }}
-                            />
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
+              >
+                <div className="flex items-center gap-x-2">
+                  {column?.fieldtypeid === "Utente" && (
+                    <img
+                      src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
+                      alt="Utente"
+                      className="w-6 h-6 rounded-full flex-shrink-0"
+                      onError={(e) => {
+                        const img = e.target as HTMLImageElement;
+                        img.src =
+                          "/api/media-proxy?url=userProfilePic/default.jpg";
+                      }}
+                    />
+                  )}
+                  <span
+                    className="block truncate"
+                    dangerouslySetInnerHTML={{ __html: field.value }}
+                  />
+                </div>
+              </td>
+            );
+          })}
+        </tr>
+      ))}
+    </tbody>
 
-              <tfoot className="bg-table-header dark:bg-gray-700">
-                <tr>
-                  <td
-                    colSpan={response.columns.length}
-                    className="px-4 py-3 text-right rounded-b-xl"
-                  >
-                    <span className="font-medium">Totale:</span>{" "}
-                    {response.counter}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+    <tfoot className="bg-table-header dark:bg-gray-700">
+      <tr>
+        <td
+          colSpan={response.columns.length}
+          className="px-4 py-3 text-right rounded-b-xl"
+        >
+          <span className="font-medium">Totale:</span> {response.counter}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
 
-          <nav
-            aria-label="Page navigation"
-            className="mt-4 flex justify-center"
-          >
-            <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm">
-              {/* Previous Button */}
-              <button
-                onClick={() => pagination && setTablePage(pagination.page - 1)}
-                disabled={!pagination || pagination.page === 1}
-                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
+            <nav
+              aria-label="Page navigation"
+              className="mt-4 flex justify-center"
+            >
+              <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm">
+                {/* Previous Button */}
+                <button
+                  onClick={() =>
+                    pagination && setTablePage(pagination.page - 1)
+                  }
+                  disabled={!pagination || pagination.page === 1}
+                  className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
                                                         ${
                                                           !pagination ||
                                                           pagination.page === 1
                                                             ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
                                                             : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
                                                         }`}
-              >
-                <ArrowUp className="w-4 h-4 mr-1 rotate-[-90deg]" />
-                Previous
-              </button>
+                >
+                  <ArrowUp className="w-4 h-4 mr-1 rotate-[-90deg]" />
+                  Previous
+                </button>
 
-              {/* Page Numbers */}
-              <div className="flex items-center space-x-1">
-                {/* First Page */}
-                <button
-                  onClick={() => setTablePage(1)}
-                  className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {/* First Page */}
+                  <button
+                    onClick={() => setTablePage(1)}
+                    className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 
                                                             ${
                                                               pagination &&
                                                               pagination.page ===
@@ -473,55 +469,57 @@ export default function RecordsTable({
                                                                 ? "text-primary-foreground bg-primary shadow-sm"
                                                                 : "text-foreground bg-transparent hover:bg-muted"
                                                             }`}
-                >
-                  1
-                </button>
+                  >
+                    1
+                  </button>
 
-                {/* Ellipsis */}
-                {pagination && pagination.page > 3 && (
-                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
-                    ...
-                  </span>
-                )}
-
-                {/* Current Page (if not first or last) */}
-                {pagination &&
-                  pagination.page !== 1 &&
-                  pagination.page !== pagination.limit && (
-                    <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
-                      {pagination.page}
-                    </button>
+                  {/* Ellipsis */}
+                  {pagination && pagination.page > 3 && (
+                    <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
+                      ...
+                    </span>
                   )}
 
-                {/* Ellipsis */}
-                {pagination && pagination.page < pagination.limit - 2 && (
-                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
-                    ...
-                  </span>
-                )}
+                  {/* Current Page (if not first or last) */}
+                  {pagination &&
+                    pagination.page !== 1 &&
+                    pagination.page !== pagination.limit && (
+                      <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
+                        {pagination.page}
+                      </button>
+                    )}
 
-                {/* Last Page */}
-                {pagination && pagination.limit > 1 && (
-                  <button
-                    onClick={() => setTablePage(pagination.limit)}
-                    className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 
+                  {/* Ellipsis */}
+                  {pagination && pagination.page < pagination.limit - 2 && (
+                    <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
+                      ...
+                    </span>
+                  )}
+
+                  {/* Last Page */}
+                  {pagination && pagination.limit > 1 && (
+                    <button
+                      onClick={() => setTablePage(pagination.limit)}
+                      className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 
                                                                 ${
                                                                   pagination.page ===
                                                                   pagination.limit
                                                                     ? "text-primary-foreground bg-primary shadow-sm"
                                                                     : "text-foreground bg-transparent hover:bg-muted"
                                                                 }`}
-                  >
-                    {pagination.limit}
-                  </button>
-                )}
-              </div>
+                    >
+                      {pagination.limit}
+                    </button>
+                  )}
+                </div>
 
-              {/* Next Button */}
-              <button
-                onClick={() => pagination && setTablePage(pagination.page + 1)}
-                disabled={!pagination || pagination.page === pagination.limit}
-                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
+                {/* Next Button */}
+                <button
+                  onClick={() =>
+                    pagination && setTablePage(pagination.page + 1)
+                  }
+                  disabled={!pagination || pagination.page === pagination.limit}
+                  className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
                                                         ${
                                                           !pagination ||
                                                           pagination.page ===
@@ -529,12 +527,13 @@ export default function RecordsTable({
                                                             ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
                                                             : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
                                                         }`}
-              >
-                Next
-                <ArrowUp className="w-4 h-4 ml-1 rotate-90" />
-              </button>
-            </div>
-          </nav>
+                >
+                  Next
+                  <ArrowUp className="w-4 h-4 ml-1 rotate-90" />
+                </button>
+              </div>
+            </nav>
+          </div>
         </div>
       )}
     </GenericComponent>

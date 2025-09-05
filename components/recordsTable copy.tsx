@@ -320,118 +320,114 @@ export default function RecordsTable({
     >
       {(response: ResponseInterface) => (
         <div className="h-full w-full ">
-          <div className="w-full h-full relative rounded-lg overflow-overlay">
-              <table className="w-full table-auto text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
-    <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
-      <tr>
-        {response.columns.map((column) => (
-          <th
-            key={column.desc}
-            scope="col"
-            onClick={() => handleSort(column.desc)}
-            className={`
-              px-4 py-3 cursor-pointer select-none whitespace-nowrap overflow-hidden text-clip
-              ${column.fieldtypeid === "Numero"
-                ? "min-w-[60px] max-w-[80px] text-right"
-                : "min-w-[60px] max-w-[180px] text-left"}
-            `}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center justify-between">
-                  <span className="truncate">{column.desc}</span>
-                  <div className="w-4 h-4 ml-1">
-                    {sortConfig.columnDesc === column.desc &&
-                      sortConfig.direction === "asc" && (
-                        <ArrowUp className="h-4 w-4" />
-                      )}
-                    {sortConfig.columnDesc === column.desc &&
-                      sortConfig.direction === "desc" && (
-                        <ArrowDown className="h-4 w-4" />
-                      )}
-                    {(sortConfig.columnDesc !== column.desc ||
-                      sortConfig.direction === null) && (
-                      <span className="invisible h-4 w-4">
-                        <ArrowUp className="h-4 w-4" />
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>{column.desc}</TooltipContent>
-            </Tooltip>
-          </th>
-        ))}
-      </tr>
-    </thead>
+          <div className="w-full h-full relative rounded-lg">
+            <table className="max-h-full block w-full h-11/12 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl ">
+              <thead className="text-xs text-gray-700 uppercase bg-table-header  dark:text-gray-400 table table-fixed w-full rounded-t-xl">
+                <tr>
+                  {response.columns.map((column) => (
+                    <th
+                      scope=""
+                      className="px-4 py-3 cursor-pointer select-none whitespace-nowrap text-ellipsis overflow-hidden min-w-[120px] max-w-content"
+                      key={column.desc}
+                      onClick={() => handleSort(column.desc)}
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-between">
+                          <span>{column.desc}</span>
+                          <div className="w-4 h-4 ml-1">
+                            {sortConfig.columnDesc === column.desc &&
+                            sortConfig.direction === "asc" && (
+                              <ArrowUp className="h-4 w-4" />
+                            )}
+                            {sortConfig.columnDesc === column.desc &&
+                            sortConfig.direction === "desc" && (
+                              <ArrowDown className="h-4 w-4" />
+                            )}
+                            {(sortConfig.columnDesc !== column.desc ||
+                            sortConfig.direction === null) && (
+                            <span className="invisible h-4 w-4">
+                              <ArrowUp className="h-4 w-4" />
+                            </span>
+                            )}
+                          </div>
+                          </div>
+                        </TooltipTrigger>
+                      <TooltipContent>
+                        {column.desc}
+                      </TooltipContent>
+                      </Tooltip>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="max-h-full h-11/12 overflow-y-auto overflow-x-auto block w-full rounded-b-xl">
+                {response.rows.map((row) => (
+                  <tr
+                    className={`theme-table table table-fixed w-full  border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
+                    key={row.recordid}
+                    onClick={() =>
+                      handleRowClick &&
+                      tableid &&
+                      context &&
+                      handleRowClick(
+                        context,
+                        row.recordid,
+                        tableid,
+                        masterTableid,
+                        masterRecordid
+                      )
+                    }
+                  >
+                    {row.fields.map((field, index) => {
+                      const column = response.columns[index]; // Prende la colonna corrispondente
+                      return (
+                        <td
+                          className={`px-4 py-3 min-w-[120px] ${field.css}`} // Rimosse le classi di layout del testo dal <td>
+                          key={`${row.recordid}-${field.fieldid}`}
+                        >
+                          {/* Questo è il wrapper che gestisce il layout interno della cella */}
+                          <div className="flex items-center gap-x-2">
+                            {column?.fieldtypeid === "Utente" && (
+                              <img
+                                src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
+                                alt="Utente"
+                                className="w-6 h-6 rounded-full flex-shrink-0" // flex-shrink-0 impedisce all'immagine di rimpicciolirsi
+                                onError={(e) => {
+                                  const img = e.target as HTMLImageElement;
+                                  img.src =
+                                    "/api/media-proxy?url=userProfilePic/default.jpg";
+                                }}
+                              />
+                            )}
 
-    <tbody className="w-11/12 h-11/12 overflow-y-auto overflow-x-auto">
-      {response.rows.map((row) => (
-        <tr
-          key={row.recordid}
-          className={`theme-table border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
-          onClick={() =>
-            handleRowClick &&
-            tableid &&
-            context &&
-            handleRowClick(
-              context,
-              row.recordid,
-              tableid,
-              masterTableid,
-              masterRecordid
-            )
-          }
-        >
-          {row.fields.map((field, index) => {
-            const column = response.columns[index];
-            return (
-              <td
-                key={`${row.recordid}-${field.fieldid}`}
-                className={`
-                  px-4 py-3 align-middle
-                  ${field.css}
-                  ${column?.fieldtypeid === "Numero"
-                    ? "max-w-max text-right"
-                    : " max-w-fit text-left"}
-                `}
-              >
-                <div className="flex items-center gap-x-2">
-                  {column?.fieldtypeid === "Utente" && (
-                    <img
-                      src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
-                      alt="Utente"
-                      className="w-6 h-6 rounded-full flex-shrink-0"
-                      onError={(e) => {
-                        const img = e.target as HTMLImageElement;
-                        img.src =
-                          "/api/media-proxy?url=userProfilePic/default.jpg";
-                      }}
-                    />
-                  )}
-                  <span
-                    className="block truncate"
-                    dangerouslySetInnerHTML={{ __html: field.value }}
-                  />
-                </div>
-              </td>
-            );
-          })}
-        </tr>
-      ))}
-    </tbody>
-
-    <tfoot className="bg-table-header dark:bg-gray-700">
-      <tr>
-        <td
-          colSpan={response.columns.length}
-          className="px-4 py-3 text-right rounded-b-xl"
-        >
-          <span className="font-medium">Totale:</span> {response.counter}
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+                            {/* Le classi per la gestione del testo (truncation) vanno qui */}
+                            <span className="">
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: field.value,
+                                }}
+                              />
+                            </span>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className=" table table-fixed w-full rounded-b-xl bg-table-header dark:bg-gray-700">
+                <tr>
+                  <td
+                    colSpan={response.columns.length}
+                    className="px-4 py-3 text-right rounded-b-xl float-start"
+                  >
+                    <span className="font-medium">Totale:</span>{" "}
+                    {response.counter}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
 
             <nav
               aria-label="Page navigation"
