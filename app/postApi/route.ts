@@ -163,6 +163,7 @@ export async function POST(request: Request) {
     case'save_activemind': djangoUrl = '/customapp_swissbix/save_activemind/'; break;
     case'qr_issue': djangoUrl = '/customapp_swissbix/qr/issue'; break;
     case 'print_pdf_activemind': djangoUrl = '/customapp_swissbix/print_pdf_activemind/'; break;
+    case 'get_user_id': djangoUrl = '/commonapp/get_user_id/'; break;
 
     default:
       return NextResponse.json(

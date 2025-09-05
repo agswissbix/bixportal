@@ -324,7 +324,7 @@ export default function RecordsTable({
             <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
               <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
                 <tr>
-                  {response.columns.map((column) => (
+                  {response.columns.map((column, index) => (
                     <th
                       key={column.desc}
                       scope="col"
@@ -336,6 +336,12 @@ export default function RecordsTable({
                   ? "min-w-[60px] text-right"
                   : "min-w-[80px] text-left"
               }
+              ${
+                  // sticky only first column
+                  index === 0
+                    ? "sticky left-0 bg-table-header"
+                    : ""
+                }
             `}
                     >
                       <Tooltip>
@@ -397,6 +403,12 @@ export default function RecordsTable({
                     column?.fieldtypeid === "Numero"
                       ? "min-w-[60px] text-right"
                       : "min-w-[80px]  text-left"
+                  }
+                  ${
+                    // sticky only first column
+                    index === 0
+                      ? "sticky left-0 bg-table-background"
+                      : ""
                   }
                 `}
                         >

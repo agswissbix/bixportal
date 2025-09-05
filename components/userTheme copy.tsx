@@ -22,21 +22,17 @@ interface PropsInterface {
   propExampleValue?: string;
 }
 interface ResponseInterface {
-  cliente: string
-}
-
-const themesMap = {
-  swissbix: themesSwissbix,
+  userid: string
 }
 
 function UserTheme({ propExampleValue }: PropsInterface) {
   // DATI
   const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
   const responseDataDEFAULT: ResponseInterface = {
-    cliente: "Default"
+    userid: "Default"
   };
   const responseDataDEV: ResponseInterface = {
-    cliente: "DevUser123",
+    userid: "DevUser123",
   };
 
   const { user } = useContext(AppContext);
@@ -84,12 +80,7 @@ function UserTheme({ propExampleValue }: PropsInterface) {
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       setResponseData(response);
-      const clienteKey = response.cliente.toLowerCase() as keyof typeof themesMap;
-      if (clienteKey in themesMap) {
-        setThemeConfig([...themeConfig, ...themesMap[clienteKey]]);
-      } else {
-        setThemeConfig([...themeConfig]);
-      }
+      setThemeConfig(themes);
     }
   }, [response, responseData]);
 
