@@ -164,7 +164,8 @@ export async function POST(request: Request) {
     case'qr_issue': djangoUrl = '/customapp_swissbix/qr/issue'; break;
     case 'print_pdf_activemind': djangoUrl = '/customapp_swissbix/print_pdf_activemind/'; break;
     case 'get_user_id': djangoUrl = '/commonapp/get_user_id/'; break;
-
+    case 'get_custom_functions': djangoUrl = '/commonapp/get_custom_functions/'; break;
+    
     default:
       return NextResponse.json(
         { error: `apiRoute ${apiRoute} non gestito.` },

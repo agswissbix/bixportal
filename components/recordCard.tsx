@@ -12,7 +12,12 @@ import { Card } from './ui/card';
 import { AppContext } from '@/context/appContext';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
+import {useApi} from '@/utils/useApi';
+import GenericComponent from './genericComponent';
+import { set } from 'lodash';
 
+const isDev = false;
 
 
 // INTERFACCIA PROPS
@@ -25,6 +30,9 @@ interface PropsInterface {
   index?: number;
   total?: number;	
 }
+interface ResponseInterface {
+  fn: CustomFunction[]
+}
 
 export default function RecordCard({ tableid,recordid,mastertableid,masterrecordid, type,index=0,total=1 }: PropsInterface) {
 
@@ -36,7 +44,34 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   // Nuovo stato per il menu a tendina
   const [showDropdown, setShowDropdown] = useState(false);
-
+  const responseDataDEFAULT: ResponseInterface = {
+      fn: []
+    };
+    const responseDataDEV: ResponseInterface = {
+      fn: []
+    };
+  
+    const { user } = useContext(AppContext);
+    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+  
+    // PAYLOAD (solo se non in sviluppo)
+      const payload = useMemo(() => {
+          if (isDev) return null;
+          return {
+              apiRoute: 'get_custom_functions',
+              tableid: tableid,
+          };
+      }, [tableid]);
+  
+    // CHIAMATA AL BACKEND (solo se non in sviluppo)
+    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+  
+    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo)
+    useEffect(() => {
+      if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+        setResponseData(response);
+      }
+    }, [response, responseData]);
 
   const getOffset = () => {
     if (isMaximized) return 0;
@@ -74,244 +109,10 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
         }
     }
 
-  //TODO
-  //CUSTOM PITSERVICE
-  const offertaChiusaVinta = async () => {
-    try {
-            const response = await axiosInstanceClient.post(
-                "/postApi",
-                {
-                    apiRoute: "pitservice_offerta_chiusa_vinta",
-                    tableid: tableid,
-                    recordid: recordid,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                }
-            )
-            handleRemoveCard();
-            toast.success('Offerta chiusa vinta');
-        } catch (error) {
-        console.error('Errore durante la chiusura dell offerta', error);
-        toast.error('Errore durante la chiusura dell offerta');
-    }
-  }
-
-
-  const offertaChiusaPersa = async () => {
-    try {
-            const response = await axiosInstanceClient.post(
-                "/postApi",
-                {
-                    apiRoute: "pitservice_offerta_chiusa_persa",
-                    tableid: tableid,
-                    recordid: recordid,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                }
-            )
-            handleRemoveCard();
-            toast.success('Offerta chiusa persa');
-        } catch (error) {
-        console.error('Errore durante la chiusura persa dell offerta', error);
-        toast.error('Errore durante la chiusura persa dell offerta');
-    }
-  }
-
-  const downloadOfferta = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-          "/postApi",
-          {
-              apiRoute: "download_offerta",
-              recordid: recordid,
-          },
-          {
-              responseType: "blob",
-              headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-          }
-      )
-      //toast.success('Record creati');
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      
-      // Estrai il filename dal header Content-Disposition
-      const contentDisposition = response.headers['content-disposition'] || '';
-      let filename = 'offerta.doc';
-      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
-      if (match && match[1]) {
-        filename = decodeURIComponent(match[1]);
-      }
-      
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      
-    } catch (error) {
-        console.error('Errore durante la creazione dei record', error);
-        toast.error('Errore durante la creazione dei record');
-    }
-  }
-
   const getEmailReady = () => {
     setIsPopupOpen(true);
   };
-
-  const stampaBollettino = async () => {
-    try {
-      //download a file from the response
-      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "stampa_bollettino",
-          recordid: recordid,
-        },
-        {
-          responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      const contentDisposition = response.headers['content-disposition'] || '';
-      let filename = 'bollettino-standard.pdf';
-
-      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
-      if (match && match[1]) {
-        filename = decodeURIComponent(match[1]);
-      }
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      toast.success('Bollettino stampato con successo');
-
-    } catch (error) {
-      console.error('Errore durante la stampa del bollettino', error);
-      toast.error('Errore durante la stampa del bollettino');
-    }
-  }
-
-
-  const compilaActiveMind = async () => {
-    window.open(`/activeMind/${recordid}`, "_blank");
-  }
-
-  const stampaPdfTest = async () => {
-    try {
-      //download a file from the response
-      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "stampa_pdf_test",
-          recordid: recordid,
-        },
-        {
-          responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      const contentDisposition = response.headers['content-disposition'] || '';
-      let filename = 'pdftest.pdf';
-
-      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
-      if (match && match[1]) {
-        filename = decodeURIComponent(match[1]);
-      }
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      toast.success('PDF test stampato con successo');
-
-    } catch (error) {
-      console.error('Errore durante la stampa del PDF test', error);
-      toast.error('Errore durante la stampa del PDF test');
-    }
-
-  }
-
-  const stampaWordTest = async () => {
-    try {
-      //download a file from the response
-      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "stampa_pdf_test",
-          recordid: recordid,
-        },
-        {
-          responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      const contentDisposition = response.headers['content-disposition'] || '';
-      let filename = 'pdftest.pdf';
-
-      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
-      if (match && match[1]) {
-        filename = decodeURIComponent(match[1]);
-      }
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      toast.success('PDF test stampato con successo');
-
-    } catch (error) {
-      console.error('Errore durante la stampa del PDF test', error);
-      toast.error('Errore durante la stampa del PDF test');
-    }
-    
-  }
-
-  const sendEmail = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "send_emails",
-          recordid: recordid,
-        },
-
-
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      toast.success('Email inviata con successo');
-    } catch (error) {
-      console.error("Errore durante l'invio della email", error);
-      toast.error("Errore durante l'invio della email");
-    }
-  }
-
+  
   const handleTrashClick = () => {
     toast.warning(
         "Sei sicuro di voler eliminare questo record?", 
@@ -350,6 +151,8 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
 
   return (
+    <GenericComponent title="recordCard" response={responseData} loading={loading} error={error}>
+        {(response: ResponseInterface) => (
     <div
             className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-card-background z-10 rounded-xl border-2 border-card-border p-3 ${animationClass} ${
                 isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-5/6'
@@ -413,138 +216,11 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                         {showDropdown && (
                           <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded shadow-lg z-50">
                             <ul className="py-1">
-                              {tableid === 'bollettini' && (
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    toast.info('Stampa bollettino in corso...');
-                                    stampaBollettino();
-                                    setShowDropdown(false);
-                                  }}
-                                >
-                                  Stampa bollettino
-                                </li>
-                              )}
-                              {tableid === 'email' && (
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    toast.info('Invio email in corso...');
-                                    sendEmail();
-                                  }}
-                                >
-                                  Invia email
-                                </li>
-                              )}
-                              {tableid === 'rendicontolavanderia' && (
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    setPopupRecordId(recordid);
-                                    setIsPopupOpen(true);
-                                    setPopUpType('emailLavanderia');
-                                    setShowDropdown(false);
-                                  }}
-                                >
-                                  Invia rendiconto
-                                </li>
-                              )}
-                              {tableid === 'stabile' && (
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    setPopupRecordId(recordid);
-                                    setIsPopupOpen(true);
-                                    setPopUpType('reportGasolio');
-                                    setShowDropdown(false);
-                                  }}
-                                >
-                                  Report gasolio
-                                </li>
-                              )}
-                              {tableid === 'devtest' && (
-                                <>
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    toast.info('Stampa test in corso...');
-                                    stampaPdfTest();
-                                    setShowDropdown(false);
-                                  }}
-                                >
-                                  Stampa pdf test
-                                </li>
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    toast.info('Stampa test in corso...');
-                                    stampaWordTest();
-                                    setShowDropdown(false);
-                                  }}
-                                >
-                                  Stampa word test
-                                </li>
-                                </>
-                                
-                              )}
-                              {tableid === 'bollettinitrasporto' && (
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => {
-                                    setPopupRecordId(recordid);
-                                    setIsPopupOpen(true);
-                                    setPopUpType('emailBollettini');
-                                    setShowDropdown(false);
-                                  }}
-                                >
-                                  Invia email
-                                </li>
-                              )}
-                              {tableid === 'offerta' && (
-                                <>
-                                <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => downloadOfferta()}
-                                >
-                                  Crea offerta
-                                </li>
-                                                                <li 
-                                  className="px-4 py-2 text-green-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => chiusoVinto()}
-                                >
-                                  Chiuso vinto
-                                </li>
-                                <li 
-                                  className="px-4 py-2 text-red-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => chiusoPerso()}
-                                >
-                                  Chiuso perso
-                                </li>
-
-                                </>
-                              )}
-                              {tableid === 'printinginvoice' && (
-                                <>
-                                  <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => window.open(`http://bixcrm01:8822/bixdata/custom/api_bexio_set_printing_invoices.php?recordid=${recordid}`, '_blank')}  
-                                >
-                                  Carica in bexio
-                                </li>
-                                
-                                </>
-                              )}
-                              {tableid === 'deal' && (
-                                <>
-                                  <li 
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                  onClick={() => compilaActiveMind()}  
-                                >
-                                  Compila ActiveMind
-                                </li>
-                                
-                                </>
-                              )}
+                              {response.fn.map((fn) => (
+                                fn.context === 'cards' && (
+                                  <DynamicMenuItem key={fn.title} fn={fn} params={recordid} onClick={() => {setShowDropdown(false)}} />
+                                )
+                              ))}
                             </ul>
                           </div>
                         )}
@@ -593,5 +269,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
                 <CardTabs tableid={tableid} recordid={recordid} mastertableid={mastertableid} masterrecordid={masterrecordid}></CardTabs>
             </div>
         </div>
+        )}
+        </GenericComponent>
   );
 };
