@@ -60,9 +60,9 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
             const responseDataDEFAULT: ResponseInterface = {
                 fields: [],
                 recordid: '',
-              };
+            };
 
-            // DATI RESPONSE PER LO SVILUPPO 
+            // DATI RESPONSE PER LO SVILUPPO
             const responseDataDEV: ResponseInterface = {
                 fields: [
                     {
@@ -83,7 +83,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         value: { code: '2', value: '2' },
                         fieldtype: "Numero",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
-            
+                
                     },
                     {
                         tableid: "1",
@@ -93,7 +93,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         value: { code: '2024-10-30', value: '30/10/2024' },
                         fieldtype: "Data",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
-            
+                
                     },
                     {
                         tableid: "1",
@@ -103,7 +103,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         value: { code: 'test4', value: 'test4' },
                         fieldtype: "Memo",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
-            
+                
                     },
                     {
                         tableid: "1",
@@ -121,7 +121,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         ],
                         fieldtypewebid: "multiselect",
                         settings: {calcolato: 'false', default: '', nascosto: 'false', obbligatorio: 'false'}
-            
+                
                     },
                     {
                         tableid: "1",
@@ -159,6 +159,9 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
+    
+    // *** NEW: Stato per la disabilitazione del pulsante Salva ***
+    const [isSaveDisabled, setIsSaveDisabled] = useState(true);
 
     const {removeCard,addCard,refreshTable,setRefreshTable,handleRowClick} = useRecordsStore();
     const {activeServer } = useContext(AppContext);
@@ -183,6 +186,29 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     }, [responseData, updatedFields]);
     // *** END NEW ***
 
+
+    // *** NEW: Effetto per validare i campi obbligatori ***
+    useEffect(() => {
+        const requiredFields = responseData.fields.filter(
+            field => typeof field.settings === 'object' && field.settings.obbligatorio === 'true'
+        );
+
+        if (requiredFields.length === 0) {
+            setIsSaveDisabled(false);
+            return;
+        }
+
+        const allRequiredFilled = requiredFields.every(field => {
+            const value = currentValues[field.fieldid];
+            // Un campo è considerato compilato se non è null, undefined, una stringa vuota o un array vuoto
+            return value !== null && value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0);
+        });
+
+        setIsSaveDisabled(!allRequiredFilled);
+    }, [currentValues, responseData.fields]);
+     // *** END NEW ***
+
+
     const handleInputChange = (fieldid: string, newValue: any | any[]) => {
         setUpdatedFields(prev => {
             // Controlla se il valore è effettivamente cambiato prima di aggiornare lo stato
@@ -198,6 +224,12 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     
     
       const handleSave = async () => {
+        // *** NEW: Controllo validazione prima del salvataggio ***
+        if (isSaveDisabled) {
+            toast.warning('Compilare tutti i campi obbligatori per poter salvare');
+            return;
+        }
+
         console.log("Tutti i campi aggiornati:", updatedFields);
         let newRecordId = null;
         try {
@@ -278,7 +310,7 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response); // Questo aggiorna solo quando c'è una differenza nei dati
-        }                                     
+        }                                       
     }, [response, isDev, responseData]); // Assicurati che le dipendenze siano ben definite
     
 
@@ -293,16 +325,22 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                         {response.fields.map(field => {
                             const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
                             const initialValue = rawValue ?? '';
-
+                            const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
                             return (
                                 <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
                                     {/* Etichetta */}
                                     <div className="w-1/4">
                                         <p
-                                          data-tooltip-id="my-tooltip"
-                                          data-tooltip-content={field.fieldid}
-                                          data-tooltip-place="left"
-                                        className="text-black">{field.description} 
+                                        data-tooltip-id="my-tooltip"
+                                        data-tooltip-content={field.fieldid}
+                                        data-tooltip-place="left"
+                                        // *** RIGA MODIFICATA ***
+                                        className={`text-black ${
+                                            isRequired ? 'bg-red-500 text-white px-2 py-1 rounded-md' : ''
+                                        }`}
+                                    >
+                                            {field.description}
+                                            
                                         </p>
                                     </div>
                                     
@@ -378,18 +416,25 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                             );
                         })}
                     </div>
+                     {/* *** BLOCCO BOTTONI MODIFICATO *** */}
                     {activeServer === 'belotti' && (
-                        <button type="button" onClick={handleSave} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
+                        <button 
+                            type="button" 
+                            onClick={handleSave} 
+                            className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
                             Conferma merce ricevuta
                         </button>
                     )}
                     {activeServer !== 'belotti' && (
-                        <button type="button" onClick={handleSave} className="theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4">
+                        <button 
+                            type="button" 
+                            onClick={handleSave} 
+                            className={`theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
                             Salva
                         </button>
                     )}
-                   
-                                  
                 </div>
             )}
         </GenericComponent>

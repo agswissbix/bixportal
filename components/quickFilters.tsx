@@ -23,6 +23,7 @@ interface ResponseInterface {
     id: number
     name: string
   }[]
+  defaultViewId?: number
 }
 
 export default function QuickFilters({ propExampleValue }: PropsInterface) {
@@ -51,6 +52,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
         name: "view3",
       },
     ],
+    defaultViewId: 2,
   }
 
   // DATI DEL CONTESTO
@@ -110,8 +112,11 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
     if (response?.views?.length) {
       setResponseData(response) // ★ QUI: aggiorna lo state
       const first = String(response.views[0].id)
-      setSelectedView(Number.parseInt(first))
-      setTableView(first) // auto-refresh via store
+      const initialViewId = response.defaultViewId ?? response.views[0].id
+      const initialViewIdStr = String(initialViewId)
+
+      setSelectedView(initialViewId)
+      setTableView(initialViewIdStr) // auto-refresh via store
     }
   }, [selectedMenu, response, setSearchTerm, setTableView])
 
