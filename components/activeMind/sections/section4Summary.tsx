@@ -5,12 +5,19 @@ import DigitalSignature from "@/components/activeMind/DigitalSignature"
 
 interface Section4Props {
   serviceData: {
+    clientInfo?: {
+      nome: string
+      indirizzo: string
+      data: string
+      termine: string
+    }
     section1: {
       selectedTier: string
       price: number
     }
     section2: {
-      selectedFrequency: string
+      selectedFrequency: string,
+      exponentPrice?: number
     }
     section3: {
       [key: string]: {
@@ -20,6 +27,7 @@ interface Section4Props {
       }
     }
   }
+  onUpdate: (data: any) => void
   onSignatureChange?: (signature: string | null) => void
 }
 
@@ -54,9 +62,16 @@ const serviceLabels: { [key: string]: string } = {
   sharepoint: "Sharepoint/OneDrive",
 }
 
-export default function Section4Summary({ serviceData, onSignatureChange }: Section4Props) {
+export default function Section4Summary({ serviceData, onUpdate, onSignatureChange }: Section4Props) {
   const section3Total = Object.values(serviceData.section3).reduce((sum, service) => sum + service.total, 0)
   const grandTotal = serviceData.section1.price + section3Total
+
+  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const nome = e.target.value
+    onUpdate({
+      nome: nome,
+    })
+  }
 
   const selectedServices = Object.entries(serviceData.section3)
     .filter(([_, service]) => service.quantity > 0)
@@ -101,21 +116,6 @@ export default function Section4Summary({ serviceData, onSignatureChange }: Sect
       )}
 
       {/* Section 2 Summary */}
-      {serviceData.section2.selectedFrequency && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Sezione 2 - Pianificazione</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Frequenza interventi selezionata</h4>
-              <p className="text-gray-700">{frequencyLabels[serviceData.section2.selectedFrequency]}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Section 3 Summary */}
       {selectedServices.length > 0 && (
         <Card>
           <CardHeader>
@@ -148,19 +148,40 @@ export default function Section4Summary({ serviceData, onSignatureChange }: Sect
         </Card>
       )}
 
+      {/* Section 3 Summary */}
+      {serviceData.section2.selectedFrequency && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Sezione 2 - Pianificazione</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Frequenza interventi selezionata</h4>
+                <p className="text-gray-700">{frequencyLabels[serviceData.section2.selectedFrequency]}</p>
+              </div>
+
+              <div className="text-right">
+                <div className="font-bold text-gray-900">{serviceData.section2.exponentPrice!}x</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Grand Total */}
-      {/* <Card className="bg-green-50 border-green-200">
+      <Card className="bg-green-50 border-green-200">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="gap-4 text-sm text-green-800">
               <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900">
-                <span>Servizi aggiuntivi:</span>
-                <span>CHF {section3Total}.-</span>
+                <span>Totale Servizi + Pianificazione:</span>
+                <span>CHF { (section3Total * serviceData.section2.exponentPrice!) } .-</span>
               </div>
             </div>
           </div>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* Contract Terms */}
       <Card>
@@ -215,11 +236,17 @@ export default function Section4Summary({ serviceData, onSignatureChange }: Sect
                 <p className="text-sm text-gray-600">Massagno, {new Date().toLocaleDateString("it-IT")}</p>
                 <p className="font-medium">Mauro Gallani</p>
               </div>
-              {/* <div className="text-right">
+              <div className="text-right">
                 <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>
-                <div className="border-b border-gray-400 w-48 h-8"></div>
-              </div> */}
-              <DigitalSignature onSignatureChange={onSignatureChange} />
+                <input className="block mb-2 border border-gray-300 rounded p-2" 
+                  name="name" 
+                  placeholder="Nome e Cognome"
+                  value={serviceData.clientInfo?.nome || ''}
+                  onChange={(e) => handleNameChange(e)}
+                />
+
+                <DigitalSignature onSignatureChange={onSignatureChange} />
+              </div>
             </div>
           </div>
         </CardContent>

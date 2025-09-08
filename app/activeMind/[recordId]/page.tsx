@@ -1,8 +1,5 @@
-// app/activeMind/[recordId]/page.jsx
 import * as React from "react";
-
 import ActiveMind from "@/components/activeMind/activeMind";
-
 
 interface ActiveMindPageProps {
   params: {
@@ -10,7 +7,9 @@ interface ActiveMindPageProps {
   };
 }
 
-export default function ActiveMindPage({ params }: ActiveMindPageProps) {
+export default async function ActiveMindPage(props: ActiveMindPageProps) {
+  const { params } = props;
+  // If you need to await something, do it here. For now, just destructure.
   const { recordId } = params;
 
   return (

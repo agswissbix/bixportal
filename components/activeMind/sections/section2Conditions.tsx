@@ -3,9 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, CheckCircle2, AlertCircle, Users } from "lucide-react"
 
+
 interface Section2Props {
   data: {
-    selectedFrequency: string
+    section2: {
+      selectedFrequency: string,
+      exponentPrice?: number
+    }
+    section3: {
+      [key: string]: {
+         title: string
+          quantity: number
+          unitPrice: number
+          total: number
+      }
+    }
   }
   onUpdate: (data: any) => void
 }
@@ -17,6 +29,7 @@ const frequencies = [
     description: "1 uscita al mese programmato anticipatamente",
     icon: Calendar,
     color: "bg-blue-50 border-blue-200 text-blue-900",
+    exponentPrice: 1
   },
   {
     id: "quarterly",
@@ -24,6 +37,7 @@ const frequencies = [
     description: "1 uscita ogni 3 mesi programmato anticipatamente",
     icon: Calendar,
     color: "bg-green-50 border-green-200 text-green-900",
+    exponentPrice: 1.25
   },
   {
     id: "biannual",
@@ -31,6 +45,7 @@ const frequencies = [
     description: "1 uscita ogni 6 mesi programmato anticipatamente",
     icon: Calendar,
     color: "bg-orange-50 border-orange-200 text-orange-900",
+    exponentPrice: 1.5
   },
   {
     id: "annual",
@@ -38,6 +53,7 @@ const frequencies = [
     description: "1 uscita ogni 12 mesi programmato anticipatamente",
     icon: Calendar,
     color: "bg-purple-50 border-purple-200 text-purple-900",
+    exponentPrice: 2
   },
 ]
 
@@ -65,9 +81,18 @@ const conditions = [
 ]
 
 export default function Section2Conditions({ data, onUpdate }: Section2Props) {
-  const handleFrequencySelect = (frequencyId: string) => {
+  const section3Total = Object.values(data.section3).reduce((sum, service) => sum + service.total, 0)
+  const handleFrequencySelect = (frequencyId: string, exponentPrice: number) => {
+    if (data.section2.selectedFrequency === frequencyId) {
+      onUpdate({
+        selectedFrequency: null,
+        exponentPrice: null
+      })
+      return
+    }
     onUpdate({
       selectedFrequency: frequencyId,
+      exponentPrice: exponentPrice
     })
   }
 
@@ -145,7 +170,7 @@ export default function Section2Conditions({ data, onUpdate }: Section2Props) {
           <div className="grid md:grid-cols-2 gap-4">
             {frequencies.map((frequency) => {
               const Icon = frequency.icon
-              const isSelected = data.selectedFrequency === frequency.id
+              const isSelected = data.section2.selectedFrequency === frequency.id
 
               return (
                 <Card
@@ -153,7 +178,7 @@ export default function Section2Conditions({ data, onUpdate }: Section2Props) {
                   className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                     isSelected ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200" : "hover:border-gray-300"
                   }`}
-                  onClick={() => handleFrequencySelect(frequency.id)}
+                  onClick={() => handleFrequencySelect(frequency.id, frequency.exponentPrice)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start space-x-3">
@@ -162,6 +187,9 @@ export default function Section2Conditions({ data, onUpdate }: Section2Props) {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900 mb-1">{frequency.label}</h3>
+                        <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                          CHF { (section3Total * frequency.exponentPrice) } .-
+                        </h3>
                         <p className="text-sm text-gray-600">{frequency.description}</p>
                         {isSelected && <Badge className="mt-2 bg-blue-600 text-white">Selezionato</Badge>}
                       </div>

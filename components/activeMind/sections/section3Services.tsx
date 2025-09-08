@@ -390,7 +390,8 @@ export default function Section3Services({ data, onUpdate }: Section3Props) {
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
               <div>
-                <h3 className="text-lg font-semibold text-green-900">Totale Servizi Sezione 3</h3>
+                <h3 className="text-lg font-semibold text-green-900">Costo Totale Servizi</h3>
+                <p className="text-sm text-green-700">per pianficazione Mensile</p>
                 <p className="text-sm text-green-700">
                   {Object.values(data).filter((s) => s.quantity > 0).length} servizi selezionati
                 </p>
