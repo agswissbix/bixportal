@@ -333,8 +333,8 @@ export default function RecordsTable({
               px-4 py-3 cursor-pointer select-none truncate
               ${
                 column.fieldtypeid === "Numero"
-                  ? "min-w-[60px] text-right"
-                  : "min-w-[80px] text-left"
+                  ? "min-w-[60px] max-w-[80px] text-right"
+                  : "min-w-[80px] max-w-[300px] text-left"
               }
               ${
                   // sticky only first column
@@ -401,8 +401,8 @@ export default function RecordsTable({
                   ${field.css}
                   ${
                     column?.fieldtypeid === "Numero"
-                      ? "min-w-[60px] text-right"
-                      : "min-w-[80px]  text-left"
+                      ? "min-w-[60px] max-w-[80px] text-right"
+                      : "min-w-[80px] max-w-[300px] text-left"
                   }
                   ${
                     // sticky only first column
