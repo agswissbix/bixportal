@@ -9,9 +9,9 @@ export type CustomFunction = {
   css?: string
 }
 
-export default function DynamicMenuItem({ fn, params }: { fn: CustomFunction, params?: any }) {
+export default function DynamicMenuItem({ fn, params, onClick }: { fn: CustomFunction, params?: any, onClick?: () => void }) {
   const handleClick = async () => {
-    const func = frontendFunctions[fn.backend_function]
+    const func = frontendFunctions()[fn.backend_function]
     if (func) {
         console.log("Eseguendo funzione:", fn.backend_function, "con parametri:", params);
       await func(params)
@@ -23,7 +23,7 @@ export default function DynamicMenuItem({ fn, params }: { fn: CustomFunction, pa
   return (
     <li
       className={fn.css || "px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer"}
-      onClick={handleClick}
+      onClick={() => { handleClick(); onClick && onClick(); }}
     >
       {fn.title}
     </li>

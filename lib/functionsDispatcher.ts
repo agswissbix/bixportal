@@ -1,12 +1,25 @@
 // functionsDispatcher.ts
+import { useRecordsStore } from "@/components/records/recordsStore"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
 
-export const frontendFunctions: Record<string, (...args: any[]) => Promise<any>> = {
-  crea_lista_lavanderie: async (mese: string) => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
+
+// const handleRemoveCard = () => {
+  //   setAnimationClass('animate-slide-out');
+  //   setTimeout(() => {
+    //       removeCard(tableid, recordid);
+    //   }, 300);
+    // }
+    
+// export const frontendFunctions: Record<string, (...args: any[]) => Promise<any>> = {
+export function frontendFunctions(): Record<string, (...args: any[]) => Promise<any>> {
+        
+  return {
+  // ----------------------- results functions ------------------------
+    crea_lista_lavanderie: async (mese: string) => {
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
         {
           apiRoute: "crea_lista_lavanderie",
           mese,
@@ -24,8 +37,252 @@ export const frontendFunctions: Record<string, (...args: any[]) => Promise<any>>
       toast.error("Errore durante la creazione dei record")
     }
   },
+  // ----------------------- recordCards functions ------------------------
   compilaActiveMind: async (recordid: string) => {
-    console.log("Eseguendo funzione:", "compilaActiveMind", "con parametri:", {recordid});
     window.open(`/activeMind/${recordid}`, "_blank");
+  },
+  stampaBollettino: async (recordid: string) => {
+    try {
+      //download a file from the response
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_bollettino",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'bollettino-standard.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('Bollettino stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del bollettino', error);
+      toast.error('Errore durante la stampa del bollettino');
+    }
+  },
+  downloadOfferta: async (recordid: string) => {
+    try {
+      const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+              apiRoute: "download_offerta",
+              recordid: recordid,
+          },
+          {
+              responseType: "blob",
+              headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+          }
+      )
+      //toast.success('Record creati');
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      
+      // Estrai il filename dal header Content-Disposition
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'offerta.doc';
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      
+    } catch (error) {
+        console.error('Errore durante la creazione dei record', error);
+        toast.error('Errore durante la creazione dei record');
+    }
+  },
+  stampaPdfTest: async (recordid: string) => {
+    try {
+      //download a file from the response
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_pdf_test",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'pdftest.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('PDF test stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del PDF test', error);
+      toast.error('Errore durante la stampa del PDF test');
+    }
+
+  },
+  stampaWordTest: async (recordid: string) => {
+    try {
+      //download a file from the response
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_pdf_test",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'pdftest.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('PDF test stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del PDF test', error);
+      toast.error('Errore durante la stampa del PDF test');
+    }
+    
+  },
+  sendEmail: async (recordid: string) => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "send_emails",
+          recordid: recordid,
+        },
+
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success('Email inviata con successo');
+    } catch (error) {
+      console.error("Errore durante l'invio della email", error);
+      toast.error("Errore durante l'invio della email");
+    }
+  },
+  handleRendiContoLavanderia: async (recordid: string) => {
+    const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
+    setPopupRecordId(recordid);
+    setIsPopupOpen(true);
+    setPopUpType('emailLavanderia');
+  },
+  handleStabile: async (recordid: string) => {
+    const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
+    setPopupRecordId(recordid);
+    setIsPopupOpen(true);
+    setPopUpType('reportGasolio');
+  },
+  handleBollettiniTrasporto: async (recordid: string) => {
+    const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
+    setPopupRecordId(recordid);
+    setIsPopupOpen(true);
+    setPopUpType('emailBollettini');
+  },
+  printingInvoice: async (recordid: string) => {
+    window.open(`http://bixcrm01:8822/bixdata/custom/api_bexio_set_printing_invoices.php?recordid=${recordid}`, '_blank')
+  },
+  //TODO
+  //CUSTOM PITSERVICE
+  // offertaChiusaVinta: async (recordid: string) => {
+  //   try {
+  //           const response = await axiosInstanceClient.post(
+  //               "/postApi",
+  //               {
+  //                   apiRoute: "pitservice_offerta_chiusa_vinta",
+  //                   tableid: tableid,
+  //                   recordid: recordid,
+  //               },
+  //               {
+  //                   headers: {
+  //                       Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //                   },
+  //               }
+  //           )
+  //           handleRemoveCard();
+  //           toast.success('Offerta chiusa vinta');
+  //       } catch (error) {
+  //       console.error('Errore durante la chiusura dell offerta', error);
+  //       toast.error('Errore durante la chiusura dell offerta');
+  //   }
+  // },
+  // offertaChiusaPersa: async (recordid: string) => {
+  //   try {
+  //           const response = await axiosInstanceClient.post(
+  //               "/postApi",
+  //               {
+  //                   apiRoute: "pitservice_offerta_chiusa_persa",
+  //                   tableid: tableid,
+  //                   recordid: recordid,
+  //               },
+  //               {
+  //                   headers: {
+  //                       Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //                   },
+  //               }
+  //           )
+  //           handleRemoveCard();
+  //           toast.success('Offerta chiusa persa');
+  //       } catch (error) {
+  //       console.error('Errore durante la chiusura persa dell offerta', error);
+  //       toast.error('Errore durante la chiusura persa dell offerta');
+  //   }
+  // }
   }
 }
+
+
