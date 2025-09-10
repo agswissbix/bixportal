@@ -8,6 +8,7 @@ import '@/app/globals.css';
 import { useRecordsStore } from './records/recordsStore';
 import { useRouter } from 'next/navigation';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
+import Link from 'next/link';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -22,6 +23,7 @@ interface ResponseInterface {
     otherItems: SubItem[];
     favoriteTables?: string[];
     userid ?: string; // Aggiunto per l'ID utente
+    isAdmin?: boolean; // Aggiunto per verificare se l'utente è admin
 }
 
 interface SubItem{
@@ -201,6 +203,12 @@ export default function SidebarMenu({  }: PropsInterface) {
                             <span className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => router.push('/custom/winteler')}>
                                 Winteler custom
                             </span>
+                        </>
+                    ) : responseData.isAdmin ? (
+                        <>
+                            <Link href="/bixadmin/admin" target='_blank' className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors">
+                                Admin Settings
+                            </Link>
                         </>
                     ) : null}
 

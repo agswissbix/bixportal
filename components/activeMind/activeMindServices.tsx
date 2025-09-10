@@ -16,12 +16,19 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import axiosInstance from '@/utils/axiosInstance';
 
 interface ServiceData {
+  clientInfo?: {
+    nome: string
+    indirizzo: string
+    data: string
+    termine: string
+  }
   section1: {
     selectedTier: string
     price: number
   }
   section2: {
-    selectedFrequency: string
+    selectedFrequency: string,
+    exponentPrice?: number
   }
   section3: {
     [key: string]: {
@@ -107,7 +114,8 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
           nome: "Farmacia MGM Azione Sagl",
           indirizzo: "Via Franco Zorzi 36a, Bellinzona",
           data: new Date().toLocaleDateString("it-CH"),
-          termine: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString("it-CH")
+          termine: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString("it-CH"),
+          nomeSignature: serviceData.clientInfo?.nome || ''
         }
 
         const dataToPrint = {
@@ -157,13 +165,11 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
           />
         )
       case 2:
-        return (
-          <Section2Conditions data={serviceData.section2} onUpdate={(data) => updateServiceData("section2", data)} />
-        )
-      case 3:
         return <Section3Services data={serviceData.section3} onUpdate={(data) => updateServiceData("section3", data)} />
+        case 3:
+        return <Section2Conditions data={{ section2: serviceData.section2, section3: serviceData.section3 }} onUpdate={(data) => updateServiceData("section2", data)} />
       case 4:
-        return <Section4Summary serviceData={serviceData} onSignatureChange={handleSignatureChange}/>
+        return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange}/>
       default:
         return null
     }
@@ -245,7 +251,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                   }`}
                   onClick={() => {
                     if (
-                      (currentStep === 2 && serviceData.section2.selectedFrequency === "")
+                      (currentStep === 3 && serviceData.section2.selectedFrequency === "")
                     ) {
                       return
                     }
@@ -377,7 +383,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
             { currentStep !== steps.length ? (
               <Button
                 onClick={handleNext}
-                disabled={(currentStep === 2 && serviceData.section2.selectedFrequency === "")}
+                disabled={(currentStep === 3 && serviceData.section2.selectedFrequency === "")}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Successivo

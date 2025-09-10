@@ -152,9 +152,7 @@ export default function DigitalSignature({ onSignatureChange }: DigitalSignature
 
   if (!isSignatureMode) {
     return (
-      <div className="text-right">
-        <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>
-
+      <>
         {savedSignature ? (
           <div className="mb-2">
             <div className="border border-gray-300 rounded p-2 bg-white inline-block mb-2">
@@ -163,7 +161,7 @@ export default function DigitalSignature({ onSignatureChange }: DigitalSignature
                 alt="Firma digitale"
                 className="max-w-48 h-auto"
                 style={{ maxHeight: "75px" }}
-              />
+                />
             </div>
             <div className="flex gap-2 justify-end">
               <Button onClick={editSignature} variant="outline" size="sm">
@@ -185,7 +183,7 @@ export default function DigitalSignature({ onSignatureChange }: DigitalSignature
             <div className="border-b border-gray-400 w-48 h-8"></div>
           </>
         )}
-      </div>
+        </>
     )
   }
 
