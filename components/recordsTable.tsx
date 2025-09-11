@@ -319,8 +319,8 @@ export default function RecordsTable({
       elapsedTime={elapsedTime}
     >
       {(response: ResponseInterface) => (
-        <div className="h-full w-full ">
-          <div className="w-full h-max relative rounded-lg overflow-auto">
+        <div className="h-full w-full flex flex-col">
+           <div className="w-full h-full relative rounded-lg overflow-auto">
             <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
               <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
                 <tr>
@@ -407,7 +407,7 @@ export default function RecordsTable({
                   ${
                     // sticky only first column
                     index === 0
-                      ? "sticky left-0 bg-table-background"
+                      ? "sticky left-0 "
                       : ""
                   }
                 `}

@@ -1,8 +1,8 @@
 /* Improved theme system with better color harmony and contrast */
 .default {
   /* Primary brand colors - Modern teal palette */
-  --color-primary: #0891b2;
-  --color-primary-hover: #0e7490;
+  --color-primary: #1f8aa3;
+  --color-primary-hover: #1f8aa3;
   --color-primary-foreground: #ffffff;
 
   /* Secondary colors - Complementary slate */
@@ -24,7 +24,7 @@
 
   /* Navigation and sidebar */
   --navbar-background: #ffffff;
-  --sidebar-background: linear-gradient(180deg, #0891b2 0%, #0e7490 100%);
+  --sidebar-background: linear-gradient(180deg, #1f8aa3 0%, #155e6e 100%);
   --sidebar-text: #ffffff;
 
   /* Table styling */

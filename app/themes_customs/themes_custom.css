@@ -51,6 +51,57 @@
   --font-body: "Poppins", sans-serif;
 }
 
+.pittheme {
+  /* Theme colors */
+  --color-primary: #63b55a;
+  --color-primary-hover: #ff5c00;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #282828;
+  --color-secondary-hover: #1f1f1f;
+  --color-secondary-foreground: #ffffff;
+
+  --color-tertiary: #ffffff;
+  --color-tertiary-hover: #e6c700;
+  --color-tertiary-foreground: #000000;
+
+  /* Layout colors */
+  --background: #282828;
+  --foreground: #ffffff;
+
+  --card: #f8f9fa;
+  --card-foreground: #000000;
+
+  --muted: #3a3a3a;
+  --muted-foreground: #ffffff;
+
+  --accent: #3a3a3a;
+  --accent-foreground: #ffffff;
+
+  --border: #dee2e6;
+  --input: #dee2e6;
+  --ring: #ff9900;
+
+  /* Component specific */
+  --sidebar-background: linear-gradient(180deg, #00BCD4 90%, #155e6e 200%);
+  --navbar-background: #181818;
+  --table-background: #ffffff;
+  --table-border: #dee2e6;
+  --table-header: #ebe9e5;
+  --records-background: #f5f5f5;
+  --sidebar-text: #4400ff;
+  --badge-background: #ff9900;
+  --badge-border: #ff005c;
+
+  /* Shadcn variables */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.5rem;
+  --font-body: "Poppins", sans-serif;
+}
+
 .midnight {
   /* Theme colors */
   --primary: #8b5cf6;

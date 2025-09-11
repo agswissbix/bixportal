@@ -11,5 +11,9 @@ export const themesSwissbix = [
     'midnight',
 ]
 
+export const themesPitservice = [
+    "pittheme",
+]
+
 
 export default themes;

@@ -67,7 +67,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
   return (
     <GenericComponent>
       {(data) => (
-        <div className="h-full">
+        <div className="h-full flex flex-col">
           {/* Tabs */}
           <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
             <ul className="flex flex-wrap -mb-px relative">
@@ -89,7 +89,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
           </div>
 
           {/* Tab Content */}
-          <div className="h-11/12 p-4">
+          <div className="flex-1 p-4 overflow-hidden">
             {activeTab === 'Tabella' && (
               <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
