@@ -66,7 +66,7 @@ useEffect(() => {
 
     <div className="w-screen h-screen flex">
 
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="bottom-right" />
       
       {/* Sidebar occupa tutta l'altezza */}
       <Sidebar className="h-screen  bg-gray-800 text-white" />
