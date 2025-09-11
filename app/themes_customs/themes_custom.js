@@ -7,12 +7,12 @@ const themes = [
 ]
 
 export const themesSwissbix = [
-    "bixhub",
-    'midnight',
+  "bixhub",
+  'midnight',
 ]
-
+  
 export const themesPitservice = [
-    "pittheme",
+  "pittheme",
 ]
 
 

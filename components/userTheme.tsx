@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import ThemePreview from './themePreview';
 import ProductList from './recordsCardPreview';
 import RecordsCardPreview from './recordsCardPreview';
-import themes, { themesSwissbix } from '@/app/themes_customs/themes_custom';
+import themes, { themesPitservice, themesSwissbix } from '@/app/themes_customs/themes_custom';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -27,6 +27,7 @@ interface ResponseInterface {
 
 const themesMap = {
   swissbix: themesSwissbix,
+  pitservice: themesPitservice
 }
 
 function UserTheme({ propExampleValue }: PropsInterface) {

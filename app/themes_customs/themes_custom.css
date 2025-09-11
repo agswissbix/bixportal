@@ -1,154 +1,166 @@
-
 /* ----------------Swissbix ------------------------------- */
 .bixhub {
-  /* Theme colors */
+  /* Primary brand colors - Orange energy */
   --color-primary: #ff9900;
   --color-primary-hover: #ff5c00;
   --color-primary-foreground: #ffffff;
 
+  /* Secondary colors - Dark neutral */
   --color-secondary: #282828;
   --color-secondary-hover: #1f1f1f;
   --color-secondary-foreground: #ffffff;
 
-  --color-tertiary: #ffffff;
-  --color-tertiary-hover: #e6c700;
-  --color-tertiary-foreground: #000000;
+  /* Accent color - White highlight */
+  --color-accent: #ffffff;
+  --color-accent-hover: #e6c700;
+  --color-accent-foreground: #000000;
 
-  /* Layout colors */
+  /* Neutral backgrounds */
   --background: #282828;
   --foreground: #ffffff;
+  --card-background: #f8f9fa;
+  --card-border: #dee2e6;
+  --records-background: #f5f5f5;
 
-  --card: #f8f9fa;
-  --card-foreground: #000000;
-
-  --muted: #3a3a3a;
-  --muted-foreground: #ffffff;
-
-  --accent: #3a3a3a;
-  --accent-foreground: #ffffff;
-
-  --border: #dee2e6;
-  --input: #dee2e6;
-  --ring: #ff9900;
-
-  /* Component specific */
-  --sidebar-background: linear-gradient(180deg, #111111 90%, #202020 200%);
+  /* Navigation and sidebar */
   --navbar-background: #181818;
+  --sidebar-background: linear-gradient(180deg, #111111 90%, #202020 200%);
+  --sidebar-text: #4400ff;
+
+  /* Table styling */
   --table-background: #ffffff;
   --table-border: #dee2e6;
   --table-header: #ebe9e5;
-  --records-background: #f5f5f5;
-  --sidebar-text: #4400ff;
+
+  /* Badge styling */
   --badge-background: #ff9900;
   --badge-border: #ff005c;
 
-  /* Shadcn variables */
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
+  /* shadcn/ui variables */
+  --primary: 35 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 22%;
+  --muted-foreground: 0 0% 100%;
+  --accent: 48 100% 50%;
+  --accent-foreground: 0 0% 0%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
+  --border: 210 16% 90%;
+  --input: 210 16% 90%;
+  --ring: 35 100% 50%;
   --radius: 0.5rem;
-  --font-body: "Poppins", sans-serif;
 }
 
-.pittheme {
-  /* Theme colors */
-  --color-primary: #63b55a;
-  --color-primary-hover: #ff5c00;
+
+/* ----------------Midnight ------------------------------- */
+.midnight {
+  /* Primary brand colors - Purple glow */
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
   --color-primary-foreground: #ffffff;
 
-  --color-secondary: #282828;
-  --color-secondary-hover: #1f1f1f;
+  /* Secondary colors - Deep violet */
+  --color-secondary: #4c1d95;
+  --color-secondary-hover: #3730a3;
   --color-secondary-foreground: #ffffff;
 
-  --color-tertiary: #ffffff;
-  --color-tertiary-hover: #e6c700;
-  --color-tertiary-foreground: #000000;
+  /* Accent color - Cyan */
+  --color-accent: #06b6d4;
+  --color-accent-hover: #0891b2;
+  --color-accent-foreground: #ffffff;
 
-  /* Layout colors */
-  --background: #282828;
-  --foreground: #ffffff;
-
-  --card: #f8f9fa;
-  --card-foreground: #000000;
-
-  --muted: #3a3a3a;
-  --muted-foreground: #ffffff;
-
-  --accent: #3a3a3a;
-  --accent-foreground: #ffffff;
-
-  --border: #dee2e6;
-  --input: #dee2e6;
-  --ring: #ff9900;
-
-  /* Component specific */
-  --sidebar-background: linear-gradient(180deg, #00BCD4 90%, #155e6e 200%);
-  --navbar-background: #181818;
-  --table-background: #ffffff;
-  --table-border: #dee2e6;
-  --table-header: #ebe9e5;
-  --records-background: #f5f5f5;
-  --sidebar-text: #4400ff;
-  --badge-background: #ff9900;
-  --badge-border: #ff005c;
-
-  /* Shadcn variables */
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --radius: 0.5rem;
-  --font-body: "Poppins", sans-serif;
-}
-
-.midnight {
-  /* Theme colors */
-  --primary: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --primary-foreground: #ffffff;
-
-  --secondary: #4c1d95;
-  --secondary-hover: #3730a3;
-  --secondary-foreground: #ffffff;
-
-  --tertiary: #06b6d4;
-  --tertiary-hover: #0891b2;
-  --tertiary-foreground: #ffffff;
-
-  /* Layout colors */
+  /* Neutral backgrounds */
   --background: #faf7ff;
   --foreground: #1e1b4b;
+  --card-background: #ffffff;
+  --card-border: #e0e7ff;
+  --records-background: #ffffff;
 
-  --card: #ffffff;
-  --card-foreground: #1e1b4b;
-
-  --muted: #f1f0ff;
-  --muted-foreground: #6366f1;
-
-  --accent: #f1f0ff;
-  --accent-foreground: #4c1d95;
-
-  --border: #e0e7ff;
-  --input: #e0e7ff;
-  --ring: #8b5cf6;
-
-  /* Component specific */
-  --sidebar-background: linear-gradient(180deg, #4c1d95 90%, #6366f1 200%);
+  /* Navigation and sidebar */
   --navbar-background: #6366f1;
+  --sidebar-background: linear-gradient(180deg, #4c1d95 90%, #6366f1 200%);
+  --sidebar-text: #a5b4fc;
+
+  /* Table styling */
   --table-background: #ffffff;
   --table-border: #e0e7ff;
   --table-header: #f1f0ff;
-  --records-background: #ffffff;
-  --sidebar-text: #a5b4fc;
+
+  /* Badge styling */
   --badge-background: #8b5cf6;
   --badge-border: #06b6d4;
 
-  /* Shadcn variables */
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
+  /* shadcn/ui variables */
+  --primary: 259 94% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 259 64% 30%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 250 100% 97%;
+  --muted-foreground: 237 85% 60%;
+  --accent: 187 88% 44%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
+  --border: 237 60% 90%;
+  --input: 237 60% 90%;
+  --ring: 259 94% 67%;
   --radius: 0.5rem;
-  --font-body: "Inter", sans-serif;
+}
+
+
+/* ----------------Pitservice ------------------------------- */
+.pittheme {
+  /* Primary brand colors - Green vitality */
+  --color-primary: #63b55a;
+  --color-primary-hover: #4caf50;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors - Dark neutral */
+  --color-secondary: #282828;
+  --color-secondary-hover: #1f1f1f;
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent color - Teal */
+  --color-accent: #00bcd4;
+  --color-accent-hover: #155e6e;
+  --color-accent-foreground: #ffffff;
+
+  /* Neutral backgrounds */
+  --background: #282828;
+  --foreground: #ffffff;
+  --card-background: #f8f9fa;
+  --card-border: #dee2e6;
+  --records-background: #f5f5f5;
+
+  /* Navigation and sidebar */
+  --navbar-background: #181818;
+  --sidebar-background: linear-gradient(180deg, #00bcd4 90%, #155e6e 200%);
+  --sidebar-text: #4400ff;
+
+  /* Table styling */
+  --table-background: #ffffff;
+  --table-border: #dee2e6;
+  --table-header: #ebe9e5;
+
+  /* Badge styling */
+  --badge-background: #63b55a;
+  --badge-border: #4caf50;
+
+  /* shadcn/ui variables */
+  --primary: 123 39% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 22%;
+  --muted-foreground: 0 0% 100%;
+  --accent: 187 100% 42%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 210 16% 90%;
+  --input: 210 16% 90%;
+  --ring: 123 39% 53%;
+  --radius: 0.5rem;
 }
