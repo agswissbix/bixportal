@@ -322,7 +322,7 @@ export default function RecordsTable({
         <div className="h-full w-full flex flex-col">
            <div className="w-full h-full relative rounded-lg overflow-auto">
             <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
-              <thead className="text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
+              <thead className="sticky top-0 z-20 text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
                 <tr>
                   {response.columns.map((column, index) => (
                     <th

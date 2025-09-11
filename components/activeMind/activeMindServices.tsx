@@ -9,11 +9,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ChevronLeft, ChevronRight, Save, Printer, Check } from "lucide-react"
 import CompanyHeader from "./companyHeader"
 import Section1SystemAssurance from "./sections/section1SystemAssurance"
-import Section2Conditions from "./sections/section2Conditions"
-import Section3Services from "./sections/section3Services"
+import Section3Conditions from "./sections/section3Conditions"
+import Section2Services from "./sections/section2Services"
 import Section4Summary from "./sections/section4Summary"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import axiosInstance from '@/utils/axiosInstance';
+import { toast } from "sonner"
 
 interface ServiceData {
   clientInfo?: {
@@ -27,23 +28,24 @@ interface ServiceData {
     price: number
   }
   section2: {
-    selectedFrequency: string,
-    exponentPrice?: number
-  }
-  section3: {
     [key: string]: {
       title: string,
       quantity: number
       unitPrice: number
       total: number
+      features?: string[]
     }
+  }
+  section3: {
+    selectedFrequency: string,
+    exponentPrice?: number
   }
 }
 
 const steps = [
   { id: 1, title: "System Assurance", description: "RMM di sistema" },
-  { id: 2, title: "Condizioni", description: "Pianificazione interventi" },
-  { id: 3, title: "Servizi", description: "Servizi inclusi" },
+  { id: 2, title: "Servizi", description: "Servizi inclusi" },
+  { id: 3, title: "Condizioni", description: "Pianificazione interventi" },
   { id: 4, title: "Riepilogo", description: "Definizione economica" },
 ]
 
@@ -55,8 +57,8 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
   const [currentStep, setCurrentStep] = useState(1)
   const [serviceData, setServiceData] = useState<ServiceData>({
     section1: { selectedTier: "", price: 0 },
-    section2: { selectedFrequency: "" },
-    section3: {},
+    section2: {},
+    section3: { selectedFrequency: "monthly", exponentPrice: 1 },
   })
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
 
@@ -110,13 +112,13 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
 
   const handlePrint = async () => {
     try {
-        const clientInfo = {
-          nome: "Farmacia MGM Azione Sagl",
-          indirizzo: "Via Franco Zorzi 36a, Bellinzona",
-          data: new Date().toLocaleDateString("it-CH"),
-          termine: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString("it-CH"),
-          nomeSignature: serviceData.clientInfo?.nome || ''
-        }
+        // const clientInfo = {
+        //   nome: "Farmacia MGM Azione Sagl",
+        //   indirizzo: "Via Franco Zorzi 36a, Bellinzona",
+        //   data: new Date().toLocaleDateString("it-CH"),
+        //   termine: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toLocaleDateString("it-CH"),
+          
+        // }
 
         const dataToPrint = {
           ...serviceData,
@@ -128,7 +130,8 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                 apiRoute: "print_pdf_activemind",
                 signature: digitalSignature,
                 data: dataToPrint,
-                cliente: clientInfo, // TODO: Passare il recordIdTrattativa
+                idTrattativa: recordIdTrattativa,
+                nameSignature: serviceData.clientInfo?.nome || ''
             },
             {
                 headers: {
@@ -165,9 +168,9 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
           />
         )
       case 2:
-        return <Section3Services data={serviceData.section3} onUpdate={(data) => updateServiceData("section3", data)} />
-        case 3:
-        return <Section2Conditions data={{ section2: serviceData.section2, section3: serviceData.section3 }} onUpdate={(data) => updateServiceData("section2", data)} />
+        return <Section2Services data={serviceData.section2} onUpdate={(data) => updateServiceData("section2", data)} />
+      case 3:
+        return <Section3Conditions data={{ section3: serviceData.section3, section2: serviceData.section2 }} onUpdate={(data) => updateServiceData("section3", data)} />
       case 4:
         return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange}/>
       default:
@@ -250,9 +253,8 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                     : "border-gray-300 text-gray-500"
                   }`}
                   onClick={() => {
-                    if (
-                      (currentStep === 3 && serviceData.section2.selectedFrequency === "")
-                    ) {
+                    if (currentStep === 3 && serviceData.section3.selectedFrequency === "") {
+                      toast.error("Seleziona una frequenza per procedere")
                       return
                     }
                     setCurrentStep(step.id)
@@ -317,6 +319,15 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                   <ChevronLeft className="w-5 h-5 mr-2" />
                   Precedente
                 </Button>
+                { currentStep === 1 && (
+                  <Button
+                      onClick={() => {setCurrentStep(steps.length)}}
+                      className="bg-white text-blue-700 hover:bg-gray-100 border border-blue-700 h-12 text-base font-medium"
+                    >
+                      Salta alla fine
+                      <ChevronRight className="w-5 h-5 ml-2" />
+                    </Button>
+                )}
               { currentStep === steps.length ? null : 
                 <Button
                   onClick={handleNext}
@@ -327,6 +338,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                 </Button>
               }
             </div>
+            { currentStep === steps.length &&  (
             <div className="flex justify-center space-x-4">
               <Button
                 onClick={handleSave}
@@ -345,6 +357,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                 Stampa PDF
               </Button>
             </div>
+            ) }
             <div className="h-24"></div>
           </div>
 
@@ -362,6 +375,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
           </Button>
 
           <div className="flex items-center space-x-4">
+          { currentStep === steps.length &&  (
             <div className="flex items-center space-x-2 flex-shrink-0">
               <Button
                 onClick={handlePrint}
@@ -380,10 +394,20 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
                 Salva
               </Button>
             </div>
+          )}
+          { currentStep === 1 && (
+            <Button
+                onClick={() => {setCurrentStep(steps.length)}}
+                className="bg-white text-blue-700 hover:bg-gray-100 border border-blue-700"
+              >
+                Salta alla fine
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+          )}
             { currentStep !== steps.length ? (
               <Button
                 onClick={handleNext}
-                disabled={(currentStep === 3 && serviceData.section2.selectedFrequency === "")}
+                disabled={(currentStep === 3 && serviceData.section3.selectedFrequency === "")}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Successivo

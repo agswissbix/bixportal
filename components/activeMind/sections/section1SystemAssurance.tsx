@@ -42,7 +42,6 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
         price: tier.price,
       })
     }
-    
   }
 
   return (

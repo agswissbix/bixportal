@@ -71,33 +71,33 @@ export default function StandardContent({ tableid }: PropsInterface) {
     }
   }, [response, responseData]);
 
-  const handleCreaListaLavanderia = async (mese: string) => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "crea_lista_lavanderie",
-          mese: mese,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      )
-      toast.success("Record creati")
-    } catch (error) {
-      console.error("Errore durante la creazione dei record", error)
-      toast.error("Errore durante la creazione dei record")
-    }
-  }
+  // const handleCreaListaLavanderia = async (mese: string) => {
+  //   try {
+  //     const response = await axiosInstanceClient.post(
+  //       "/postApi",
+  //       {
+  //         apiRoute: "crea_lista_lavanderie",
+  //         mese: mese,
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //         },
+  //       },
+  //     )
+  //     toast.success("Record creati")
+  //   } catch (error) {
+  //     console.error("Errore durante la creazione dei record", error)
+  //     toast.error("Errore durante la creazione dei record")
+  //   }
+  // }
 
-  useEffect(() => {
-    if (recordid) {
-      resetCardsList() // Resetta le schede
-      addCard(tableid, recordid, "standard") // Aggiungi la nuova scheda
-    }
-  }, [recordid])
+  // useEffect(() => {
+  //   if (recordid) {
+  //     resetCardsList() // Resetta le schede
+  //     addCard(tableid, recordid, "standard") // Aggiungi la nuova scheda
+  //   }
+  // }, [recordid])
 
   const exportExcel = async () => {
     // crea un toast con dentro il componente LoadingComp e salva l'id

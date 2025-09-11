@@ -16,15 +16,17 @@ interface Section4Props {
       price: number
     }
     section2: {
-      selectedFrequency: string,
-      exponentPrice?: number
-    }
-    section3: {
       [key: string]: {
         quantity: number
         unitPrice: number
         total: number
+        features?: string[]
       }
+    }
+    section3: {
+      selectedFrequency: string,
+      exponentPrice?: number,
+      operationsPerYear?: number
     }
   }
   onUpdate: (data: any) => void
@@ -63,7 +65,7 @@ const serviceLabels: { [key: string]: string } = {
 }
 
 export default function Section4Summary({ serviceData, onUpdate, onSignatureChange }: Section4Props) {
-  const section3Total = Object.values(serviceData.section3).reduce((sum, service) => sum + service.total, 0)
+  const section3Total = Object.values(serviceData.section2).reduce((sum, service) => sum + service.total, 0)
   const grandTotal = serviceData.section1.price + section3Total
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -73,7 +75,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
     })
   }
 
-  const selectedServices = Object.entries(serviceData.section3)
+  const selectedServices = Object.entries(serviceData.section2)
     .filter(([_, service]) => service.quantity > 0)
     .map(([id, service]) => ({ id, ...service }))
 
@@ -119,50 +121,119 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
       {selectedServices.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Sezione 3 - Servizi Inclusi</CardTitle>
+            <CardTitle className="text-lg">Sezione 2 - Servizi Inclusi</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {selectedServices.map((service) => (
-                <div key={service.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{serviceLabels[service.id]}</h4>
-                    <p className="text-sm text-gray-600">
-                      {service.quantity} × CHF {service.unitPrice}
-                    </p>
+                // <>
+                // <div key={service.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                //   <div>
+                //     <h4 className="font-medium text-gray-900">{serviceLabels[service.id]}</h4>
+                //     <p className="text-sm text-gray-600">
+                //       {service.quantity} × CHF {service.unitPrice}
+                //     </p>
+                //   </div>
+                //   <div className="text-right">
+                //     <div className="font-bold text-gray-900">CHF {service.total * serviceData.section2.exponentPrice!}.-</div>
+                //   </div>
+                // </div>
+                //   {service.features && (
+                //     <div className="mt-2 text-sm text-gray-700">
+                //       <strong>Caratteristiche:</strong>
+                //       <ul className="list-disc list-inside">
+                //         {service.features.map((feature, index) => (
+                //           <li key={index}>{feature}</li>
+                //         ))}
+                //       </ul>
+                //     </div>
+                //   )}
+                // </>
+                <Card
+              key={service.id}
+              className={`bg-blue-50 border-blue-200 hover:bg-blue-100 transition-all duration-200`}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+                  <div className="flex items-center space-x-3">
+                    <div>
+                      <CardTitle className="text-lg">{serviceLabels[service.id]}</CardTitle>
+                      <p className="text-sm text-gray-600">
+                        {service.quantity} × CHF {service.unitPrice}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-gray-900">CHF {service.total}.-</div>
+
+                  <div className="flex items-center justify-between lg:justify-end space-x-4">
+
+                    <div className="text-right">
+                      <div className="font-bold text-gray-900">CHF {service.total * serviceData.section3.exponentPrice!}.-</div>
+                    </div>
+
+                    {/* <div className="flex items-center">
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-gray-500" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-500" />
+                      )}
+                    </div> */}
                   </div>
                 </div>
+              </CardHeader>
+
+              
+                <CardContent className="pt-0">
+                  <div className="bg-white/70 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
+                    <div className="grid gap-2 lg:grid-cols-2">
+                      {service.features.map((feature, index) => (
+                        <div key={index} className="flex items-start space-x-2">
+                          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-sm text-gray-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+            </Card>
               ))}
 
-              <div className="border-t pt-3 mt-4">
+              {/* <div className="border-t pt-3 mt-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-gray-900">Subtotale Servizi</h4>
                   <div className="text-lg font-bold text-gray-900">CHF {section3Total}.-</div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Section 3 Summary */}
-      {serviceData.section2.selectedFrequency && (
+      {serviceData.section3.selectedFrequency && selectedServices.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Sezione 2 - Pianificazione</CardTitle>
+            <CardTitle className="text-lg">Sezione 3 - Pianificazione</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex flex-wrap items-center justify-between p-5 bg-green-50 border border-green-200 rounded-lg space-y-2">
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Frequenza interventi selezionata</h4>
-                <p className="text-gray-700">{frequencyLabels[serviceData.section2.selectedFrequency]}</p>
+                <p className="text-gray-700">{frequencyLabels[serviceData.section3.selectedFrequency]}</p>
               </div>
 
-              <div className="text-right">
-                <div className="font-bold text-gray-900">{serviceData.section2.exponentPrice!}x</div>
+              <div className="flex flex-wrap flex-col items-center">
+                <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                  <span>
+                    CHF { (section3Total * serviceData.section3.exponentPrice!) } .-
+                  </span>
+                  <span className="text-sm font-normal text-gray-600"> / uscita</span>
+                </h3>
+                <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                  <span>CHF { (section3Total * serviceData.section3.exponentPrice! * serviceData.section3.operationsPerYear!) } .-
+                  </span>
+                  <span className="text-sm font-normal text-gray-600"> / anno</span>
+                </h3>
               </div>
             </div>
           </CardContent>
@@ -170,7 +241,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
       )}
 
       {/* Grand Total */}
-      <Card className="bg-green-50 border-green-200">
+      {/* <Card className="bg-green-50 border-green-200">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="gap-4 text-sm text-green-800">
@@ -181,7 +252,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Contract Terms */}
       <Card>
@@ -238,7 +309,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>
-                <input className="block mb-2 border border-gray-300 rounded p-2" 
+                <input className="float-right block mb-2 border border-gray-300 rounded p-2" 
                   name="name" 
                   placeholder="Nome e Cognome"
                   value={serviceData.clientInfo?.nome || ''}
