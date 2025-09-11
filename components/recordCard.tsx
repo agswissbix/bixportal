@@ -151,7 +151,7 @@ export default function RecordCard({ tableid,recordid,mastertableid,masterrecord
 
 
   return (
-    <GenericComponent title="recordCard" response={responseData} loading={loading} error={error}>
+    <GenericComponent title="recordCard" response={responseData} error={error}>
         {(response: ResponseInterface) => (
     <div
             className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-card-background z-10 rounded-xl border-2 border-card-border p-3 ${animationClass} ${
