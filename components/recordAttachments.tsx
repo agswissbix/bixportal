@@ -25,6 +25,7 @@ interface ResponseInterface {
     file: string;
     type?: string;
     note?: string;
+    filename?: string;
   }>
 }
 
@@ -140,7 +141,7 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
                   {/* File Info */}
                   <div className="p-3">
                     <p className="text-sm font-medium text-gray-800 truncate mb-1" title={attachment.note || filename}>
-                      {attachment.note || filename}
+                      {attachment.filename || filename}
                     </p>
                     <p className="text-xs text-gray-500">
                       {attachment.type}
