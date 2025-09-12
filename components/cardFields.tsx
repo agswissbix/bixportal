@@ -274,7 +274,6 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
         } finally {
 
             setRefreshTable(v => v + 1);
-
             //add delay
             if (mastertableid && masterrecordid) {
                 removeCard(tableid, recordid);
@@ -282,7 +281,9 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                 //addCard(mastertableid, masterrecordid, 'standard');
             } else {
                 //addCard(tableid, recordid, 'standard');
-                handleRowClick('standard', newRecordId, tableid, mastertableid, masterrecordid);
+                //handleRowClick('standard', newRecordId, tableid, mastertableid, masterrecordid);
+                removeCard(tableid, recordid);
+
             }
 
         }

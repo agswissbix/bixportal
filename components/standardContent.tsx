@@ -217,7 +217,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
               )}
               <button
                 type="button"
-                className="theme-primary inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg 
+                className="theme-accent inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg 
                           focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 
                           shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                 onClick={() => handleRowClick("", "", tableid)}
@@ -238,7 +238,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
               </button>
               <button
                 type="button"
-                className="theme-accent inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg 
+                className="theme-primary inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg 
                           focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200 
                           shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                 onClick={() => exportExcel()}
