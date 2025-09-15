@@ -1,4 +1,4 @@
-import { frontendFunctions } from "@/lib/functionsDispatcher"
+import { useFrontendFunctions } from "@/lib/functionsDispatcher"
 
 export type CustomFunction = {
   tableid: string
@@ -10,11 +10,16 @@ export type CustomFunction = {
 }
 
 export default function DynamicMenuItem({ fn, params, onClick }: { fn: CustomFunction, params?: any, onClick?: () => void }) {
+  const frontendFunctions = useFrontendFunctions()
+  
   const handleClick = async () => {
-    const func = frontendFunctions()[fn.backend_function]
+    const func = frontendFunctions[fn.backend_function]
     if (func) {
-        console.log("Eseguendo funzione:", fn.backend_function, "con parametri:", params);
-      await func(params)
+      if (params !== undefined) {
+        await func(params)
+      } else {
+        await func()
+      }
     } else {
       console.warn(`Funzione non trovata: ${fn.backend_function}`)
     }

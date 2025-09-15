@@ -2,17 +2,9 @@
 import { useRecordsStore } from "@/components/records/recordsStore"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
-
-
-// const handleRemoveCard = () => {
-  //   setAnimationClass('animate-slide-out');
-  //   setTimeout(() => {
-    //       removeCard(tableid, recordid);
-    //   }, 300);
-    // }
     
-// export const frontendFunctions: Record<string, (...args: any[]) => Promise<any>> = {
-export function frontendFunctions(): Record<string, (...args: any[]) => Promise<any>> {
+export function useFrontendFunctions() {
+  const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -196,7 +188,7 @@ export function frontendFunctions(): Record<string, (...args: any[]) => Promise<
   },
   sendEmail: async (recordid: string) => {
     try {
-      const response = await axiosInstanceClient.post(
+      await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "send_emails",
@@ -216,19 +208,16 @@ export function frontendFunctions(): Record<string, (...args: any[]) => Promise<
     }
   },
   handleRendiContoLavanderia: async (recordid: string) => {
-    const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('emailLavanderia');
   },
   handleStabile: async (recordid: string) => {
-    const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('reportGasolio');
   },
   handleBollettiniTrasporto: async (recordid: string) => {
-    const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('emailBollettini');
@@ -282,6 +271,12 @@ export function frontendFunctions(): Record<string, (...args: any[]) => Promise<
   //       toast.error('Errore durante la chiusura persa dell offerta');
   //   }
   // }
+  // const handleRemoveCard = () => {
+  //   setAnimationClass('animate-slide-out');
+  //   setTimeout(() => {
+  //       removeCard(tableid, recordid);
+  //   }, 300);
+  // };
   }
 }
 

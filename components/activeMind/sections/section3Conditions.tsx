@@ -228,17 +228,17 @@ export default function Section3Conditions({ data, onUpdate }: Section3Props) {
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900 mb-1">{frequency.label}</h3>
                         <div className="flex flex-wrap items-center">
-                          <h3 className="font-semibold text-lg text-gray-900 mb-1 mr-4">
+                          <h3 className="font-semibold text-lg text-gray-900 mb-1 mr-5">
                             <span>
-                              CHF { (section3Total * frequency.exponentPrice) } .-
+                              CHF { (section3Total * frequency.exponentPrice) }.-
                             </span>
                             <span className="text-sm font-normal text-gray-600"> / uscita</span>
                           </h3>
-                          <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                          <h3 className="font-normal text-md text-gray-900 mb-1">
                             <span>
-                              CHF { (section3Total * frequency.exponentPrice * frequency.operationsInOneYear) } .-
+                              { (section3Total * frequency.exponentPrice * frequency.operationsInOneYear) }.-
                             </span>
-                            <span className="text-sm font-normal text-gray-600"> / anno</span>
+                            <span className="font-normal text-sm text-gray-600"> / anno</span>
                           </h3>
                         </div>
                         <p className="text-sm text-gray-600">{frequency.description}</p>
