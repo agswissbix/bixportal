@@ -12,6 +12,7 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useApi } from '@/utils/useApi';
 import RecordsKanban from './recordsKanban';
+import CardsList from './mobile/cardList';
 
 const isDev = false;
 
@@ -69,7 +70,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
       {(data) => (
         <div className="h-full flex flex-col">
           {/* Tabs */}
-          <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
+          <div className="hidden lg-inline h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
             <ul className="flex flex-wrap -mb-px relative">
               {responseData.tableTabs.map((tab, index) => (
                 <li key={index} className="me-2">
@@ -89,7 +90,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 p-4 overflow-hidden">
+          <div className="flex-1 p-4 overflow-hidden lg:inline hidden">
             {activeTab === 'Tabella' && (
               <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
@@ -114,6 +115,10 @@ export default function RecordTabs({ tableid }: PropsInterface) {
             {['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'].indexOf(activeTab) === -1 && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
+          </div>
+
+          <div className="flex-1 p-4 overflow-hidden lg:hidden">
+            <CardsList tableid={tableid} searchTerm={searchTerm} view={tableView} context='standard' />
           </div>
         </div>
       )}

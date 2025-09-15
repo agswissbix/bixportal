@@ -15,7 +15,7 @@ import type { CustomFunction } from "./dynamicMenuItem"
 import DynamicMenuItem from "./dynamicMenuItem"
 import { useApi } from "@/utils/useApi"
 
-const isDev = false;
+const isDev = false
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -40,36 +40,36 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
   const refreshTableFunc = () => setRefreshTable((v) => v + 1)
 
-  const devPropExampleValue = isDev ? "Example prop" : tableid;
+  const devPropExampleValue = isDev ? "Example prop" : tableid
   const responseDataDEFAULT: ResponseInterface = {
-    fn: []
-  };
+    fn: [],
+  }
   const responseDataDEV: ResponseInterface = {
-    fn: []
-  };
+    fn: [],
+  }
 
-  const { user } = useContext(AppContext);
-  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+  const { user } = useContext(AppContext)
+  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT)
 
   // PAYLOAD (solo se non in sviluppo)
-    const payload = useMemo(() => {
-        if (isDev) return null;
-        return {
-            apiRoute: 'get_custom_functions',
-            tableid: tableid,
-        };
-    }, [tableid]);
+  const payload = useMemo(() => {
+    if (isDev) return null
+    return {
+      apiRoute: "get_custom_functions",
+      tableid: tableid,
+    }
+  }, [tableid])
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo)
-  const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+  const { response, loading, error } = useApi<ResponseInterface>(payload)
 
   // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo)
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-      setResponseData(response);
-      console.log("Custom functions loaded:", response);
+      setResponseData(response)
+      console.log("Custom functions loaded:", response)
     }
-  }, [response, responseData]);
+  }, [response, responseData])
 
   // const handleCreaListaLavanderia = async (mese: string) => {
   //   try {
@@ -153,25 +153,26 @@ export default function StandardContent({ tableid }: PropsInterface) {
   return (
     <GenericComponent title="standardContent" response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
-        <div className="h-full w-full shadow-lg bg-records-background rounded-lg p-6">
-          <div className="flex flex-wrap w-full mb-6 gap-4">
+        <div className="h-full w-full shadow-lg bg-records-background rounded-lg p-3 sm:p-6">
+          <div className="flex flex-col lg:flex-row w-full mb-6 gap-4">
             <div className="flex-1 min-w-0">
               <QuickFilters></QuickFilters>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {activeServer !== "belotti" && (
                 <>
-                  <div className="relative">
+                  <div className="flex-1 relative">
                     <button
-                      className="theme-secondary inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg 
+                      className=" theme-secondary inline-flex items-center px-3 sm:px-4 py-2.5 text-sm font-medium rounded-lg 
                                 focus:ring-2 focus:outline-none focus:ring-primary/20 transition-all duration-200 
                                 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                       type="button"
                       onClick={() => setShowDropdown(!showDropdown)}
                     >
-                      Funzioni
+                      <span>Funzioni</span>
                       <svg
-                        className="w-2.5 h-2.5 ms-3"
+                        className="w-2.5 h-2.5 ms-2 sm:ms-3"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -196,55 +197,48 @@ export default function StandardContent({ tableid }: PropsInterface) {
                           >
                             Esporta excel
                           </li>
-                            {response?.fn?.map((fn, index) => (
-                              fn.context === 'results' && (
-                                <DynamicMenuItem key={fn.title} fn={fn}/>
-                              )
-                            ))}
-                          {/* {tableid === "rendicontolavanderia" && (
-                            <li
-                              className="px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer transition-colors duration-150"
-                              onClick={() => handleCreaListaLavanderia("mesecorrente")}
-                            >
-                              Crea rendiconti lavanderia mese corrente
-                            </li>
-                          )} */}
+                          {response?.fn?.map(
+                            (fn, index) => fn.context === "results" && <DynamicMenuItem key={fn.title} fn={fn} />,
+                          )}
                         </ul>
                       </div>
                     )}
                   </div>
                 </>
               )}
+
               <button
                 type="button"
-                className="theme-accent inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg 
+                className="flex-1 theme-accent inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold rounded-lg 
                           focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 
                           shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                 onClick={() => handleRowClick("", "", tableid)}
               >
-                <PlusIcon className="w-5 h-5 mr-2" />
-                Nuovo
+                <PlusIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
+                <span>Nuovo</span>
               </button>
+
               <button
                 type="button"
-                className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-foreground 
+                className="flex-1 inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold text-foreground 
                           bg-card-background border border-card-border rounded-lg hover:bg-muted 
                           focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 
                           shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                 onClick={refreshTableFunc}
               >
-                <ArrowPathIcon className="w-5 h-5 mr-2" />
-                Ricarica
+                <ArrowPathIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
+                <span>Ricarica</span>
               </button>
+
               <button
                 type="button"
-                className="theme-primary inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg 
+                className="flex-1 theme-primary inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold rounded-lg 
                           focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200 
                           shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                 onClick={() => exportExcel()}
               >
-                <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-                Esporta
+                <ArrowDownTrayIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
+                <span>Esporta</span>
               </button>
             </div>
           </div>
@@ -262,9 +256,9 @@ export default function StandardContent({ tableid }: PropsInterface) {
             />
           ))}
 
-          <div className="w-full h-11/12 flex gap-6 mb-4">
+          <div className="w-full lg:h-11/12 h-10/12 flex flex-col lg:flex-row gap-4 sm:gap-6 mb-4">
             {isFiltersOpen && (
-              <div className="w-1/4 h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
+              <div className="w-full lg:w-1/4 h-64 lg:h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
                 <TableFilters tableid={tableid}></TableFilters>
               </div>
             )}

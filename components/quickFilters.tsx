@@ -123,10 +123,10 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="recordFilters">
       {(response: ResponseInterface) => (
-        <div className="flex items-center justify-between w-full gap-4">
+        <div className="flex flex-row items-start lg:items-center justify-between w-full gap-4">
           {/* Form con select e search */}
           <form
-            className="flex items-center gap-3 w-full"
+            className="flex flex-row lg:flex-row items-stretch lg:items-center gap-3 w-full"
             onSubmit={(e) => {
               e.preventDefault()
               researchTableSubmit()
@@ -135,7 +135,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
             <select
               id="filter-type"
               value={selectedView}
-              className="w-64 h-11 bg-card-background border border-card-border text-foreground text-sm rounded-lg 
+              className="w-1/2 lg:w-64 h-11 bg-card-background border border-card-border text-foreground text-sm rounded-lg 
                               focus:ring-2 focus:ring-primary/20 focus:border-primary px-4 shadow-sm 
                               hover:border-primary/50 transition-all duration-200 outline-none"
               onChange={handleViewChange}
@@ -168,7 +168,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
               <input
                 type="search"
                 id="default-search"
-                className="block w-full h-11 ps-10 text-sm text-foreground border border-card-border rounded-lg 
+                className="block w-full h-11 ps-10 pr-20 lg:pr-24 text-sm text-foreground border border-card-border rounded-lg 
                                 bg-card-background focus:ring-2 focus:ring-primary/20 focus:border-primary 
                                 shadow-sm hover:border-primary/50 transition-all duration-200 outline-none"
                 placeholder="Cerca"
@@ -177,18 +177,29 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
               />
               <button
                 type="submit"
-                className="absolute right-1 top-1 h-9 theme-primary font-medium rounded-lg text-sm px-4 
+                className="absolute right-1 top-1 h-9 theme-primary font-medium rounded-lg text-sm px-3 lg:px-4 
                                 transition-all duration-200 shadow-sm hover:shadow-md focus:ring-2 focus:ring-primary/20"
               >
-                <div className="flex items-center">Cerca</div>
+                <div className="flex items-center">
+                  <span className="hidden sm:inline">Cerca</span>
+                  <svg className="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
               </button>
             </div>
           </form>
 
           <button
             type="button"
-            className={`flex items-center h-11 gap-2 px-4 font-medium rounded-lg text-sm 
+            className={`flex flex-1 items-center h-11 gap-2 px-4 font-medium rounded-lg text-sm 
                             focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md 
+                            whitespace-nowrap flex-shrink-0
                             ${
                               isFiltersOpen
                                 ? "theme-primary focus:ring-primary/20"
@@ -210,7 +221,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
               />
             </svg>
-            Filtri
+            <span className="hidden sm:inline">Filtri</span>
           </button>
         </div>
       )}

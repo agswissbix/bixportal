@@ -7,6 +7,7 @@ import RecordsTable from './recordsTable';
 import { useRecordsStore } from './records/recordsStore';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
+import CardsList from './mobile/cardList';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = false;
@@ -172,24 +173,35 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                     <p className="text-black float-start">{` ${table.description}`}</p>
                                     <ChevronDown className={`text-gray-400 float-end transform transition-transform ${openCards[index] ? 'rotate-180' : ''}`}/>
                                 </div>
-                                       
                             </div>
                             <div
-                                className={`w-full h-min rounded-md p-3 transition-all duration-300 flex items start justify-between 
+                                className={`w-full h-min rounded-md p-3 transition-all duration-300 flex items-start justify-between 
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <button className=" font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
+                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2 hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
                                     <SquarePlus name="Plus" className="mr-2" /> 
                                     Aggiungi    
                                 </button>
-
-                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => exportExcel(table.tableid)}>
+                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2 hover:scale-110 transition-all duration-100" onClick={() => exportExcel(table.tableid)}>
                                     <Download name="Export"  className="mr-2" /> 
                                     Esporta    
                                 </button>
                             </div>
-                                <div className={`w-full h-full rounded-md p-3 transition-all duration-300 flex items-start justify-between ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'} ${!openCards[index] && 'hidden'}`}>
+                            {/* Usa le classi Tailwind responsive per mostrare CardList su mobile e RecordsTable su desktop */}
+                            <div className={`w-full h-full rounded-md p-3 transition-all duration-300 ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'} ${!openCards[index] && 'hidden'}`}>
+                                {/* Mobile: CardList */}
+                                <div className="block lg:hidden w-full">
+                                    <CardsList 
+                                    tableid={table.tableid}
+                                    searchTerm={''}
+                                    context="linked"
+                                    masterTableid={tableid}
+                                    masterRecordid={recordid}
+                                    />
+                                </div>
+                                {/* Desktop: RecordsTable */}
+                                <div className="hidden lg:block w-full">
                                     <RecordsTable
                                         tableid={table.tableid}
                                         searchTerm={''}
@@ -199,6 +211,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                         masterRecordid={recordid}
                                     />
                                 </div>
+                            </div>
                         </React.Fragment>
                     
                     ))}
