@@ -222,14 +222,14 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
                 <p className="text-gray-700">{frequencyLabels[serviceData.section3.selectedFrequency]}</p>
               </div>
 
-              <div className="flex flex-wrap flex-col items-center">
+              <div className="flex flex-wrap flex-col items-end">
                 <h3 className="font-semibold text-lg text-gray-900 mb-1">
                   <span>
                     CHF { (section3Total * serviceData.section3.exponentPrice!) } .-
                   </span>
                   <span className="text-sm font-normal text-gray-600"> / uscita</span>
                 </h3>
-                <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                <h3 className="font-normal text-md text-gray-900 mb-1">
                   <span>CHF { (section3Total * serviceData.section3.exponentPrice! * serviceData.section3.operationsPerYear!) } .-
                   </span>
                   <span className="text-sm font-normal text-gray-600"> / anno</span>
