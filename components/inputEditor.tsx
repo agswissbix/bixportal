@@ -24,6 +24,7 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
         initialValue: '',
+        autofocus: false,
         customHTMLSanitizer: (html: string): string => html, // <<< Permette HTML senza modifiche
       } as EditorOptions);
 

@@ -72,7 +72,7 @@ useEffect(() => {
       <Sidebar className="h-screen  bg-gray-800 text-white" />
 
       {/* Contenitore principale con Navbar e contenuto */}
-      <div className=" flex flex-col xl:w-11/12 2xl:w-10/12 3xl:w-11/12 h-full">
+      <div className=" flex flex-col xl:w-10/12 2xl:w-10/12 3xl:w-11/12 h-full">
 
         {/* Contenuto principale */}
         <PopUpManager 

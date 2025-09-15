@@ -142,7 +142,7 @@ export default function Sidebar({}: PropsInterface) {
             id="sidebar"
             className={`
               fixed top-0 left-0 z-40 h-full w-80 bg-sidebar text-primary-foreground shadow-lg transition-transform duration-300 flex flex-col justify-between
-              lg:relative lg:translate-x-0 lg:w-64
+              lg:relative lg:translate-x-0 lg:w-full
               ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
             `}
           >
