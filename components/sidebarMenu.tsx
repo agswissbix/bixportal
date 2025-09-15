@@ -123,7 +123,7 @@ export default function Sidebar({}: PropsInterface) {
           {/* Bottone toggle SOLO su mobile */}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-md shadow-lg z-50 lg:hidden"
+            className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-md shadow-lg z-50 xl:hidden"
             aria-label="Toggle menu"
           >
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -132,7 +132,7 @@ export default function Sidebar({}: PropsInterface) {
           {/* Overlay solo su mobile */}
           {isSidebarOpen && (
             <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 xl:hidden"
               onClick={() => setIsSidebarOpen(false)}
             />
           )}
@@ -142,7 +142,7 @@ export default function Sidebar({}: PropsInterface) {
             id="sidebar"
             className={`
               fixed top-0 left-0 z-40 h-full w-80 bg-sidebar text-primary-foreground shadow-lg transition-transform duration-300 flex flex-col justify-between
-              lg:relative lg:translate-x-0 lg:w-full
+              xl:relative xl:translate-x-0 xl:w-full
               ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
             `}
           >

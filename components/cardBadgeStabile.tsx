@@ -63,7 +63,9 @@ export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="cardBadge">
       {(response: ResponseInterface) => (
-        <div className="h-full w-full flex items-start">
+        <>
+          {(response.badgeItems && Object.keys(response.badgeItems).length > 0) && (
+        <div className="h-5/6 w-full flex items-start">
         <div className="flex flex-row flex-wrap w-full h-5/6 bg-secondary rounded-xl p-3 gap-4 overflow-hidden">
           <div key="fotostabile" className="h-full w-1/6">
             <ImagePreview imageUrl={`/api/media-proxy?url=${response.badgeItems.fotostabile}`} />
@@ -78,6 +80,8 @@ export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) 
 
         </div>
       </div>
+          )}
+          </>
       )}
     </GenericComponent>
   );

@@ -123,10 +123,10 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="recordFilters">
       {(response: ResponseInterface) => (
-        <div className="flex flex-row items-start lg:items-center justify-between w-full gap-4">
+        <div className="flex flex-row items-start xl:items-center justify-between w-full gap-4">
           {/* Form con select e search */}
           <form
-            className="flex flex-row lg:flex-row items-stretch lg:items-center gap-3 w-full"
+            className="flex flex-row xl:flex-row items-stretch xl:items-center gap-3 w-full"
             onSubmit={(e) => {
               e.preventDefault()
               researchTableSubmit()
@@ -135,7 +135,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
             <select
               id="filter-type"
               value={selectedView}
-              className="w-1/2 lg:w-64 h-11 bg-card-background border border-card-border text-foreground text-sm rounded-lg 
+              className="w-1/2 xl:w-64 h-11 bg-card-background border border-card-border text-foreground text-sm rounded-lg 
                               focus:ring-2 focus:ring-primary/20 focus:border-primary px-4 shadow-sm 
                               hover:border-primary/50 transition-all duration-200 outline-none"
               onChange={handleViewChange}
@@ -168,7 +168,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
               <input
                 type="search"
                 id="default-search"
-                className="block w-full h-11 ps-10 pr-20 lg:pr-24 text-sm text-foreground border border-card-border rounded-lg 
+                className="block w-full h-11 ps-10 pr-20 xl:pr-24 text-sm text-foreground border border-card-border rounded-lg 
                                 bg-card-background focus:ring-2 focus:ring-primary/20 focus:border-primary 
                                 shadow-sm hover:border-primary/50 transition-all duration-200 outline-none"
                 placeholder="Cerca"
@@ -177,7 +177,7 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
               />
               <button
                 type="submit"
-                className="absolute right-1 top-1 h-9 theme-primary font-medium rounded-lg text-sm px-3 lg:px-4 
+                className="absolute right-1 top-1 h-9 theme-primary font-medium rounded-lg text-sm px-3 xl:px-4 
                                 transition-all duration-200 shadow-sm hover:shadow-md focus:ring-2 focus:ring-primary/20"
               >
                 <div className="flex items-center">

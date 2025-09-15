@@ -154,7 +154,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
     <GenericComponent title="standardContent" response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
         <div className="h-full w-full shadow-lg bg-records-background rounded-lg p-3 sm:p-6">
-          <div className="flex flex-col lg:flex-row w-full mb-6 gap-4">
+          <div className="flex flex-col xl:flex-row w-full mb-6 gap-4">
             <div className="flex-1 min-w-0">
               <QuickFilters></QuickFilters>
             </div>
@@ -164,7 +164,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                 <>
                   <div className="flex-1 relative">
                     <button
-                      className=" theme-secondary inline-flex items-center px-3 sm:px-4 py-2.5 text-sm font-medium rounded-lg 
+                      className="w-full theme-secondary inline-flex items-center px-3 sm:px-4 py-2.5 text-sm font-medium rounded-lg 
                                 focus:ring-2 focus:outline-none focus:ring-primary/20 transition-all duration-200 
                                 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                       type="button"
@@ -256,9 +256,9 @@ export default function StandardContent({ tableid }: PropsInterface) {
             />
           ))}
 
-          <div className="w-full lg:h-11/12 h-10/12 flex flex-col lg:flex-row gap-4 sm:gap-6 mb-4">
+          <div className="w-full xl:h-11/12 h-10/12 flex flex-col lg:flex-row gap-4 sm:gap-6 mb-4">
             {isFiltersOpen && (
-              <div className="w-full lg:w-1/4 h-64 lg:h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
+              <div className="w-full xl:w-1/4 h-64 xl:h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
                 <TableFilters tableid={tableid}></TableFilters>
               </div>
             )}

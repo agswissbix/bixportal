@@ -76,7 +76,7 @@ export default function CardBadge({ tableid, recordid }: PropsInterface) {
       {(response: ResponseInterface) => (
         <>
           {(response.badgeItems && Object.keys(response.badgeItems).length > 0) && (
-            <div className="h-full w-full flex justify-center items-center">
+            <div className="h-5/6 w-full flex justify-center items-center">
               <div className="flex flex-wrap justify-center w-full h-5/6 bg-badge-background border-badge-border rounded-xl p-3">
                 {Object.entries(response.badgeItems).map(([key, item]) => (
                   <p key={key} className="w-1/3 text-center text-white">

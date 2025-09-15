@@ -292,7 +292,7 @@ export default function RecordCard({
                 </div>
               )}
 
-              <div className="h-1/5 w-full">
+              <div className=" w-full">
                 <div className="h-1/6 w-full flex justify-between items-center px-4 mb-2">
                   <div className="flex-grow">
                     {activeServer !== 'belotti' && (
@@ -362,13 +362,11 @@ export default function RecordCard({
                   </div>
                 </div>
 
-                <div className="h-5/6">
                   {tableid === 'stabile' ? (
                     <CardBadgeStabile tableid={tableid} recordid={recordid} />
                   ) : activeServer !== 'belotti' ? (
                     <CardBadge tableid={tableid} recordid={recordid} />
                   ) : null}
-                </div>
               </div>
 
               <div className="h-5/6 w-full overflow-auto">

@@ -191,7 +191,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                             {/* Usa le classi Tailwind responsive per mostrare CardList su mobile e RecordsTable su desktop */}
                             <div className={`w-full h-full rounded-md p-3 transition-all duration-300 ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'} ${!openCards[index] && 'hidden'}`}>
                                 {/* Mobile: CardList */}
-                                <div className="block lg:hidden w-full">
+                                <div className="block xl:hidden w-full">
                                     <CardsList 
                                     tableid={table.tableid}
                                     searchTerm={''}
@@ -201,7 +201,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                     />
                                 </div>
                                 {/* Desktop: RecordsTable */}
-                                <div className="hidden lg:block w-full">
+                                <div className="hidden xl:block w-full">
                                     <RecordsTable
                                         tableid={table.tableid}
                                         searchTerm={''}

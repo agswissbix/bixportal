@@ -90,7 +90,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 p-4 overflow-hidden lg:inline hidden">
+          <div className="flex-1 p-4 overflow-auto xl:inline hidden">
             {activeTab === 'Tabella' && (
               <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
@@ -117,7 +117,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
             )}
           </div>
 
-          <div className="flex-1 p-4 overflow-hidden lg:hidden">
+          <div className="flex-1 p-4 overflow-hidden xl:hidden">
             <CardsList tableid={tableid} searchTerm={searchTerm} view={tableView} context='standard' />
           </div>
         </div>
