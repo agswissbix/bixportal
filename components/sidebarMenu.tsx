@@ -14,10 +14,13 @@ import {
   Settings,
   Lock,
   LogOut,
+  Star,
 } from "lucide-react"
 import { useRecordsStore } from "./records/recordsStore"
 import { AppContext } from "@/context/appContext"
 import { Menu as HMenu, MenuButton, MenuItems, MenuItem } from "@headlessui/react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 const isDev = false
 
@@ -28,6 +31,7 @@ interface ResponseInterface {
   otherItems: SubItem[]
   userid?: string
   favoriteTables?: string[]
+  isAdmin?: boolean
 }
 
 interface SubItem {
@@ -86,6 +90,8 @@ export default function Sidebar({}: PropsInterface) {
     },
     otherItems: [],
   }
+
+  const router = useRouter()
 
   const [openDropdown, setOpenDropdown] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -166,6 +172,114 @@ export default function Sidebar({}: PropsInterface) {
 
               {/* MENU ITEMS */}
               <ul className="list-none p-0 m-0">
+                {activeServer === "telamico" ? (
+                  <>
+                    <span
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      onClick={() => handleMenuClick("TelAmicoCalendario")}
+                    >
+                      Calendario TelAmico
+                    </span>
+
+                    <span
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      onClick={() => handleMenuClick("TelAmicoAgenda")}
+                    >
+                      Agenda TelAmico
+                    </span>
+
+                    <span
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      onClick={() => handleMenuClick("Calendario")}
+                    >
+                      Agenda TelAmico
+                    </span>
+                  </>
+                ) : activeServer === "swissbix" ? (
+                  <>
+                    <span
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      onClick={() => handleMenuClick("Dashboard")}
+                    >
+                      Dashboard
+                    </span>
+                  </>
+                ) : null}
+                {/*
+                                    <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
+                                        Dashboard
+                                    </span>
+                                */}
+                {activeServer === "belotti" ? (
+                  <>
+                    {responseData.otherItems.map((item) => (
+                      <span
+                        key={item.id}
+                        className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
+                        onClick={() => handleMenuClick(item.id)}
+                      >
+                        {item.description}
+                      </span>
+                    ))}
+                  </>
+                ) : activeServer === "winteler" ? (
+                  <>
+                    <span
+                      className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      onClick={() => router.push("/custom/winteler")}
+                    >
+                      Winteler custom
+                    </span>
+                  </>
+                ) : responseData.isAdmin ? (
+                  <>
+                    <Link
+                      href="/bixadmin/admin"
+                      target="_blank"
+                      className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors"
+                    >
+                      Admin Settings
+                    </Link>
+                  </>
+                ) : null}
+
+                {responseData.favoriteTables && responseData.favoriteTables.length > 0 && (
+                  <li>
+                    <button
+                      onClick={() => setOpenDropdown(openDropdown === "favorites" ? "" : "favorites")}
+                      className="w-full text-md flex items-center justify-between px-6 py-4 hover:bg-secondary hover:text-secondary-foreground focus:text-primary-foreground transition-colors"
+                    >
+                      <div className="flex items-center min-w-[20px]">
+                        <Star className="w-5 h-5 min-w-[20px]" />
+                        <span className="text-md ml-3 opacity-100 transition-opacity duration-300">Preferiti</span>
+                      </div>
+                      <ChevronDown
+                        className={`w-5 h-5 transition-transform duration-300 ${openDropdown === "favorites" ? "-rotate-180" : ""}`}
+                      />
+                    </button>
+
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === "favorites" ? "max-h-[800px]" : "max-h-0"}`}
+                    >
+                      <ul className="py-1 ml-6">
+                        {responseData.favoriteTables.map((table) => (
+                          <li key={table.id}>
+                            <span
+                              className="text-primary-foreground text-sm block px-8 py-2 hover:bg-secondary hover:text-secondary-foreground transition-colors cursor-pointer"
+                              onClick={() => {
+                                handleMenuClick(table.tableid)
+                              }}
+                            >
+                              {table.tableid}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                )}
+
+
                 {Object.entries(data["menuItems"]).map(([key, item]) => {
                   const Icon = iconMap[item.icon] || HelpCircle
                   return (

@@ -27,6 +27,8 @@ interface ResponseInterface {
   fn: CustomFunction[];
 }
 
+const WIDTH_WINDOW_MOBILE = 1280; // XL breakpoint
+
 export default function RecordCard({
   tableid,
   recordid,
@@ -47,7 +49,7 @@ export default function RecordCard({
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>('');
-  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false); // lg breakpoint = 1024
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' ? window.innerWidth < WIDTH_WINDOW_MOBILE : false); 
 
   // API for custom functions (desktop behavior kept)
   const responseDataDEFAULT: ResponseInterface = { fn: [] };
@@ -72,7 +74,7 @@ export default function RecordCard({
 
   // dimension / responsive detection
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 1024);
+    const onResize = () => setIsMobile(window.innerWidth < WIDTH_WINDOW_MOBILE);
     // set initial (already set), attach listener
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -212,9 +214,7 @@ export default function RecordCard({
                               </li>
                             )}
                             {response.fn.map((fn) => fn.context === 'cards' && (
-                              <li key={fn.title}>
-                                <DynamicMenuItem fn={fn} params={recordid} onClick={() => setShowDropdown(false)} />
-                              </li>
+                              <DynamicMenuItem key={fn.title} fn={fn} params={recordid} onClick={() => setShowDropdown(false)} />
                             ))}
                           </ul>
                         </div>

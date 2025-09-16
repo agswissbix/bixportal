@@ -72,7 +72,8 @@ export default function CardsList({ tableid, searchTerm, view, context, masterTa
       searchTerm: searchTerm,
       view: view,
       masterTableid: masterTableid,
-      masterRecordid: masterRecordid
+      masterRecordid: masterRecordid,
+      _refreshTick: refreshTable,
     };
   }, [refreshTable, tableid, searchTerm, view, masterTableid, masterRecordid]);
 

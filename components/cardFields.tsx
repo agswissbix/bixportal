@@ -336,8 +336,10 @@ export default function CardFields({ tableid,recordid,mastertableid,masterrecord
                                         data-tooltip-content={field.fieldid}
                                         data-tooltip-place="left"
                                         // *** RIGA MODIFICATA ***
-                                        className={`text-black ${
-                                            isRequired ? 'bg-red-500 text-white px-2 py-1 rounded-md' : ''
+                                        className={`text-black font-semibold ${
+                                            isRequired
+                                                ? 'text-red-700'
+                                                : 'bg-transparent'
                                         }`}
                                     >
                                             {field.description}
