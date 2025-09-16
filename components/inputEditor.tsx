@@ -2,25 +2,23 @@ import React, { useEffect, useRef } from 'react';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import Editor, { EditorOptions } from '@toast-ui/editor';
 
-// INTERFACCIA PROPS
 interface PropsInterface {
   initialValue?: string;
   onChange?: (value: string) => void;
 }
 
-export default function InputEditor({ initialValue='', onChange }: PropsInterface) {
+export default function InputEditor({ initialValue = '', onChange }: PropsInterface) {
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const dummyRef = useRef<HTMLDivElement>(null); // Elemento fittizio per gestire il blur
 
-  // Inizializza l'editor
   useEffect(() => {
     if (containerRef.current && !editorRef.current) {
-      // *** SOLUZIONE ALTERNATIVA 1: Salva e ripristina l'elemento attivo ***
+      // Salva l'elemento attivo
       const activeElement = document.activeElement;
 
-      // Inizializza l'editor solo se non è già stato creato
       editorRef.current = new Editor({
-        el: containerRef.current as HTMLElement,
+        el: containerRef.current,
         height: '300px',
         width: '100%',
         initialEditType: 'wysiwyg',
@@ -30,48 +28,36 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
         customHTMLSanitizer: (html: string): string => html,
       } as EditorOptions);
 
-      // Imposta il contenuto se presente
       if (initialValue) {
         editorRef.current.setHTML(initialValue);
       }
 
-      // *** SOLUZIONE MODIFICATA: Focus sul primo campo del form ***
+      // Focus sul primo input del form e poi blur immediato
       setTimeout(() => {
-        // Forza il blur su tutto l'editor corrente
-        const allFocusableElements = containerRef.current?.querySelectorAll(
-          'input, textarea, [contenteditable], button, select, [tabindex]:not([tabindex="-1"])'
-        );
-        allFocusableElements?.forEach(el => (el as HTMLElement).blur());
-        
-        // Trova il primo campo input nel componente padre (CardFields)
-        const firstFormField = document.querySelector(
+        const firstField = document.querySelector(
           '[class*="space-y-3"] input:not([type="hidden"]), ' +
-          '[class*="space-y-3"] textarea:not(.toastui-editor *), ' +
-          '[class*="space-y-3"] select, ' +
+          '[class*="space-y-3"] textarea, ' +
           '[class*="space-y-3"] [contenteditable]:not(.toastui-editor *)'
-        );
-        
-        if (firstFormField) {
-          (firstFormField as HTMLElement).focus();
-        } else {
-          // Fallback: prova a trovare il primo elemento focusabile nella pagina
-          const firstInput = document.querySelector('input:not([type="hidden"]):not(.toastui-editor *), textarea:not(.toastui-editor *), select:not(.toastui-editor *)');
-          if (firstInput) {
-            (firstInput as HTMLElement).focus();
-          }
-        }
-      }, 150);
+        ) as HTMLElement | null;
 
-      // Aggiungi un listener per l'evento di modifica
+        if (firstField) {
+          firstField.focus();
+          firstField.blur();
+        } else {
+          // Se non c'è alcun campo, usa il dummy invisibile
+          // dummyRef.current?.focus();
+          // dummyRef.current?.blur();
+        }
+      }, 100);
+
+      // Listener per onChange
       editorRef.current.on('change', () => {
         if (onChange && editorRef.current) {
-          const htmlContent = editorRef.current.getHTML();
-          onChange(htmlContent);
+          onChange(editorRef.current.getHTML());
         }
       });
     }
 
-    // Distruggi l'editor quando il componente viene smontato
     return () => {
       if (editorRef.current) {
         editorRef.current.destroy();
@@ -80,36 +66,22 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
     };
   }, []);
 
-  /* Aggiorna il contenuto quando la prop cambia */
   useEffect(() => {
-    if (editorRef.current) {
-      const current = editorRef.current.getHTML();
-      if (current !== initialValue) {
-        editorRef.current.setHTML(initialValue ?? '');
-        
-        // *** SOLUZIONE 3: Blur dopo ogni aggiornamento ***
-        setTimeout(() => {
-          const editorElement = containerRef.current?.querySelector('.toastui-editor');
-          if (editorElement) {
-            (editorElement as HTMLElement).blur();
-          }
-        }, 50);
-      }
+    if (editorRef.current && editorRef.current.getHTML() !== initialValue) {
+      editorRef.current.setHTML(initialValue);
     }
   }, [initialValue]);
 
   return (
     <div className="flex flex-col">
-      <div className="">
+      <div>
         <div
           ref={containerRef}
           className="flex items-center rounded-md bg-white p-3 shadow-sm focus-within:outline-none focus-within:ring-1 focus-within:ring-gray-200 focus-within:ring-offset-2 transition-all duration-300 w-full"
-          // *** SOLUZIONE 4: Previeni il focus sul container ***
-          onFocus={(e) => {
-            e.preventDefault();
-            e.currentTarget.blur();
-          }}
+          onFocus={e => e.currentTarget.blur()} // Previeni focus sul container
         ></div>
+        {/* Dummy element per gestire il blur quando non c'è nessun input */}
+        <div tabIndex={-1} ref={dummyRef} />
       </div>
     </div>
   );
