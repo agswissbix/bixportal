@@ -147,49 +147,51 @@ export default function Sidebar({}: PropsInterface) {
           <div
             id="sidebar"
             className={`
-              fixed top-0 left-0 z-40 h-full w-80 bg-sidebar text-primary-foreground shadow-lg transition-transform duration-300 flex flex-col justify-between
+              fixed top-0 left-0 z-40 h-full w-80 bg-sidebar text-primary-foreground shadow-lg transition-transform duration-300 flex flex-col
               xl:relative xl:translate-x-0 xl:w-full
               ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
             `}
           >
-            <div>
-              <div className="py-6 px-4">
-                <Image
-                  src={
-                  theme == "default"
-                    ? `/bixdata/logos/${activeServer}.png`
-                    : theme == "bixhub"
-                      ? `/bixdata/logos/bixhub.png`
-                      : `/bixdata/logos/${activeServer || "_" + theme}.png`
-                }
-                  alt="Logo"
-                  width={1000}
-                  height={1000}
-                  className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all"
-                  onClick={() => window.location.reload()}
-                />
-              </div>
+            {/* HEADER FISSO - Logo */}
+            <div className="flex-shrink-0 py-6 px-4">
+              <Image
+                src={
+                theme == "default"
+                  ? `/bixdata/logos/${activeServer}.png`
+                  : theme == "bixhub"
+                    ? `/bixdata/logos/bixhub.png`
+                    : `/bixdata/logos/${activeServer || "_" + theme}.png`
+              }
+                alt="Logo"
+                width={1000}
+                height={1000}
+                className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all"
+                onClick={() => window.location.reload()}
+              />
+            </div>
 
+            {/* CONTENUTO SCROLLABILE */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               {/* MENU ITEMS */}
               <ul className="list-none p-0 m-0">
                 {activeServer === "telamico" ? (
                   <>
                     <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
                       onClick={() => handleMenuClick("TelAmicoCalendario")}
                     >
                       Calendario TelAmico
                     </span>
 
                     <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
                       onClick={() => handleMenuClick("TelAmicoAgenda")}
                     >
                       Agenda TelAmico
                     </span>
 
                     <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
                       onClick={() => handleMenuClick("Calendario")}
                     >
                       Agenda TelAmico
@@ -198,7 +200,7 @@ export default function Sidebar({}: PropsInterface) {
                 ) : activeServer === "swissbix" ? (
                   <>
                     <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
                       onClick={() => handleMenuClick("Dashboard")}
                     >
                       Dashboard
@@ -279,7 +281,6 @@ export default function Sidebar({}: PropsInterface) {
                   </li>
                 )}
 
-
                 {Object.entries(data["menuItems"]).map(([key, item]) => {
                   const Icon = iconMap[item.icon] || HelpCircle
                   return (
@@ -332,70 +333,72 @@ export default function Sidebar({}: PropsInterface) {
               </ul>
             </div>
 
-            {/* MENU UTENTE */}
-            <HMenu as="div" className="relative ml-4 mb-4">
-              <div className="flex items-center gap-2">
-                <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none">
-                  <img
-                    src={`/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`}
-                    alt="profile"
-                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-400"
-                    onError={(e) => {
-                      const target = e.currentTarget
-                      if (!target.src.includes("default.jpg")) {
-                        target.src = "/api/media-proxy?url=userProfilePic/default.jpg"
-                      }
-                    }}
-                  />
-                  <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-sidebar" />
-                </MenuButton>
-                <span className="text-sm font-medium">{user}</span>
-              </div>
+            {/* FOOTER FISSO - Menu utente */}
+            <div className="flex-shrink-0 border-t border-secondary">
+              <HMenu as="div" className="relative ml-4 mb-4 mt-4">
+                <div className="flex items-center gap-2">
+                  <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none">
+                    <img
+                      src={`/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`}
+                      alt="profile"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-400"
+                      onError={(e) => {
+                        const target = e.currentTarget
+                        if (!target.src.includes("default.jpg")) {
+                          target.src = "/api/media-proxy?url=userProfilePic/default.jpg"
+                        }
+                      }}
+                    />
+                    <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-sidebar" />
+                  </MenuButton>
+                  <span className="text-sm font-medium truncate">{user}</span>
+                </div>
 
-              <MenuItems className="absolute right-0 bottom-full w-48 origin-bottom-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <MenuItem>
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <p className="text-sm font-medium text-black">{user}</p>
-                    <p className="text-xs text-gray-700">Profilo attivo</p>
-                  </div>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    onClick={() => setSelectedMenu("userSettings")}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      <span>Impostazioni</span>
+                <MenuItems className="absolute right-0 bottom-full mb-2 w-48 origin-bottom-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <MenuItem>
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <p className="text-sm font-medium text-black truncate">{user}</p>
+                      <p className="text-xs text-gray-700">Profilo attivo</p>
                     </div>
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-4 h-4" />
-                      <span>Cambia password</span>
-                    </div>
-                  </a>
-                </MenuItem>
-                <div className="my-1 h-px bg-gray-200" />
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
-                  >
-                    <div className="flex items-center gap-2">
-                      <LogOut className="w-4 h-4" />
-                      <span>Esci</span>
-                    </div>
-                  </a>
-                </MenuItem>
-              </MenuItems>
-            </HMenu>
+                  </MenuItem>
+                  <MenuItem>
+                    <a
+                      href="#"
+                      onClick={() => setSelectedMenu("userSettings")}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        <span>Impostazioni</span>
+                      </div>
+                    </a>
+                  </MenuItem>
+                  <MenuItem>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        <span>Cambia password</span>
+                      </div>
+                    </a>
+                  </MenuItem>
+                  <div className="my-1 h-px bg-gray-200" />
+                  <MenuItem>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <LogOut className="w-4 h-4" />
+                        <span>Esci</span>
+                      </div>
+                    </a>
+                  </MenuItem>
+                </MenuItems>
+              </HMenu>
+            </div>
           </div>
         </>
       )}

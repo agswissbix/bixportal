@@ -113,7 +113,7 @@ export default function CardsList({ tableid, searchTerm, view, context, masterTa
       elapsedTime={elapsedTime}
     > 
       {(response: ResponseInterface) => (
-        <div className="h-full w-full flex flex-col px-2 py-4">
+        <div className="h-full w-full flex flex-col px-1 py-2 sm:px-2 sm:py-4">
           <div className="flex-1 overflow-y-auto">
             {response.rows.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">

@@ -262,7 +262,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                 <TableFilters tableid={tableid}></TableFilters>
               </div>
             )}
-            <div className="w-full h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
+            <div className="w-full h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-0 lg:p-4">
               <div className="w-full h-full">
                 <RecordTabs tableid={tableid}></RecordTabs>
               </div>

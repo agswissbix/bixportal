@@ -167,6 +167,7 @@ export async function POST(request: Request) {
     case 'get_custom_functions': djangoUrl = '/commonapp/get_custom_functions/'; break;
     case 'get_services_activemind': djangoUrl = '/customapp_swissbix/get_services_activemind/'; break;
     case 'get_conditions_activemind': djangoUrl = '/customapp_swissbix/get_conditions_activemind/'; break;
+    case 'sign_timesheet': djangoUrl = '/commonapp/sign_timesheet/'; break;
 
     default:
       return NextResponse.json(

@@ -79,9 +79,15 @@ interface RecordsStore {
 
      timestamp: number;
      setTimestamp: (timestamp: number) => void;
+
+    openSignatureDialog: boolean;
+    setOpenSignatureDialog: (open: boolean) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
+    openSignatureDialog: false,
+    setOpenSignatureDialog: (open: boolean) => set({ openSignatureDialog: open }),
+    
     refreshTable: 0,
     setRefreshTable: (updater) =>
     set(state => ({ refreshTable: updater(state.refreshTable) })),

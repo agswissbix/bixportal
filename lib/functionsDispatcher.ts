@@ -4,7 +4,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType } = useRecordsStore()
+  const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -32,6 +32,9 @@ export function useFrontendFunctions() {
   // ----------------------- recordCards functions ------------------------
   compilaActiveMind: async (recordid: string) => {
     window.open(`/activeMind/${recordid}`, "_blank");
+  },
+  handleSignTimesheet: async () => {
+    setOpenSignatureDialog(true);
   },
   stampaBollettino: async (recordid: string) => {
     try {

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useContext } from 'react';
+import React, { useMemo, useState, useEffect, useContext, useCallback } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
 import CardBadge from './cardBadge';
@@ -10,6 +10,8 @@ import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
+import {SignatureDialog} from './signatureDialog';
+import { sign } from 'crypto';
 
 const isDev = false;
 
@@ -38,8 +40,10 @@ export default function RecordCard({
   index = 0,
   total = 1,
 }: PropsInterface) {
+  const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
+
   // store + context
-  const { removeCard, setIsPopupOpen, setPopUpType, setPopupRecordId } = useRecordsStore();
+  const { removeCard, setOpenSignatureDialog, openSignatureDialog } = useRecordsStore();
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
@@ -108,6 +112,48 @@ export default function RecordCard({
     }
   };
 
+  const handleSignatureChange = useCallback((signature: string | null) => {
+    setDigitalSignature(signature)
+  }, [])
+
+  const handlePrintTimesheet = async () => {
+    if (!digitalSignature) {
+      toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
+      return;
+    }
+
+    try {
+        const response = await axiosInstanceClient.post(
+            '/postApi',
+            {
+                apiRoute: "sign_timesheet",
+                recordid: recordid,
+                image: digitalSignature,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
+                responseType: 'blob',
+            }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'timesheet_' + recordid + '.pdf');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Errore durante il salvataggio o il download:', error);
+        toast.error('Errore durante il salvataggio o il download');
+    }
+  }
+  
   const deleteRecord = async () => {
     try {
       await axiosInstanceClient.post(
@@ -157,7 +203,7 @@ export default function RecordCard({
           {isMobile ? (
             <div
               className={`fixed inset-x-0 mx-auto shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 rounded-xl border-2 border-gray-50 p-3 ${animationClassMobile} w-11/12 h-5/6 max-w-4xl transition-all duration-300`}
-              style={{ top: '6vh', zIndex: 60 + index }}
+              style={{ top: '6vh', zIndex: 20 + index }}
             >
               {/* Header */}
               <div className="h-min w-full">
@@ -199,20 +245,6 @@ export default function RecordCard({
                       {showDropdown && (
                         <div className="absolute right-0 z-10 mt-2 w-40 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <ul className="py-1 text-sm text-gray-700">
-                            {tableid === 'timesheet' && (
-                              <li>
-                                <button
-                                  className="block px-4 py-2 w-full text-left hover:bg-gray-100"
-                                  onClick={() => {
-                                    setShowDropdown(false);
-                                    // show signature modal (we'll re-use the signature modal below)
-                                    // you may implement state for that if needed
-                                  }}
-                                >
-                                  Firma
-                                </button>
-                              </li>
-                            )}
                             {response.fn.map((fn) => fn.context === 'cards' && (
                               <DynamicMenuItem key={fn.title} fn={fn} params={recordid} onClick={() => setShowDropdown(false)} />
                             ))}
@@ -233,9 +265,11 @@ export default function RecordCard({
                 </div>
               </div>
 
+              
+
               {/* Info popup (mobile) */}
               {showInfoPopup && (
-                <div className="absolute top-4 left-4 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-72">
+                <div className="absolute top-4 left-4 z-30 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-72">
                   <h3 className="text-lg font-semibold mb-2">Info record</h3>
                   <ul className="text-sm text-gray-700">
                     <li><strong>Table ID:</strong> {tableid}</li>
@@ -278,7 +312,7 @@ export default function RecordCard({
             >
               {/* optional small info popup */}
               {showInfoPopup && (
-                <div className="absolute top-5 left-5 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-72">
+                <div className="absolute top-5 left-5 z-30 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-72">
                   <h3 className="text-lg font-semibold mb-2">Info record</h3>
                   <ul className="text-sm text-gray-700">
                     <li><strong>Table ID:</strong> {tableid}</li>
@@ -323,7 +357,7 @@ export default function RecordCard({
                           </button>
 
                           {showDropdown && (
-                            <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded shadow-lg z-50">
+                            <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded shadow-lg z-30">
                               <ul className="py-1">
                                 {response.fn.map((fn) => fn.context === 'cards' && (
                                   <DynamicMenuItem key={fn.title} fn={fn} params={recordid} onClick={() => setShowDropdown(false)} />
@@ -380,6 +414,12 @@ export default function RecordCard({
               </div>
             </div>
           )}
+          {/* Signature dialog - reuse component */}
+          <SignatureDialog 
+            isOpen={openSignatureDialog} 
+            onOpenChange={setOpenSignatureDialog} 
+            onSaveSignature={handlePrintTimesheet}
+            onSignatureChange={handleSignatureChange} />
           <Toaster richColors />
         </>
       )}
