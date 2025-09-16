@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { useRecordsStore } from './records/recordsStore';
 import { Tooltip } from 'react-tooltip';
+import LoadingComp from './loading';
 
 const isDev = false;
 
@@ -47,6 +48,7 @@ interface ResponseInterface {
 }
 
 export default function CardFields({ tableid, recordid, mastertableid, masterrecordid }: PropsInterface) {
+	const [delayedLoading, setDelayedLoading] = useState(true);
   const dummyInputRef = useRef<HTMLInputElement>(null);
 
   const responseDataDEFAULT: ResponseInterface = { fields: [], recordid: '' };
@@ -141,105 +143,121 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     }
   }, [response, isDev, responseData]);
 
+  useEffect(() => {
+    if (!loading) {
+        // aggiunge 100ms di delay dopo il loading
+        const timer = setTimeout(() => setDelayedLoading(false), 100);
+        return () => clearTimeout(timer);
+    } else {
+        // se loading diventa true di nuovo, resetta il delayedLoading
+        setDelayedLoading(true);
+    }
+	}, [loading]);
+
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
       {(response: ResponseInterface) => (
-        <div className="h-full">
-          <Tooltip id="my-tooltip" className="tooltip" />
-          <div className="h-full flex flex-col overflow-y-scroll space-y-3">
-            
-            {/* Input fittizio con focus */}
-            <input ref={dummyInputRef} tabIndex={0} 
-                className="text-transparent bg-transparent border-0 h-0" readOnly aria-hidden="true"
-            />
+				<>
+					<div className={'absolute inset-0 flex items-center justify-center ' + (delayedLoading ? '' : ' hidden')}>
+						<LoadingComp />
+					</div>
+					<div className={"h-full" + (delayedLoading ? ' invisible' : '')}>
+						<Tooltip id="my-tooltip" className="tooltip" />
+						<div className="h-full flex flex-col overflow-y-scroll space-y-3">
+							
+							{/* Input fittizio con focus */}
+							<input ref={dummyInputRef} tabIndex={0} 
+									className="text-transparent bg-transparent border-0 h-0" readOnly aria-hidden="true"
+							/>
 
-            {response.fields.map(field => {
-              const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
-              const initialValue = rawValue ?? '';
-              const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
+							{response.fields.map(field => {
+								const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
+								const initialValue = rawValue ?? '';
+								const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
 
-              return (
-                <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
-                  <div className="w-1/4">
-                    <p
-                      data-tooltip-id="my-tooltip"
-                      data-tooltip-content={field.fieldid}
-                      data-tooltip-place="left"
-                      className={`text-black font-semibold ${isRequired ? 'text-red-700' : 'bg-transparent'}`}
-                    >
-                      {field.description}
-                    </p>
-                  </div>
+								return (
+									<div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
+										<div className="w-1/4">
+											<p
+												data-tooltip-id="my-tooltip"
+												data-tooltip-content={field.fieldid}
+												data-tooltip-place="left"
+												className={`text-black font-semibold ${isRequired ? 'text-red-700' : 'bg-transparent'}`}
+											>
+												{field.description}
+											</p>
+										</div>
 
-                  <div className="w-3/4">
-                    {field.fieldtype === 'Parola' ? (
-                      <InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-                    ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
-                      <SelectStandard
-                        lookupItems={field.lookupitems}
-                        initialValue={initialValue}
-                        onChange={v => handleInputChange(field.fieldid, v)}
-                        isMulti={field.fieldtypewebid === 'multiselect'}
-                      />
-                    ) : field.fieldtype === 'Numero' ? (
-                      <InputNumber initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-                    ) : field.fieldtype === 'Data' ? (
-                      <InputDate initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-                    ) : field.fieldtype === 'Memo' ? (
-                      <InputMemo initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-                    ) : field.fieldtype === 'Checkbox' ? (
-                      <InputCheckbox initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-                    ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
-                      <SelectUser
-                        lookupItems={field.lookupitemsuser}
-                        initialValue={initialValue}
-                        onChange={v => handleInputChange(field.fieldid, v)}
-                        isMulti={field.fieldtypewebid === 'multiselect'}
-                      />
-                    ) : field.fieldtype === 'linkedmaster' ? (
-                      <InputLinked
-                        initialValue={initialValue}
-                        valuecode={field.value}
-                        onChange={v => handleInputChange(field.fieldid, v)}
-                        tableid={tableid}
-                        linkedmaster_tableid={field.linked_mastertable}
-                        linkedmaster_recordid={field.value?.code || ''}
-                        fieldid={field.fieldid}
-                        formValues={currentValues}
-                      />
-                    ) : field.fieldtype === 'LongText' ? (
-                      <InputEditor initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-                    ) : field.fieldtype === 'Attachment' ? (
-                      <InputFile
-                        initialValue={initialValue ? `/api/media-proxy?url=${initialValue}` : null}
-                        onChange={v => handleInputChange(field.fieldid, v)}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+										<div className="w-3/4">
+											{field.fieldtype === 'Parola' ? (
+												<InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+											) : field.fieldtype === 'Categoria' && field.lookupitems ? (
+												<SelectStandard
+													lookupItems={field.lookupitems}
+													initialValue={initialValue}
+													onChange={v => handleInputChange(field.fieldid, v)}
+													isMulti={field.fieldtypewebid === 'multiselect'}
+												/>
+											) : field.fieldtype === 'Numero' ? (
+												<InputNumber initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+											) : field.fieldtype === 'Data' ? (
+												<InputDate initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+											) : field.fieldtype === 'Memo' ? (
+												<InputMemo initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+											) : field.fieldtype === 'Checkbox' ? (
+												<InputCheckbox initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+											) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
+												<SelectUser
+													lookupItems={field.lookupitemsuser}
+													initialValue={initialValue}
+													onChange={v => handleInputChange(field.fieldid, v)}
+													isMulti={field.fieldtypewebid === 'multiselect'}
+												/>
+											) : field.fieldtype === 'linkedmaster' ? (
+												<InputLinked
+													initialValue={initialValue}
+													valuecode={field.value}
+													onChange={v => handleInputChange(field.fieldid, v)}
+													tableid={tableid}
+													linkedmaster_tableid={field.linked_mastertable}
+													linkedmaster_recordid={field.value?.code || ''}
+													fieldid={field.fieldid}
+													formValues={currentValues}
+												/>
+											) : field.fieldtype === 'LongText' ? (
+												<InputEditor initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+											) : field.fieldtype === 'Attachment' ? (
+												<InputFile
+													initialValue={initialValue ? `/api/media-proxy?url=${initialValue}` : null}
+													onChange={v => handleInputChange(field.fieldid, v)}
+												/>
+											) : null}
+										</div>
+									</div>
+								);
+							})}
+						</div>
 
-          {/* Bottoni di salvataggio */}
-          {activeServer === 'belotti' ? (
-            <button
-              type="button"
-              onClick={handleSave}
-              className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              Conferma merce ricevuta
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSave}
-              className={`theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              Salva
-            </button>
-          )}
-        </div>
+						{/* Bottoni di salvataggio */}
+						{activeServer === 'belotti' ? (
+							<button
+								type="button"
+								onClick={handleSave}
+								className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+							>
+								Conferma merce ricevuta
+							</button>
+						) : (
+							<button
+								type="button"
+								onClick={handleSave}
+								className={`theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+							>
+								Salva
+							</button>
+						)}
+					</div>
+				</>
       )}
     </GenericComponent>
   );
