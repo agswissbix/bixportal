@@ -28,10 +28,6 @@ export default function InputEditor({ initialValue='', onChange }: PropsInterfac
         initialValue: '',
         autofocus: false,
         customHTMLSanitizer: (html: string): string => html,
-        // *** SOLUZIONE ALTERNATIVA 2: Hook per prevenire focus ***
-        hooks: {
-          addImageBlobHook: () => Promise.resolve(''),
-        }
       } as EditorOptions);
 
       // Imposta il contenuto se presente
