@@ -7,6 +7,7 @@ import { useApi } from "@/utils/useApi"
 import { useRecordsStore } from "@/components/records/recordsStore"
 import GenericComponent from "@/components/genericComponent"
 import { KanbanProvider } from "@/context/recordsKanban/kanbanContext"
+import { useKanbanContext } from "@/hooks/useKanban";
 
 const isDev = true
 const devApiDelay = 1500
@@ -25,7 +26,6 @@ interface PropsInterface {
 }
 
 export default function KanbanPage({ tableid, searchTerm, filters, view, context, pagination, order, masterTableid, masterRecordid }: PropsInterface) {
-
   const [responseData, setResponseData] = useState<ResponseInterface>();
   const [devLoading, setDevLoading] = useState(isDev);
 
@@ -68,7 +68,7 @@ export default function KanbanPage({ tableid, searchTerm, filters, view, context
       {(response: ResponseInterface) => (
         <KanbanProvider>
           <div className="h-screen">
-            <KanbanBoard />
+            <KanbanBoard boardProp={response} />
           </div>
         </KanbanProvider>
       )}

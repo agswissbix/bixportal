@@ -12,6 +12,7 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import {SignatureDialog} from './signatureDialog';
 import { sign } from 'crypto';
+import CardBadgeCompany from './cardBadgeCompany';
 
 const isDev = false;
 
@@ -287,6 +288,8 @@ export default function RecordCard({
               <div className="h-fill w-full overflow-auto mt-3 mb-8">
                 {tableid === 'stabile' ? (
                   <CardBadgeStabile tableid={tableid} recordid={recordid} />
+                ) : tableid === 'company' ? (
+                  <CardBadgeCompany tableid={tableid} recordid={recordid} />
                 ) : activeServer !== 'belotti' ? (
                   <CardBadge tableid={tableid} recordid={recordid} />
                 ) : null}
@@ -397,6 +400,8 @@ export default function RecordCard({
 
                   {tableid === 'stabile' ? (
                     <CardBadgeStabile tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'company' ? (
+                    <CardBadgeCompany tableid={tableid} recordid={recordid} />
                   ) : activeServer !== 'belotti' ? (
                     <CardBadge tableid={tableid} recordid={recordid} />
                   ) : null}

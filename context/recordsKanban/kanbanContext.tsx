@@ -19,39 +19,28 @@ columns: [
     {
     id: "todo",
     title: "Da Fare",
-    color: "bg-gray-100",
+    color: "bg-gray-300",
     order: 0,
     editable: true,
     tasks: [
-        {
-        id: "1",
-        title: "Progettare interfaccia utente",
-        description: "Creare mockup e wireframe per la nuova feature",
-        priority: "high",
-        assignee: "Mario Rossi",
-        tags: ["design", "ui"],
-        createdAt: "2024-01-15",
-        updatedAt: "2024-01-15",
-        collapsed: false,
+      {
+        recordid: "1",
         css: "border-l-4 border-red-500",
         fields: {
             "Product name": "Macbook",
-            "Color": "nero",
-            "Price": "2k",
+            Color: "nero",
+            Price: "2k",
         },
-        },
-        {
-        id: "2",
-        title: "Setup database",
-        description: "Configurare il database PostgreSQL",
-        priority: "medium",
-        assignee: "Giulia Bianchi",
-        tags: ["backend", "database"],
-        createdAt: "2024-01-14",
-        updatedAt: "2024-01-14",
-        collapsed: false,
+      },
+      {
+        recordid: "2",
         css: "border-l-4 border-yellow-500",
+        fields: {
+            "Product name": "iPhone",
+            Color: "bianco",
+            Price: "1k",
         },
+      }
     ],
     },
     {
@@ -62,16 +51,13 @@ columns: [
     editable: true,
     tasks: [
         {
-        id: "3",
-        title: "Implementare autenticazione",
-        description: "Aggiungere login e registrazione utenti",
-        priority: "high",
-        assignee: "Luca Verdi",
-        tags: ["auth", "security"],
-        createdAt: "2024-01-13",
-        updatedAt: "2024-01-16",
-        collapsed: false,
+        recordid: "3",
         css: "border-l-4 border-blue-500",
+        fields: {
+            "Product name": "iPad",
+            Color: "grigio",
+            Price: "1.5k",
+        }
         },
     ],
     },
@@ -83,15 +69,7 @@ columns: [
     editable: true,
     tasks: [
         {
-        id: "4",
-        title: "Code review API endpoints",
-        description: "Revisione del codice per gli endpoint REST",
-        priority: "medium",
-        assignee: "Anna Neri",
-        tags: ["review", "api"],
-        createdAt: "2024-01-12",
-        updatedAt: "2024-01-15",
-        collapsed: false,
+        recordid: "4",
         css: "border-l-4 border-purple-500",
         },
     ],
@@ -104,16 +82,13 @@ columns: [
     editable: true,
     tasks: [
         {
-        id: "5",
-        title: "Setup progetto iniziale",
-        description: "Configurazione Next.js e dipendenze",
-        priority: "low",
-        assignee: "Marco Blu",
-        tags: ["setup", "config"],
-        createdAt: "2024-01-10",
-        updatedAt: "2024-01-11",
-        collapsed: false,
+        recordid: "5",
         css: "border-l-4 border-green-500",
+        fields: {
+            "Product name": "Apple Watch",
+            Color: "nero",
+            Price: "500",
+        }
         },
     ],
     },
@@ -124,6 +99,7 @@ columns: [
 // 1. Definiamo il tipo del contesto
 type KanbanContextType = {
   board: KanbanBoard
+  setBoard: (board: KanbanBoard) => void
   moveTask: (taskId: string, sourceColumnId: string, destinationColumnId: string, destinationIndex: number) => void
   addTask: (columnId: string, task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void
   updateTask: (taskId: string, updates: Partial<Task>) => void
@@ -158,7 +134,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   
           if (!sourceColumn || !destinationColumn) return prevBoard
   
-          const taskIndex = sourceColumn.tasks.findIndex((task) => task.id === taskId)
+          const taskIndex = sourceColumn.tasks.findIndex((task) => task.recordid === taskId)
           if (taskIndex === -1) return prevBoard
   
           const [movedTask] = sourceColumn.tasks.splice(taskIndex, 1)
@@ -167,7 +143,6 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   
           destinationColumn.tasks.splice(safeIndex, 0, {
             ...movedTask,
-            updatedAt: new Date().toISOString().split("T")[0],
           })
   
           return {
@@ -188,10 +163,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
   
         const newTask: Task = {
           ...task,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString().split("T")[0],
-          updatedAt: new Date().toISOString().split("T")[0],
-          collapsed: false,
+          recordid: Date.now().toString(),
         }
   
         column.tasks.push(newTask)
@@ -208,12 +180,11 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         const newColumns = [...prevBoard.columns]
   
         for (const column of newColumns) {
-          const taskIndex = column.tasks.findIndex((task) => task.id === taskId)
+          const taskIndex = column.tasks.findIndex((task) => task.recordid === taskId)
           if (taskIndex !== -1) {
             column.tasks[taskIndex] = {
               ...column.tasks[taskIndex],
               ...updates,
-              updatedAt: new Date().toISOString().split("T")[0],
             }
             break
           }
@@ -231,7 +202,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
         const newColumns = [...prevBoard.columns]
   
         for (const column of newColumns) {
-          const taskIndex = column.tasks.findIndex((task) => task.id === taskId)
+          const taskIndex = column.tasks.findIndex((task) => task.recordid === taskId)
           if (taskIndex !== -1) {
             column.tasks.splice(taskIndex, 1)
             break
@@ -246,26 +217,26 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     }, [])
   
     const toggleTaskCollapse = useCallback((taskId: string) => {
-      setBoard((prevBoard) => {
-        const newColumns = [...prevBoard.columns]
+      // setBoard((prevBoard) => {
+      //   const newColumns = [...prevBoard.columns]
         
-        for (const column of newColumns) {
-          const taskIndex = column.tasks.findIndex((task) => task.id === taskId)
-          if (taskIndex !== -1) {
-            column.tasks[taskIndex] = {
-              ...column.tasks[taskIndex],
-              collapsed: !column.tasks[taskIndex].collapsed,
-            }
-            console.log("toggleTaskCollapse chiamata: da ", column.tasks[taskIndex].collapsed)
-            break
-          }
-        }
+      //   for (const column of newColumns) {
+      //     const taskIndex = column.tasks.findIndex((task) => task.recordid === taskId)
+      //     if (taskIndex !== -1) {
+      //       column.tasks[taskIndex] = {
+      //         ...column.tasks[taskIndex],
+      //         collapsed: !column.tasks[taskIndex].collapsed,
+      //       }
+      //       console.log("toggleTaskCollapse chiamata: da ", column.tasks[taskIndex].collapsed)
+      //       break
+      //     }
+      //   }
   
-        return {
-          ...prevBoard,
-          columns: newColumns,
-        }
-      })
+      //   return {
+      //     ...prevBoard,
+      //     columns: newColumns,
+      //   }
+      // })
     }, [])
   
     const addColumn = useCallback((column: Omit<Column, "id" | "order">) => {
@@ -319,6 +290,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     <KanbanContext.Provider
       value={{
         board,
+        setBoard,
         moveTask,
         addTask,
         updateTask,

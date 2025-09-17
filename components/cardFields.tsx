@@ -320,7 +320,7 @@ const renderField = (field: FieldInterface) => {
           </div>
           <div className={"h-full flex flex-col" + (delayedLoading ? ' invisible' : '')}>
             <Tooltip id="my-tooltip" className="tooltip" />
-            <div className="flex-grow overflow-y-auto space-y-3 pr-2">
+            <div className="flex-grow overflow-y-auto max-h-[100%] space-y-3 pr-2">
               <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
               
               {/* NUOVO RENDERING: Basato sui campi raggruppati */}

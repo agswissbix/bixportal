@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { Column, Task } from "./types/kanban"
 import { useKanbanContext } from "@/hooks/useKanban"
 import { KanbanColumn } from "./kanbanColumn"
@@ -11,11 +11,17 @@ import { Button } from "@/components/ui/button"
 import { Plus, Filter, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { AddColumnDialog } from "./dialogs/addColumnDialog"
+import type {KanbanBoard} from "./types/kanban"
 
-export function KanbanBoard() {
-  const { board,addColumn, moveTask } = useKanbanContext()
+export function KanbanBoard({ boardProp }: { boardProp: KanbanBoard }) {
+  const { board, setBoard, addColumn, moveTask } = useKanbanContext()
   const [draggedData, setDraggedData] = useState<{ taskId: string; sourceColumnId: string } | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+
+  useEffect(() => {
+    // setBoard(boardProp)
+    console.log("KanbanBoard - boardProp changed:", boardProp)
+  }, [boardProp])
 
   const handleCreateColumn = (columnData: Omit<Column, "id" | "order">) => {
 		addColumn(columnData)
@@ -50,14 +56,18 @@ export function KanbanBoard() {
     ...board,
     columns: board.columns.map((column) => ({
       ...column,
-      tasks: column.tasks.filter(
-        (task) =>
-          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.assignee?.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
+      tasks: column.tasks.filter((task) => {
+        if (!task.fields) return false;
+
+        return Object.entries(task.fields).some(
+          ([key, value]) =>
+            `${value}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            `${key}`.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }),
     })),
-  }
+  };
+
 
   return (
     <div className="h-full flex flex-col">

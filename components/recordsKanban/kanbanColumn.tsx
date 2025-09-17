@@ -6,7 +6,7 @@ import type { Column, Task } from "./types/kanban"
 import { TaskCard } from "./taskCard"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { useKanbanContext } from "@/hooks/useKanban"
 
 interface KanbanColumnProps {
@@ -49,6 +49,9 @@ export function KanbanColumn({column, onDragStart, onDragEnd, onDrop}: KanbanCol
     e.dataTransfer.dropEffect = "move"
   }
 
+  useEffect(() => {
+    console.log('Rendering column:', column.id, 'with tasks:', column.tasks.map(t => t.recordid))
+  }, [board, column])
 
   return (
     <div className="flex flex-col h-full min-w-80 max-w-80">
@@ -57,20 +60,21 @@ export function KanbanColumn({column, onDragStart, onDragEnd, onDrop}: KanbanCol
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="font-semibold text-gray-800">{column.title}</h2>
-            <span className="bg-white text-gray-600 text-xs px-2 py-1 rounded-full">{column.tasks.length}</span>
           </div>
-          <Button
+          <span className="bg-white text-gray-600 text-xs px-2 py-1 rounded-full">{column.tasks.length}</span>
+          {/* <Button
             variant="ghost"
             size="sm"
             onClick={() => handleAddTask?.(column.id)}
             className="h-6 w-6 p-0 hover:bg-white/50"
           >
             <Plus className="h-4 w-4" />
-          </Button>
+          </Button> */}
         </div>
         <div className="text-xs text-gray-700">
           Totale Fatture: {2000}<br />
           Margine totale: {800}
+          {/* TODO implementare calcolo di cose personalizzate */}
         </div>
       </div>
 
@@ -80,19 +84,20 @@ export function KanbanColumn({column, onDragStart, onDragEnd, onDrop}: KanbanCol
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e)}
       >
+        
         {column.tasks.map((task) => (
-          <div key={task.id} draggable onDragStart={(e) => handleDragStart(e, task.id)} onDragEnd={handleDragEnd}>
-            <TaskCard task={task} isDragging={draggedTaskId === task.id} />
+          <div key={task.recordid} draggable onDragStart={(e) => handleDragStart(e, task.recordid)} onDragEnd={handleDragEnd}>
+            <TaskCard task={task} isDragging={draggedTaskId === task.recordid} />
           </div>
         ))}
 
         {column.tasks.length === 0 && (
           <div className="text-center text-gray-400 py-8">
             <p className="text-sm">Nessuna task in questa colonna</p>
-            <Button variant="ghost" size="sm" onClick={() => handleAddTask?.(column.id)} className="mt-2 text-xs">
+            {/* <Button variant="ghost" size="sm" onClick={() => handleAddTask?.(column.id)} className="mt-2 text-xs">
               <Plus className="mr-1 h-3 w-3" />
               Aggiungi task
-            </Button>
+            </Button> */}
           </div>
         )}
       </div>

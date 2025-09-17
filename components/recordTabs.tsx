@@ -11,7 +11,7 @@ import GalleryView from './gallery';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useApi } from '@/utils/useApi';
-import RecordsKanban from './recordsKanban';
+import RecordsKanban from './recordsKanban/page';
 import CardsList from './mobile/cardList';
 
 const isDev = false;
