@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useContext, useState, useEffect, useRef, use } from 'react';
+import React, { useMemo, useContext, useState, useEffect, useRef } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -19,6 +19,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { useRecordsStore } from './records/recordsStore';
 import { Tooltip } from 'react-tooltip';
 import LoadingComp from './loading';
+import { ChevronDownIcon } from '@heroicons/react/24/solid';
 
 const isDev = false;
 
@@ -29,26 +30,30 @@ interface PropsInterface {
   masterrecordid?: string;
 }
 
+// NUOVA INTERFACCIA: Aggiunto il campo opzionale 'label' per il raggruppamento
+interface FieldInterface {
+  tableid: string;
+  fieldid: string;
+  fieldorder: string;
+  description: string;
+  value: string | { code: string; value: string };
+  fieldtype: string;
+  label?: string; // <-- CAMPO AGGIUNTO per raggruppare
+  lookupitems?: Array<{ itemcode: string; itemdesc: string }>;
+  lookupitemsuser?: Array<{ userid: string; firstname: string; lastname: string; link: string; linkdefield: string; linkedvalue: string }>;
+  fieldtypewebid?: string;
+  linked_mastertable?: string;
+  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string };
+  isMulti?: boolean;
+}
+
 interface ResponseInterface {
-  fields: Array<{
-    tableid: string;
-    fieldid: string;
-    fieldorder: string;
-    description: string;
-    value: string | { code: string; value: string };
-    fieldtype: string;
-    lookupitems?: Array<{ itemcode: string; itemdesc: string }>;
-    lookupitemsuser?: Array<{ userid: string; firstname: string; lastname: string; link: string; linkdefield: string; linkedvalue: string }>;
-    fieldtypewebid?: string;
-    linked_mastertable?: string;
-    settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string };
-    isMulti?: boolean;
-  }>;
+  fields: Array<FieldInterface>;
   recordid: string;
 }
 
 export default function CardFields({ tableid, recordid, mastertableid, masterrecordid }: PropsInterface) {
-	const [delayedLoading, setDelayedLoading] = useState(true);
+  const [delayedLoading, setDelayedLoading] = useState(true);
   const dummyInputRef = useRef<HTMLInputElement>(null);
 
   const responseDataDEFAULT: ResponseInterface = { fields: [], recordid: '' };
@@ -58,7 +63,10 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] }>({});
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
 
-  const { removeCard, addCard, refreshTable, setRefreshTable } = useRecordsStore();
+  // NUOVO STATE: Gestisce lo stato (aperto/chiuso) di ogni accordion
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
+
+  const { removeCard, setRefreshTable } = useRecordsStore();
 
   const currentValues = useMemo(() => {
     const obj: Record<string, any> = {};
@@ -70,13 +78,40 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     return obj;
   }, [responseData, updatedFields]);
 
+  // NUOVA LOGICA: Raggruppa i campi per la loro label usando useMemo
+  const groupedFields = useMemo(() => {
+    if (!responseData?.fields) return {};
+
+    return responseData.fields.reduce((acc: Record<string, FieldInterface[]>, field) => {
+      // Se un campo non ha label, viene assegnato al gruppo di default "Dati"
+      const label = field.label || 'Dati';
+      if (!acc[label]) {
+        acc[label] = [];
+      }
+      acc[label].push(field);
+      return acc;
+    }, {});
+  }, [responseData]);
+
+  // NUOVO EFFETTO: Inizializza gli accordion come aperti quando i dati sono caricati
+  useEffect(() => {
+    const labels = Object.keys(groupedFields);
+    const initialAccordionState: Record<string, boolean> = {};
+    labels.forEach(label => {
+      if (label !== 'Dati') {
+        initialAccordionState[label] = true; // Imposta tutti gli accordion come aperti di default
+      }
+    });
+    setOpenAccordions(initialAccordionState);
+  }, [groupedFields]);
+
   useEffect(() => {
     const requiredFields = responseData?.fields.filter(
       field => typeof field.settings === 'object' && field.settings.obbligatorio === 'true'
     ) || [];
 
     if (requiredFields.length === 0) {
-      setIsSaveDisabled(false);
+      setIsSaveDisabled(Object.keys(updatedFields).length === 0); // Disabilita se non ci sono modifiche
       return;
     }
 
@@ -84,21 +119,27 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
       const value = currentValues[field.fieldid];
       return value !== null && value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0);
     });
+    
+    // Abilita il salvataggio solo se i campi obbligatori sono compilati E ci sono modifiche
+    setIsSaveDisabled(!allRequiredFilled || Object.keys(updatedFields).length === 0);
+  }, [currentValues, responseData?.fields, updatedFields]);
 
-    setIsSaveDisabled(!allRequiredFilled);
-  }, [currentValues, responseData?.fields]);
 
   const handleInputChange = (fieldid: string, newValue: any | any[]) => {
-    setUpdatedFields(prev => (prev[fieldid] === newValue ? prev : { ...prev, [fieldid]: newValue }));
+    setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
+  };
+  
+  // NUOVA FUNZIONE: Gestisce il toggle degli accordion
+  const toggleAccordion = (label: string) => {
+    setOpenAccordions(prev => ({ ...prev, [label]: !prev[label] }));
   };
 
   const handleSave = async () => {
     if (isSaveDisabled) {
-      toast.warning('Compilare tutti i campi obbligatori per poter salvare');
+      toast.warning('Compilare tutti i campi obbligatori per poter salvare.');
       return;
     }
 
-    let newRecordId: string | null = null;
     try {
       const formData = new FormData();
       formData.append('tableid', tableid || '');
@@ -113,11 +154,9 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
       formData.append('fields', JSON.stringify(standardFields));
       formData.append('apiRoute', 'save_record_fields');
 
-      const saveResponse = await axiosInstanceClient.post('/postApi', formData, {
+      await axiosInstanceClient.post('/postApi', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-
-      newRecordId = saveResponse?.data?.recordid;
 
       toast.success('Record salvato con successo');
       setUpdatedFields({});
@@ -133,7 +172,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   const payload = useMemo(() => {
     if (isDev) return null;
     return { apiRoute: 'get_record_card_fields', tableid, recordid, mastertableid, masterrecordid };
-  }, [tableid, recordid]);
+  }, [tableid, recordid, mastertableid, masterrecordid]);
 
   const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
@@ -145,119 +184,150 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
 
   useEffect(() => {
     if (!loading) {
-        // aggiunge 100ms di delay dopo il loading
-        const timer = setTimeout(() => setDelayedLoading(false), 100);
-        return () => clearTimeout(timer);
+      const timer = setTimeout(() => setDelayedLoading(false), 100);
+      return () => clearTimeout(timer);
     } else {
-        // se loading diventa true di nuovo, resetta il delayedLoading
-        setDelayedLoading(true);
+      setDelayedLoading(true);
     }
-	}, [loading]);
+  }, [loading]);
+
+  // NUOVA FUNZIONE: Componente riutilizzabile per renderizzare un singolo campo
+  const renderField = (field: FieldInterface) => {
+    const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
+    const initialValue = rawValue ?? '';
+    const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
+
+    return (
+      <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
+        <div className="w-1/4">
+            <p
+                data-tooltip-id="my-tooltip"
+                data-tooltip-content={field.fieldid}
+                data-tooltip-place="left"
+                className="text-black"
+            >
+                {field.description}
+                {isRequired && <span className="text-red-700">*</span>}
+            </p>
+        </div>
+        <div className="w-3/4">
+          {field.fieldtype === 'Parola' ? (
+            <InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+          ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
+            <SelectStandard
+              lookupItems={field.lookupitems}
+              initialValue={initialValue}
+              onChange={v => handleInputChange(field.fieldid, v)}
+              isMulti={field.fieldtypewebid === 'multiselect'}
+            />
+          ) : field.fieldtype === 'Numero' ? (
+            <InputNumber initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+          ) : field.fieldtype === 'Data' ? (
+            <InputDate initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+          ) : field.fieldtype === 'Memo' ? (
+            <InputMemo initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+          ) : field.fieldtype === 'Checkbox' ? (
+            <InputCheckbox initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+          ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
+            <SelectUser
+              lookupItems={field.lookupitemsuser}
+              initialValue={initialValue}
+              onChange={v => handleInputChange(field.fieldid, v)}
+              isMulti={field.fieldtypewebid === 'multiselect'}
+            />
+          ) : field.fieldtype === 'linkedmaster' ? (
+            <InputLinked
+              initialValue={initialValue}
+              valuecode={field.value}
+              onChange={v => handleInputChange(field.fieldid, v)}
+              tableid={tableid}
+              linkedmaster_tableid={field.linked_mastertable}
+              linkedmaster_recordid={typeof field.value === 'object' ? field.value?.code : ''}
+              fieldid={field.fieldid}
+              formValues={currentValues}
+            />
+          ) : field.fieldtype === 'LongText' ? (
+            <InputEditor initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+          ) : field.fieldtype === 'Attachment' ? (
+            <InputFile
+              initialValue={initialValue ? `/api/media-proxy?url=${initialValue}` : null}
+              onChange={v => handleInputChange(field.fieldid, v)}
+            />
+          ) : null}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
       {(response: ResponseInterface) => (
-				<>
-					<div className={'absolute inset-0 flex items-center justify-center ' + (delayedLoading ? '' : ' hidden')}>
-						<LoadingComp />
-					</div>
-					<div className={"h-full" + (delayedLoading ? ' invisible' : '')}>
-						<Tooltip id="my-tooltip" className="tooltip" />
-						<div className="h-full flex flex-col overflow-y-scroll space-y-3">
-							
-							{/* Input fittizio con focus */}
-							<input ref={dummyInputRef} tabIndex={0} 
-									className="text-transparent bg-transparent border-0 h-0" readOnly aria-hidden="true"
-							/>
+        <>
+          <div className={'absolute inset-0 flex items-center justify-center ' + (delayedLoading ? '' : ' hidden')}>
+            <LoadingComp />
+          </div>
+          <div className={"h-full flex flex-col" + (delayedLoading ? ' invisible' : '')}>
+            <Tooltip id="my-tooltip" className="tooltip" />
+            <div className="flex-grow overflow-y-auto space-y-3 pr-2">
+              <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
+              
+              {/* NUOVO RENDERING: Basato sui campi raggruppati */}
+              
+              {/* 1. Renderizza i campi del gruppo "Dati" direttamente */}
+              {groupedFields['Dati'] && (
+                <div className="space-y-3">
+                    {groupedFields['Dati'].map(field => renderField(field))}
+                </div>
+              )}
 
-							{response.fields.map(field => {
-								const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
-								const initialValue = rawValue ?? '';
-								const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
+              {/* 2. Renderizza tutti gli altri gruppi come accordion */}
+              {Object.keys(groupedFields).filter(label => label !== 'Dati').map(label => (
+                <div key={label} className="border rounded-md overflow-hidden">
+                  {/* Header dell'Accordion */}
+                  <div
+                    className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-200"
+                    onClick={() => toggleAccordion(label)}
+                  >
+                    <h3 className="font-bold text-gray-700">{label}</h3>
+                    <ChevronDownIcon
+                      className={`w-5 h-5 text-gray-600 transition-transform transform ${openAccordions[label] ? 'rotate-180' : ''}`}
+                    />
+                  </div>
+                  
+                  {/* Contenuto dell'Accordion */}
+                  {openAccordions[label] && (
+                    <div className="p-4 space-y-3 bg-white">
+                      {groupedFields[label].map(field => renderField(field))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
 
-								return (
-									<div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
-										<div className="w-1/4">
-											<p
-												data-tooltip-id="my-tooltip"
-												data-tooltip-content={field.fieldid}
-												data-tooltip-place="left"
-												className={`text-black font-semibold ${isRequired ? 'text-red-700' : 'bg-transparent'}`}
-											>
-												{field.description}
-											</p>
-										</div>
-
-										<div className="w-3/4">
-											{field.fieldtype === 'Parola' ? (
-												<InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-											) : field.fieldtype === 'Categoria' && field.lookupitems ? (
-												<SelectStandard
-													lookupItems={field.lookupitems}
-													initialValue={initialValue}
-													onChange={v => handleInputChange(field.fieldid, v)}
-													isMulti={field.fieldtypewebid === 'multiselect'}
-												/>
-											) : field.fieldtype === 'Numero' ? (
-												<InputNumber initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-											) : field.fieldtype === 'Data' ? (
-												<InputDate initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-											) : field.fieldtype === 'Memo' ? (
-												<InputMemo initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-											) : field.fieldtype === 'Checkbox' ? (
-												<InputCheckbox initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-											) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
-												<SelectUser
-													lookupItems={field.lookupitemsuser}
-													initialValue={initialValue}
-													onChange={v => handleInputChange(field.fieldid, v)}
-													isMulti={field.fieldtypewebid === 'multiselect'}
-												/>
-											) : field.fieldtype === 'linkedmaster' ? (
-												<InputLinked
-													initialValue={initialValue}
-													valuecode={field.value}
-													onChange={v => handleInputChange(field.fieldid, v)}
-													tableid={tableid}
-													linkedmaster_tableid={field.linked_mastertable}
-													linkedmaster_recordid={field.value?.code || ''}
-													fieldid={field.fieldid}
-													formValues={currentValues}
-												/>
-											) : field.fieldtype === 'LongText' ? (
-												<InputEditor initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
-											) : field.fieldtype === 'Attachment' ? (
-												<InputFile
-													initialValue={initialValue ? `/api/media-proxy?url=${initialValue}` : null}
-													onChange={v => handleInputChange(field.fieldid, v)}
-												/>
-											) : null}
-										</div>
-									</div>
-								);
-							})}
-						</div>
-
-						{/* Bottoni di salvataggio */}
-						{activeServer === 'belotti' ? (
-							<button
-								type="button"
-								onClick={handleSave}
-								className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-							>
-								Conferma merce ricevuta
-							</button>
-						) : (
-							<button
-								type="button"
-								onClick={handleSave}
-								className={`theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 me-2 mt-4 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-							>
-								Salva
-							</button>
-						)}
-					</div>
-				</>
+            {/* Bottoni di salvataggio (invariati) */}
+            <div className="flex-shrink-0 pt-4">
+              {activeServer === 'belotti' ? (
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaveDisabled}
+                  className={`w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  Conferma merce ricevuta
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaveDisabled}
+                  className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  Salva
+                </button>
+              )}
+            </div>
+          </div>
+        </>
       )}
     </GenericComponent>
   );

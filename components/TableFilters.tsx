@@ -272,7 +272,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                 <div className="flex items-center gap-2">
                                                     <input
                                                         type="text"
-                                                        placeholder={`Inserisci un valore`}
+                                                        placeholder={``}
                                                         value={val}
                                                         onChange={(e) =>
                                                             updateFilter(filter.fieldid, filter.type, filter.label, e.target.value, idx)

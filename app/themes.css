@@ -1,7 +1,7 @@
 /* Improved theme system with better color harmony and contrast */
 .default {
   /* Primary brand colors - Modern teal palette */
-  --color-primary: #1f8aa3;
+  --color-primary: #1a697b;
   --color-primary-hover: #1f8aa3;
   --color-primary-foreground: #ffffff;
 
@@ -11,8 +11,8 @@
   --color-secondary-foreground: #ffffff;
 
   /* Accent color - Warm orange for highlights */
-  --color-accent: #f97316;
-  --color-accent-hover: #ea580c;
+  --color-accent: #db554b;
+  --color-accent-hover: #e43c30;
   --color-accent-foreground: #ffffff;
 
   /* Neutral backgrounds */
@@ -24,7 +24,7 @@
 
   /* Navigation and sidebar */
   --navbar-background: #ffffff;
-  --sidebar-background: linear-gradient(180deg, #1f8aa3 0%, #155e6e 100%);
+  --sidebar-background: linear-gradient(180deg, #1a697b 0%, #134753 100%);
   --sidebar-text: #ffffff;
 
   /* Table styling */

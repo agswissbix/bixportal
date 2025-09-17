@@ -156,12 +156,10 @@ export default function Sidebar({}: PropsInterface) {
             <div className="flex-shrink-0 py-6 px-4">
               <Image
                 src={
-                theme == "default"
-                  ? `/bixdata/logos/${activeServer}.png`
-                  : theme == "bixhub"
-                    ? `/bixdata/logos/bixhub.png`
-                    : `/bixdata/logos/${activeServer || "_" + theme}.png`
-              }
+                    theme === "bixhub"
+                        ? `/bixdata/logos/bixhub.png`
+                        : `/bixdata/logos/bixdata.png`
+                }
                 alt="Logo"
                 width={1000}
                 height={1000}

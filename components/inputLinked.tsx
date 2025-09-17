@@ -152,7 +152,7 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
             onChange={handleChange}
             onFocus={handleFocus}
             autoComplete='off'
-            placeholder="Inserisci un valore"
+            placeholder=""
             className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
           />
           <button type="button" onClick={() => {
