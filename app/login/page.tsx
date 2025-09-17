@@ -26,6 +26,10 @@ export default function Login() {
     fetchActiveServer();
   }, []);
 
+  useEffect(() => {
+    document.documentElement.classList.add('default');
+}, []);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -63,15 +67,15 @@ export default function Login() {
   return (
     <>
       <Toaster richColors position='top-center' />
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white">
-        <div className="block sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-white-800 dark:border-gray-200 mx-auto">
-          <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-card">
+        <div className="block sm:mx-auto sm:w-full sm:max-w-sm p-8 bg-card rounded-lg shadow-lg shadow-primary mx-auto">
+          <div className="sm:mx-auto sm:w-full sm:max-w-sm bg-primary p-4 rounded-md mb-6">
             <Image
-              src={`/bixdata/logos/${activeServer}_default.png`}
+              src={`/bixdata/logos/_default.png`}
               alt={activeServer}
               width={1000}
               height={1000}
-              className="h-14 w-auto mx-auto bg-white"
+              className="h-14 w-auto mx-auto"
               priority
             />
           </div>
@@ -81,7 +85,7 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm/6 font-medium text-gray-900"
+                  className="block text-sm/6 font-medium text-primary"
                 >
                   Username
                 </label>
@@ -91,8 +95,9 @@ export default function Login() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
+                    placeholder='Inserisci il tuo username'
                     autoComplete="on"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1 focus:ring-inset focus:ring-bixcolor-light sm:text-sm/6 p-4"
+                    className="block w-full rounded-md py-3 px-4 text-primary bg-transparent border shadow-sm ring-1 ring-inset ring-border placeholder:text-badge focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 transition-all duration-200"
                   />
                 </div>
               </div>
@@ -101,7 +106,7 @@ export default function Login() {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="password"
-                    className="block text-sm/6 font-medium text-gray-900"
+                    className="block text-sm/6 font-medium text-primary"
                   >
                     Password
                   </label>
@@ -109,11 +114,10 @@ export default function Login() {
                   <div className="text-sm">
                     <a
                       href="#"
-                      className="font-semibold text-bixcolor-default hover:text-bixcolor-light"
+                      className="font-semibold text-primary hover:text-primary-hover transition-colors duration-200"
                     >
                       Password dimenticata?
                     </a>
-
                   </div>
                   */}
                 </div>
@@ -123,14 +127,15 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    placeholder='Inserisci la tua password'
                     autoComplete="on"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1 focus:ring-inset focus:ring-bixcolor-light sm:text-sm/6 p-4"
+                    className="block w-full rounded-md py-3 px-4 text-primary bg-transparent border shadow-sm ring-1 ring-inset ring-border placeholder:text-badge focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 transition-all duration-200"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="text-red-500 text-sm">
+                <div className="text-destructive-foreground bg-destructive/10 text-sm p-3 rounded-md border border-destructive/20">
                   {error}
                 </div>
               )}
@@ -138,9 +143,10 @@ export default function Login() {
               <div>
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-bixcolor-default px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-bixcolor-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bixcolor-default"
+                  disabled={isLoading}
+                  className="flex w-full justify-center rounded-md bg-primary px-4 py-3 text-sm/6 font-semibold text-primary-foreground shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  Accedi
+                  {isLoading ? 'Accesso in corso...' : 'Accedi'}
                 </button>
               </div>
             </form>

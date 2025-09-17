@@ -21,6 +21,7 @@ import { AppContext } from "@/context/appContext"
 import { Menu as HMenu, MenuButton, MenuItems, MenuItem } from "@headlessui/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { logoutUser } from "@/utils/auth"
 
 const isDev = false
 
@@ -385,7 +386,8 @@ export default function Sidebar({}: PropsInterface) {
                   <div className="my-1 h-px bg-gray-200" />
                   <MenuItem>
                     <a
-                      href="#"
+                      href="/login"
+                      onClick={logoutUser}
                       className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
                     >
                       <div className="flex items-center gap-2">

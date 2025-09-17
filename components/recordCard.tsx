@@ -328,16 +328,22 @@ export default function RecordCard({
 
               <div className=" w-full">
                 <div className="h-1/6 w-full flex justify-between items-center px-4 mb-2">
-                  <div className="flex-grow">
-                    {activeServer !== 'belotti' && (
-                      <button
-                        onClick={() => setShowInfoPopup(!showInfoPopup)}
-                        title="Mostra info"
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
-                      >
-                        <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                      </button>
-                    )}
+                  <div className="flex-grow flex items-center gap-4">
+                    {/* X ALWAYS VISIBLE */}
+                    <button
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
+                      onClick={handleRemoveCard}
+                      title="Chiudi"
+                    >
+                      <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                    </button>
+                    <button
+                      onClick={() => setIsMaximized(!isMaximized)}
+                      title="Ingrandisci"
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
+                    >
+                      <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700 rotate-90" />
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-4 w-full justify-end">
@@ -368,14 +374,6 @@ export default function RecordCard({
                         </div>
 
                         <button
-                          onClick={() => setIsMaximized(!isMaximized)}
-                          title="Ingrandisci"
-                          className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
-                        >
-                          <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                        </button>
-
-                        <button
                           className="p-2 rounded-full hover:bg-gray-200 transition-colors hover:scale-110"
                           onClick={handleTrashClick}
                           title="Elimina"
@@ -385,14 +383,15 @@ export default function RecordCard({
                       </>
                     )}
 
-                    {/* X ALWAYS VISIBLE */}
-                    <button
-                      className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
-                      onClick={handleRemoveCard}
-                      title="Chiudi"
-                    >
-                      <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                    </button>
+                    {activeServer !== 'belotti' && (
+                      <button
+                        onClick={() => setShowInfoPopup(!showInfoPopup)}
+                        title="Mostra info"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
+                      >
+                        <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                      </button>
+                    )}
                   </div>
                 </div>
 

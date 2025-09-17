@@ -178,12 +178,14 @@ export interface LogoutResponse {
 export async function logoutUser(): Promise<LogoutResponse> {
   try {
     const csrfToken = getCookie('csrftoken');
-    const response = await axiosInstance.post('/auth/logout/', null, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken || '',
+    const response = await axiosInstanceClient.post('/postApi', 
+      {
+        apiRoute: 'logout',
       },
-    });
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      }
+    );
     return response.data;
   } catch (error: any) {
     console.error('Errore durante il logout', error);

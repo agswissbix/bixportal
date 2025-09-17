@@ -125,8 +125,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   }, [currentValues, responseData?.fields, updatedFields]);
 
 
-  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
-    setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
+  const handleInputChange2 = (fieldid: string, newValue: any | any[]) => {
   };
   
   // NUOVA FUNZIONE: Gestisce il toggle degli accordion
@@ -192,25 +191,66 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   }, [loading]);
 
   // NUOVA FUNZIONE: Componente riutilizzabile per renderizzare un singolo campo
-  const renderField = (field: FieldInterface) => {
-    const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
-    const initialValue = rawValue ?? '';
-    const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
+  // NUOVA FUNZIONE: Componente riutilizzabile per renderizzare un singolo campo
+const renderField = (field: FieldInterface) => {
+  const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
+  const initialValue = rawValue ?? '';
+  const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
+  
+  // Verifica se il campo obbligatorio è vuoto
+  const currentValue = currentValues[field.fieldid];
+  const isNewRecord = recordid === undefined || recordid === null || recordid === '';
+  var isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
+  const isRequiredEmpty = isNewRecord && isRequired && isEmpty;
+  const isRequiredFilled = isNewRecord && isRequired && !isEmpty;
 
-    return (
-      <div key={`${field.fieldid}-container`} className="flex items-center space-x-4 w-full">
-        <div className="w-1/4">
-            <p
-                data-tooltip-id="my-tooltip"
-                data-tooltip-content={field.fieldid}
-                data-tooltip-place="left"
-                className="text-black"
-            >
-                {field.description}
-                {isRequired && <span className="text-red-700">*</span>}
-            </p>
+  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
+    isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
+    setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
+  };
+
+  return (
+    <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
+      {/* Label con indicatori migliorati */}
+      <div className="w-1/4 pt-2">
+        <div className="flex items-center gap-1">
+          {/* Indicatore di stato per campi obbligatori */}
+          {isRequired && isNewRecord && (
+            <div className={`w-1 h-4 rounded-full mr-1 ${
+              isRequiredEmpty ? 'bg-red-500' : 
+              isRequiredFilled ? 'bg-green-500' : ''
+            }`} />
+          )}
+          
+          <p
+            data-tooltip-id="my-tooltip"
+            data-tooltip-content={`${field.fieldid}${isRequired ? ' (Campo obbligatorio)' : ''}`}
+            data-tooltip-place="left"
+            className={`text-sm font-medium ${
+              isRequired ? 'text-gray-900' : 'text-gray-700'
+            }`}
+          >
+            {field.description}
+            {isRequired && (
+              <span className="text-red-600 ml-1 text-base">*</span>
+            )}
+          </p>
         </div>
-        <div className="w-3/4">
+      </div>
+      
+      {/* Input con bordi dinamici */}
+      <div className={`w-3/4 relative transition-all duration-200 rounded-md ${
+        isRequiredEmpty ? 'ring-2 ring-red-500/20' : 
+        isRequiredFilled ? 'ring-2 ring-green-500/20' : ''
+      }`}>
+        {/* Container con stili dinamici per l'input */}
+        <div className={`${
+          isRequiredEmpty ? 
+            '[&>*]:!border-red-400 [&>*]:!border-radius-25 [&>*]:focus:!border-red-500 [&>*]:focus:!ring-red-500/20' : 
+          isRequiredFilled ? 
+            '[&>*]:!border-green-400 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20' :
+            ''
+        }`}>
           {field.fieldtype === 'Parola' ? (
             <InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
@@ -255,9 +295,21 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
             />
           ) : null}
         </div>
+        
+        {/* Icona di stato sovrapposta */}
+        {isRequired && (
+          <div className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs ${
+            isRequiredEmpty ? 'bg-red-500' : 
+            isRequiredFilled ? 'bg-green-500' : 
+            ''
+          }`}>
+            {isRequiredEmpty ? '!' : isRequiredFilled ? '✓' : '*'}
+          </div>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
