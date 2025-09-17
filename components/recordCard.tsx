@@ -42,6 +42,8 @@ export default function RecordCard({
   total = 1,
 }: PropsInterface) {
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
+  const headerRef = React.useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
   const { removeCard, setOpenSignatureDialog, openSignatureDialog } = useRecordsStore();
@@ -187,6 +189,22 @@ export default function RecordCard({
     });
   };
 
+  useEffect(() => {
+    if (!headerRef.current) return;
+
+    const updateHeight = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.getBoundingClientRect().height);
+      }
+    };
+
+    // calcola subito
+    updateHeight();
+    // ricalcola al resize
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
   // render: two main modes (mobile centered modal-like vs desktop right-side card)
   // COMMON: keep header (info, funzioni, maximize, trash, close) and CardTabs below
   // Pass mobileView to CardTabs to allow child to adapt (if implemented)
@@ -329,7 +347,7 @@ export default function RecordCard({
                 </div>
               )}
 
-              <div className=" w-full">
+              <div className=" w-full" ref={headerRef}>
                 <div className="h-1/6 w-full flex justify-between items-center px-4 mb-2">
                   <div className="flex-grow flex items-center gap-4">
                     {/* X ALWAYS VISIBLE */}
@@ -407,7 +425,13 @@ export default function RecordCard({
                   ) : null}
               </div>
 
-              <div className="h-5/6 w-full overflow-auto">
+                {/* CardTabs container with dynamic height */}
+                <div
+                className="w-full overflow-auto"
+                style={{
+                  height: `calc(100% - ${headerHeight}px)`, // 120px is approx header + badge height, adjust as needed
+                }}
+                >
                 <CardTabs
                   tableid={tableid}
                   recordid={recordid}
@@ -415,7 +439,7 @@ export default function RecordCard({
                   masterrecordid={masterrecordid}
                   // mobileView={false}
                 />
-              </div>
+                </div>
             </div>
           )}
           {/* Signature dialog - reuse component */}

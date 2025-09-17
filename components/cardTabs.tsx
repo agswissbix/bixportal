@@ -31,6 +31,9 @@ const isDev = false;
 export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
     const isNewRecord = !recordid;
 
+    const tabsRef = React.useRef<HTMLDivElement>(null);
+    const [tabsHeight, setTabsHeight] = useState(0);
+
     const responseDataDEFAULT: ResponseInterface = {
         cardTabs: isNewRecord ? ['Campi'] : [],
         activeTab: 'Campi'
@@ -68,13 +71,29 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         }
     }, [response]);
 
+    useEffect(() => {
+        if (!tabsRef.current) return;
+    
+        const updateHeight = () => {
+          if (tabsRef.current) {
+            setTabsHeight(tabsRef.current.getBoundingClientRect().height);
+          }
+        };
+    
+        // calcola subito
+        updateHeight();
+        // ricalcola al resize
+        window.addEventListener("resize", updateHeight);
+        return () => window.removeEventListener("resize", updateHeight);
+      }, []);
+
     return (
         <GenericComponent>
             {(data) => (
                 <div className="h-full">
                     {/* Tabs */}
                     {!isNewRecord && (
-                      <div className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
+                      <div ref={tabsRef} className="h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
                         <ul className="flex flex-wrap -mb-px relative">
                           {responseData.cardTabs.map((tab, index) => (
                             <li key={index} className="me-2">
@@ -96,7 +115,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
 
 
                     {/* Tab Content */}
-                    <div className="h-5/6 p-4">
+                    <div className=" p-4" style={{ height: `calc(100% - ${tabsHeight}px)` }}>
                     {/* Mostra solo CardFields se recordid è nullo */}
                     {isNewRecord ? (
                       <CardFields
