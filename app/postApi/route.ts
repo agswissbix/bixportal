@@ -168,6 +168,7 @@ export async function POST(request: Request) {
     case 'get_services_activemind': djangoUrl = '/customapp_swissbix/get_services_activemind/'; break;
     case 'get_conditions_activemind': djangoUrl = '/customapp_swissbix/get_conditions_activemind/'; break;
     case 'sign_timesheet': djangoUrl = '/commonapp/sign_timesheet/'; break;
+    case 'get_table_records_kanban': djangoUrl = '/commonapp/get_table_records_kanban/'; break;
 
     default:
       return NextResponse.json(
