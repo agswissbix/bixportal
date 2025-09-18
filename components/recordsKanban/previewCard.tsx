@@ -1,6 +1,7 @@
 import React from "react"
 import { Maximize2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface Task {
   recordid: string
@@ -26,9 +27,15 @@ export default function Preview({ task, onRowClick }: PropsInterface) {
       <CardContent className="p-4">
         {/* Titolo = primo campo dei fields */}
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-base text-gray-800 dark:text-gray-200 truncate">
-            {firstFieldValue || "Senza titolo"}
-          </h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <h3 className="font-semibold text-base text-gray-800 dark:text-gray-200 truncate">
+                {firstFieldValue || "Senza titolo"}
+              </h3>
+            </TooltipTrigger>
+            <TooltipContent>{firstFieldValue || "Senza titolo"}</TooltipContent>
+          </Tooltip>
+          
 
           <button
             type="button"
@@ -46,17 +53,19 @@ export default function Preview({ task, onRowClick }: PropsInterface) {
         {/* Campi dinamici */}
         <div className="space-y-1">
           {task.fields &&
-            Object.entries(task.fields).map(([key, value]) => (
-              <div
-                key={`${task.recordid}-${key}`}
-                className="flex text-sm justify-between"
-              >
-                <span className="text-gray-500 mr-1">{key}:</span>
-                <span className="text-gray-800 dark:text-gray-200 text-right font-medium">
-                  {value || "-"}
-                </span>
-              </div>
-            ))}
+            Object.entries(task.fields).map(([key, value]) =>
+              key !== firstFieldKey ? (
+                <div
+                  key={`${task.recordid}-${key}`}
+                  className="flex text-sm justify-between"
+                >
+                  <span className="text-gray-500 mr-1">{key}:</span>
+                  <span className="text-gray-800 dark:text-gray-200 text-right font-medium">
+                    {value || "-"}
+                  </span>
+                </div>
+              ) : null
+            )}
         </div>
       </CardContent>
     </Card>
