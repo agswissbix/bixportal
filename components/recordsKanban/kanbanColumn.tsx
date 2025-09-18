@@ -65,8 +65,12 @@ export function KanbanColumn({column, onDragStart, onDragEnd, onDrop}: KanbanCol
           <span className="bg-white text-gray-600 text-xs px-2 py-1 rounded-full">{column.tasks.length}</span>
         </div>
         <div className="text-xs text-gray-700">
-          Totale Fatture: {2000}<br />
-          Margine totale: {800}
+          {column.aggregatefunctions.map((aggregatefunction) => (
+            <>
+            Margine totale: {800}
+            </>
+          ))}
+          
           {/* TODO implementare calcolo di cose personalizzate */}
         </div>
       </div>
