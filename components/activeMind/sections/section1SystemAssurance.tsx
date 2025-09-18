@@ -50,7 +50,7 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader>
           <CardTitle className="flex items-center text-blue-900">
-            <Shield className="w-5 h-5 mr-2" />
+            <Shield className="w-8 h-8 md:w-6 md:h-6 lg:w-5 lg:h-5 mr-2" />
             System Assurance tramite RMM di sistema
           </CardTitle>
         </CardHeader>
@@ -67,7 +67,7 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <FileText className="w-5 h-5 mr-2" />
+            <FileText className="w-12 h-12 md:w-6 md:h-6 lg:w-5 lg:h-5 mr-2" />
             Implementazione degli agent RMM (Remote Monitoring and Management)
           </CardTitle>
         </CardHeader>

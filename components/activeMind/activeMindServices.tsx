@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -38,7 +38,8 @@ interface ServiceData {
   }
   section3: {
     selectedFrequency: string,
-    exponentPrice?: number
+    exponentPrice?: number,
+    operationsPerYear?: number,
   }
 }
 
@@ -58,7 +59,7 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
   const [serviceData, setServiceData] = useState<ServiceData>({
     section1: { selectedTier: "", price: 0 },
     section2: {},
-    section3: { selectedFrequency: "monthly", exponentPrice: 1 },
+    section3: { selectedFrequency: "monthly", exponentPrice: 1, operationsPerYear: 12 },
   })
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
 
