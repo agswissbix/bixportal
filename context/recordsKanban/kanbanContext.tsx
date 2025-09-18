@@ -12,89 +12,6 @@ title: "Il Mio Progetto",
 columns: [],
 }
 
-const responseDataDEV: KanbanBoard = {
-id: "1",
-title: "Il Mio Progetto",
-columns: [
-    {
-    id: "todo",
-    title: "Da Fare",
-    color: "bg-gray-300",
-    order: 0,
-    editable: true,
-    tasks: [
-      {
-        recordid: "1",
-        css: "border-l-4 border-red-500",
-        fields: {
-            "Product name": "Macbook",
-            Color: "nero",
-            Price: "2k",
-        },
-      },
-      {
-        recordid: "2",
-        css: "border-l-4 border-yellow-500",
-        fields: {
-            "Product name": "iPhone",
-            Color: "bianco",
-            Price: "1k",
-        },
-      }
-    ],
-    },
-    {
-    id: "in-progress",
-    title: "In Corso",
-    color: "bg-blue-100",
-    order: 1,
-    editable: true,
-    tasks: [
-        {
-        recordid: "3",
-        css: "border-l-4 border-blue-500",
-        fields: {
-            "Product name": "iPad",
-            Color: "grigio",
-            Price: "1.5k",
-        }
-        },
-    ],
-    },
-    {
-    id: "review",
-    title: "In Revisione",
-    color: "bg-yellow-100",
-    order: 2,
-    editable: true,
-    tasks: [
-        {
-        recordid: "4",
-        css: "border-l-4 border-purple-500",
-        },
-    ],
-    },
-    {
-    id: "done",
-    title: "Completato",
-    color: "bg-green-100",
-    order: 3,
-    editable: true,
-    tasks: [
-        {
-        recordid: "5",
-        css: "border-l-4 border-green-500",
-        fields: {
-            "Product name": "Apple Watch",
-            Color: "nero",
-            Price: "500",
-        }
-        },
-    ],
-    },
-],
-}
-
 
 // 1. Definiamo il tipo del contesto
 type KanbanContextType = {
@@ -124,7 +41,7 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
 	const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
 	const [editingTask, setEditingTask] = useState<Task | null>(null)
 	const [selectedColumnId, setSelectedColumnId] = useState<string>("")
-  const [board, setBoard] = useState<KanbanBoard>(responseDataDEV)
+  const [board, setBoard] = useState<KanbanBoard>(responseDataDEFAULT)
   
     const moveTask = useCallback(
       (taskId: string, sourceColumnId: string, destinationColumnId: string, destinationIndex: number) => {

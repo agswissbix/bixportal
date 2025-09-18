@@ -8,6 +8,7 @@ import { useRecordsStore } from "@/components/records/recordsStore"
 import GenericComponent from "@/components/genericComponent"
 import { KanbanProvider } from "@/context/recordsKanban/kanbanContext"
 import { useKanbanContext } from "@/hooks/useKanban";
+import type { KanbanBoard as KanbanBoardType } from "./types/kanban";
 
 const isDev = false
 const devApiDelay = 1500
@@ -25,8 +26,97 @@ interface PropsInterface {
     order?: { columnDesc: string | null; direction: 'asc' | 'desc' | null; };
 }
 
+const responseDataDEFAULT: KanbanBoardType = {
+id: "1",
+title: "Il Mio Progetto",
+columns: [],
+}
+
+const responseDataDEV: KanbanBoardType = {
+id: "1",
+title: "Il Mio Progetto",
+columns: [
+    {
+    id: "todo",
+    title: "Da Fare",
+    color: "bg-gray-300",
+    order: 0,
+    editable: true,
+    tasks: [
+      {
+        recordid: "1",
+        css: "border-l-4 border-red-500",
+        fields: {
+            "Product name": "Macbook",
+            Color: "nero",
+            Price: "2k",
+        },
+      },
+      {
+        recordid: "2",
+        css: "border-l-4 border-yellow-500",
+        fields: {
+            "Product name": "iPhone",
+            Color: "bianco",
+            Price: "1k",
+        },
+      }
+    ],
+    },
+    {
+    id: "in-progress",
+    title: "In Corso",
+    color: "bg-blue-100",
+    order: 1,
+    editable: true,
+    tasks: [
+        {
+        recordid: "3",
+        css: "border-l-4 border-blue-500",
+        fields: {
+            "Product name": "iPad",
+            Color: "grigio",
+            Price: "1.5k",
+        }
+        },
+    ],
+    },
+    {
+    id: "review",
+    title: "In Revisione",
+    color: "bg-yellow-100",
+    order: 2,
+    editable: true,
+    tasks: [
+        {
+        recordid: "4",
+        css: "border-l-4 border-purple-500",
+        },
+    ],
+    },
+    {
+    id: "done",
+    title: "Completato",
+    color: "bg-green-100",
+    order: 3,
+    editable: true,
+    tasks: [
+        {
+        recordid: "5",
+        css: "border-l-4 border-green-500",
+        fields: {
+            "Product name": "Apple Watch",
+            Color: "nero",
+            Price: "500",
+        }
+        },
+    ],
+    },
+],
+}
+
 export default function KanbanPage({ tableid, searchTerm, filters, view, context, pagination, order, masterTableid, masterRecordid }: PropsInterface) {
-  const [responseData, setResponseData] = useState<ResponseInterface>();
+  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
   const [devLoading, setDevLoading] = useState(isDev);
 
   const { refreshTable, handleRowClick } = useRecordsStore();
@@ -48,7 +138,6 @@ export default function KanbanPage({ tableid, searchTerm, filters, view, context
       if (isDev) {
           setDevLoading(true);
           const timer = setTimeout(() => {
-              setResponseData(undefined);
               setDevLoading(false);
           }, devApiDelay);
           return () => clearTimeout(timer);
@@ -57,7 +146,7 @@ export default function KanbanPage({ tableid, searchTerm, filters, view, context
 
   useEffect(() => {
       if (!isDev && response) {
-          setResponseData(response);
+        setResponseData(response);
       }
   }, [response]);
 
@@ -67,7 +156,7 @@ export default function KanbanPage({ tableid, searchTerm, filters, view, context
     <GenericComponent response={responseData} loading={loading} error={error} title='recordsKanban' elapsedTime={elapsedTime}>
       {(response: ResponseInterface) => (
         <KanbanProvider>
-          <div className="h-screen">
+          <div className="h-full">
             <KanbanBoard boardProp={response} />
           </div>
         </KanbanProvider>
