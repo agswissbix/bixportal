@@ -31,6 +31,12 @@ export interface Task {
   fields?: { [key: string]: string }
 }
 
+export interface AggregateFunction {
+  title: string
+  value: string
+}
+
+
 export interface Column {
   id: string
   title: string
@@ -38,6 +44,7 @@ export interface Column {
   tasks: Task[]
   order: number
   editable?: boolean
+  aggregatefunctions: AggregateFunction[]
 }
 
 export interface KanbanBoard {

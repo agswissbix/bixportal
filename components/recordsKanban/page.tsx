@@ -10,7 +10,7 @@ import { KanbanProvider } from "@/context/recordsKanban/kanbanContext"
 import { useKanbanContext } from "@/hooks/useKanban";
 import type { KanbanBoard as KanbanBoardType } from "./types/kanban";
 
-const isDev = true
+const isDev = false
 const devApiDelay = 1500
 
 interface PropsInterface {
@@ -62,6 +62,7 @@ columns: [
         },
       }
     ],
+    aggregatefunctions: []
     },
     {
     id: "in-progress",
@@ -80,6 +81,7 @@ columns: [
         }
         },
     ],
+    aggregatefunctions: []
     },
     {
     id: "review",
@@ -93,6 +95,7 @@ columns: [
         css: "border-l-4 border-purple-500",
         },
     ],
+    aggregatefunctions: []
     },
     {
     id: "done",
@@ -111,6 +114,7 @@ columns: [
         }
         },
     ],
+    aggregatefunctions: []
     },
 ],
 }
