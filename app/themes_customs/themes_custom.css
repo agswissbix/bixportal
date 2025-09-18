@@ -80,7 +80,7 @@
 
   /* Navigation and sidebar */
   --navbar-background: #6366f1;
-  --sidebar-background: linear-gradient(180deg, #4c1d95 90%, #6366f1 200%);
+  --sidebar-background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
   --sidebar-text: #a5b4fc;
 
   /* Table styling */
