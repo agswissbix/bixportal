@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useContext, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useContext, useCallback, useLayoutEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
 import CardBadge from './cardBadge';
@@ -189,21 +189,46 @@ export default function RecordCard({
     });
   };
 
-  useEffect(() => {
-    if (!headerRef.current) return;
+  useLayoutEffect(() => {
+  if (typeof window === 'undefined') return;
+  const el = headerRef.current;
+  if (!el) return;
 
-    const updateHeight = () => {
-      if (headerRef.current) {
-        setHeaderHeight(headerRef.current.getBoundingClientRect().height);
-      }
-    };
+  const compute = () => {
+    const rect = el.getBoundingClientRect();
+    // se vuoi includere margin-bottom (es se header ha margin che deve essere conteggiata)
+    const style = window.getComputedStyle(el);
+    const marginBottom = parseFloat(style.marginBottom || '0') || 0;
+    setHeaderHeight(Math.ceil(rect.height + marginBottom));
+  };
 
-    // calcola subito
-    updateHeight();
-    // ricalcola al resize
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
+  // misura immediata (sincrona)
+  compute();
+
+  // osserva i cambiamenti di dimensione (copre anche cambi di contenuto asincroni)
+  let ro: ResizeObserver | undefined;
+  if ((window as any).ResizeObserver) {
+    ro = new ResizeObserver(() => {
+      // debounce tramite rAF per evitare troppi re-render rapidi
+      requestAnimationFrame(compute);
+    });
+    ro.observe(el);
+  } else {
+    // fallback: ricalcola al resize della finestra
+    const onResize = () => compute();
+    window.addEventListener('resize', onResize);
+    // cleanup rimuove listener in return
+    return () => window.removeEventListener('resize', onResize);
+  }
+
+  // piccolo catch-all: rifai la misura al prossimo frame (utile per casi particolari)
+  const rafId = requestAnimationFrame(compute);
+
+  return () => {
+    if (ro) ro.disconnect();
+    cancelAnimationFrame(rafId);
+  };
+}, []);
 
   // render: two main modes (mobile centered modal-like vs desktop right-side card)
   // COMMON: keep header (info, funzioni, maximize, trash, close) and CardTabs below

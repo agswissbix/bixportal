@@ -1,4 +1,4 @@
-import React, { useMemo, useContext, useState, useEffect } from 'react';
+import React, { useMemo, useContext, useState, useEffect, useLayoutEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -71,21 +71,46 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         }
     }, [response]);
 
-    useEffect(() => {
-        if (!tabsRef.current) return;
+    useLayoutEffect(() => {
+      if (typeof window === 'undefined') return;
+      const el = tabsRef.current;
+      if (!el) return;
     
-        const updateHeight = () => {
-          if (tabsRef.current) {
-            setTabsHeight(tabsRef.current.getBoundingClientRect().height);
-          }
-        };
+      const compute = () => {
+        const rect = el.getBoundingClientRect();
+        // se vuoi includere margin-bottom (es se header ha margin che deve essere conteggiata)
+        const style = window.getComputedStyle(el);
+        const marginBottom = parseFloat(style.marginBottom || '0') || 0;
+        setTabsHeight(Math.ceil(rect.height + marginBottom));
+      };
     
-        // calcola subito
-        updateHeight();
-        // ricalcola al resize
-        window.addEventListener("resize", updateHeight);
-        return () => window.removeEventListener("resize", updateHeight);
-      }, []);
+      // misura immediata (sincrona)
+      compute();
+    
+      // osserva i cambiamenti di dimensione (copre anche cambi di contenuto asincroni)
+      let ro: ResizeObserver | undefined;
+      if ((window as any).ResizeObserver) {
+        ro = new ResizeObserver(() => {
+          // debounce tramite rAF per evitare troppi re-render rapidi
+          requestAnimationFrame(compute);
+        });
+        ro.observe(el);
+      } else {
+        // fallback: ricalcola al resize della finestra
+        const onResize = () => compute();
+        window.addEventListener('resize', onResize);
+        // cleanup rimuove listener in return
+        return () => window.removeEventListener('resize', onResize);
+      }
+    
+      // piccolo catch-all: rifai la misura al prossimo frame (utile per casi particolari)
+      const rafId = requestAnimationFrame(compute);
+    
+      return () => {
+        if (ro) ro.disconnect();
+        cancelAnimationFrame(rafId);
+      };
+    }, []);
 
     return (
         <GenericComponent>
