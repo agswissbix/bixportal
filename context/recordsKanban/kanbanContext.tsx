@@ -116,6 +116,8 @@ type KanbanContextType = {
 	setEditingTask: (task: Task | null)=> void
 }
 
+
+
 export const KanbanContext = createContext<KanbanContextType | undefined>(undefined)
 
 export function KanbanProvider({ children }: { children: ReactNode }) {

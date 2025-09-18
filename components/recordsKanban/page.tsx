@@ -9,7 +9,7 @@ import GenericComponent from "@/components/genericComponent"
 import { KanbanProvider } from "@/context/recordsKanban/kanbanContext"
 import { useKanbanContext } from "@/hooks/useKanban";
 
-const isDev = true
+const isDev = false
 const devApiDelay = 1500
 
 interface PropsInterface {
