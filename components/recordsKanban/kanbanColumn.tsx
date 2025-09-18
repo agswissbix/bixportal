@@ -66,9 +66,9 @@ export function KanbanColumn({column, onDragStart, onDragEnd, onDrop}: KanbanCol
         </div>
         <div className="text-xs text-gray-700">
           {column.aggregatefunctions.map((aggregatefunction) => (
-            <>
-            Margine totale: {800}
-            </>
+            <div key={aggregatefunction.title} >
+              {aggregatefunction.title}: {aggregatefunction.value}
+            </div>
           ))}
           
           {/* TODO implementare calcolo di cose personalizzate */}

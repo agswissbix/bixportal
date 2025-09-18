@@ -53,7 +53,7 @@ export function KanbanBoard({ boardProp }: { boardProp: KanbanBoard }) {
   return (
     <div className="h-full flex flex-col">
       {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto bg-gray-100 rounded-lg">
+      <div className="flex-1 overflow-x-auto  rounded-lg">
         <div className="flex gap-6 p-6 h-full min-w-max">
           {board.columns
             .sort((a, b) => a.order - b.order)

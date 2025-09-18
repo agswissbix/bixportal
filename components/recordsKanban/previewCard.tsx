@@ -22,7 +22,7 @@ export default function Preview({ task, onRowClick }: PropsInterface) {
 
   return (
     <Card
-      className={`transition-all duration-200 hover:shadow-md ${task.css || ""}`}
+      className={`bg-white transition-all duration-200 hover:shadow-md ${task.css || ""}`}
     >
       <CardContent className="p-4">
         {/* Titolo = primo campo dei fields */}
