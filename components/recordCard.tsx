@@ -303,7 +303,7 @@ export default function RecordCard({
                       onClick={handleTrashClick}
                       title="Elimina"
                     >
-                      <Trash2 className="w-5 h-5 text-primary hover:text-red-500" />
+                      <Trash2 className="w-5 h-5 text-red-500 hover:text-red-700" />
                     </button>
                   </div>
                 </div>
@@ -420,7 +420,7 @@ export default function RecordCard({
                         </div>
 
                         <button
-                          className="p-2 rounded-full hover:bg-gray-200 transition-colors hover:scale-110"
+                          className="p-2 rounded-full hover:bg-red-100 hover:scale-110 transition-colors hover:scale-110"
                           onClick={handleTrashClick}
                           title="Elimina"
                         >
