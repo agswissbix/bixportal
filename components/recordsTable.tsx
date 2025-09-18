@@ -407,7 +407,7 @@ export default function RecordsTable({
                   ${
                     // sticky only first column
                     index === 0
-                      ? "sticky left-0 "
+                      ? "sticky left-0 bg-table-background"
                       : ""
                   }
                 `}
