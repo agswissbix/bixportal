@@ -21,8 +21,7 @@ export default function Preview({ task, onRowClick }: PropsInterface) {
 
   return (
     <Card
-      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${task.css || ""}`}
-      onClick={() => onRowClick(task.recordid)}
+      className={`transition-all duration-200 hover:shadow-md ${task.css || ""}`}
     >
       <CardContent className="p-4">
         {/* Titolo = primo campo dei fields */}

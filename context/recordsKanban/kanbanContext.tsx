@@ -8,7 +8,7 @@ import type { KanbanBoard, Task, Column } from "@/components/recordsKanban/types
   
 const responseDataDEFAULT: KanbanBoard = {
 id: "1",
-title: "Il Mio Progetto",
+isDraggable: false,
 columns: [],
 }
 

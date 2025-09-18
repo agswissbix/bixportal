@@ -42,7 +42,7 @@ export interface Column {
 
 export interface KanbanBoard {
   id: string
-  title: string
+  isDraggable?: boolean
   columns: Column[]
 }
 

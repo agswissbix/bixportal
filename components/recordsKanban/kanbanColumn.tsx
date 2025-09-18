@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { use, useEffect, useState } from "react"
 import { useKanbanContext } from "@/hooks/useKanban"
+import { on } from "events"
 
 interface KanbanColumnProps {
   column: Column
@@ -78,8 +79,13 @@ export function KanbanColumn({column, onDragStart, onDragEnd, onDrop}: KanbanCol
       >
         
         {column.tasks.map((task) => (
+          (onDragStart && onDragEnd && onDrop) ? 
           <div key={task.recordid} draggable onDragStart={(e) => handleDragStart(e, task.recordid)} onDragEnd={handleDragEnd}>
             <TaskCard task={task} isDragging={draggedTaskId === task.recordid} />
+          </div>
+          :
+          <div key={task.recordid}>
+            <TaskCard task={task} />
           </div>
         ))}
 

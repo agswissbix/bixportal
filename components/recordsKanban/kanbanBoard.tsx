@@ -58,6 +58,7 @@ export function KanbanBoard({ boardProp }: { boardProp: KanbanBoard }) {
           {board.columns
             .sort((a, b) => a.order - b.order)
             .map((column) => (
+              (board.isDraggable ?  
               <KanbanColumn
                 key={column.id}
                 column={column}
@@ -65,6 +66,12 @@ export function KanbanBoard({ boardProp }: { boardProp: KanbanBoard }) {
                 onDragEnd={handleDragEnd}
                 onDrop={handleDrop}
               />
+              :
+              <KanbanColumn
+                key={column.id}
+                column={column}
+              />
+              )
             ))}
             {/* <AddColumnDialog 
                 onAddColumn={handleCreateColumn}

@@ -10,7 +10,7 @@ import { KanbanProvider } from "@/context/recordsKanban/kanbanContext"
 import { useKanbanContext } from "@/hooks/useKanban";
 import type { KanbanBoard as KanbanBoardType } from "./types/kanban";
 
-const isDev = false
+const isDev = true
 const devApiDelay = 1500
 
 interface PropsInterface {
@@ -28,13 +28,13 @@ interface PropsInterface {
 
 const responseDataDEFAULT: KanbanBoardType = {
 id: "1",
-title: "Il Mio Progetto",
+isDraggable: false,
 columns: [],
 }
 
 const responseDataDEV: KanbanBoardType = {
 id: "1",
-title: "Il Mio Progetto",
+isDraggable: true,
 columns: [
     {
     id: "todo",
