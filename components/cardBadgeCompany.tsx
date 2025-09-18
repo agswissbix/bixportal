@@ -6,7 +6,7 @@ import ImagePreview from './imagePreview';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
 interface PropsInterface {
@@ -52,7 +52,7 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
-      apiRoute: 'get_record_badge',
+      apiRoute: 'get_record_badge_swissbix_company',
       tableid: tableid,
       recordid: recordid,
     };
