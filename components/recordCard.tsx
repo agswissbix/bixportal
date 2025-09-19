@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useContext, useCallback, useLayout
 import { useRecordsStore } from './records/recordsStore';
 import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
 import CardBadge from './cardBadge';
-import CardBadgeStabile from './cardBadgeStabile';
+import CardBadgeStabile from './customBadges/cardBadgeStabile';
 import CardTabs from './cardTabs';
 import { toast, Toaster } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
@@ -12,7 +12,9 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import {SignatureDialog} from './signatureDialog';
 import { sign } from 'crypto';
-import CardBadgeCompany from './cardBadgeCompany';
+import CardBadgeCompany from './customBadges/cardBadgeCompany';
+import CardBadgeDeal from './customBadges/cardBadgeDeal';
+import CardBadgeProject from './customBadges/cardBadgeProject';
 
 const isDev = false;
 
@@ -445,6 +447,10 @@ export default function RecordCard({
                     <CardBadgeStabile tableid={tableid} recordid={recordid} />
                   ) : tableid === 'company' ? (
                     <CardBadgeCompany tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'deal' ? (
+                    <CardBadgeDeal tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'project' ? (
+                    <CardBadgeProject tableid={tableid} recordid={recordid} />
                   ) : activeServer !== 'belotti' ? (
                     <CardBadge tableid={tableid} recordid={recordid} />
                   ) : null}

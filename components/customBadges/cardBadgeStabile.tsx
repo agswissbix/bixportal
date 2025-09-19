@@ -1,8 +1,8 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent';
+import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
-import ImagePreview from './imagePreview';
+import ImagePreview from '../imagePreview';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO

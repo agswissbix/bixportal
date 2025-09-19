@@ -170,6 +170,8 @@ export async function POST(request: Request) {
     case 'sign_timesheet': djangoUrl = '/commonapp/sign_timesheet/'; break;
     case 'get_table_records_kanban': djangoUrl = '/commonapp/get_table_records_kanban/'; break;
     case 'get_record_badge_swissbix_company': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_company/'; break;
+    case 'get_record_badge_swissbix_deals': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_deals/'; break;
+    case 'get_record_badge_swissbix_project': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_project/'; break;
     
 
 

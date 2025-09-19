@@ -1,6 +1,6 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent';
+import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { Crown, ShieldX, OctagonAlert, BadgeCheck, BadgeMinus } from 'lucide-react';
 
@@ -96,22 +96,22 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
   const getCustomerTypeIcon = (type?: string) => {
     switch (type?.toLowerCase()) {
       case 'vip':
-        return <Crown className="w-8 h-8 text-purple-400" />;
+        return <Crown className="w-6 h-6 text-purple-400" />;
       case 'blocked':
-        return <ShieldX className="w-8 h-8 text-red-400" />;
+        return <ShieldX className="w-6 h-6 text-red-400" />;
       case 'warning':
-        return <OctagonAlert className="w-8 h-8 text-orange-400" />;
+        return <OctagonAlert className="w-6 h-6 text-orange-400" />;
       default:
-        return <OctagonAlert className="w-8 h-8 text-gray-400" />;
+        return <OctagonAlert className="w-6 h-6 text-gray-400" />;
     }
   };
 
   const getPaymentStatusIcon = (status?: string) => {
     switch (status?.toLowerCase()) {
       case 'ok':
-        return <BadgeCheck className="w-8 h-8 text-green-400" />;
+        return <BadgeCheck className="w-6 h-6 text-green-400" />;
       default:
-        return <BadgeMinus className="w-8 h-8 text-red-400" />;
+        return <BadgeMinus className="w-6 h-6 text-red-400" />;
     }
   };
 
@@ -139,12 +139,28 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                 </h2>
               </div>
 
-              <div
-                className={`text-primary-foreground transform transition-transform duration-200 ${
-                  isCollapsed ? 'rotate-180' : 'rotate-0'
-                }`}
-              >
-                ▼
+              <div className="flex items-center gap-3">
+                {/* Badge Status nell'header */}
+                <div className="flex items-center gap-2">
+                  {response.badgeItems.payment_status && (
+                    <div className="flex items-center">
+                      {getPaymentStatusIcon(response.badgeItems.payment_status)}
+                    </div>
+                  )}
+                  {response.badgeItems.customer_type && (
+                    <div className="flex items-center">
+                      {getCustomerTypeIcon(response.badgeItems.customer_type)}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className={`text-primary-foreground transform transition-transform duration-200 ${
+                    isCollapsed ? 'rotate-180' : 'rotate-0'
+                  }`}
+                >
+                  ▼
+                </div>
               </div>
             </div>
 
@@ -171,26 +187,6 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                     {response.badgeItems.company_phone && (
                       <div className="text-xs text-primary-foreground opacity-80">
                         📞 {response.badgeItems.company_phone}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Badge Status con icone */}
-                  <div className="flex flex-row justify-center gap-8 mb-3">
-                    {response.badgeItems.payment_status && (
-                      <div className="flex flex-col items-center">
-                        {getPaymentStatusIcon(response.badgeItems.payment_status)}
-                        {/* <span className="text-xs text-primary-foreground opacity-80 mt-1">
-                          {response.badgeItems.payment_status}
-                        </span> */}
-                      </div>
-                    )}
-                    {response.badgeItems.customer_type && (
-                      <div className="flex flex-col items-center">
-                        {getCustomerTypeIcon(response.badgeItems.customer_type)}
-                        {/* <span className="text-xs text-primary-foreground opacity-80 mt-1">
-                          {response.badgeItems.customer_type}
-                        </span> */}
                       </div>
                     )}
                   </div>
