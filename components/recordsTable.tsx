@@ -377,7 +377,7 @@ export default function RecordsTable({
                 {response.rows.map((row) => (
                   <tr
                     key={row.recordid}
-                    className={`theme-table border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
+                    className={`theme-table border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer group hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
                     onClick={() =>
                       handleRowClick &&
                       tableid &&
@@ -407,7 +407,7 @@ export default function RecordsTable({
                   ${
                     // sticky only first column
                     index === 0
-                      ? "sticky left-0 bg-table-background"
+                      ? "sticky left-0 bg-table-background group-hover:bg-records-background z-10"
                       : ""
                   }
                 `}
