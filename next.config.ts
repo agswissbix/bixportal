@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   devIndicators: {
     appIsrStatus: false,     // nasconde il badge "Static/Dynamic route"
     buildActivity: false,    // nasconde lo spinner di compilazione

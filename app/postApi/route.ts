@@ -172,7 +172,15 @@ export async function POST(request: Request) {
     case 'get_record_badge_swissbix_company': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_company/'; break;
     case 'get_record_badge_swissbix_deals': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_deals/'; break;
     case 'get_record_badge_swissbix_project': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_project/'; break;
-    
+    case 'schedule_list': djangoUrl = '/scheduler/get/'; break;
+    case 'schedule_add': djangoUrl = '/scheduler/add/'; break;
+    case 'schedule_save': djangoUrl = '/scheduler/save/'; break; 
+    case 'schedule_toggle': djangoUrl = `/scheduler/toggle/`; break;
+    case 'schedule_run_now': djangoUrl = `/scheduler/run/`; break;
+    case 'schedule_delete': djangoUrl = `/scheduler/delete/`; break;
+    case 'save_newuser': djangoUrl = `/commonapp/save_newuser/`; break;
+    case 'get_users_and_groups_api': djangoUrl = `/commonapp/get_users_and_groups_api/`; break;
+
 
 
     default:
