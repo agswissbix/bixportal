@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
 
-const NewUserForm = ({ onUserCreated, onCancel }) => { // Aggiunto onUserCreated e onCancel per feedback al genitore
+const NewUserForm = () => {
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
@@ -42,9 +42,6 @@ const NewUserForm = ({ onUserCreated, onCancel }) => { // Aggiunto onUserCreated
 
       if (response.data.success) {
         toast.success('Utente creato con successo! 🎉');
-        if (onUserCreated) onUserCreated(); // Notifica al genitore che l'utente è stato creato
-        // router.push('/dashboard'); // Probabilmente non vogliamo reindirizzare l'intera pagina qui,
-                                   // ma piuttosto tornare alla lista utenti.
       } else {
         toast.error(response.data.error || 'Errore nel salvataggio dell\'utente.');
       }
@@ -109,7 +106,6 @@ const NewUserForm = ({ onUserCreated, onCancel }) => { // Aggiunto onUserCreated
         <div className="flex justify-end space-x-2 mt-4"> {/* Pulsanti affiancati e allineati a destra */}
           <button
             type="button" // Cambiato in type="button" per evitare il submit automatico
-            onClick={onCancel} // Bottone per annullare
             className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
           >
             Annulla

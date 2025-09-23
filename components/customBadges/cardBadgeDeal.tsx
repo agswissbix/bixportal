@@ -171,7 +171,7 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
                       <div className="text-xs text-primary-foreground uppercase tracking-wide mb-1">
                         Importo
                       </div>
-                      <div className="text-lg font-bold text-accent">
+                      <div className="text-lg font-bold"   style={{ color: COLORS[1] }}>
                         {response.badgeItems.deal_amount || '0'} CHF
                       </div>
                     </div>
@@ -179,7 +179,7 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
                       <div className="text-xs text-primary-foreground uppercase tracking-wide mb-1">
                         Margine
                       </div>
-                      <div className="text-lg font-bold text-accent">
+                      <div className="text-lg font-bold"   style={{ color: COLORS[0] }}>
                         {response.badgeItems.deal_effectivemargin || '0'} CHF
                       </div>
                     </div>

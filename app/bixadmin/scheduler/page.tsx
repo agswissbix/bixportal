@@ -334,7 +334,7 @@ export default function SchedulerPage() {
                               onValueChange={(val) => handleFieldChange(s.id, "func", val)}
                             >
                               <SelectTrigger className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md">
-                                <div className="flex items-left space-x-2 max-w-[300px] truncate">
+                                <div className="flex items-left text-left space-x-2 max-w-[300px] truncate">
                                   <SelectValue placeholder="Seleziona funzione" className="truncate" />
                                 </div>
                               </SelectTrigger>

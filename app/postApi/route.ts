@@ -180,6 +180,8 @@ export async function POST(request: Request) {
     case 'schedule_delete': djangoUrl = `/scheduler/delete/`; break;
     case 'save_newuser': djangoUrl = `/commonapp/save_newuser/`; break;
     case 'get_users_and_groups_api': djangoUrl = `/commonapp/get_users_and_groups_api/`; break;
+    case 'save_user_theme_api': djangoUrl = `/commonapp/save_user_settings_api/`; break;
+    case 'get_user_settings_api': djangoUrl = `/commonapp/get_user_settings_api/`; break;
 
 
 

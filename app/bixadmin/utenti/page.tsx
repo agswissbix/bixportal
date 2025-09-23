@@ -4,10 +4,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient'; // Usa la tua istanza
-import NewUserForm from '@/components/admin/newUser'; 
+import NewUserForm from '@/components/admin/users/newUser'; 
 // import NewGroupForm from './NewGroupForm'; 
 import {useApi} from '@/utils/useApi';
 import GenericComponent from '@/components/genericComponent';
+import UserThemeSettings from '@/components/admin/users/settingsUser';
 
 const isDev = false
 
@@ -60,7 +61,7 @@ const UserSettings = () => {
       case 'newGroup':
         // return <NewGroupForm />;
       case 'userSettings':
-        return <div>Impostazioni Utente per: {selectedUser.username}</div>;
+        return <UserThemeSettings userid={selectedUser.id} />;
       case 'groupSettings':
         return <div>Impostazioni Gruppo per: {selectedGroup.username}</div>;
       default:
@@ -90,7 +91,7 @@ const UserSettings = () => {
               <select onChange={(e) => handleUserClick(parseInt(e.target.value))}
                 className="w-full p-2 border rounded-md">
                 <option value="">Seleziona un utente</option>
-                {users.map((user) => (
+                {users.sort((a, b) => a.username.localeCompare(b.username)).map((user) => (
                   <option key={user.id} value={user.id}>{user.username}</option>
                 ))}
               </select>
