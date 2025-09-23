@@ -60,8 +60,9 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
         className="p-2 border rounded-md"
         value={selectedOption}
         onChange={(e) => setSelectedOption(e.target.value)}
-        /*TODO dinamico */
+        /*TODO dinamico TODO GASOLI */
       > 
+        <option value="2025-08">2025-09</option>
         <option value="2025-08">2025-08</option>
         <option value="2025-07">2025-07</option>
         <option value="2025-06">2025-06</option>
