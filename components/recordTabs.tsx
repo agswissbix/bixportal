@@ -92,7 +92,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
           {/* Tab Content */}
           <div className="flex-1 p-4 overflow-auto xl:inline hidden">
             {activeTab === 'Tabella' && (
-              <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
+              <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} filtersList={filtersList} />
             )}
             {activeTab === 'Kanban' && (
               <RecordsKanban tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />

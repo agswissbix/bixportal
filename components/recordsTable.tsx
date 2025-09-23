@@ -77,6 +77,7 @@ export default function RecordsTable({
   level,
   masterTableid,
   masterRecordid,
+  filtersList
 }: PropsInterface) {
   useEffect(() => {
     const unsub = useRecordsStore.subscribe((state, prevState) => {
@@ -237,7 +238,7 @@ export default function RecordsTable({
         columnDesc: columnOrder.columnDesc,
         direction: columnOrder.direction,
       },
-      filtersList: filters,
+      filtersList: filtersList,
       masterTableid: masterTableid,
       masterRecordid: masterRecordid,
       _refreshTick: refreshTable,
@@ -250,7 +251,7 @@ export default function RecordsTable({
     masterRecordid,
     columnOrder.columnDesc,
     columnOrder.direction,
-    filters,
+    filtersList,
   ]);
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)

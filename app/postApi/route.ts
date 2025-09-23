@@ -182,6 +182,8 @@ export async function POST(request: Request) {
     case 'get_users_and_groups_api': djangoUrl = `/commonapp/get_users_and_groups_api/`; break;
     case 'save_user_theme_api': djangoUrl = `/commonapp/save_user_settings_api/`; break;
     case 'get_user_settings_api': djangoUrl = `/commonapp/get_user_settings_api/`; break;
+    case 'get_table_filters': djangoUrl = `/commonapp/get_table_filters/`; break;
+    case 'get_users': djangoUrl = `/commonapp/get_users/`; break;
 
 
 

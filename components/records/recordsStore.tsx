@@ -58,12 +58,8 @@ interface RecordsStore {
         label: string;
         value: string 
     }>;
-    setFiltersList: (filtersList: Array<{
-        fieldid: string;
-        type: string;
-        label: string;
-        value: string
-    }>) => void;
+    setFiltersList: (filtersList: RecordsStore['filtersList']) => void;
+
 
     popUpType: string;
     setPopUpType: (popUpType: string) => void;
@@ -176,12 +172,10 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     setIsFiltersOpen: (isFiltersOpen: boolean) => set({ isFiltersOpen: isFiltersOpen}),
 
     filtersList: [],
-    setFiltersList: (filtersList: Array<{
-        fieldid: string;
-        type: string;
-        label: string;
-        value: string
-    }>) => set({ filtersList }),
+    setFiltersList: (filtersList) => {
+        set({ filtersList });
+        get().setRefreshTable(v => v + 1);
+    },
 
     popUpType: '',
     setPopUpType: (popUpType: string) => set({ popUpType: popUpType }),

@@ -5,9 +5,11 @@ import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { useRecordsStore } from './records/recordsStore';
 import { MoreVertical, X, Plus } from 'lucide-react';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import SelectUser from './selectUser';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const isDev = true;
+const isDev = false;
 
 interface PropsInterface {
     tableid: string;
@@ -18,11 +20,22 @@ interface ResponseInterface {
         fieldid: string;
         type: string;
         label: string;
+        lookupitemsuser?: Array<{ userid: string; firstname: string; lastname: string; }>;
     }>;
 }
 
+// Interfaccia per i dati utente
+interface UserLookupItem {
+    userid: string;
+    firstname: string;
+    lastname: string;
+    link: string;
+    linkdefield: string;
+    linkedvalue: string;
+}
+
+
 export default function TableFilters({ tableid }: PropsInterface) {
-    const devPropExampleValue = isDev ? "Example prop" : tableid;
     const responseDataDEFAULT: ResponseInterface = { filters: [] };
     const responseDataDEV: ResponseInterface = {
         filters: [
@@ -30,24 +43,48 @@ export default function TableFilters({ tableid }: PropsInterface) {
             { fieldid: "Numero", type: "Numero", label: "Numero" },
             { fieldid: "Data", type: "Data", label: "Data" },
             { fieldid: "Text", type: "text", label: "Text" },
+            // Aggiungiamo un filtro di tipo "Utente" per il test
+            { fieldid: "Utente", type: "Utente", label: "Utente" },
         ],
     };
 
     const { user } = useContext(AppContext);
     const { filtersList, setFiltersList } = useRecordsStore();
 
-    const [filterValues, setFilterValues] = useState<Record<string, string[]>>({});
+    const [filterValues, setFilterValues] = useState<Record<string, any[]>>({});
 
     const [responseData, setResponseData] = useState<ResponseInterface>(
         isDev ? responseDataDEV : responseDataDEFAULT
     );
 
-
-
     const [openMenuFieldId, setOpenMenuFieldId] = useState<string | null>(null);
     const [filterConditions, setFilterConditions] = useState<Record<string, string>>({});
 
     const menuRef = useRef<HTMLDivElement | null>(null);
+
+    // ✅ NUOVA CHIAMATA API PER GLI UTENTI
+    const { response: usersResponse, loading: usersLoading, error: usersError } = useApi<{
+        users: UserLookupItem[]
+    }>({
+        apiRoute: 'get_users',
+    });
+    
+    // Stato per la lista degli utenti
+    const [userLookupItems, setUserLookupItems] = useState<UserLookupItem[]>([]);
+
+    useEffect(() => {
+        if (usersResponse?.users) {
+            setUserLookupItems(usersResponse.users);
+        } else if (isDev) {
+            // Dati di dev per l'utente, se `isDev` è true
+            setUserLookupItems([
+                { userid: "1", firstname: "Mario", lastname: "Rossi", link: "utenti", linkdefield: "userid", linkedvalue: "1" },
+                { userid: "2", firstname: "Giulia", lastname: "Bianchi", link: "utenti", linkdefield: "userid", linkedvalue: "2" },
+                { userid: "3", firstname: "Luca", lastname: "Verdi", link: "utenti", linkdefield: "userid", linkedvalue: "3" },
+                { userid: "4", firstname: "Anna", lastname: "Neri", link: "utenti", linkdefield: "userid", linkedvalue: "4" }
+            ]);
+        }
+    }, [usersResponse, isDev]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -59,11 +96,22 @@ export default function TableFilters({ tableid }: PropsInterface) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const addInputForFilter = (fieldid: string) => {
+    const addInputForFilter = (fieldid: string, type: string) => {
         setFilterValues(prev => {
-            const prevArray = prev[fieldid] || [''];
-            // aggiungi un nuovo valore vuoto alla fine
-            return { ...prev, [fieldid]: [...prevArray, ''] };
+            const prevArray = prev[fieldid] || [];
+            let newValue;
+
+            if (type === "Numero") {
+                newValue = { min: '', max: '' };
+            } else if (type === "Data") {
+                newValue = { from: '', to: '' };
+            } else if (type === "Utente") {
+                newValue = []; // Per gli utenti, si inizializza un array vuoto
+            } else {
+                newValue = '';
+            }
+            
+            return { ...prev, [fieldid]: [...prevArray, newValue] };
         });
     };
 
@@ -73,13 +121,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
             updated.splice(indexToRemove, 1);
             return { ...prev, [fieldId]: updated };
         });
-
-        // Rimuove la condizione associata a quell’indice (se presente)
         setFilterConditions((prev) => {
             const updated = { ...prev };
             delete updated[`${fieldId}_${indexToRemove}`];
-
-            // 🔄 Aggiorna anche gli indici successivi per evitare mismatch
             const newUpdated: typeof updated = {};
             Object.entries(updated).forEach(([key, val]) => {
                 if (key.startsWith(`${fieldId}_`)) {
@@ -93,96 +137,75 @@ export default function TableFilters({ tableid }: PropsInterface) {
                     newUpdated[key] = val;
                 }
             });
-
             return newUpdated;
         });
     };
 
-
-    async function sendFiltersToBackend() {
-        const payload = {
-            filters: responseData.filters.map(filter => {
-                const valuesArray = filterValues[filter.fieldid] || [''];
-                const conditionsArray = valuesArray.map((_, idx) =>
-                    filterConditions[`${filter.fieldid}_${idx}`] || "Valore esatto"
-                );
-
-                return {
-                    fieldid: filter.fieldid,
-                    type: filter.type,
-                    label: filter.label,
-                    values: valuesArray,
-                    conditions: conditionsArray,
-                };
-            }),
-        };
-
-        console.log("Invio filtri al backend:", payload);
-
-        try {
-            const response = await fetch('/api/filter', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Errore nella risposta: ${response.status}`);
+    async function applyFilters() {
+        const filters = responseData.filters.map(filter => {
+            const valuesArray = filterValues[filter.fieldid] || [];
+            const conditionsArray = valuesArray.map((_, idx) =>
+                filterConditions[`${filter.fieldid}_${idx}`] || "Valore esatto"
+            );
+            
+            let combinedValue;
+            if (filter.type === "Numero" || filter.type === "Data") {
+                combinedValue = JSON.stringify(valuesArray);
+            } else if (filter.type === "Parola" || filter.type === "text") {
+                combinedValue = valuesArray.join('|');
+            } else if (filter.type === "Utente") {
+                // Per il tipo 'Utente', il valore è un array di ID che serializziamo in JSON.
+                // Così il backend riceve un array di ID da filtrare.
+                combinedValue = JSON.stringify(valuesArray);
+            } else {
+                combinedValue = valuesArray.join('|');
             }
 
-            const data = await response.json();
-            console.log("Risposta backend:", data);
-            return data;
+            if (combinedValue === '[]' || combinedValue === '' || combinedValue === '||') {
+                return null;
+            }
+            
+            return {
+                fieldid: filter.fieldid,
+                type: filter.type,
+                label: filter.label,
+                value: combinedValue,
+                conditions: conditionsArray,
+            };
+        }).filter(Boolean);
 
-        } catch (error) {
-            console.error("Errore invio filtri:", error);
-            return null;
-        }
+        console.log("Applying Filters:", filters);
+        setFiltersList(filters);
     }
-
-
 
     const updateFilter = (
         fieldid: string,
         type: string,
         label: string,
-        value: string,
+        value: any,
         index: number
     ) => {
         setFilterValues(prev => {
             const prevArray = prev[fieldid] || [];
             const newArray = [...prevArray];
+
+            // Aggiorna l'elemento all'indice specificato
             newArray[index] = value;
-
-            // Costruisce il valore combinato aggiornato
-            const combinedValue = newArray.map(v => v || '').join('|');
-
-            // Costruisce il nuovo filtro
-            const newFilter = { fieldid, type, label, value: combinedValue };
-
-            // Rimuove il filtro se tutti i valori sono vuoti o solo separatori
-            const isAllEmpty = combinedValue.trim() === '' || /^(\|)+$/.test(combinedValue);
-
-            if (isAllEmpty) {
-                const updatedFilters = filtersList.filter(filter => filter.fieldid !== fieldid);
-                setFiltersList(updatedFilters);
-            } else {
-                const existingFilterIndex = filtersList.findIndex(filter => filter.fieldid === fieldid);
-                if (existingFilterIndex >= 0) {
-                    const updatedFilters = [...filtersList];
-                    updatedFilters[existingFilterIndex] = newFilter;
-                    setFiltersList(updatedFilters);
-                } else {
-                    setFiltersList([...filtersList, newFilter]);
-                }
+            
+            // Per il tipo "Utente", il `value` è un array di stringhe
+            // Rappresenta gli ID degli utenti selezionati
+            if (type === "Utente") {
+                // Se la selezione multipla è usata, `value` è un array di ID
+                return { ...prev, [fieldid]: value };
             }
 
+            // Per gli altri tipi
             return { ...prev, [fieldid]: newArray };
         });
+        
+        // La logica di aggiornamento della lista dei filtri è ora gestita solo in applyFilters
+        // per evitare rendering eccessivi e logica complessa
     };
-
 
     const toggleConditionMenu = (key: string) => {
         setOpenMenuFieldId(prev => (prev === key ? null : key));
@@ -200,8 +223,8 @@ export default function TableFilters({ tableid }: PropsInterface) {
     };
 
     const { response, loading, error } = !isDev ? useApi<ResponseInterface>({
-        apiRoute: 'examplepost',
-        example1: tableid
+        apiRoute: 'get_table_filters',
+        tableid: tableid
     }) : { response: null, loading: false, error: null };
 
     useEffect(() => {
@@ -212,25 +235,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
 
     const renderConditionMenu = (fieldid: string, type: string) => {
         if (openMenuFieldId !== fieldid) return null;
-
-        const baseConditions = [
-            'Valore esatto',
-            'Diverso da',
-            'Nessun valore',
-            'Almeno un valore'
-        ];
-
-        const dateExtraConditions = [
-            'Oggi',
-            'Questa settimana',
-            'Questo mese',
-            'Passato',
-            'Futuro'
-        ];
-
-        const allConditions = type === 'Data'
-            ? [...baseConditions, ...dateExtraConditions]
-            : baseConditions;
+        const baseConditions = ['Valore esatto', 'Diverso da', 'Nessun valore', 'Almeno un valore'];
+        const dateExtraConditions = ['Oggi', 'Questa settimana', 'Questo mese', 'Passato', 'Futuro'];
+        const allConditions = type === 'Data' ? [...baseConditions, ...dateExtraConditions] : baseConditions;
 
         return (
             <div
@@ -246,16 +253,12 @@ export default function TableFilters({ tableid }: PropsInterface) {
                         {condition}
                     </button>
                 ))}
-
             </div>
-
         );
     };
 
-
-
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}>
+        <GenericComponent response={responseData} loading={loading || usersLoading} error={error || usersError}>
             {(response: ResponseInterface) => (
                 <div className="h- overflow-y-auto p-2 w-full">
                     <div className="space-y-4 relative">
@@ -279,16 +282,12 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                         }
                                                         className="w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                                     />
-
-                                                    {/* Menu condizione */}
                                                     <div className="relative flex items-center">
                                                         <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
                                                             <MoreVertical className="text-gray-500 hover:text-gray-700" />
                                                         </button>
                                                         {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
                                                     </div>
-
-                                                    {/* Bottone ✕ per rimuovere input (solo se più di uno) */}
                                                     {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
                                                         <button
                                                             onClick={() => removeInputForFilter(filter.fieldid, idx)}
@@ -299,7 +298,6 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                         </button>
                                                     )}
                                                 </div>
-
                                                 {filterConditions[`${filter.fieldid}_${idx}`] && (
                                                     <span className="text-xs text-gray-500 ml-1 mt-1">
                                                         Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
@@ -307,11 +305,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                 )}
                                             </div>
                                         ))}
-
-                                        {/* Bottone per aggiungere un nuovo campo */}
                                         <button
                                             type="button"
-                                            onClick={() => addInputForFilter(filter.fieldid)}
+                                            onClick={() => addInputForFilter(filter.fieldid, filter.type)}
                                             className="text-indigo-600 text-sm mt-1 hover:underline"
                                         >
                                             <Plus className="w-4 h-4 inline-block mr-1" />
@@ -319,11 +315,12 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                         </button>
                                     </div>
                                 )}
-
-
                                 {filter.type === "Numero" && (
                                     <div className="flex flex-col gap-4 relative">
-                                        {(filterValues[filter.fieldid] || ['']).map((val, idx) => (
+                                        {(filterValues[filter.fieldid] && filterValues[filter.fieldid].length > 0
+                                            ? filterValues[filter.fieldid]
+                                            : [{ min: '', max: '' }]
+                                        ).map((val, idx) => (
                                             <div key={idx} className="flex flex-col gap-1">
                                                 <div className="flex gap-4 items-center">
                                                     <div className="flex gap-2 items-center w-full">
@@ -346,14 +343,12 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                                         />
                                                     </div>
-
                                                     <div className="relative flex items-center">
                                                         <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
                                                             <MoreVertical className="text-gray-500 hover:text-gray-700" />
                                                         </button>
                                                         {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
                                                     </div>
-
                                                     {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
                                                         <button
                                                             onClick={() => removeInputForFilter(filter.fieldid, idx)}
@@ -364,7 +359,6 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                         </button>
                                                     )}
                                                 </div>
-
                                                 {filterConditions[`${filter.fieldid}_${idx}`] && (
                                                     <span className="text-xs text-gray-500 ml-1 mt-1">
                                                         Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
@@ -372,10 +366,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                 )}
                                             </div>
                                         ))}
-
                                         <button
                                             type="button"
-                                            onClick={() => addInputForFilter(filter.fieldid)}
+                                            onClick={() => addInputForFilter(filter.fieldid, filter.type)}
                                             className="text-indigo-600 text-sm hover:underline"
                                         >
                                             <Plus className="w-4 h-4 inline-block mr-1" />
@@ -383,8 +376,6 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                         </button>
                                     </div>
                                 )}
-
-
                                 {filter.type === "Data" && (
                                     <div className="flex flex-col gap-4 relative">
                                         {(filterValues[filter.fieldid] || [{ from: '', to: '' }]).map((range, idx) => (
@@ -410,14 +401,12 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                             className="w-1/2 rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                                         />
                                                     </div>
-
                                                     <div className="relative flex items-center">
                                                         <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
                                                             <MoreVertical className="text-gray-500 hover:text-gray-700" />
                                                         </button>
                                                         {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
                                                     </div>
-
                                                     {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
                                                         <button
                                                             onClick={() => removeInputForFilter(filter.fieldid, idx)}
@@ -428,7 +417,6 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                         </button>
                                                     )}
                                                 </div>
-
                                                 {filterConditions[`${filter.fieldid}_${idx}`] && (
                                                     <span className="text-xs text-gray-500 ml-1 mt-1">
                                                         Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
@@ -436,10 +424,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                 )}
                                             </div>
                                         ))}
-
                                         <button
                                             type="button"
-                                            onClick={() => addInputForFilter(filter.fieldid)}
+                                            onClick={() => addInputForFilter(filter.fieldid, filter.type)}
                                             className="text-indigo-600 text-sm hover:underline"
                                         >
                                             <Plus className="w-4 h-4 inline-block mr-1" />
@@ -447,21 +434,37 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                         </button>
                                     </div>
                                 )}
-
-
-
+                                {(filter.type === "Utente") && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        <div className="flex gap-4 items-center">
+                                            <SelectUser
+                                                lookupItems={userLookupItems}
+                                                // La gestione del valore per SelectUser è diversa,
+                                                // perché può essere un array di ID se `isMulti` è true.
+                                                // `filterValues` per il campo Utente sarà un array di ID
+                                                initialValue={filterValues[filter.fieldid] || []}
+                                                onChange={v => updateFilter(
+                                                    filter.fieldid,
+                                                    filter.type,
+                                                    filter.label,
+                                                    v,
+                                                    0 // L'indice 0 è fisso per questo tipo di campo
+                                                )}
+                                                isMulti={true}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
-
                         <div className="mt-6 flex gap-3">
                             <button
                                 type="button"
                                 className="w-1/2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5"
-                                onClick={() => sendFiltersToBackend(filtersList)}
+                                onClick={() => applyFilters()}
                             >
                                 Applica
                             </button>
-
                             <button
                                 type="button"
                                 onClick={resetFilters}
