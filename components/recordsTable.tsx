@@ -406,9 +406,14 @@ export default function RecordsTable({
                       : "min-w-[80px] max-w-[300px] text-left"
                   }
                   ${
+                  field.css && field.css.includes("bg-")
+                    ? " group-hover:bg-records-background"
+                    : " bg-table-background group-hover:bg-records-background"
+                  }
+                  ${
                     // sticky only first column
                     index === 0
-                      ? "sticky left-0 bg-table-background group-hover:bg-records-background z-10"
+                      ? "sticky left-0 z-10"
                       : ""
                   }
                 `}
