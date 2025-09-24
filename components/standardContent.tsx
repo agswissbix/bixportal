@@ -36,7 +36,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
   const { activeServer } = useContext(AppContext)
 
-  const { setRefreshTable } = useRecordsStore()
+  const { setRefreshTable, setFiltersList } = useRecordsStore()
 
   const refreshTableFunc = () => setRefreshTable((v) => v + 1)
 
@@ -149,6 +149,11 @@ export default function StandardContent({ tableid }: PropsInterface) {
       toast.error("Errore durante l'esportazione in Excel")
     }
   }
+
+  useEffect(() => {
+    // Quando si cambia tab, resetto i filtri
+    setFiltersList([])
+  }, [tableid])
 
   return (
     <GenericComponent title="standardContent" response={responseData} loading={loading} error={error}>
