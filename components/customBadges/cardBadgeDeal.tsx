@@ -230,7 +230,7 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
                       >
                         {currentStage} ({currentIndex + 1}/{stages.length})
                       </span>
-                      ) : <span></span>
+                      ) : <span key={s}></span>
                     ))}
                   </div>
                 </div>

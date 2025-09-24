@@ -202,9 +202,6 @@ export default function TableFilters({ tableid }: PropsInterface) {
             // Per gli altri tipi
             return { ...prev, [fieldid]: newArray };
         });
-        
-        // La logica di aggiornamento della lista dei filtri è ora gestita solo in applyFilters
-        // per evitare rendering eccessivi e logica complessa
     };
 
     const toggleConditionMenu = (key: string) => {
@@ -257,12 +254,18 @@ export default function TableFilters({ tableid }: PropsInterface) {
         );
     };
 
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault(); // Prevents the default form submission behavior (page reload)
+        applyFilters();
+    };
+
     return (
         <GenericComponent response={responseData} loading={loading || usersLoading} error={error || usersError}>
             {(response: ResponseInterface) => (
                 <div className="h- overflow-y-auto p-2 w-full">
-                    <div className="space-y-4 relative">
-                        {response.filters.map((filter, index) => (
+                     <form onSubmit={handleFormSubmit}>
+                        <div className="space-y-4 relative">
+                            {response.filters.map((filter, index) => (
                             <div key={index} className="relative">
                                 <label className="block text-sm font-medium text-gray-900 mb-1">
                                     Filtra per {filter.label}
@@ -436,12 +439,12 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                 )}
                                 {(filter.type === "Utente") && (
                                     <div className="flex flex-col gap-4 relative">
-                                        <div className="flex gap-4 items-center">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex gap-4 items-center">
+                                                <div className="flex gap-2 items-center w-full">
+                                                    <div className="w-full">
                                             <SelectUser
                                                 lookupItems={userLookupItems}
-                                                // La gestione del valore per SelectUser è diversa,
-                                                // perché può essere un array di ID se `isMulti` è true.
-                                                // `filterValues` per il campo Utente sarà un array di ID
                                                 initialValue={filterValues[filter.fieldid] || []}
                                                 onChange={v => updateFilter(
                                                     filter.fieldid,
@@ -452,6 +455,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                 )}
                                                 isMulti={true}
                                             />
+                                            </div>
+                                                </div>
+                                                </div>
                                         </div>
                                     </div>
                                 )}
@@ -459,9 +465,8 @@ export default function TableFilters({ tableid }: PropsInterface) {
                         ))}
                         <div className="mt-6 flex gap-3">
                             <button
-                                type="button"
+                                type="submit"
                                 className="w-1/2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5"
-                                onClick={() => applyFilters()}
                             >
                                 Applica
                             </button>
@@ -474,6 +479,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                             </button>
                         </div>
                     </div>
+                </form>
                 </div>
             )}
         </GenericComponent>

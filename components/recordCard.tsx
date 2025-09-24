@@ -335,6 +335,10 @@ export default function RecordCard({
                   <CardBadgeStabile tableid={tableid} recordid={recordid} />
                 ) : tableid === 'company' ? (
                   <CardBadgeCompany tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'deal' ? (
+                    <CardBadgeDeal tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'project' ? (
+                    <CardBadgeProject tableid={tableid} recordid={recordid} />
                 ) : activeServer !== 'belotti' ? (
                   <CardBadge tableid={tableid} recordid={recordid} />
                 ) : null}
