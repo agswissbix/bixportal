@@ -32,7 +32,6 @@ interface ResponseInterface {
   otherItems: SubItem[]
   userid?: string
   favoriteTables?: string[]
-  isAdmin?: boolean
 }
 
 interface SubItem {
@@ -98,7 +97,7 @@ export default function Sidebar({}: PropsInterface) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const { setSelectedMenu, userid, timestamp, theme } = useRecordsStore()
-  const { user, activeServer } = useContext(AppContext)
+  const { user, activeServer, role } = useContext(AppContext)
 
   const handleMenuClick = (item: string) => {
     setSelectedMenu(item)
@@ -232,7 +231,9 @@ export default function Sidebar({}: PropsInterface) {
                       Winteler custom
                     </span>
                   </>
-                ) : responseData.isAdmin ? (
+                ) : null}
+
+                {role === "admin" && (
                   <>
                     <Link
                       href="/bixadmin/admin"
@@ -242,7 +243,7 @@ export default function Sidebar({}: PropsInterface) {
                       Admin Settings
                     </Link>
                   </>
-                ) : null}
+                  )}
 
                 {responseData.favoriteTables && responseData.favoriteTables.length > 0 && (
                   <li>

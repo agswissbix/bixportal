@@ -68,7 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         router.push('/login');
       } else {
         setUser(result.username);
-        setRole(result.role || null);
+        setRole(result.role.toLowerCase() || null);
         //TODO CUSTOM TELEFONO AMICO
         setChat(result.chat || null);
         setTelefono(result.telefono || null);

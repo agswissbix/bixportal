@@ -19,8 +19,8 @@ export function AdminProtection({ children }: AdminProtectionProps) {
 
 	useEffect(() => {
 		setLoading(true)
-    if (role !== 'Admin') {
-    //   router.push('/home');
+    if (role !== 'admin') {
+      router.push('/home');
     }
 		setLoading(false)
   }, [role]);
