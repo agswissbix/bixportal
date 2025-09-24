@@ -2,7 +2,7 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
-import { Crown, ShieldX, OctagonAlert, BadgeCheck, BadgeMinus } from 'lucide-react';
+import { Crown, ShieldX, OctagonAlert, BadgeCheck, BadgeMinus, TrendingUp, Cog, DollarSign, Clock, Target, Phone, Database, Lock  } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -53,18 +53,18 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
 
   const responseDataDEV: ResponseInterface = {
     badgeItems: {
-      company_name: 'SwissBix AG',
+      company_name: 'Auriel Investment SA',
       payment_status: 'ok',
       customer_type: 'vip',
-      total_timesheet: '156',
-      total_deals: '23',
-      total_invoices: '45',
+      total_timesheet: '22',
+      total_deals: '37.458',
+      total_invoices: '148.458',
       sales_user_name: 'Marco Rossi',
       sales_user_photo: '/bixdata/users/avatar.jpg',
       company_logo: '/bixdata/logos/swissbix_company.png',
-      company_email: 'info@swissbix.com',
-      company_address: 'Via Roma 123, 6900 Lugano',
-      company_phone: '+41 91 123 45 67',
+      company_email: 'info@aurielinvestment.com',
+      company_address: 'Via Aurelia 45, 6900 Lugano',
+      company_phone: '+41 91 987 65 43',
     },
   };
 
@@ -94,39 +94,95 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
 
   // Mappa icone + colori
   const getCustomerTypeIcon = (type?: string) => {
-    switch (type?.toLowerCase()) {
-      case 'vip':
-        return <Crown className="w-6 h-6 text-purple-400" />;
-      case 'blocked':
-        return <ShieldX className="w-6 h-6 text-red-400" />;
-      case 'warning':
-        return <OctagonAlert className="w-6 h-6 text-orange-400" />;
-      default:
-        return <OctagonAlert className="w-6 h-6 text-gray-400" />;
-    }
-  };
+    let icon = null;
+    let colorClass = '';
+
+    switch (type?.toLowerCase()) {
+      case 'vip':
+        icon = <Crown className="w-12 h-12 text-purple-500" />;
+        colorClass = 'to-purple-100'; // Classe completa
+        break;
+      case 'blocked':
+        icon = <ShieldX className="w-12 h-12 text-red-500" />;
+        colorClass = 'to-red-100'; // Classe completa
+        break;
+      case 'warning':
+        icon = <OctagonAlert className="w-12 h-12 text-orange-500" />;
+        colorClass = 'to-orange-100'; // Classe completa
+        break;
+      default:
+        icon = <OctagonAlert className="w-12 h-12 text-gray-400" />;
+        colorClass = 'to-gray-100'; // Classe completa
+        break;
+    }
+
+    return (
+      <div className={`flex items-center justify-left w-32 h-10 bg-gradient-to-r from-transparent ${colorClass} rounded-xl`}>
+        {icon}
+      </div>
+    )
+  };
 
   const getPaymentStatusIcon = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case 'ok':
-        return <BadgeCheck className="w-6 h-6 text-green-400" />;
-      default:
-        return <BadgeMinus className="w-6 h-6 text-red-400" />;
+    let colorClass = 'to-red-100';
+    let icon = <BadgeMinus className="w-12 h-12 text-red-500" />;
+    if (status?.toLowerCase() === 'ok') {
+      icon = <BadgeCheck className="w-12 h-12 text-green-500" />;
+      colorClass = 'to-green-100';
     }
+
+    return (
+      <div className={`flex items-center justify-left w-32 h-10 bg-gradient-to-r from-transparent ${colorClass} rounded-xl`}>
+        {icon}
+      </div>
+    )
   };
+
+  // Lista servizi statici come da immagine
+  const services = [
+    { name: 'Firewall', icon: <ShieldX className="w-6 h-6 text-accent" /> },
+    { name: 'Contratto PBX', icon: <Phone className="w-6 h-6 text-accent" /> },
+    { name: 'Monte ore attivo', icon: <Clock className="w-6 h-6 text-accent" /> },
+    { name: 'Be all backup', icon: <Database className="w-6 h-6 text-accent" /> },
+    { name: 'Be all EDR', icon: <Lock className="w-6 h-6 text-accent" /> }
+  ];
+
+  // Componente riutilizzabile per le card metriche
+  const MetricCard = ({ title, value, icon: IconComponent, suffix = '' }: {
+    title: string;
+    value: string;
+    icon: React.ComponentType<{ className?: string }>;
+    suffix?: string;
+  }) => (
+    <div className="relative h-32 flex-1">
+      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-white px-3 py-2 rounded-t-xl text-xs font-medium whitespace-nowrap">
+        {title}
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-primary"></div>
+      </div>
+      <div className="bg-white rounded-xl shadow-md p-3 pt-6 h-full flex items-center justify-evenly">
+        <div className='w-full flex justify-center border-r border-gray-300'>
+          <IconComponent className="w-12 h-12 text-accent flex-shrink-0" />
+        </div>
+        <div className='w-full'>
+        <div className="text-lg font-bold text-gray-800 text-center">
+          {value}{suffix}
+        </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="Company Badge">
       {(response: ResponseInterface) => (
-        <div className="w-full flex justify-center items-center">
-          <div className="w-full bg-primary border-badge-border rounded-xl transition-all duration-300 ease-in-out">
-            {/* Header */}
-            <div
-              className="flex items-center justify-between p-3 cursor-pointer hover:bg-primary-hover rounded-t-xl"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-            >
-              <div className="flex items-center gap-3">
-                {response.badgeItems.company_logo && (
+        <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          {/* Header with company name and collapse button */}
+          <div 
+            className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            <h2 className="text-xl font-semibold text-gray-800">
+              {response.badgeItems.company_logo && (
                   <img
                     src={`/api/media-proxy?url=${response.badgeItems.company_logo}`}
                     alt="Company Logo"
@@ -134,126 +190,86 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                     draggable={false}
                   />
                 )}
-                <h2 className="text-xl font-bold text-primary-foreground">
-                  {response.badgeItems.company_name || 'Nome Azienda'}
-                </h2>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* Badge Status nell'header */}
-                <div className="flex items-center gap-2">
-                  {response.badgeItems.payment_status && (
-                    <div className="flex items-center">
-                      {getPaymentStatusIcon(response.badgeItems.payment_status)}
-                    </div>
-                  )}
-                  {response.badgeItems.customer_type && (
-                    <div className="flex items-center">
-                      {getCustomerTypeIcon(response.badgeItems.customer_type)}
-                    </div>
-                  )}
-                </div>
-
-                <div
-                  className={`text-primary-foreground transform transition-transform duration-200 ${
-                    isCollapsed ? 'rotate-180' : 'rotate-0'
-                  }`}
-                >
-                  ▼
-                </div>
-              </div>
-            </div>
-
-            {/* Contenuto */}
+              {response.badgeItems.company_name || 'Nome Azienda'}
+            </h2>
+            
             <div
-              className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                isCollapsed ? 'max-h-0' : 'max-h-96'
+              className={`text-gray-600 transform transition-transform duration-200 ${
+                isCollapsed ? 'rotate-180' : 'rotate-0'
               }`}
             >
-              <div className="px-3 pb-3">
-                {/* Info contatto */}
-                <div className="text-center mb-4">
-                  <div className="flex flex-row justify-evenly space-y-1 mb-3">
-                    {response.badgeItems.company_email && (
-                      <div className="text-xs text-primary-foreground opacity-80">
-                        📧 {response.badgeItems.company_email}
-                      </div>
-                    )}
-                    {response.badgeItems.company_address && (
-                      <div className="text-xs text-primary-foreground opacity-80">
-                        📍 {response.badgeItems.company_address}
-                      </div>
-                    )}
-                    {response.badgeItems.company_phone && (
-                      <div className="text-xs text-primary-foreground opacity-80">
-                        📞 {response.badgeItems.company_phone}
-                      </div>
-                    )}
-                  </div>
+              ▼
+            </div>
+          </div>
 
-                  <div className="w-16 h-0.5 bg-accent mx-auto"></div>
+          {/* Content */}
+          <div
+            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              isCollapsed ? 'max-h-0' : 'max-h-[800px]'
+            }`}
+          >
+            <div className="p-6">
+              {/* Top metrics cards */}
+              <div className="flex gap-4 mb-6">
+                <MetricCard 
+                  title="TOTALE LAVORI"
+                  value={response.badgeItems.total_timesheet || '0'}
+                  icon={Clock}
+                />
+                <MetricCard 
+                  title="TOTALE FATTURATO"
+                  value={response.badgeItems.total_invoices || '0'}
+                  icon={TrendingUp}
+                  suffix=" CHF"
+                />
+                <MetricCard 
+                  title="MARGINALITA'"
+                  value={response.badgeItems.total_deals || '0'}
+                  icon={DollarSign}
+                  suffix=" CHF"
+                />
+              </div>
+
+              {/* Bottom section with status badges and services */}
+              <div className="flex gap-6">
+                {/* Left: Status badges */}
+                <div className="flex flex-col gap-4 justify-center">
+                  {/* Payment Status Badge */}
+                  {response.badgeItems.payment_status && (
+                    <>
+                      {getPaymentStatusIcon(response.badgeItems.payment_status)}
+                    </>
+                  )}
+
+                  {/* Customer Type Badge */}
+                  {response.badgeItems.customer_type && (
+                    <>
+                      {getCustomerTypeIcon(response.badgeItems.customer_type)}
+                    </>
+                  )}
                 </div>
 
-                {/* Sales User */}
-                {response.badgeItems.sales_user_name && (
-                  <div className="flex items-center justify-center gap-3 mb-4 bg-primary-hover rounded-lg p-3">
-                    <div className="flex-shrink-0">
-                      {response.badgeItems.sales_user_photo ? (
-                        <img
-                          src={`/api/media-proxy?url=userProfilePic/${response.badgeItems.sales_user_photo}.png`}
-                          alt="Sales User"
-                          className="w-10 h-10 rounded-full object-cover border-2 border-accent"
-                          draggable={false}
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                          <span className="text-primary text-sm font-bold">
-                            {response.badgeItems.sales_user_name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
+                {/* Right: Services */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <div className="absolute -top-3 left-6 bg-primary text-white px-4 py-2 rounded-t-xl text-sm font-medium">
+                      SERVIZI ATTIVI
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-primary"></div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-xs text-primary-foreground uppercase tracking-wide">
-                        Venditore di riferimento
+                    <div className="bg-gray-50 rounded-xl p-4 pt-8">
+                      <div className="grid grid-cols-2 gap-3">
+                        {services.map((service, index) => (
+                          <div key={index} className="flex items-center gap-2 text-gray-700">
+                            <span className="text-lg">{service.icon}</span>
+                            <span className="text-sm">{service.name}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="text-sm font-medium text-white">
-                        {response.badgeItems.sales_user_name}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Statistiche */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-primary-hover rounded-lg p-3 text-center">
-                    <div className="text-xs text-primary-foreground uppercase tracking-wide mb-1">
-                      Totale Lavoro
-                    </div>
-                    <div className="text-lg font-bold text-accent">
-                      {response.badgeItems.total_timesheet || '0'}
-                    </div>
-                  </div>
-
-                  <div className="bg-primary-hover rounded-lg p-3 text-center">
-                    <div className="text-xs text-primary-foreground uppercase tracking-wide mb-1">
-                      Totale Venduto
-                    </div>
-                    <div className="text-lg font-bold text-accent">
-                      {response.badgeItems.total_deals || '0'}
-                    </div>
-                  </div>
-
-                  <div className="bg-primary-hover rounded-lg p-3 text-center">
-                    <div className="text-xs text-primary-foreground uppercase tracking-wide mb-1">
-                      Totale Fatturato
-                    </div>
-                    <div className="text-lg font-bold text-accent">
-                      {response.badgeItems.total_invoices || '0'}
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
