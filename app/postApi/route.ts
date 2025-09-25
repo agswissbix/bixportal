@@ -184,6 +184,7 @@ export async function POST(request: Request) {
     case 'get_user_settings_api': djangoUrl = `/commonapp/get_user_settings_api/`; break;
     case 'get_table_filters': djangoUrl = `/commonapp/get_table_filters/`; break;
     case 'get_users': djangoUrl = `/commonapp/get_users/`; break;
+    case 'swissbix_stampa_offerta': djangoUrl = '/customapp_swissbix/stampa_offerta/'; break;
 
 
 
@@ -215,30 +216,31 @@ export async function POST(request: Request) {
   const resContentType = response.headers['content-type'];
 
   // Gestione della risposta in base al content-type
-  if (resContentType && resContentType.includes('application/pdf')) {
-    // Risposta Blob: PDF
-    const contentDisposition = response.headers['content-disposition'] || 'attachment; filename="file.pdf"';
+  if (!resContentType.includes('application/json')) {
+    // Risposta File/Blob
+    const contentDisposition = response.headers['content-disposition'] || 'attachment';
 
-    const nextResponse = new Response(response.data, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': contentDisposition,
-        'Access-Control-Allow-Origin': corsOrigin, // 🔧 AGGIUNTA CORS
-        'Access-Control-Allow-Credentials': 'true', // 🔧 AGGIUNTA CORS
-      },
-    });
+    const nextResponse = new Response(response.data, {
+      status: 200,
+      headers: {
+        'Content-Type': resContentType, // Inoltra il content-type originale
+        'Content-Disposition': contentDisposition, // Inoltra l'header per il nome del file
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Credentials': 'true',
+      },
+    });
 
-    if (Array.isArray(setCookieHeader)) {
-      setCookieHeader.forEach((cookie) => {
-        nextResponse.headers.append('Set-Cookie', cookie);
-      });
-    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
-    }
+    // Inoltra i cookie al client
+    if (Array.isArray(setCookieHeader)) {
+      setCookieHeader.forEach((cookie) => {
+        nextResponse.headers.append('Set-Cookie', cookie);
+      });
+    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
+      nextResponse.headers.set('Set-Cookie', setCookieHeader);
+    }
 
-    return nextResponse;
-  } else {
+    return nextResponse;
+  } else {
     // Risposta JSON: convertiamo l'arraybuffer in stringa e poi facciamo il parse
     const parsedData = JSON.parse(Buffer.from(response.data).toString('utf-8'));
      const nextResponse = NextResponse.json(parsedData, {

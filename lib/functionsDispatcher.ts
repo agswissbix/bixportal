@@ -150,14 +150,62 @@ export function useFrontendFunctions() {
     }
 
   },
-  stampaWordTest: async (recordid: string) => {
+  stampa_word_test: async (recordid: string) => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "stampa_word_test",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob", // Fondamentale per ricevere il file
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      // 1. Crea un URL locale nel browser per il blob ricevuto
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // 2. Crea un elemento link <a> temporaneo
+      const link = document.createElement('a');
+      link.href = url;
+
+      // 3. Estrai il nome del file dall'header 'Content-Disposition'
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'documento_default.docx'; // Nome di fallback
+
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch && filenameMatch.length > 1) {
+        filename = filenameMatch[1];
+      }
+      
+      // 4. Imposta l'attributo 'download' con il nome del file
+      link.setAttribute('download', filename);
+
+      // 5. Aggiungi il link al documento, cliccalo e rimuovilo
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link); // Pulisce il DOM
+      window.URL.revokeObjectURL(url); // Libera la memoria
+
+      toast.success('Documento Word generato con successo!');
+
+    } catch (error) {
+      console.error('Errore durante la generazione del documento', error);
+      toast.error('Errore durante la generazione del documento.');
+    }
+  },
+  swissbixStampaOfferta: async (recordid: string) => {
     try {
       //download a file from the response
       //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
-          apiRoute: "stampa_pdf_test",
+          apiRoute: "swissbix_stampa_offerta",
           recordid: recordid,
         },
         {
@@ -211,6 +259,7 @@ export function useFrontendFunctions() {
     }
   },
   handleRendiContoLavanderia: async (recordid: string) => {
+    
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('emailLavanderia');
