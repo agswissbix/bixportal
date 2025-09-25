@@ -6,15 +6,6 @@ import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 import { GridStack, GridStackOptions } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
-import BarChart2 from './charts/barChart';
-import PieChart2 from './pieChart2';
-import LineChart from './lineChart2';
-import DonutChart from './donutChart2';
-import HeatmapChart from './heatChart2';
-import OrizBarChart from './orizbarChart2';
-import PolarChart from './polarChart2';
-import RadarChart from './radarChart2';
-import ScatterChart from './scatterChart2';
 // import MultiBarLineChart from './charts/multiBarLineChart';
 // import MultiBarBarChart from './charts/multi_barbarchart';
 import { createRoot } from 'react-dom/client';
@@ -27,7 +18,7 @@ import BlockChart from './blockChart';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false; // Cambiato a true per test
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -49,7 +40,7 @@ const isDev = false; // Cambiato a true per test
             name: string;
             labels: string[];
             id: number;
-            type: "valore" | "barchart" | "piechart" | "linechart" |"donutchart" |"heatchart" |"orizbarchart" |"polarchart" |"radarchart" |"scatterchart"  | "multiBarLineChart" | "multi_barbarchart" | "text" | "chart" | "widget" ;
+            type: "value" | "barchart" | "piechart" | "linechart" |"donutchart" |"heatchart" |"orizbarchart" |"polarchart" |"radarchart" |"scatterchart"  | "multibarlinechart" | "multibarchart" | "text" | "chart" | "widget" ;
             content?: string;
             gsw?: number;
             gsh?: number;
@@ -190,7 +181,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
         },
         {
           "id": 10,
-          "type": "multiBarLineChart",
+          "type": "multibarlinechart",
           "gsw": 3,
           "gsh": 2,
           "gsx": 0,
@@ -203,7 +194,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
         },
         {
             id: 11,
-            type: 'multi_barbarchart',
+            type: 'multibarchart',
             gsw: 3, gsh: 2, gsx: 3, gsy: 6,
             fields: [], value: [], name: 'Multi Bar Chart', labels: [],
             chart_data: JSON.stringify({
@@ -217,7 +208,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
         },
         {
           id: 12,
-            type: 'valore',
+            type: 'value',
             gsw: 3, gsh: 2, gsx: 3, gsy: 6,
             fields: [], value: [], name: 'Valore', labels: [],
             chart_data: JSON.stringify({
