@@ -66,6 +66,12 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   // NUOVO STATE: Gestisce lo stato (aperto/chiuso) di ogni accordion
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
 
+  // NUOVO STATE: Per indicare che un calcolo è in corso
+  const [isCalculating, setIsCalculating] = useState(false);
+  
+  // NUOVO REF: Per gestire il debounce
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { removeCard, setRefreshTable } = useRecordsStore();
 
   const currentValues = useMemo(() => {
@@ -125,8 +131,81 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   }, [currentValues, responseData?.fields, updatedFields]);
 
 
-  const handleInputChange2 = (fieldid: string, newValue: any | any[]) => {
+  
+  // NUOVA FUNZIONE: Esegue la chiamata al backend per i calcoli
+  const triggerCalculation = async (values: Record<string, any>) => {
+    // Non eseguire calcoli se non ci sono modifiche
+    if (Object.keys(updatedFields).length === 0) return;
+
+    setIsCalculating(true);
+    try {
+      const payload = {
+        apiRoute: 'calculate_dependent_fields', // Nuovo endpoint logico
+        tableid,
+        recordid,
+        fields: values, // Invia tutti i valori correnti
+      };
+
+      const { data } = await axiosInstanceClient.post('/postApi', payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      
+      // Se il backend restituisce campi aggiornati
+      if (data && data.updated_fields) {
+        // 1. Aggiungi i valori calcolati a updatedFields per il salvataggio finale
+        setUpdatedFields(prev => ({ ...prev, ...data.updated_fields }));
+
+        // 2. Aggiorna lo stato principale per riflettere i cambiamenti nell'UI
+        setResponseData(prevData => {
+            const newFields = prevData.fields.map(field => {
+                if (data.updated_fields.hasOwnProperty(field.fieldid)) {
+                    // Crea un nuovo oggetto field per evitare mutazioni dirette
+                    return { ...field, value: data.updated_fields[field.fieldid] };
+                }
+                return field;
+            });
+            return { ...prevData, fields: newFields };
+        });
+      }
+
+    } catch (error) {
+      console.error('Errore durante il calcolo dei campi:', error);
+      toast.error('Errore durante l\'aggiornamento dei campi calcolati.');
+    } finally {
+      setIsCalculating(false);
+    }
   };
+
+  // NUOVO useEffect per il DEBOUNCE
+  useEffect(() => {
+    // Pulisci il timeout precedente ogni volta che currentValues cambia
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Imposta un nuovo timeout
+    debounceTimeoutRef.current = setTimeout(() => {
+      // Chiama la funzione di calcolo dopo 500ms di inattività
+      triggerCalculation(currentValues);
+    }, 500);
+
+    // Funzione di pulizia per smontare il componente
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [currentValues]); // Questo effetto si attiva ad ogni modifica
+
+ // MODIFICATA: La logica rimane la stessa, ma ora scatena l'useEffect del debounce
+  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
+    setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
+  };
+
+  //const handleInputChange = (fieldid: string, newValue: any | any[]) => {
+    //isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
+   // setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
+  //};
   
   // NUOVA FUNZIONE: Gestisce il toggle degli accordion
   const toggleAccordion = (label: string) => {
@@ -193,10 +272,11 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   // NUOVA FUNZIONE: Componente riutilizzabile per renderizzare un singolo campo
   // NUOVA FUNZIONE: Componente riutilizzabile per renderizzare un singolo campo
 const renderField = (field: FieldInterface) => {
-  const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
-  const initialValue = rawValue ?? '';
-  const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
-  
+    const rawValue = typeof field.value === 'object' ? field.value?.value : field.value;
+    // MODIFICATO: Il valore del campo ora viene preso da currentValues per essere sempre aggiornato
+    const value = currentValues[field.fieldid] ?? rawValue ?? ''; 
+    const isRequired = typeof field.settings === 'object' && field.settings.obbligatorio === 'true';
+    
   // Verifica se il campo obbligatorio è vuoto
   const currentValue = currentValues[field.fieldid];
   const isNewRecord = recordid === undefined || recordid === null || recordid === '';
@@ -204,10 +284,7 @@ const renderField = (field: FieldInterface) => {
   const isRequiredEmpty = isNewRecord && isRequired && isEmpty;
   const isRequiredFilled = isNewRecord && isRequired && !isEmpty;
 
-  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
-    isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
-    setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
-  };
+  
 
   return (
     <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
@@ -252,32 +329,32 @@ const renderField = (field: FieldInterface) => {
             ''
         }`}>
           {field.fieldtype === 'Parola' ? (
-            <InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputWord initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
             <SelectStandard
               lookupItems={field.lookupitems}
-              initialValue={initialValue}
+              initialValue={value}
               onChange={v => handleInputChange(field.fieldid, v)}
               isMulti={field.fieldtypewebid === 'multiselect'}
             />
           ) : field.fieldtype === 'Numero' ? (
-            <InputNumber initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputNumber initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Data' ? (
-            <InputDate initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputDate initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Memo' ? (
-            <InputMemo initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputMemo initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Checkbox' ? (
-            <InputCheckbox initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputCheckbox initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
             <SelectUser
               lookupItems={field.lookupitemsuser}
-              initialValue={initialValue}
+              initialValue={value}
               onChange={v => handleInputChange(field.fieldid, v)}
               isMulti={field.fieldtypewebid === 'multiselect'}
             />
           ) : field.fieldtype === 'linkedmaster' ? (
             <InputLinked
-              initialValue={initialValue}
+              initialValue={value}
               valuecode={field.value}
               onChange={v => handleInputChange(field.fieldid, v)}
               tableid={tableid}
@@ -287,10 +364,10 @@ const renderField = (field: FieldInterface) => {
               formValues={currentValues}
             />
           ) : field.fieldtype === 'LongText' ? (
-            <InputEditor initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputEditor initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
           ) : field.fieldtype === 'Attachment' ? (
             <InputFile
-              initialValue={initialValue ? `/api/media-proxy?url=${initialValue}` : null}
+              initialValue={value ? `/api/media-proxy?url=${value}` : null}
               onChange={v => handleInputChange(field.fieldid, v)}
             />
           ) : null}
@@ -374,7 +451,8 @@ const renderField = (field: FieldInterface) => {
                   disabled={isSaveDisabled}
                   className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Salva
+                  {/* NUOVO: Mostra uno stato di caricamento per il calcolo */}
+                  {isCalculating ? 'Calcolo in corso...' : 'Salva'}
                 </button>
               )}
             </div>

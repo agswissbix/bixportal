@@ -417,9 +417,35 @@ export default function RecordCard({
                           {showDropdown && (
                             <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded shadow-lg z-30">
                               <ul className="py-1">
-                                {response.fn.map((fn) => fn.context === 'cards' && (
-                                  <DynamicMenuItem key={fn.title} fn={fn} params={recordid} onClick={() => setShowDropdown(false)} />
-                                ))}
+                                {response.fn.map((originalFn) => {
+                                  if (originalFn.context !== 'cards') return null;
+
+                                  // Crea una copia di fn per non modificare lo stato originale
+                                  const fn = { ...originalFn };
+
+                                  // Tenta di convertire fn.params da stringa JSON a oggetto
+                                  try {
+                                    if (fn.params && typeof fn.params === 'string') {
+                                      fn.params = JSON.parse(fn.params);
+                                    }
+                                  } catch (error) {
+                                    console.error("Errore nel parsing di fn.params:", fn.params, error);
+                                    // Se il parsing fallisce, lo lasciamo come stringa o lo impostiamo a null
+                                    fn.params = null; 
+                                  }
+
+                                  return (
+                                    <DynamicMenuItem
+                                      key={fn.title}
+                                      fn={fn} // Ora fn.params è un vero oggetto (o null)
+                                      params={{
+                                        recordid: recordid,
+                                        ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                                      }}
+                                      onClick={() => setShowDropdown(false)}
+                                    />
+                                  );
+                                })}
                               </ul>
                             </div>
                           )}

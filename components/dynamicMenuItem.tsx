@@ -6,9 +6,10 @@ export type CustomFunction = {
   tableid: string;
   context: string;
   title: string;
-  backend_function: string;
+  function: string;
   conditions?: any;
   css?: string;
+  params?: string;
 };
 
 export default function DynamicMenuItem({
@@ -24,7 +25,7 @@ export default function DynamicMenuItem({
   const [isLoading, setIsLoading] = useState(false);
   const handleClick = async () => {
     setIsLoading(true); // Start loading
-    const func = frontendFunctions[fn.backend_function];
+    const func = frontendFunctions[fn.function];
     try {
       if (func) {
         if (params !== undefined) {
@@ -33,11 +34,11 @@ export default function DynamicMenuItem({
           await func();
         }
       } else {
-        console.warn(`Funzione non trovata: ${fn.backend_function}`);
+        console.warn(`Funzione non trovata: ${fn.function}`);
       }
     } catch (error) {
       console.error(
-        `Errore durante l'esecuzione della funzione: ${fn.backend_function}`,
+        `Errore durante l'esecuzione della funzione: ${fn.function}`,
         error
       );
     } finally {
@@ -49,8 +50,7 @@ export default function DynamicMenuItem({
   return (
     <li
       className={
-        fn.css ||
-        "px-4 py-2 text-sm text-foreground hover:bg-gray-100 cursor-pointer"
+        `px-4 py-2 text-sm text-foreground hover:bg-gray-100 cursor-pointer ${fn.css || ''}`
       }
       onClick={!isLoading ? handleClick : undefined}
     >

@@ -277,6 +277,27 @@ export function useFrontendFunctions() {
   printingInvoice: async (recordid: string) => {
     window.open(`http://bixcrm01:8822/bixdata/custom/api_bexio_set_printing_invoices.php?recordid=${recordid}`, '_blank')
   },
+  swissbix_deal_update_status: async (params: object) => {
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+        {
+          apiRoute: "swissbix_deal_update_status",
+          params: params,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Record creati")
+      return response.data
+    } catch (error) {
+      console.error("Errore durante la creazione dei record", error)
+      toast.error("Errore durante la creazione dei record")
+    }
+  },
   //TODO
   //CUSTOM PITSERVICE
   // offertaChiusaVinta: async (recordid: string) => {
