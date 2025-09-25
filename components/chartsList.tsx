@@ -6,6 +6,7 @@ import { memoWithDebug } from "@/lib/memoWithDebug";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast } from "sonner";
 import { set } from "lodash";
+import BlockChart from "./blockChart";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -102,7 +103,7 @@ function ChartsList({
       userid: user,
       dashboardid: dashboardId
     };
-  }, [propExampleValue]);
+  }, [user, dashboardId]);
 
   const { response, loading, error } =
     !isDev && payload
@@ -145,10 +146,12 @@ function ChartsList({
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setResponseData(responseDataDEV);
-    }, 3000);
-    return () => clearInterval(interval);
+    if (isDev) {
+      const interval = setInterval(() => {
+        setResponseData(responseDataDEV);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
   }, []);
 
   useEffect(() => {
@@ -238,6 +241,14 @@ function ChartsList({
                       src={`/api/media-proxy?url=chartsPreview/${selectedBlock.id}.png`}
                       alt={`Preview of ${selectedBlock.name}`}
                       className="object-cover mx-auto"
+                    />
+                    <BlockChart
+                        id={selectedBlock.id}
+                        name={selectedBlock.name}
+                        type={selectedBlock.viewid ? "chart" : "table"}
+                        chart_data={selectedBlock.name || ""}
+                        onDelete={() => {}}
+                        onExport={() => {}}
                     />
                   </div>
                   

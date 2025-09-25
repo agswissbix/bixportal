@@ -1,18 +1,8 @@
 import React, { useState } from "react";
 import { ArrowLeftRight } from "lucide-react";
-import BarChart2 from "./charts/barChart";
-import PieChart2 from "./pieChart2"; // Importa PieChart2
-import LineChart from "./lineChart2";
-import DonutChart from "./donutChart2";
-import HeatmapChart from "./heatChart2";
-import OrizBarChart from "./orizbarChart2";
-import PolarChart from "./polarChart2";
-import RadarChart from "./radarChart2";
-import ScatterChart from "./scatterChart2";
-// import MultiBarLineChart from "./charts/multiBarLineChart";
-// import MultiBarBarChart from "./charts/multi_barbarchart";
+import ValueChart from "./charts/valueChart";
+import GenericApexChart from "./charts/genericApexChart";
 import "./blockChart.css";
-// import ValueChart from "./valueChart";
 
 interface Props {
   id: number;
@@ -28,33 +18,11 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
 
   // Funzione per renderizzare il componente grafico corretto
   const renderChartComponent = (chartType: string, chartData: string) => {
-    switch (chartType) {
-    case 'valore':
+    switch (chartType.toLowerCase()) {
+      case 'value':
         return <ValueChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'barchart':
-        return <BarChart2 chartType={chartType} chartData={chartData} view="chart" />;
-      case 'piechart':
-        return <PieChart2 chartType={chartType} chartData={chartData} view="chart" />;
-      case 'linechart':
-        return <LineChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'donutchart':
-        return <DonutChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'heatchart':
-        return <HeatmapChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'orizbarchart':
-        return <OrizBarChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'polarchart':
-        return <PolarChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'radarchart':
-        return <RadarChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'scatterchart':
-        return <ScatterChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'multiBarLineChart':
-        return <MultiBarLineChart chartType={chartType} chartData={chartData} view="chart" />;
-      case 'multi_barbarchart':
-        return <MultiBarBarChart chartType={chartType} chartData={chartData} view="chart" />;
       default:
-        return <div className="p-4 text-red-500">Tipo di grafico non supportato: {chartType}</div>;
+        return <GenericApexChart chartType={chartType} chartData={chartData} view="chart" />;
     }
   };
 
@@ -116,9 +84,7 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
           {/* Lato tabella */}
           <div className="back p-4">
             <div className="keep-upright">
-              {/* Qui renderizziamo solo BarChart2 in modalità 'table', 
-                  poiché è l'unico componente che gestisce la visualizzazione a tabella. */}
-              <BarChart2 chartType={type} chartData={chart_data} view="table" />
+              <GenericApexChart chartType={type} chartData={chart_data} view="table" />
             </div>
           </div>
         </div>
