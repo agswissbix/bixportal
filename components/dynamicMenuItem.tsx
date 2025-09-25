@@ -6,8 +6,9 @@ export type CustomFunction = {
   tableid: string;
   context: string;
   title: string;
-  backend_function: string;
+  function: string;
   conditions?: any;
+  params?: any;
   css?: string;
 };
 
@@ -24,7 +25,7 @@ export default function DynamicMenuItem({
   const [isLoading, setIsLoading] = useState(false);
   const handleClick = async () => {
     setIsLoading(true); // Start loading
-    const func = frontendFunctions[fn.backend_function];
+    const func = frontendFunctions[fn.function];
     try {
       if (func) {
         if (params !== undefined) {
@@ -33,11 +34,11 @@ export default function DynamicMenuItem({
           await func();
         }
       } else {
-        console.warn(`Funzione non trovata: ${fn.backend_function}`);
+        console.warn(`Funzione non trovata: ${fn.function}`);
       }
     } catch (error) {
       console.error(
-        `Errore durante l'esecuzione della funzione: ${fn.backend_function}`,
+        `Errore durante l'esecuzione della funzione: ${fn.function}`,
         error
       );
     } finally {

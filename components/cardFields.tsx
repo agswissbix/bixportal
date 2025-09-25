@@ -124,9 +124,6 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     setIsSaveDisabled(!allRequiredFilled || Object.keys(updatedFields).length === 0);
   }, [currentValues, responseData?.fields, updatedFields]);
 
-
-  const handleInputChange2 = (fieldid: string, newValue: any | any[]) => {
-  };
   
   // NUOVA FUNZIONE: Gestisce il toggle degli accordion
   const toggleAccordion = (label: string) => {
@@ -200,14 +197,9 @@ const renderField = (field: FieldInterface) => {
   // Verifica se il campo obbligatorio è vuoto
   const currentValue = currentValues[field.fieldid];
   const isNewRecord = recordid === undefined || recordid === null || recordid === '';
-  var isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
+  const isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
   const isRequiredEmpty = isNewRecord && isRequired && isEmpty;
   const isRequiredFilled = isNewRecord && isRequired && !isEmpty;
-
-  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
-    isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
-    setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
-  };
 
   return (
     <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
@@ -252,34 +244,34 @@ const renderField = (field: FieldInterface) => {
             ''
         }`}>
           {field.fieldtype === 'Parola' ? (
-            <InputWord initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputWord initialValue={initialValue} />
           ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
             <SelectStandard
               lookupItems={field.lookupitems}
               initialValue={initialValue}
-              onChange={v => handleInputChange(field.fieldid, v)}
+             
               isMulti={field.fieldtypewebid === 'multiselect'}
             />
           ) : field.fieldtype === 'Numero' ? (
-            <InputNumber initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputNumber initialValue={initialValue} />
           ) : field.fieldtype === 'Data' ? (
-            <InputDate initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputDate initialValue={initialValue} />
           ) : field.fieldtype === 'Memo' ? (
-            <InputMemo initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputMemo initialValue={initialValue} />
           ) : field.fieldtype === 'Checkbox' ? (
-            <InputCheckbox initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputCheckbox initialValue={initialValue} />
           ) : field.fieldtype === 'Utente' && field.lookupitemsuser ? (
             <SelectUser
               lookupItems={field.lookupitemsuser}
               initialValue={initialValue}
-              onChange={v => handleInputChange(field.fieldid, v)}
+             
               isMulti={field.fieldtypewebid === 'multiselect'}
             />
           ) : field.fieldtype === 'linkedmaster' ? (
             <InputLinked
               initialValue={initialValue}
               valuecode={field.value}
-              onChange={v => handleInputChange(field.fieldid, v)}
+             
               tableid={tableid}
               linkedmaster_tableid={field.linked_mastertable}
               linkedmaster_recordid={typeof field.value === 'object' ? field.value?.code : ''}
@@ -287,11 +279,11 @@ const renderField = (field: FieldInterface) => {
               formValues={currentValues}
             />
           ) : field.fieldtype === 'LongText' ? (
-            <InputEditor initialValue={initialValue} onChange={v => handleInputChange(field.fieldid, v)} />
+            <InputEditor initialValue={initialValue} />
           ) : field.fieldtype === 'Attachment' ? (
             <InputFile
               initialValue={initialValue ? `/api/media-proxy?url=${initialValue}` : null}
-              onChange={v => handleInputChange(field.fieldid, v)}
+             
             />
           ) : null}
         </div>
