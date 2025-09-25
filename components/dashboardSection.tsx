@@ -21,7 +21,7 @@ import { memoWithDebug } from "@/lib/memoWithDebug";
 import SampleChart from "@/components/sampleChart";
 import SampleChart2 from "@/components/sampleChart2";
 import ChartsList from "@/components/chartsList";
-import Dashboard3 from "@/components/dashboard";
+import Dashboard from "@/components/dashboard";
 import DashboardForm from "@/components/newDashboardForm";
 import { set } from "lodash";
 
@@ -547,7 +547,7 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
               .map(dashboard => ( // Ora .map() itera solo sull'unico elemento filtrato
                 <div className="w-full h-full" data-oid="qkqmynz" key={`${dashboard.id}-${dashboardKey}`}>
                   <div className="w-full min-h-full" data-oid="fvz15n4">
-                    <Dashboard3 
+                    <Dashboard
                       onOpenPopup={() => { 
                         setShowPopup(true); 
                         setPopupContent(<ChartsList closePopup={() => setShowPopup(false)} dashboardId={dashboard.id} setRefreshDashboard={setRefreshDashboard} />); 

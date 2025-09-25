@@ -1,136 +1,78 @@
-import React, { useMemo, useContext, useState, useEffect } from 'react';
-import { useApi } from '@/utils/useApi';
-import GenericComponent from '../genericComponent';
-import { AppContext } from '@/context/appContext';
-import ReactApexChart from 'react-apexcharts';
-import LoadingComp from '../loading';
+//...
+import React from "react";
+import ReactApexChart from "react-apexcharts";
+import { ApexOptions } from "apexcharts";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// FLAG PER LO SVILUPPO
-const isDev = true;
-
-// INTERFACCE
-// INTERFACCIA PROPS
-interface PropsInterface {
-    values: string[];
-    labels: string[];
-    name: string;
-    fields: string[];
+interface Dataset {
+  label: string;
+  data: number[];
 }
 
-// INTERFACCIA RISPOSTA DAL BACKEND
-interface ResponseInterface {
+interface ChartDataInterface {
+  id: number;
+  name: string;
+  layout: string;
+  labels: string[];
+  datasets: Dataset[];
 }
 
-export default function BarChart({ values, labels, name, fields}: PropsInterface) {
+interface Props {
+  chartType: string;
+  chartData: string;
+  view: "chart" | "table";
+}
 
-    //DATI
-            // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : "";
+export default function BarChart2({ chartType, chartData, view }: Props) {
+  let parsed: ChartDataInterface | null = null;
+  try {
+    parsed = JSON.parse(chartData);
+  } catch (e) {
+    console.error("Errore parsing dati:", e);
+    return <div className="p-4 text-red-500">Dati non validi</div>;
+  }
 
-            // DATI RESPONSE DI DEFAULT
-            const responseDataDEFAULT: ResponseInterface = {
-                values: ["0"],
-                labels: [''],
-                name: '',
-                fields: ['']
-              };
+  if (!parsed) return null;
 
-            // DATI RESPONSE PER LO SVILUPPO 
-            const responseDataDEV: ResponseInterface = {
-                values: ["3.5", "1.5", "1.0", "11.25", "0.5"],
-                labels: ['Commercial support', 'Fixed price Project', 'Invoiced', 'Service Contract: Manutenzione Printing', 'Service Contract: Monte Ore'],
-                name: 'Timesheet - ven ultimi 14 giorni - Per stato fatture',
-                fields: ['totaltime_decimal']
-            };
-
-            // DATI DEL CONTESTO
-            const { user } = useContext(AppContext);
-
-    // IMPOSTAZIONE DELLA RESPONSE (non toccare)
-    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
-
-
-    // PAYLOAD (solo se non in sviluppo)
-    const payload = useMemo(() => {
-        if (isDev) return null;
-        return {
-            apiRoute: 'examplepost', // riferimento api per il backend
-        };
-    }, []);    
-
-    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
-
-    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
-    useEffect(() => {
-        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response);
-        }
-    }, [response, responseData]);
-
-const chartData = {
-  series: [
-    {
-      name: name,
-      data: values
-    },
-  ],
-  options: {
-    chart: {
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800,
-        animateGradually: {
-          enabled: true,
-          delay: 150
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 350
-        }
-      },
-      toolbar: {
-        show: false
-      },
-      responsive: true,
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-      },
-    },
-    xaxis: {
-      categories: labels,
-    },
-    title: {
-      text: name,
-      align: 'center' as const,
-      style: {
-        fontSize: '20px',
-        fontWeight: 'bold',
-        color: '#333',
-      },
-    },
-  },
-};
-
-console.log('Chart Data:', chartData);
-
+  if (view === "table") {
+    // Ruota il contenitore del componente per annullare la rotazione.
+    // In questo modo, il contenuto della tabella rimarrà dritto.
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}> 
-            {(response: ResponseInterface) => (
-                <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2 overflow-hidden">
-                 <ReactApexChart
-                   options={chartData.options}
-                   series={chartData.series}
-                   type="bar"
-                   className="h-full w-full"
-                    height="100%"
-                 />
-               </div>
-            )}  
-        </GenericComponent>
+      <div className="h-full overflow-y-auto" style={{ transform: "rotateY(180deg)" }}>
+        <h3 className="text-lg font-semibold mb-2 text-center text-gray-700">{parsed.name}</h3>
+        <table className="min-w-full bg-white border border-gray-300 text-sm">
+          <thead className="bg-gray-100 sticky top-0">
+            <tr>
+              <th className="py-2 px-4 border-b text-left font-medium text-gray-600">Categoria</th>
+              {parsed.datasets.map((d, i) => (
+                <th key={i} className="py-2 px-4 border-b text-left font-medium text-gray-600">{d.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {parsed.labels.map((label, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="py-2 px-4 border-b">{label}</td>
+                {parsed.datasets.map((d, j) => (
+                  <td key={j} className="py-2 px-4 border-b">{d.data[i]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
-};
+  }
+
+  // vista grafico
+  const series = parsed.datasets.map((d) => ({ name: d.label, data: d.data }));
+  const options: ApexOptions = {
+    chart: { toolbar: { show: false } },
+    xaxis: { categories: parsed.labels },
+    dataLabels: { enabled: false },
+    stroke: { width: 2 },
+  };
+
+  return (
+    <ReactApexChart options={options} series={series} type="bar" height="100%" />
+  );
+}

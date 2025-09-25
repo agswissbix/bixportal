@@ -6,7 +6,7 @@ import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 import { GridStack, GridStackOptions } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
-import BarChart2 from './barChart2';
+import BarChart2 from './charts/barChart';
 import PieChart2 from './pieChart2';
 import LineChart from './lineChart2';
 import DonutChart from './donutChart2';
@@ -15,10 +15,14 @@ import OrizBarChart from './orizbarChart2';
 import PolarChart from './polarChart2';
 import RadarChart from './radarChart2';
 import ScatterChart from './scatterChart2';
+// import MultiBarLineChart from './charts/multiBarLineChart';
+// import MultiBarBarChart from './charts/multi_barbarchart';
 import { createRoot } from 'react-dom/client';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
 import * as XLSX from "sheetjs-style"; // Usiamo sheetjs-style per la formattazione
+import { Dispatch, SetStateAction } from 'react';
+import BlockChart from './blockChart';
 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -27,7 +31,7 @@ const isDev = false; // Cambiato a true per test
 
 // INTERFACCE
         // INTERFACCIA PROPS
-        import { Dispatch, SetStateAction } from 'react';
+        
 
         interface PropsInterface {
           onOpenPopup: () => void; // Funzione opzionale per aprire il popup
@@ -45,12 +49,13 @@ const isDev = false; // Cambiato a true per test
             name: string;
             labels: string[];
             id: number;
-            type: "barchart" | "piechart" | "linechart" |"donutchart" |"heatchart" |"orizbarchart" |"polarchart" |"radarchart" |"scatterchart"  | "text" | "chart" | "widget" ;
+            type: "valore" | "barchart" | "piechart" | "linechart" |"donutchart" |"heatchart" |"orizbarchart" |"polarchart" |"radarchart" |"scatterchart"  | "multiBarLineChart" | "multi_barbarchart" | "text" | "chart" | "widget" ;
             content?: string;
             gsw?: number;
             gsh?: number;
             gsx?: number;
             gsy?: number;
+            chart_data?: string;
           }[];
 
           block_list:
@@ -77,64 +82,155 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
 
             // DATI RESPONSE PER LO SVILUPPO 
             const responseDataDEV: ResponseInterface = {
-              blocks: [
-                {
-                  id: 1,
-                  type: 'text',
-                  gsw: 2,
-                  gsh: 2,
-                  gsx: 0,
-                  gsy: 0,
-                  fields: [],
-                  value: [],
-                  name: 'Text Block',
-                  labels: []
-                },
-                {
-                  id: 2,
-                  type: 'chart',
-                  gsw: 3,
-                  gsh: 2,
-                  gsx: 2,
-                  gsy: 0,
-                  fields: [],
-                  value: [],
-                  name: 'Chart Block',
-                  labels: []
-                },
-                {
-                  id: 3,
-                  type: 'widget',
-                  gsw: 2,
-                  gsh: 3,
-                  gsx: 0,
-                  gsy: 2,
-                  fields: [],
-                  value: [],
-                  name: 'Widget Block',
-                  labels: []
-                }
-              ],
-
-              block_list: [
-                {
-                  id: 1,
-                  dashboardid: 1,
-                  name: 'Block 1',
-                  userid: 'user1',
-                  reportid: 1,
-                  viewid: 1
-                },
-                {
-                  id: 2,
-                  dashboardid: 1,
-                  name: 'Block 2',
-                  userid: 'user1',
-                  reportid: 2,
-                  viewid: 2
-                }
-              ]
-            };
+    blocks: [
+        {
+            id: 1,
+            type: 'barchart',
+            gsw: 3, gsh: 2, gsx: 0, gsy: 0,
+            fields: [], value: [], name: 'Bar Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 1, name: "Vendite Annuali", layout: "vertical",
+                labels: ["2021", "2022", "2023", "2024"],
+                datasets: [{ label: "Ricavi", data: [120000, 155000, 135000, 189000] }]
+            })
+        },
+        {
+            id: 2,
+            type: 'piechart',
+            gsw: 3, gsh: 2, gsx: 3, gsy: 0,
+            fields: [], value: [], name: 'Pie Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 2, name: "Distribuzione Clienti", layout: "pie",
+                labels: ["Italia", "Germania", "Francia", "Spagna"],
+                datasets: [{ label: "Clienti", data: [300, 150, 200, 100] }]
+            })
+        },
+        {
+            id: 3,
+            type: 'linechart',
+            gsw: 3, gsh: 2, gsx: 6, gsy: 0,
+            fields: [], value: [], name: 'Line Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 3, name: "Crescita Mensile", layout: "line",
+                labels: ["Gen", "Feb", "Mar", "Apr", "Mag"],
+                datasets: [{ label: "Utenti", data: [50, 65, 80, 95, 120] }]
+            })
+        },
+        {
+            id: 4,
+            type: 'donutchart',
+            gsw: 3, gsh: 2, gsx: 0, gsy: 2,
+            fields: [], value: [], name: 'Donut Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 4, name: "Spesa per Categoria", layout: "donut",
+                labels: ["Cibo", "Trasporti", "Shopping", "Svago"],
+                datasets: [{ label: "Euro", data: [400, 150, 250, 100] }]
+            })
+        },
+        {
+            id: 5,
+            type: 'heatchart',
+            gsw: 3, gsh: 2, gsx: 3, gsy: 2,
+            fields: [], value: [], name: 'Heatmap Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 5, name: "Traffico Sito Orario", layout: "heatmap",
+                labels: ["Lunedì", "Martedì", "Mercoledì", "Giovedì"],
+                datasets: [{ label: "9-12", data: [15, 20, 25, 22] }, { label: "12-15", data: [30, 35, 28, 40] }]
+            })
+        },
+        // ... (aggiungi gli altri tipi di grafico con dati di sviluppo)
+        {
+            id: 6,
+            type: 'orizbarchart',
+            gsw: 3, gsh: 2, gsx: 6, gsy: 2,
+            fields: [], value: [], name: 'Oriz Bar Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 6, name: "Prodotti più venduti", layout: "horizontal-bar",
+                labels: ["Laptop", "Smartphone", "Tablet", "Smartwatch"],
+                datasets: [{ label: "Unità", data: [80, 120, 50, 90] }]
+            })
+        },
+        {
+            id: 7,
+            type: 'polarchart',
+            gsw: 3, gsh: 2, gsx: 0, gsy: 4,
+            fields: [], value: [], name: 'Polar Area Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 7, name: "Consumo di Energia", layout: "polar",
+                labels: ["Luce", "Gas", "Acqua", "Elettricità"],
+                datasets: [{ label: "Kw/h", data: [150, 80, 50, 120] }]
+            })
+        },
+        {
+            id: 8,
+            type: 'radarchart',
+            gsw: 3, gsh: 2, gsx: 3, gsy: 4,
+            fields: [], value: [], name: 'Radar Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 8, name: "Statistiche Giocatore", layout: "radar",
+                labels: ["Velocità", "Forza", "Agilità", "Resistenza"],
+                datasets: [{ label: "Giocatore A", data: [80, 75, 90, 85] }]
+            })
+        },
+        {
+            id: 9,
+            type: 'scatterchart',
+            gsw: 3, gsh: 2, gsx: 6, gsy: 4,
+            fields: [], value: [], name: 'Scatter Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 9, name: "Età vs Punteggio", layout: "scatter",
+                labels: [], // labels non usate in scatter chart
+                datasets: [{
+                    label: "Risultati",
+                    data: [
+                        { x: 20, y: 55 }, { x: 25, y: 70 }, { x: 30, y: 65 }, { x: 35, y: 80 }
+                    ]
+                }]
+            })
+        },
+        {
+          "id": 10,
+          "type": "multiBarLineChart",
+          "gsw": 3,
+          "gsh": 2,
+          "gsx": 0,
+          "gsy": 6,
+          "fields": [],
+          "value": [],
+          "name": "Multi Bar Line Chart",
+          "labels": [],
+          "chart_data": "{\"id\":10,\"name\":\"Vendite e Prezzi\",\"layout\":\"multi-bar-line\",\"labels\":[\"Prodotto A\",\"Prodotto B\",\"Prodotto C\"],\"datasets\":[{\"label\":\"Vendite\",\"data\":[50,70,60]}],\"datasets2\":{\"label\":\"Prezzo\",\"data\":[150,120,180],\"type\":\"line\"}}"
+        },
+        {
+            id: 11,
+            type: 'multi_barbarchart',
+            gsw: 3, gsh: 2, gsx: 3, gsy: 6,
+            fields: [], value: [], name: 'Multi Bar Chart', labels: [],
+            chart_data: JSON.stringify({
+                id: 11, name: "Andamento Trimestrale", layout: "multi-bar-bar",
+                labels: ["Q1", "Q2", "Q3", "Q4"],
+                datasets: [
+                    { label: "Regione Nord", data: [10, 15, 12, 20] },
+                    { label: "Regione Sud", data: [8, 11, 15, 18] }
+                ]
+            })
+        },
+        {
+          id: 12,
+            type: 'valore',
+            gsw: 3, gsh: 2, gsx: 3, gsy: 6,
+            fields: [], value: [], name: 'Valore', labels: [],
+            chart_data: JSON.stringify({
+                id: 12, name: "Andamento Trimestrale", layout: "multi-bar-bar",
+                labels: ["Q1", "Q2", "Q3", "Q4"],
+                datasets: [
+                    { label: "Regione Nord", data: [10, 15, 12, 20], icona: "chart/prova.png" },
+                ]
+            })
+        }
+    ],
+    block_list: []
+};
 
 
             // DATI DEL CONTESTO
@@ -321,7 +417,6 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
   }
 
     // INIZIALIZZAZIONE GRIDSTACK
-    // INIZIALIZZAZIONE GRIDSTACK
 useEffect(() => {
     if (!gridRef.current) return;
 
@@ -341,138 +436,27 @@ useEffect(() => {
 
     if (responseData.blocks && responseData.blocks.length > 0) {
         responseData.blocks.forEach(block => {
-            
-            // Step 1: Definiamo il widget per GridStack SENZA content pre-stilizzato.
-            // Gridstack creerà da solo il .grid-stack-item-content di base.
-          const widget = {
-              w: block.gsw || 2,
-              h: block.gsh != null ? block.gsh : 4,  // <-- Controlla esplicitamente null/undefined
-              x: block.gsx || 0,
-              y: block.gsy || 0,
-              id: String(block.id),
-          };
+            const widget = {
+                w: block.gsw || 2,
+                h: block.gsh != null ? block.gsh : 4,
+                x: block.gsx || 0,
+                y: block.gsy || 0,
+                id: String(block.id),
+            };
 
             const addedWidget = grid.addWidget(widget);
 
             if (addedWidget) {
-                // Step 2: Troviamo il vero elemento .grid-stack-item-content che GridStack ha creato.
                 const contentElement = addedWidget.querySelector('.grid-stack-item-content');
                 if (contentElement) {
-
-                    // Step 3: APPLICHIAMO LE NOSTRE CLASSI DI STILE QUI, all'elemento corretto.
                     contentElement.className = 'grid-stack-item-content bg-white rounded-lg shadow-md flex flex-col h-full overflow-hidden border border-gray-200';
-
                     const root = createRoot(contentElement);
 
                     requestAnimationFrame(() => {
                         setTimeout(() => {
-                            // Step 4: Renderizziamo la nostra struttura interna.
-                            // La logica flexbox è già nelle classi del contentElement,
-                            // quindi non servono più gli style in linea.
-                            
-                            if (block.type === 'barchart' || block.type === 'piechart' || block.type === 'linechart' || block.type === 'donutchart' || block.type === 'heatchart' || block.type === 'orizbarchart' || block.type === 'polarchart' || block.type === 'radarchart' || block.type === 'scatterchart') {
-                                root.render(
-                                    <>
-                                        {/* Header unificato con bottoni-icona */}
-                                        <div className="px-4 pt-4 pb-2 flex justify-between items-center flex-shrink-0">
-                                            <h4 className="text-lg font-semibold text-gray-700">{block.name}</h4>
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => handleExcelExport(block.id)}
-                                                    className="p-2 text-gray-500 hover:text-green-600 transition-colors"
-                                                    title="Scarica Excel"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => deleteBlock(block.id)}
-                                                    className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                                                    title="Elimina Blocco"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Contenitore del grafico che si espande */}
-                                        <div className="w-full flex-grow p-4">
-                                            {block.type === 'barchart' && (
-                                                <BarChart2
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'piechart' && (
-                                                <PieChart2
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'linechart' && (
-                                                <LineChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'donutchart' && (
-                                                <DonutChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'heatchart' && (
-                                                <HeatmapChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'orizbarchart' && (
-                                                <OrizBarChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'polarchart' && (
-                                                <PolarChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'radarchart' && (
-                                                <RadarChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                            {block.type === 'scatterchart' && (
-                                                <ScatterChart
-                                                    values={block.value}
-                                                    labels={block.labels}
-                                                    name={block.name}
-                                                    fields={block.fields}
-                                                />
-                                            )}
-                                        </div>
-                                    </>
-                                );
-                            } else {
-                                // Blocco generico (es. testo)
+                            // Rimosso il controllo dei tipi. Ora deleghiamo tutto a BlockChart
+                            if (block.type === 'text' || block.type === 'widget') {
+                                // Blocco generico (testo, widget)
                                 root.render(
                                     <div className="p-4 w-full h-full">
                                         <h4 className="text-lg font-semibold mb-2 text-gray-700">{block.name}</h4>
@@ -480,10 +464,22 @@ useEffect(() => {
                                             {block.content ? (
                                                 <div dangerouslySetInnerHTML={{ __html: block.content }} />
                                             ) : (
-                                                <p>Block type 2:  {block.type}</p>
+                                                <p>Block type: {block.type}</p>
                                             )}
                                         </div>
                                     </div>
+                                );
+                            } else {
+                                // Tutti i tipi di grafici gestiti da BlockChart
+                                root.render(
+                                    <BlockChart
+                                        id={block.id}
+                                        name={block.name}
+                                        type={block.type}
+                                        chart_data={block.chart_data || ""}
+                                        onDelete={deleteBlock}
+                                        onExport={handleExcelExport}
+                                    />
                                 );
                             }
                         }, 200);
@@ -512,9 +508,9 @@ useEffect(() => {
           {/* 👆 FINE ELEMENTO DI DEBUG 👆 */}
                       
                 
-                <div className="flex mt-2 ml-4">
+                <div className="flex mb-4 ml-4">
         <button 
-            className="flex items-center text-white bg-primary hover:bg-primaryHover focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5" 
+            className="flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5" 
             onClick={onOpenPopup}
         >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -524,7 +520,7 @@ useEffect(() => {
         </button>
 
         <button 
-            className="flex items-center text-white bg-secondary hover:bg-secondaryHover focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm ml-4 px-5 py-2.5" 
+            className="flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm ml-4 px-5 py-2.5" 
             
             onClick={saveDashboardDisposition}
         >

@@ -1,0 +1,52 @@
+/* Container principale della card */
+.chart-container {
+  /* Imposta una prospettiva per l'effetto 3D.
+     Senza questo, l'elemento non sembrerebbe ruotare in 3D. */
+  perspective: 1000px;
+}
+
+/* L'elemento "flipper" è il contenitore che ruota. */
+.flipper {
+  /* Assicura che l'elemento occupi tutto lo spazio del suo contenitore. */
+  width: 100%;
+  height: 100%;
+  /* Imposta il tempo e il tipo di transizione per la rotazione.
+     'transform' indica che la transizione si applica alla proprietà di trasformazione. */
+  transition: transform 0.6s;
+  /* 'transform-style: preserve-3d' è cruciale. Permette agli elementi figli (front e back)
+     di mantenere la loro posizione 3D durante la rotazione. */
+  transform-style: preserve-3d;
+  /* Rimuove lo spazio tra i lati per un flip più pulito. */
+  position: relative;
+}
+
+/* Quando la classe 'is-flipped' viene aggiunta (tramite React), l'elemento ruota di 180 gradi sull'asse Y. */
+.flipper.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* Lato frontale e lato posteriore della carta.
+   Sono gli elementi che vengono visualizzati. */
+.front, .back {
+  /* Assicura che occupino la stessa posizione. */
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* Nasconde il lato posteriore finché non è ruotato. */
+  backface-visibility: hidden;
+}
+
+/* Stili specifici per il lato posteriore */
+.back {
+  /* Ruota il lato posteriore di 180 gradi per posizionarlo correttamente
+     prima della transizione. */
+  transform: rotateY(180deg);
+}
+
+/* Questo stile impedisce che il contenuto del lato "back"
+   sia rovesciato a testa in giù quando la carta ruota. */
+.keep-upright {
+  /* Ruota l'elemento di nuovo di 180 gradi per "annullare"
+     la rotazione del suo genitore. */
+  transform: rotateY(180deg);
+}
