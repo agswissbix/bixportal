@@ -280,7 +280,7 @@ const renderField = (field: FieldInterface) => {
   // Verifica se il campo obbligatorio è vuoto
   const currentValue = currentValues[field.fieldid];
   const isNewRecord = recordid === undefined || recordid === null || recordid === '';
-  var isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
+  const isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
   const isRequiredEmpty = isNewRecord && isRequired && isEmpty;
   const isRequiredFilled = isNewRecord && isRequired && !isEmpty;
 
@@ -356,7 +356,7 @@ const renderField = (field: FieldInterface) => {
             <InputLinked
               initialValue={value}
               valuecode={field.value}
-              onChange={v => handleInputChange(field.fieldid, v)}
+             
               tableid={tableid}
               linkedmaster_tableid={field.linked_mastertable}
               linkedmaster_recordid={typeof field.value === 'object' ? field.value?.code : ''}

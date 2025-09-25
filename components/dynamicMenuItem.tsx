@@ -8,6 +8,7 @@ export type CustomFunction = {
   title: string;
   function: string;
   conditions?: any;
+  params?: any;
   css?: string;
   params?: string;
 };
