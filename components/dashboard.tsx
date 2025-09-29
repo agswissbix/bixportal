@@ -30,6 +30,7 @@ const isDev = false;
           selectedYears?: string[];
           refreshDashboard?: number; // Stato per forzare il refresh della dashboard
           setRefreshDashboard?: Dispatch<SetStateAction<number>>; // Funzione opzionale per
+          filters?: any;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -61,7 +62,7 @@ const isDev = false;
         }
 
 
-function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, setRefreshDashboard }: PropsInterface) {
+function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, setRefreshDashboard, filters }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
 
@@ -190,7 +191,26 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
           "value": [],
           "name": "Multi Bar Line Chart",
           "labels": [],
-          "chart_data": "{\"id\":10,\"name\":\"Vendite e Prezzi\",\"layout\":\"multi-bar-line\",\"labels\":[\"Prodotto A\",\"Prodotto B\",\"Prodotto C\"],\"datasets\":[{\"label\":\"Vendite\",\"data\":[50,70,60]}],\"datasets2\":{\"label\":\"Prezzo\",\"data\":[150,120,180],\"type\":\"line\"}}"
+          "chart_data": JSON.stringify({
+            "id": 10,
+            "name": "Vendite, Costi e Prezzi",
+            "layout": "multi-bar-line",
+            "labels": ["Prodotto A", "Prodotto B", "Prodotto C"],
+            "datasets": [
+              {
+                "label": "Totale Vendite (Barra 1)", 
+                "data": [80.0, 100.0, 1610.0]
+              },
+              {
+                "label": "Costi Operativi (Barra 2)", // NUOVA COLONNA/SERIE DI BARRE
+                "data": [50.0, 60.0, 800.0]
+              }
+            ],
+            "datasets2": { // L'UNICA LINEA
+              "label": "Prezzo Medio (Linea)",
+              "data": [150, 120, 180]
+            }
+          })
         },
         {
             id: 11,
@@ -198,7 +218,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
             gsw: 3, gsh: 2, gsx: 3, gsy: 6,
             fields: [], value: [], name: 'Multi Bar Chart', labels: [],
             chart_data: JSON.stringify({
-                id: 11, name: "Andamento Trimestrale", layout: "multi-bar-bar",
+                id: 11, name: "", layout: "multi-bar-bar",
                 labels: ["Q1", "Q2", "Q3", "Q4"],
                 datasets: [
                     { label: "Regione Nord", data: [10, 15, 12, 20] },
@@ -215,7 +235,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
                 id: 12, name: "Andamento Trimestrale", layout: "multi-bar-bar",
                 labels: ["Q1", "Q2", "Q3", "Q4"],
                 datasets: [
-                    { label: "Regione Nord", data: [10, 15, 12, 20], icona: "chart/prova.png" },
+                    { label: "Regione Nord", data: [10, 15, 12, 20], image: "chart/00000000000000000000000000000011/icona.png" },
                 ]
             })
         }
@@ -241,9 +261,10 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
             apiRoute: 'get_dashboard_blocks', // riferimento api per il backend
             userid: user,
             dashboardid: dashboardId,
-            years: selectedYears,
+            selectedYears: selectedYears,
+            filters: filters
           };
-    }, [user,selectedYears, refreshDashboard]);
+    }, [user, selectedYears, filters, refreshDashboard]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -365,13 +386,15 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
       },
     };
   
-    const range = XLSX.utils.decode_range(worksheet["!ref"]);
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!worksheet[cell_address]) continue;
-        // Applica stile header alla prima riga, altrimenti baseStyle
-        worksheet[cell_address].s = R === 0 ? headerStyle : baseStyle;
+    if (worksheet["!ref"]) {
+      const range = XLSX.utils.decode_range(worksheet["!ref"]);
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!worksheet[cell_address]) continue;
+          // Applica stile header alla prima riga, altrimenti baseStyle
+          worksheet[cell_address].s = R === 0 ? headerStyle : baseStyle;
+        }
       }
     }
   

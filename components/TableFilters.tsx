@@ -264,8 +264,8 @@ export default function TableFilters({ tableid }: PropsInterface) {
             {(response: ResponseInterface) => (
                 <div className="h- overflow-y-auto p-2 w-full">
                      <form onSubmit={handleFormSubmit}>
-                        <div className="space-y-4 relative">
-                            {response.filters.map((filter, index) => (
+                        <div className="space-y-4 relative">
+                            {response.filters.map((filter, index) => (
                             <div key={index} className="relative">
                                 <label className="block text-sm font-medium text-gray-900 mb-1">
                                     Filtra per {filter.label}

@@ -44,6 +44,7 @@ interface FieldInterface {
   linked_mastertable?: string;
   settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string };
   isMulti?: boolean;
+  hasDependencies?: boolean;
 }
 
 interface ResponseInterface {
@@ -249,6 +250,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     const isEmpty = !currentValue || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0);
     const isRequiredEmpty = isNewRecord && isRequired && isEmpty;
     const isRequiredFilled = isNewRecord && isRequired && !isEmpty;
+    const hasDependencies = field.hasDependencies;
 
     if (isCalculated) {
       return (
@@ -300,7 +302,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     }
 
     return (
-      <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group" onBlur={handleFieldBlur}>
+    <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group" onBlur={hasDependencies ? handleFieldBlur : undefined}>
         <div className="w-1/4 pt-2">
           <div className="flex items-center gap-1">
             {isRequired && isNewRecord && (
