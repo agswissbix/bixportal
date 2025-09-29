@@ -10,7 +10,6 @@ export type CustomFunction = {
   conditions?: any;
   params?: any;
   css?: string;
-  params?: string;
 };
 
 export default function DynamicMenuItem({
@@ -29,6 +28,7 @@ export default function DynamicMenuItem({
     const func = frontendFunctions[fn.function];
     try {
       if (func) {
+        console.log(`Esecuzione della funzione: ${fn.function} con params:`, params);
         if (params !== undefined) {
           await func(params);
         } else {

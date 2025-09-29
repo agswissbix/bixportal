@@ -27,7 +27,7 @@ const isDev = false;
         interface PropsInterface {
           onOpenPopup: () => void; // Funzione opzionale per aprire il popup
           dashboardId?: string; // ID della dashboard, opzionale per test
-          selectedYears?: string[];
+          selectedYears?: string[]; // Anni selezionati, opzionale per test
           refreshDashboard?: number; // Stato per forzare il refresh della dashboard
           setRefreshDashboard?: Dispatch<SetStateAction<number>>; // Funzione opzionale per
           filters?: any;

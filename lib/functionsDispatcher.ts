@@ -30,8 +30,8 @@ export function useFrontendFunctions() {
     }
   },
   // ----------------------- recordCards functions ------------------------
-  compilaActiveMind: async (recordid: string) => {
-    window.open(`/activeMind/${recordid}`, "_blank");
+  compilaActiveMind: async (data: { recordid: string }) => {
+    window.open(`/activeMind/${data.recordid}`, "_blank");
   },
   handleSignTimesheet: async () => {
     setOpenSignatureDialog(true);

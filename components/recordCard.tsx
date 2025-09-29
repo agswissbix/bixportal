@@ -292,8 +292,15 @@ export default function RecordCard({
                         <div className="absolute right-0 z-10 mt-2 w-40 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <ul className="py-1 text-sm text-gray-700">
                             {response.fn.map((fn) => fn.context === 'cards' && (
-                              <DynamicMenuItem key={fn.title} fn={fn} params={recordid} onClick={() => setShowDropdown(false)} />
-                            ))}
+                              <DynamicMenuItem
+                                      key={fn.title}
+                                      fn={fn} // Ora fn.params è un vero oggetto (o null)
+                                      params={{
+                                        recordid: recordid,
+                                        ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                                      }}
+                                      onClick={() => setShowDropdown(false)}
+                                    />                            ))}
                           </ul>
                         </div>
                       )}
