@@ -5,29 +5,43 @@ import DigitalSignature from "@/components/activeMind/DigitalSignature"
 
 interface Section4Props {
   serviceData: {
-    clientInfo?: {
-      nome: string
-      indirizzo: string
-      data: string
-      termine: string
-    }
-    section1: {
-      selectedTier: string
-      price: number
-    }
-    section2: {
-      [key: string]: {
-        quantity: number
-        unitPrice: number
-        total: number
-        features?: string[]
+      clientInfo?: {
+        nome: string
+        indirizzo: string
+        data: string
+        termine: string
       }
-    }
-    section3: {
-      selectedFrequency: string,
-      exponentPrice?: number,
-      operationsPerYear?: number
-    }
+      section1: {
+        selectedTier: string
+        price: number
+      }
+      section2Products: {
+        [key: string]: {
+          id: string
+          title: string
+          unitPrice: number
+          icon: string
+          features: string[]
+          category: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
+          monthlyPrice?: number
+          yearlyPrice?: number
+          description?: string
+        }
+      }
+      section2Services: {
+        [key: string]: {
+          title: string
+          quantity: number
+          unitPrice: number
+          total: number
+          features?: string[]
+        }
+      }
+      section3: {
+        selectedFrequency: string
+        exponentPrice?: number
+        operationsPerYear?: number
+      }
   }
   onUpdate: (data: any) => void
   onSignatureChange?: (signature: string | null) => void
@@ -65,7 +79,7 @@ const serviceLabels: { [key: string]: string } = {
 }
 
 export default function Section4Summary({ serviceData, onUpdate, onSignatureChange }: Section4Props) {
-  const section3Total = Object.values(serviceData.section2).reduce((sum, service) => sum + service.total, 0)
+  const section3Total = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
   const grandTotal = serviceData.section1.price + section3Total
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -75,7 +89,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
     })
   }
 
-  const selectedServices = Object.entries(serviceData.section2)
+  const selectedServices = Object.entries(serviceData.section2Services)
     .filter(([_, service]) => service.quantity > 0)
     .map(([id, service]) => ({ id, ...service }))
 
@@ -135,7 +149,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
                 //     </p>
                 //   </div>
                 //   <div className="text-right">
-                //     <div className="font-bold text-gray-900">CHF {service.total * serviceData.section2.exponentPrice!}.-</div>
+                //     <div className="font-bold text-gray-900">CHF {service.total * serviceData.section2Services.exponentPrice!}.-</div>
                 //   </div>
                 // </div>
                 //   {service.features && (
@@ -247,7 +261,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
             <div className="gap-4 text-sm text-green-800">
               <div className="flex justify-between flex-wrap text-2xl font-bold text-green-900">
                 <span>Totale Servizi + Pianificazione:</span>
-                <span>CHF { (section3Total * serviceData.section2.exponentPrice!) } .-</span>
+                <span>CHF { (section3Total * serviceData.section2Services.exponentPrice!) } .-</span>
               </div>
             </div>
           </div>
@@ -307,7 +321,7 @@ export default function Section4Summary({ serviceData, onUpdate, onSignatureChan
                 <p className="text-sm text-gray-600">Massagno, {new Date().toLocaleDateString("it-IT")}</p>
                 <p className="font-medium">Mauro Gallani</p>
               </div>
-              <div className="text-right">
+              <div className="flex flex-col text-right">
                 <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>
                 <input className="float-right block mb-2 border border-gray-300 rounded p-2" 
                   name="name" 
