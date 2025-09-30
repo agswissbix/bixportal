@@ -30,13 +30,13 @@ export function useFrontendFunctions() {
     }
   },
   // ----------------------- recordCards functions ------------------------
-  compilaActiveMind: async (data: { recordid: string }) => {
-    window.open(`/activeMind/${data.recordid}`, "_blank");
+  compilaActiveMind: async ({ recordid }: { recordid: string }) => {
+    window.open(`/activeMind/${recordid}`, "_blank");
   },
   handleSignTimesheet: async () => {
     setOpenSignatureDialog(true);
   },
-  stampaBollettino: async (recordid: string) => {
+  stampaBollettino: async ({ recordid }: { recordid: string }) => {
     try {
       //download a file from the response
       //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
@@ -74,7 +74,7 @@ export function useFrontendFunctions() {
       toast.error('Errore durante la stampa del bollettino');
     }
   },
-  downloadOfferta: async (recordid: string) => {
+  downloadOfferta: async ({ recordid }: { recordid: string }) => {
     try {
       const response = await axiosInstanceClient.post(
           "/postApi",
@@ -111,7 +111,7 @@ export function useFrontendFunctions() {
         toast.error('Errore durante la creazione dei record');
     }
   },
-  stampaPdfTest: async (recordid: string) => {
+  stampaPdfTest: async ({ recordid }: { recordid: string }) => {
     try {
       //download a file from the response
       //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
@@ -150,7 +150,7 @@ export function useFrontendFunctions() {
     }
 
   },
-  stampa_word_test: async (recordid: string) => {
+  stampa_word_test: async ({ recordid }: { recordid: string }) => {
     try {
       const response = await axiosInstanceClient.post(
         "/postApi",
@@ -198,7 +198,7 @@ export function useFrontendFunctions() {
       toast.error('Errore durante la generazione del documento.');
     }
   },
-  swissbixStampaOfferta: async (recordid: string) => {
+  swissbixStampaOfferta: async ({ recordid }: { recordid: string }) => {
     try {
       //download a file from the response
       //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
@@ -237,7 +237,7 @@ export function useFrontendFunctions() {
     }
     
   },
-  sendEmail: async (recordid: string) => {
+  sendEmail: async ({ recordid }: { recordid: string }) => {
     try {
       await axiosInstanceClient.post(
         "/postApi",
@@ -258,23 +258,23 @@ export function useFrontendFunctions() {
       toast.error("Errore durante l'invio della email");
     }
   },
-  handleRendiContoLavanderia: async (recordid: string) => {
+  handleRendiContoLavanderia: async ({ recordid }: { recordid: string }) => {
     
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('emailLavanderia');
   },
-  handleStabile: async (recordid: string) => {
+  handleStabile: async ({ recordid }: { recordid: string }) => {
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('reportGasolio');
   },
-  handleBollettiniTrasporto: async (recordid: string) => {
+  handleBollettiniTrasporto: async ({ recordid }: { recordid: string }) => {
     setPopupRecordId(recordid);
     setIsPopupOpen(true);
     setPopUpType('emailBollettini');
   },
-  printingInvoice: async (recordid: string) => {
+  printingInvoice: async ({ recordid }: { recordid: string }) => {
     window.open(`http://bixcrm01:8822/bixdata/custom/api_bexio_set_printing_invoices.php?recordid=${recordid}`, '_blank')
   },
   swissbix_deal_update_status: async (params: object) => {
@@ -300,7 +300,7 @@ export function useFrontendFunctions() {
   },
   //TODO
   //CUSTOM PITSERVICE
-  // offertaChiusaVinta: async (recordid: string) => {
+  // offertaChiusaVinta: async ({ recordid }: { recordid: string }) => {
   //   try {
   //           const response = await axiosInstanceClient.post(
   //               "/postApi",
@@ -322,7 +322,7 @@ export function useFrontendFunctions() {
   //       toast.error('Errore durante la chiusura dell offerta');
   //   }
   // },
-  // offertaChiusaPersa: async (recordid: string) => {
+  // offertaChiusaPersa: async ({ recordid }: { recordid: string }) => {
   //   try {
   //           const response = await axiosInstanceClient.post(
   //               "/postApi",
