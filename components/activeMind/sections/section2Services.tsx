@@ -139,7 +139,7 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
                 <Card
                   key={service.id}
                   className={`${(responseData.services.indexOf(service) % 2 === 0
-                      ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                      ? "bg-amber-50 border-amber-200 hover:bg-amber-100"
                       : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                     )
                   } transition-all duration-200 cursor-pointer`}
@@ -168,7 +168,7 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
                                 e.stopPropagation()
                                 decrementQuantity(service.id)
                               }}
-                              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={serviceData.quantity <= 0}
                             >
                               <span className="text-lg font-bold">−</span>
@@ -190,7 +190,7 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
                                 e.stopPropagation()
                                 incrementQuantity(service.id)
                               }}
-                              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-r-md border-l border-gray-300"
+                              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-r-md border-l border-gray-300"
                             >
                               <span className="text-lg font-bold">+</span>
                             </button>
@@ -199,7 +199,7 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
 
                         {serviceData.quantity > 0 && (
                           <div className="text-right">
-                            <div className="text-lg font-bold text-blue-700">CHF {serviceData.total}</div>
+                            <div className="text-lg font-bold text-amber-700">CHF {serviceData.total}</div>
                             <div className="text-xs text-gray-600">Totale</div>
                           </div>
                         )}
@@ -222,7 +222,7 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
                         <div className="grid gap-2 lg:grid-cols-2">
                           {service.features.map((feature, index) => (
                             <div key={index} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
                               <span className="text-sm text-gray-700">{feature}</span>
                             </div>
                           ))}

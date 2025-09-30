@@ -34,6 +34,11 @@ interface ServiceData {
       unitPrice: number
       total: number
       features?: string[]
+      category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
+      monthlyPrice?: number
+      yearlyPrice?: number
+      description?: string
+      billingType?: "monthly" | "yearly"
     }
   }
   section2Services: {
@@ -54,7 +59,7 @@ interface ServiceData {
 
 const systemAssuranceSteps = [
   { id: 1, title: "System Assurance", description: "Analisi infrastruttura IT" },
-  { id: 2, title: "Selezione Prodotti", description: "Scelta servizi consigliati" },
+  { id: 2, title: "Prodotti", description: "Scelta prodotti" },
   { id: 3, title: "Servizi", description: "Scelta Servizi" },
   { id: 4, title: "Condizioni", description: "Pianificazione interventi" },
   { id: 5, title: "Riepilogo", description: "Definizione economica" },
@@ -157,13 +162,6 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     try {
       const dataToPrint = {
         ...serviceData,
-        chosenPath,
-        clientInfo: serviceData.clientInfo || {
-          nome: "Studio Medico",
-          indirizzo: "Via Example 123, Città",
-          data: new Date().toLocaleDateString("it-CH"),
-          termine: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("it-CH"),
-        },
       }
 
       const response = await axiosInstanceClient.post(

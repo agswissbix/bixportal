@@ -13,13 +13,16 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900">Che tipo di analisi vuoi effettuare?</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Proposta soluzioni IT per gli studi medici</h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Scegli il percorso più adatto alle tue esigenze per configurare la tua soluzione IT personalizzata
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
         {/* System Assurance Option */}
         <Card
-          className="bg-blue-50 border-blue-200 hover:bg-blue-100 transition-all duration-200 cursor-pointer group"
+          className="bg-blue-50 border-blue-200 hover:bg-blue-100 transition-all duration-200 cursor-pointer group flex flex-col"
           onClick={() => onChoice("system_assurance")}
         >
           <CardHeader className="pb-4">
@@ -30,29 +33,25 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
               <div>
                 <CardTitle className="text-xl text-blue-900">System Assurance</CardTitle>
                 <Badge variant="secondary" className="mt-1">
-                    Analisi infrastruttura IT
+                  Analisi infrastruttura IT
                 </Badge>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 flex-1 flex flex-col">
             <p className="text-gray-700">
-              Si garantisce continuità, efficienza e sicurezza al sistema informatico con il nostro servizio professionale di manutenzione IT programmata, studiato per aziende e professionisti che desiderano concentrarsi sul proprio business, lasciando l'infrastruttura tecnologica in mani esperte.
-
+              Analisi completa dell'infrastruttura IT per garantire continuità, efficienza e sicurezza al sistema
+              informatico con manutenzione programmata.
             </p>
 
-            <div className="space-y-2">
+            <div className="space-y-2 flex-1">
               <h4 className="font-medium text-gray-900">Include:</h4>
               <div className="space-y-1">
                 {[
                   "Installazione agent RMM (1 mese)",
-                  "Avvio e riesamina dello stato dei PC",
-                  "Generazione di un Asset managed (inventario)",
-                  "Verifica infrastruttura informatica",
-                  "Device networking",
-                  "Nas/storage",
-                  "Switch/router",
-                  "Reportistica sull'infrastruttura informatica"
+                  "Verifica infrastruttura e networking",
+                  "Inventario hardware/software completo",
+                  "Reportistica dettagliata",
                 ].map((feature, index) => (
                   <div key={index} className="flex items-start space-x-2">
                     <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -64,7 +63,7 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
 
             <div className="bg-blue-100 rounded-lg p-3">
               <p className="text-sm text-blue-800 font-medium">
-                Ideale per un nuovo cliente
+                Ideale per nuovi clienti
               </p>
             </div>
 
@@ -83,58 +82,59 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
 
         {/* Services Selection Option */}
         <Card
-          className="bg-green-50 border-green-200 hover:bg-green-100 transition-all duration-200 cursor-pointer group"
+          className="bg-amber-50 border-amber-200 hover:bg-amber-100 transition-all duration-200 cursor-pointer group flex flex-col"
           onClick={() => onChoice("services")}
         >
           <CardHeader className="pb-4">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="p-3 bg-green-600 rounded-lg">
+              <div className="p-3 bg-amber-600 rounded-lg">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl text-green-900">Scelta dei Servizi</CardTitle>
+                <CardTitle className="text-xl text-amber-900">Manutenzione e Assistenza</CardTitle>
                 <Badge variant="secondary" className="mt-1">
-                  Configurazione diretta
+                  Servizi continuativi
                 </Badge>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 flex-1 flex flex-col">
             <p className="text-gray-700">
-              Vai direttamente alla selezione dei servizi IT se conosci già le tue esigenze e vuoi configurare
-              rapidamente la tua soluzione.
+              Servizi di manutenzione programmata e assistenza IT continuativa per proteggere e ottimizzare la tua
+              infrastruttura nel tempo.
             </p>
 
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">Categorie disponibili:</h4>
+            <div className="space-y-2 flex-1">
+              <h4 className="font-medium text-gray-900">Servizi disponibili:</h4>
               <div className="space-y-1">
                 {[
-                  "Sicurezza dati informatici (nLPD)",
-                  "Sicurezza dati mobili",
-                  "Sicurezza infrastruttura",
-                  "Protezione email e phishing",
-                  "Firewall e networking",
+                  "Monitoraggio e gestione remota (RMM)",
+                  "Backup automatici e disaster recovery",
+                  "Protezione antivirus e anti-ransomware",
+                  "Sicurezza email e formazione phishing",
                 ].map((category, index) => (
                   <div key={index} className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-gray-700">{category}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-green-100 rounded-lg p-3">
-              <p className="text-sm text-green-800 font-medium">Configurazione rapida con preventivo immediato</p>
+            <div className="bg-amber-100 rounded-lg p-3">
+              <p className="text-sm text-amber-800 font-medium">
+                Configurazione rapida con preventivo immediato
+              </p>
             </div>
 
             <Button
-              className="w-full bg-green-600 hover:bg-green-700 text-white group-hover:bg-green-700"
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white group-hover:bg-amber-700"
               onClick={(e) => {
                 e.stopPropagation()
                 onChoice("services")
               }}
             >
-              Scegli i Servizi
+              Configura i Servizi
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </CardContent>
