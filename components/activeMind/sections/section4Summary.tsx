@@ -99,11 +99,9 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const nome = e.target.value
+    console.log("Name changed:", nome)
     onUpdate({
-      clientInfo: {
-        ...serviceData.clientInfo,
-        nome: nome,
-      },
+      nome: nome,
     })
   }
 

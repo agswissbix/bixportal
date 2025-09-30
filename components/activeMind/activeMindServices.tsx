@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, Save, Printer, Check, Home, Section } from "
 import InitialChoice from "./sections/section0Choice"
 import ProductSelection from "./sections/section2Products"
 import { toast } from "sonner"
-import axiosInstanceClient from "@/utils/axiosInstance"
+import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import CompanyHeader from "./companyHeader"
 import Section1SystemAssurance from "./sections/section1SystemAssurance"
 import Section3Conditions from "./sections/section3Conditions"
@@ -29,8 +29,10 @@ interface ServiceData {
   }
   section2Products: {
     [key: string]: {
+      id: string
       title: string
       quantity: number
+      billingType?: "monthly" | "yearly"
       unitPrice: number
       total: number
       features?: string[]
@@ -38,7 +40,6 @@ interface ServiceData {
       monthlyPrice?: number
       yearlyPrice?: number
       description?: string
-      billingType?: "monthly" | "yearly"
     }
   }
   section2Services: {
@@ -89,6 +90,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
   const steps = chosenPath === "system_assurance" ? systemAssuranceSteps : servicesSteps
 
   const updateServiceData = useCallback((section: keyof ServiceData, data: any) => {
+    console.log(`Updating ${section} with data:`, data)
     setServiceData((prev) => ({
       ...prev,
       [section]: { ...prev[section], ...data },
@@ -162,6 +164,21 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     try {
       const dataToPrint = {
         ...serviceData,
+        clientInfo: {
+          nome: serviceData.clientInfo?.nome || "N/A",
+          indirizzo: serviceData.clientInfo?.indirizzo || "N/A",
+          data: serviceData.clientInfo?.data || new Date().toLocaleDateString(),
+        },
+        products: Object.entries(serviceData.section2Products || {}).map(([id, product]) => ({
+          id,
+          quantity: product.quantity,
+          billingType: product.billingType,
+        })),
+        services: Object.entries(serviceData.section2Services || {}).map(([id, service]) => ({
+          id,
+          quantity: service.quantity,
+        })),
+        conditions: serviceData.section3.selectedFrequency,
       }
 
       const response = await axiosInstanceClient.post(

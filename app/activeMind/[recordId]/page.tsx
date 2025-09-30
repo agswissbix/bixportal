@@ -7,7 +7,7 @@ interface ActiveMindPageProps {
   };
 }
 
-export default async function ActiveMindPage(props: ActiveMindPageProps) {
+export default function ActiveMindPage(props: ActiveMindPageProps) {
   const { params } = props;
   // If you need to await something, do it here. For now, just destructure.
   const { recordId } = params;

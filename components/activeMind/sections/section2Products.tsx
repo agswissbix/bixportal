@@ -279,78 +279,103 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
               </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-end gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-end gap-4">
               {hasBillingOptions && (
-                <div className="flex space-x-2 flex-wrap sm:flex-nowrap gap-2" onClick={(e) => e.stopPropagation()}>
-                  {renderBillingOption(
-                    "monthly",
-                    service.monthlyPrice!,
-                    "Mensile",
-                    Calendar,
-                    isMonthlySelected
-                  )}
-                  {renderBillingOption(
-                    "yearly",
-                    service.yearlyPrice!,
-                    "Annuale",
-                    CalendarDays,
-                    isYearlySelected
-                  )}
+                <div className="flex flex-col gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <label className="text-xs font-medium text-gray-600 mb-0.5">Fatturazione:</label>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        updateBillingType(service, "monthly")
+                      }}
+                      className={`
+                        flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium
+                        transition-all duration-150 border whitespace-nowrap
+                        ${isMonthlySelected 
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                        }
+                      `}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Mensile</span>
+                      <span className="font-semibold">CHF {service.monthlyPrice}.-</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        updateBillingType(service, "yearly")
+                      }}
+                      className={`
+                        flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium
+                        transition-all duration-150 border whitespace-nowrap
+                        ${isYearlySelected 
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                        }
+                      `}
+                    >
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      <span>Annuale</span><br />
+                      <span className="text-md font-semibold">CHF {service.yearlyPrice}.-</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between lg:justify-end space-x-4 flex-shrink-0">
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 hidden sm:block">Quantità:</label>
-                  <div
-                    className="flex items-center border border-gray-300 rounded-md bg-white"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        decrementQuantity(service)
-                      }}
-                      className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={serviceData.quantity <= 0}
-                    >
-                      <span className="text-lg font-bold">−</span>
-                    </button>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={serviceData.quantity}
-                      onChange={(e) => {
-                        const currentBillingType = serviceData.billingType || "monthly"
-                        updateQuantity(service, Number.parseInt(e.target.value) || 0, currentBillingType)
-                      }}
+              <div className="flex items-start justify-between lg:justify-end gap-4 flex-shrink-0">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-gray-600">Quantità:</label>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex items-center border border-gray-300 rounded-md bg-white"
                       onClick={(e) => e.stopPropagation()}
-                      className="w-12 lg:w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-8 lg:h-10 no-spinner p-0"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        incrementQuantity(service)
-                      }}
-                      className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-r-md border-l border-gray-300"
                     >
-                      <span className="text-lg font-bold">+</span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          decrementQuantity(service)
+                        }}
+                        className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={serviceData.quantity <= 0}
+                      >
+                        <span className="text-lg font-bold">−</span>
+                      </button>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={serviceData.quantity}
+                        onChange={(e) => {
+                          const currentBillingType = serviceData.billingType || "monthly"
+                          updateQuantity(service, Number.parseInt(e.target.value) || 0, currentBillingType)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-12 lg:w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-8 lg:h-10 no-spinner p-0"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          incrementQuantity(service)
+                        }}
+                        className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-r-md border-l border-gray-300"
+                      >
+                        <span className="text-lg font-bold">+</span>
+                      </button>
+                    </div>
+                    
+                    <div className={`text-right min-w-[100px] transition-opacity duration-150 ${serviceData.quantity > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                      <div className="text-base font-bold text-blue-700 whitespace-nowrap">CHF {serviceData.total.toFixed(2)}.-</div>
+                      <div className="text-xs text-gray-600 whitespace-nowrap">
+                        {serviceData.billingType === "yearly" ? "Tot. annuale" : "Tot. mensile"}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {serviceData.quantity > 0 && (
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-lg font-bold text-blue-700">CHF {serviceData.total.toFixed(2)}.-</div>
-                    <div className="text-xs text-gray-600">
-                      {serviceData.billingType === "yearly" ? "Totale annuale" : "Totale mensile"}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center self-start pt-2 lg:self-center lg:pt-0">
+                <div className="flex items-center self-start pt-6">
                   {isExpanded ? (
                     <ChevronUp className="w-4 h-4 text-gray-500" />
                   ) : (

@@ -155,56 +155,55 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between lg:justify-end space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <label className="text-sm font-medium text-gray-700">Quantità:</label>
-                          <div
-                            className="flex items-center border border-gray-300 rounded-md bg-white"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                decrementQuantity(service.id)
-                              }}
-                              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                              disabled={serviceData.quantity <= 0}
+                      <div className="flex items-start justify-between lg:justify-end gap-4 flex-shrink-0">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-medium text-gray-600">Quantità:</label>
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="flex items-center border border-gray-300 rounded-md bg-white"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <span className="text-lg font-bold">−</span>
-                            </button>
-                          <Input
-                            type="number"
-                            min="0"
-                            value={serviceData.quantity}
-                            onChange={(e) =>
-                              updateQuantity(service.id, Number.parseInt(e.target.value) || 0)
-                            }
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-10 no-spinner"
-                          />
-
-                          <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                incrementQuantity(service.id)
-                              }}
-                              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-r-md border-l border-gray-300"
-                            >
-                              <span className="text-lg font-bold">+</span>
-                            </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  decrementQuantity(service.id)
+                                }}
+                                className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={serviceData.quantity <= 0}
+                              >
+                                <span className="text-lg font-bold">−</span>
+                              </button>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={serviceData.quantity}
+                                onChange={(e) =>
+                                  updateQuantity(service.id, Number.parseInt(e.target.value) || 0)
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-12 lg:w-16 text-center border-0 focus:ring-0 focus:border-0 rounded-none h-8 lg:h-10 no-spinner p-0"
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  incrementQuantity(service.id)
+                                }}
+                                className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-r-md border-l border-gray-300"
+                              >
+                                <span className="text-lg font-bold">+</span>
+                              </button>
+                            </div>
+                            
+                            <div className={`text-right min-w-[90px] transition-opacity duration-150 ${serviceData.quantity > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                              <div className="text-base font-bold text-amber-700 whitespace-nowrap">CHF {serviceData.total}.-</div>
+                              <div className="text-xs text-gray-600 whitespace-nowrap">Totale</div>
+                            </div>
                           </div>
                         </div>
 
-                        {serviceData.quantity > 0 && (
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-amber-700">CHF {serviceData.total}</div>
-                            <div className="text-xs text-gray-600">Totale</div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center">
+                        <div className="flex items-center pt-6">
                           {isExpanded ? (
                             <ChevronUp className="w-4 h-4 text-gray-500" />
                           ) : (
