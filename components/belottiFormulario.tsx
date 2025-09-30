@@ -1,4 +1,4 @@
-import React, { useMemo, useContext, useState, useEffect } from 'react';
+import React, { useMemo, useContext, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -25,7 +25,7 @@ interface ResponseInterface {
   }[];
 }
 
-export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterface) {
+function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
   // Stati per i campi del form
   const [order, setOrder] = useState<{ [key: string]: string }>({}); // Quantità
   const [diottrie, setDiottrie] = useState<{ [key: string]: string }>({}); // Generico, usato per LAC
@@ -58,6 +58,19 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
     setSphValues({});
     setDiametri({});
   }, [formType]);
+
+  useImperativeHandle(ref, () => ({
+    resetProduct: (item) => {
+      setOrder((prev) => ({ ...prev, [item.id]: "0" }));
+      setDiottrie((prev) => ({ ...prev, [item.id]: "" }));
+      setColori((prev) => ({ ...prev, [item.id]: "" }));
+      setBoxDl((prev) => ({ ...prev, [item.id]: "" }));
+      setReferenze((prev) => ({ ...prev, [item.id]: "" }));
+      setRaggi((prev) => ({ ...prev, [item.id]: "" }));
+      setSphValues((prev) => ({ ...prev, [item.id]: "" }));
+      setDiametri((prev) => ({ ...prev, [item.id]: "" }));
+    }
+  }));
 
 
   // Handlers generici per i campi input
@@ -251,3 +264,5 @@ export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterf
     </GenericComponent>
   );
 }
+
+export default forwardRef(BelottiFormulario);

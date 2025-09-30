@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import BelottiFormulario from './belottiFormulario';
 import axios from 'axios';
-// Rimuovo l'istanza duplicata, assumendo che tu abbia una configurazione centralizzata
-// import axiosInstanceClient from '@/utils/axiosInstanceClient'; 
+import axiosInstanceClient from '@/utils/axiosInstanceClient'; 
 import { toast } from 'sonner';
 import { useRecordsStore } from './records/recordsStore';
+import { Trash, X } from 'lucide-react';
 
-// You can configure your axios instance as needed
-const axiosInstanceClient = axios.create({
-  // baseURL: 'https://your-api-url.com', // Uncomment and set your API base URL
-  // headers: { ... } // Add any custom headers if needed
-});
+
 
 export default function OrdinePage() {
   const [selectedFormType, setSelectedFormType] = useState<'MERCE BELOTTI' | 'LIFESTYLE BELOTTI' | 'LAC BELOTTI' | 'LAC COLORATE BELOTTI' | 'LIQUIDI LAC BELOTTI' | 'UDITO BELOTTI' | 'MERCE BLITZ' | 'LAC BLITZ' | 'LAC COLORATE BLITZ' | 'LIQUIDI LAC BLITZ' | 'UDITO BLITZ' | 'MERCE OAKLEY'>('MERCE BELOTTI');
@@ -20,6 +16,19 @@ export default function OrdinePage() {
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
   };
+
+  const handleRemoveFromCart = (itemToRemove) => {
+    setCartItems((prev) =>
+      prev.filter((ci) => !(ci.id === itemToRemove.id && ci.formType === itemToRemove.formType))
+    );
+
+    // Notifica il form che quell’articolo deve tornare a quantità 0
+    if (formRef.current) {
+      formRef.current.resetProduct(itemToRemove);
+    }
+  };
+
+  const formRef = React.useRef<any>(null);
 
   // Funzione per aggiungere prodotti al carrello
   const handleAddToCart = (completeOrder) => {
@@ -143,7 +152,7 @@ export default function OrdinePage() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <BelottiFormulario formType={selectedFormType} onSaveOrder={handleAddToCart} />
+          <BelottiFormulario ref={formRef} formType={selectedFormType} onSaveOrder={handleAddToCart} />
         </div>
       </div>
 
@@ -161,7 +170,16 @@ export default function OrdinePage() {
             <ul className="space-y-3">
               {cartItems.map((item, index) => (
                 <li key={index} className="bg-white p-3 rounded-lg shadow border">
-                  <div className="font-semibold text-blue-800">{item.name} ({item.id})</div>
+                  <div className='flex justify-between items-center'>
+                    <div className="font-semibold text-blue-800">{item.name} ({item.id})</div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFromCart(item)}
+                      className="p-1 rounded-md text-red-600 hover:text-red-800 hover:bg-red-100 text-sm font-medium"
+                    >
+                      <Trash size={20} />
+                    </button>
+                  </div>
                   <div className="text-xs text-gray-500 mt-1">
                     Da: <span className="font-medium bg-gray-100 px-2 py-0.5 rounded-full">{item.formType}</span>
                   </div>
