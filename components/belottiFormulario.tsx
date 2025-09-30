@@ -3,10 +3,9 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { PlusCircle, MinusCircle, Save } from 'lucide-react';
-import axiosInstanceClient from '@/utils/axiosInstanceClient';
+// import axiosInstanceClient from '@/utils/axiosInstanceClient'; // Non usato qui
 import { useRecordsStore } from './records/recordsStore';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
 
 // Interfaces
@@ -27,297 +26,227 @@ interface ResponseInterface {
 }
 
 export default function BelottiFormulario({ formType, onSaveOrder }: PropsInterface) {
-  const devFormType = isDev ? "Example prop" : formType;
+  // Stati per i campi del form
+  const [order, setOrder] = useState<{ [key: string]: string }>({}); // Quantità
+  const [diottrie, setDiottrie] = useState<{ [key: string]: string }>({}); // Generico, usato per LAC
+  const [colori, setColori] = useState<{ [key: string]: string }>({}); // Usato da MERCE BELOTTI (select) e MERCE OAKLEY (input)
 
-  const defaultResponseData: ResponseInterface = {
-    formName: "",
-    categories: [],
-  };
+  // Stati specifici per MERCE OAKLEY
+  const [boxdl, setBoxDl] = useState<{ [key: string]: string }>({});
+  const [referenze, setReferenze] = useState<{ [key: string]: string }>({});
+  const [raggi, setRaggi] = useState<{ [key: string]: string }>({});
+  const [sphValues, setSphValues] = useState<{ [key: string]: string }>({});
+  const [diametri, setDiametri] = useState<{ [key: string]: string }>({});
 
-  const devResponseData: ResponseInterface = {
-    formName: "FORMULARIO ORDINE " + formType + " 2025",
-    categories: [
-      {
-        title: "Small Cases",
-        products: [
-          { id: "20.1069", name: "Pink" },
-          { id: "17.0070", name: "Electro" },
-          { id: "13.0469", name: "Purple" },
-          { id: "23.2442", name: "Brown" },
-          { id: "13.0467", name: "Green" },
-        ],
-      },
-      {
-        title: "Large Cases",
-        products: [
-          { id: "20.1070", name: "Pink" },
-          { id: "17.0071", name: "Electro" },
-          { id: "14.0067", name: "Purple" },
-          { id: "23.2443", name: "Brown" },
-          { id: "14.0065", name: "Green" },
-        ],
-      },
-      {
-        title: "Spray / Microfibers",
-        products: [
-          { id: "24.4657", name: "Amsterdam" },
-          { id: "24.4658", name: "Cannes" },
-          { id: "24.4659", name: "Varenna" },
-        ],
-      },
-      {
-        title: "Microfibers",
-        products: [
-          { id: "24.4653", name: "Amsterdam" },
-          { id: "24.4654", name: "Cannes" },
-          { id: "24.4655", name: "Varenna" },
-        ],
-      },
-      {
-        title: "Ambient",
-        products: [
-          { id: "23.3208", name: "Ambient diffuser 200ml" },
-          { id: "23.3209", name: "Ambient spray 250ml" },
-          { id: "21.1299", name: "Belotti Candles" },
-        ],
-      },
-      {
-        title: "Tatto",
-        products: [
-          { id: "19.0780", name: "Asphalt clutch" },
-          { id: "19.0778", name: "Electro clutch" },
-          { id: "19.0779", name: "Nude clutch" },
-          { id: "19.0783", name: "Asphalt wallet" },
-          { id: "19.0781", name: "Electro wallet" },
-          { id: "19.0782", name: "Nude wallet" },
-          { id: "15.0021", name: "Black card holder" },
-          { id: "15.0016", name: "Black keychain" },
-        ],
-      },
-      {
-        title: "Stationery",
-        products: [
-          { id: "23.2457", name: "Transparent tape" },
-          { id: "23.2456", name: "Packing tape" },
-          { id: "23.3599", name: "Green highlighter" },
-          { id: "23.2459", name: "Yellow highlighter" },
-          { id: "23.2460", name: "Stapler refill" },
-          { id: "15.557", name: "Zeiss pen" },
-          { id: "15.0528", name: "Zeiss centering marker" },
-        ],
-      },
-    ],
-  };
+  const [responseData, setResponseData] = useState<ResponseInterface>({ formName: "", categories: [] });
 
-  const { user } = useContext(AppContext);
-  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? devResponseData : defaultResponseData);
-  const [order, setOrder] = useState<{ [key: string]: string }>({});
-  const { setSelectedMenu } = useRecordsStore();
-  const [diottrie, setDiottrie] = useState<{ [key: string]: string }>({});
-  const [colori, setColori] = useState<{ [key: string]: string }>({});
+  const payload = useMemo(() => ({
+    apiRoute: 'get_form_data',
+    formType: formType,
+  }), [formType]);
 
-  const handleDiottriaChange = (productId: string, value: string) => {
-    setDiottrie({
-      ...diottrie,
-      [productId]: value,
-    });
-  };
-
-  const handleColoreChange = (productId: string, value: string) => {
-    setColori({
-      ...colori,
-      [productId]: value,
-    });
-  };
-
-
-  const payload = useMemo(() => {
-    if (isDev) return null;
-    return {
-      apiRoute: 'get_form_data',
-      formType: formType,
-    };
+  const { response, loading, error } = useApi<ResponseInterface>(payload);
+  
+  // Resetta gli stati quando cambia il formType per evitare di mantenere dati vecchi
+  useEffect(() => {
+    setOrder({});
+    setDiottrie({});
+    setColori({});
+    setBoxDl({});
+    setReferenze({});
+    setRaggi({});
+    setSphValues({});
+    setDiametri({});
   }, [formType]);
 
-  const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+  // Handlers generici per i campi input
+  const createFieldHandler = (setter: React.Dispatch<React.SetStateAction<{ [key: string]: string; }>>) => 
+    (productId: string, value: string) => {
+      setter(prev => ({ ...prev, [productId]: value }));
+    };
+
+  const handleDiottriaChange = createFieldHandler(setDiottrie);
+  const handleColoreChange = createFieldHandler(setColori);
+  const handleBoxDlChange = createFieldHandler(setBoxDl);
+  const handleReferenzaChange = createFieldHandler(setReferenze);
+  const handleRaggioChange = createFieldHandler(setRaggi);
+  const handleSphChange = createFieldHandler(setSphValues);
+  const handleDiametroChange = createFieldHandler(setDiametri);
 
   const handleChange = (productId: string, value: string) => {
-    if (value === "" || parseInt(value) >= 0) {
-      setOrder({
-        ...order,
-        [productId]: value,
-      });
+    if (value === "" || /^\d+$/.test(value)) { // Accetta solo numeri interi
+      setOrder(prev => ({ ...prev, [productId]: value }));
     }
   };
 
   const incrementQuantity = (productId: string) => {
-    const currentValue = order[productId as keyof typeof order] ? parseInt(order[productId as keyof typeof order]) : 0;
+    const currentValue = parseInt(order[productId] || '0');
     handleChange(productId, (currentValue + 1).toString());
   };
 
   const decrementQuantity = (productId: string) => {
-    const currentValue = order[productId as keyof typeof order] ? parseInt(order[productId as keyof typeof order]) : 0;
+    const currentValue = parseInt(order[productId] || '0');
     if (currentValue > 0) {
       handleChange(productId, (currentValue - 1).toString());
     }
   };
 
+  const getCompleteOrder = () => {
+    const data = response || responseData;
+    return data.categories.map((category) => ({
+      title: category.title,
+      products: category.products.map((p) => {
+        const productData: any = {
+          id: p.id,
+          name: p.name,
+          quantity: parseInt(order[p.id]) || 0,
+          categoria: category.title,
+          formType: formType,
+        };
 
+        // Aggiungi i campi condizionalmente
+        if (formType === 'MERCE BELOTTI') {
+          productData.colore = colori[p.id] || "";
+        } else if (formType.includes('LAC')) { // Gestisce LAC, LAC COLORATE, etc.
+          productData.diottria = diottrie[p.id] || "";
+          productData.colore = colori[p.id] || "";
+        } else if (formType === 'MERCE OAKLEY') {
+          productData.boxdl = boxdl[p.id] || "";
+          productData.referenza = referenze[p.id] || "";
+          productData.colore = colori[p.id] || "";
+          productData.raggio = raggi[p.id] || "";
+          productData.sph = sphValues[p.id] || "";
+          productData.diametro = diametri[p.id] || "";
+        }
 
-const getCompleteOrder = () => {
-  return responseData.categories.map((category) => ({
-    title: category.title,
-    products: category.products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      quantity: parseInt(order[p.id]) || 0,
-      diottria: diottrie[p.id] || "",
-      colore: colori[p.id] || "",
-      categoria: category.title,
-    })),
-  }));
-};
-  const handleSaveOrder = async (e) => {
-    e.preventDefault(); // blocca il redirect del form
-    try {
-      const completeOrder = getCompleteOrder();
+        return productData;
+      }),
+    }));
+  };
 
-      if (onSaveOrder) {
-        console.log("Dati inviati al padre:", completeOrder);
-        onSaveOrder(completeOrder); // manda i dati al padre
-      }
+  const handleSaveOrder = (e) => {
+    e.preventDefault();
+    const completeOrder = getCompleteOrder();
 
-
-
-      if (isDev) {
-        console.log("Complete order (dev):", completeOrder);
-        //alert("Ordine salvato");
-        //location.reload();
-        return;
-      }
-    } catch (error) {
-      console.error("Order save error:", error);
-      alert("Error saving the order.");
+    if (onSaveOrder) {
+      console.log("Dati inviati al padre:", completeOrder);
+      onSaveOrder(completeOrder);
     }
   };
 
   useEffect(() => {
-    if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+    if (response) {
       setResponseData(response);
     }
-  }, [response, responseData]);
+  }, [response]);
 
   return (
-    <GenericComponent response={responseData} loading={loading} error={error}>
-      {(response: ResponseInterface) => (
- <form className="w-full h-full flex flex-col overflow-hidden">
-      <div className="bg-blue-800 text-white p-6">
-        <h1 className="text-2xl font-bold text-center">{response.formName}</h1>
-      </div>
-
-      {/* Contenuto scrollabile */}
-      <div className="flex-grow overflow-auto p-2">
-        {response.categories.map((category, idx) => (
-          <div key={idx} className="mb-8">
-            <h2 className="text-xl font-bold mb-4 text-blue-800 border-b-2 border-blue-800 p-2">
-              {category.title}
-            </h2>
-
-            <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>Codice</th>
-                    <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '30%' }}>Prodotto</th>
-                    {formType === 'RIORDINO LAC' && (
-                      <>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>Diottria</th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>Colore</th>
-                      </>
-                    )}
-                    <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: formType === 'RIORDINO LAC' ? '25%' : '40%' }}>Quantità</th>
-                  </tr>
-                </thead>
-
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {category.products.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-2 py-4 text-sm font-medium text-blue-600" style={{ width: '15%' }}>{product.id}</td>
-                      <td className="px-2 py-4 text-sm text-gray-900" style={{ width: '30%' }}>{product.name}</td>
-
-                      {formType === 'RIORDINO LAC' && (
-                        <>
-                          <td className="px-2 py-4 text-sm" style={{ width: '15%' }}>
-                            <input
-                              type="text"
-                              className="w-full border rounded-md p-1 text-sm"
-                              value={diottrie[product.id] || ""}
-                              onChange={(e) => handleDiottriaChange(product.id, e.target.value)}
-                            />
-                          </td>
-                          <td className="px-2 py-4 text-sm" style={{ width: '15%' }}>
-                            <select
-                              className="w-full border rounded-md p-1 text-sm"
-                              value={colori[product.id] || ""}
-                              onChange={(e) => handleColoreChange(product.id, e.target.value)}
-                            >
-                              <option value="">--</option>
-                              <option value="Green">Green</option>
-                              <option value="Gray">Gray</option>
-                              <option value="P.Hazel">P.Hazel</option>
-                              <option value="Blue">Blue</option>
-                              <option value="Honey">Honey</option>
-                              <option value="Amethyst">Amethyst</option>
-                              <option value="Turquoise">Turquoise</option>
-                              <option value="T.Sapphire">T.Sapphire</option>
-                              <option value="Sterl. Gray">Sterl. Gray</option>
-                              <option value="Brown">Brown</option>
-                              <option value="Gem. Green">Gem. Green</option>
-                              <option value="Brl. Blue">Brl. Blue</option>
-                            </select>
-                          </td>
-                        </>
-                      )}
-
-                      <td className="px-2 py-4 text-sm text-gray-500" style={{ width: formType === 'RIORDINO LAC' ? '25%' : '40%' }}>
-                        <div className="flex items-center justify-end">
-                          <button type="button" onClick={() => decrementQuantity(product.id)} className="text-gray-500 hover:text-red-500">
-                            <MinusCircle size={20} />
-                          </button>
-                          <input
-                            type="text"
-                            className="mx-2 w-16 text-center border rounded-md p-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            value={order[product.id] || ""}
-                            onChange={(e) => handleChange(product.id, e.target.value)}
-                          />
-                          <button type="button" onClick={() => incrementQuantity(product.id)} className="text-gray-500 hover:text-green-500">
-                            <PlusCircle size={20} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+    <GenericComponent response={response || responseData} loading={loading} error={error}>
+      {(data: ResponseInterface) => (
+        <form className="w-full h-full flex flex-col overflow-hidden">
+          <div className="bg-blue-800 text-white p-6">
+            <h1 className="text-2xl font-bold text-center">{data.formName}</h1>
           </div>
-        ))}
 
-      </div>
+          <div className="flex-grow overflow-auto p-2">
+            {data.categories.map((category, idx) => (
+              <div key={idx} className="mb-8">
+                <h2 className="text-xl font-bold mb-4 text-blue-800 border-b-2 border-blue-800 p-2">
+                  {category.title}
+                </h2>
+                <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Codice</th>
+                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prodotto</th>
+                        
+                        {formType === 'MERCE BELOTTI' && (
+                          <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Colore</th>
+                        )}
 
-      <div className="bg-gray-100 p-6 mb-16 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex flex-wrap gap-3">
-            <button type='button'
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm"
-              onClick={handleSaveOrder}>
+                        {formType === 'MERCE OAKLEY' && (
+                          <>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Box/DL</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referenza</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Colore</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Raggio</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SPH</th>
+                            <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diametro</th>
+                          </>
+                        )}
+                        
+                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantità</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {category.products.map((product) => (
+                        <tr key={product.id} className="hover:bg-gray-50">
+                          <td className="px-2 py-4 text-sm font-medium text-blue-600">{product.id}</td>
+                          <td className="px-2 py-4 text-sm text-gray-900">{product.name}</td>
+
+                          {formType === 'MERCE BELOTTI' && (
+                            <td className="px-2 py-4 text-sm">
+                              <select className="w-full border rounded-md p-1 text-sm" value={colori[product.id] || ""} onChange={(e) => handleColoreChange(product.id, e.target.value)}>
+                                <option value="">--</option>
+                                <option value="Green">Green</option>
+                                <option value="Gray">Gray</option>
+                                {/* Aggiungi altre opzioni qui */}
+                              </select>
+                            </td>
+                          )}
+                          
+                          {formType === 'MERCE OAKLEY' && (
+                            <>
+                              <td className="px-2 py-4 text-sm">
+                                <select className="w-full border rounded-md p-1 text-sm" value={boxdl[product.id] || ""} onChange={(e) => handleBoxDlChange(product.id, e.target.value)}>
+                                  <option value="">--</option>
+                                  <option value="Box">Box</option>
+                                  <option value="DL">DL</option>
+                                </select>
+                              </td>
+                              <td className="px-2 py-4 text-sm">
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={referenze[product.id] || ""} onChange={(e) => handleReferenzaChange(product.id, e.target.value)} />
+                              </td>
+                              <td className="px-2 py-4 text-sm">
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={colori[product.id] || ""} onChange={(e) => handleColoreChange(product.id, e.target.value)} />
+                              </td>
+                              <td className="px-2 py-4 text-sm">
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={raggi[product.id] || ""} onChange={(e) => handleRaggioChange(product.id, e.target.value)} />
+                              </td>
+                              <td className="px-2 py-4 text-sm">
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={sphValues[product.id] || ""} onChange={(e) => handleSphChange(product.id, e.target.value)} />
+                              </td>
+                              <td className="px-2 py-4 text-sm">
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={diametri[product.id] || ""} onChange={(e) => handleDiametroChange(product.id, e.target.value)} />
+                              </td>
+                            </>
+                          )}
+
+                          <td className="px-2 py-4 text-sm text-gray-500">
+                            <div className="flex items-center justify-end">
+                              <button type="button" onClick={() => decrementQuantity(product.id)} className="text-gray-500 hover:text-red-500"><MinusCircle size={20} /></button>
+                              <input type="text" className="mx-2 w-16 text-center border rounded-md p-1" value={order[product.id] || ""} onChange={(e) => handleChange(product.id, e.target.value)} />
+                              <button type="button" onClick={() => incrementQuantity(product.id)} className="text-gray-500 hover:text-green-500"><PlusCircle size={20} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-gray-100 p-4 border-t border-gray-200">
+            <button type='button' className="flex items-center justify-center w-full gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm" onClick={handleSaveOrder}>
               <Save size={20} />
               <span>AGGIUNGI ALLA RICHIESTA</span>
             </button>
           </div>
-        </div>
-      </div>
-    </form>
+        </form>
       )}
     </GenericComponent>
   );
