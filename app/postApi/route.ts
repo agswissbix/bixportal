@@ -188,6 +188,7 @@ export async function POST(request: Request) {
     case 'swissbix_stampa_offerta': djangoUrl = '/customapp_swissbix/stampa_offerta/'; break;
     case 'swissbix_deal_update_status': djangoUrl = '/customapp_swissbix/deal_update_status/'; break;
     case 'calculate_dependent_fields': djangoUrl = '/commonapp/calculate_dependent_fields/'; break;
+    case 'belotti_conferma_ricezione': djangoUrl = '/customapp_belotti/belotti_conferma_ricezione/'; break;
     
     
 
