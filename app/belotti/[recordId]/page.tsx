@@ -27,7 +27,7 @@ export default function BelottiPage(props: { params: { recordId: string } }) {
 		if (isDev) return null;
 		return { 
 			apiRoute: 'belotti_conferma_ricezione',
-			recordId: recordId
+			recordid: recordId
 		};
 	}, [recordId]);
   

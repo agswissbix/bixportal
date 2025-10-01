@@ -477,6 +477,38 @@ export default function RecordCard({
                         <Info className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                       </button>
                     )}
+
+                    { activeServer === 'belotti' && (
+                      <>
+                      {response.fn.map((originalFn) => {
+                        if (originalFn.context !== 'cards') return null;
+
+                        // Crea una copia di fn per non modificare lo stato originale
+                        const fn = { ...originalFn };
+
+                        // Tenta di convertire fn.params da stringa JSON a oggetto
+                        try {
+                          if (fn.params && typeof fn.params === 'string') {
+                            fn.params = JSON.parse(fn.params);
+                          }
+                        } catch (error) {
+                          console.error("Errore nel parsing di fn.params:", fn.params, error);
+                          // Se il parsing fallisce, lo lasciamo come stringa o lo impostiamo a null
+                          fn.params = null; 
+                        }
+                        return (
+                          <DynamicMenuItem
+                            key={fn.title}
+                            fn={fn}
+                            params={{
+                              recordid: recordid,
+                              ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                            }}
+                            />
+                        )
+                      })}
+                        </>
+                    )}
                   </div>
                 </div>
 

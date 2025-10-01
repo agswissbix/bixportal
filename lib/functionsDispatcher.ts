@@ -350,7 +350,29 @@ export function useFrontendFunctions() {
   //       removeCard(tableid, recordid);
   //   }, 300);
   // };
+
+  // ----------------------- Belotti functions ------------------------
+  confermaMerceRicevuta: async ({ recordid }: { recordid: string }) => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "belotti_conferma_ricezione",
+          recordid: recordid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Stato della merce aggiornato a 'Merce Ricevuta'.");
+      }
+    } catch (error) {
+      toast.error("Errore durante la conferma della merce ricevuta");
+    }
   }
 }
-
-
+}

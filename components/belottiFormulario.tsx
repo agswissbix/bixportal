@@ -164,7 +164,7 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
 
           <div className="flex-grow overflow-auto p-2">
             {data.categories.map((category, idx) => (
-              <div key={idx} className="mb-8">
+              <div key={`${category.title}`} className="mb-8">
                 <h2 className="text-xl font-bold mb-4 text-blue-800 border-b-2 border-blue-800 p-2">
                   {category.title}
                 </h2>
@@ -194,8 +194,8 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {category.products.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50">
+                      {category.products.map((product, pIdx) => (
+                        <tr key={`${category.title}-${product.id || pIdx}`} className="hover:bg-gray-50">
                           <td className="px-2 py-4 text-sm font-medium text-blue-600">{product.id}</td>
                           <td className="px-2 py-4 text-sm text-gray-900">{product.name}</td>
 
