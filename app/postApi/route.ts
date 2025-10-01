@@ -189,6 +189,8 @@ export async function POST(request: Request) {
     case 'swissbix_deal_update_status': djangoUrl = '/customapp_swissbix/deal_update_status/'; break;
     case 'calculate_dependent_fields': djangoUrl = '/commonapp/calculate_dependent_fields/'; break;
     case 'belotti_conferma_ricezione': djangoUrl = '/customapp_belotti/belotti_conferma_ricezione/'; break;
+    case 'printing_katun_bexio_api_set_invoice': djangoUrl = '/customapp_swissbix/printing_katun_bexio_api_set_invoice/'; break;
+    
     
     
 
