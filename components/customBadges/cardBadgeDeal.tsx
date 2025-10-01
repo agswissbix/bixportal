@@ -97,7 +97,7 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="Deal Badge">
       {(response: ResponseInterface) => (
-        <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Header */}
           <div
             className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"

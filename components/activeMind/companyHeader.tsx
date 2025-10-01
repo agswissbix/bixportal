@@ -104,7 +104,7 @@ export default function CompanyHeader({recordIdTrattativa}: PropsInterface) {
 				<div 
 					className="absolute inset-0 pointer-events-none"
 					style={{
-					backgroundImage: `linear-gradient(to left, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,1) 100%), url('/bixdata/logos/bixdata.png')`,
+					backgroundImage: `linear-gradient(to bottom left, rgba(255,255,255,0) 0%, rgba(239, 246, 255,0.9) 50%, rgba(239, 246, 255,1) 100%), url('/bixdata/backgrounds/activemind_header.jpg')`,
 					backgroundRepeat: "no-repeat",
 					backgroundPosition: "right center",
 					backgroundSize: "contain",

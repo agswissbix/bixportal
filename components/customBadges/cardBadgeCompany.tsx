@@ -178,7 +178,7 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
         <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Header with company name and collapse button */}
           <div 
-            className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-4 bg-white cursor-pointer hover:bg-gray-50 transition-colors"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             <h2 className="text-xl font-semibold text-gray-800">
