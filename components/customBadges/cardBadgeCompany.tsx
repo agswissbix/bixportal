@@ -2,7 +2,7 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
-import { Crown, ShieldX, OctagonAlert, BadgeCheck, BadgeMinus, TrendingUp, Cog, DollarSign, Clock, Target, Phone, Database, Lock  } from 'lucide-react';
+import { Crown, ShieldX, OctagonAlert, BadgeCheck, BadgeMinus, TrendingUp, Cog, DollarSign, Clock, Target, Phone, Database, Lock, ChevronDown  } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -198,7 +198,7 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                 isCollapsed ? 'rotate-180' : 'rotate-0'
               }`}
             >
-              ▼
+              <ChevronDown />
             </div>
           </div>
 
