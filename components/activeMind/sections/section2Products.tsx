@@ -207,6 +207,12 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
     return Object.values(data).reduce((sum, service) => sum + service.total, 0)
   }
 
+  const getTotalForAllServicesByBillingType = (billingType: "monthly" | "yearly") => {
+    return Object.values(data)
+      .filter((service) => service.billingType === billingType)
+      .reduce((sum, service) => sum + service.total, 0)
+  }
+
   const getTotalForCategory = (categoryId: string) => {
     return Object.values(data)
       .filter((service: any) => service.category === categoryId)
@@ -455,7 +461,7 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
       </Tabs>
 
       {/* Total Summary */}
-      {getTotalForAllServices() > 0 && (
+      {(getTotalForAllServicesByBillingType("monthly") > 0 || getTotalForAllServicesByBillingType("yearly") > 0) && (
         <Card className="bg-green-50 border-green-200 lg:sticky bottom-4 shadow-lg">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
@@ -464,13 +470,24 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
                 <p className="text-sm text-green-700">
                   {Object.values(data).filter((s: any) => s.quantity > 0).length} servizi selezionati
                 </p>
-                <p className="text-xs text-green-600">
-                  I prezzi mostrati riflettono la frequenza di fatturazione scelta per ciascun servizio
-                </p>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-green-900">CHF {getTotalForAllServices().toFixed(2)}.-</div>
-                <div className="text-sm text-green-700">Totale stimato</div>
+              <div className="text-right space-y-1">
+                {getTotalForAllServicesByBillingType("monthly") > 0 && (
+                  <div>
+                    <div className="text-2xl font-bold text-green-900">
+                      CHF {getTotalForAllServicesByBillingType("monthly").toFixed(2)}.-
+                    </div>
+                    <div className="text-sm text-green-700">Totale mensile</div>
+                  </div>
+                )}
+                {getTotalForAllServicesByBillingType("yearly") > 0 && (
+                  <div>
+                    <div className="text-2xl font-bold text-green-900">
+                      CHF {getTotalForAllServicesByBillingType("yearly").toFixed(2)}.-
+                    </div>
+                    <div className="text-sm text-green-700">Totale annuale</div>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

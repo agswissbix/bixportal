@@ -99,8 +99,18 @@ export default function CompanyHeader({recordIdTrattativa}: PropsInterface) {
 				<p className="text-gray-600 mt-2">Intervento tecnico di manutenzione informatica</p>
 				<div className="mt-2 text-xs text-gray-500">Massagno, {new Date().toLocaleDateString("it-IT")}</div>
 			</div>
-			<Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 print:bg-white print:border-gray-300">
-				<CardContent className="p-6">
+			<Card className="relative bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 print:bg-white print:border-gray-300">
+				{/* Sfondo immagine sfumato a destra */}
+				<div 
+					className="absolute inset-0 pointer-events-none"
+					style={{
+					backgroundImage: `linear-gradient(to bottom left, rgba(255,255,255,0) 0%, rgba(239, 246, 255,0.9) 50%, rgba(239, 246, 255,1) 100%), url('/bixdata/backgrounds/activemind_header.jpg')`,
+					backgroundRepeat: "no-repeat",
+					backgroundPosition: "right center",
+					backgroundSize: "contain",
+					}}
+				/>
+				<CardContent className="relative p-6">
 					<div className="grid md:grid-cols-2 gap-6 items-end">
 						{/* Company Info */}
 						<div>

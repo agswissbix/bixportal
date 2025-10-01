@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { useApi } from "@/utils/useApi";
-import { Trash2, Play, Save, Plus, Power, Calendar, Clock, Repeat, Settings, CheckCircle, XCircle, PlayCircle, Loader2 } from "lucide-react";
+import { Trash2, Play, Save, Plus, Power, Calendar, Clock, Repeat, Settings, CheckCircle, XCircle, PlayCircle, Loader2, RefreshCw } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 
 const isDev = false;
 
@@ -35,63 +37,66 @@ interface SchedulerResponse {
 export default function SchedulerPage() {
 
   const mockData: SchedulerResponse = {
-  schedules: [
-    {
-      id: 1,
-      name: "Backup Database",
-      func: "backup_db",
-      schedule_type: "D",
-      minutes: 60,
-      next_run: "2025-09-23T02:00:00Z",
-      repeats: -1,
-      display_next_run: "2025-09-23T02:00",
-      output: "Success"
-    },
-    {
-      id: 2,
-      name: "Send Reports",
-      func: "send_reports",
-      schedule_type: "W",
-      minutes: 30,
-      next_run: null,
-      repeats: 5,
-      display_next_run: "2025-09-24T09:00",
-      output: "Pending"
-    },
-    {
-      id: 3,
-      name: "Clean Temp Files",
-      func: "cleanup_temp",
-      schedule_type: "H",
-      minutes: 15,
-      next_run: "2025-09-22T15:30:00Z",
-      repeats: -1,
-      display_next_run: "2025-09-22T15:30",
-      output: "Running..."
-    }
-  ],
-  available_tasks: [
-    ["backup_db", "Database Backup", "Performs full database backup"],
-    ["send_reports", "Send Reports", "Sends daily/weekly reports via email"],
-    ["cleanup_temp", "Cleanup Temp Files", "Removes temporary files and logs"],
-    ["sync_data", "Data Sync", "Synchronizes data between systems"]
-  ]
-};
+    schedules: [
+      {
+        id: 1,
+        name: "Backup Database",
+        func: "backup_db",
+        schedule_type: "D",
+        minutes: null, // D è Daily, minutes deve essere null
+        next_run: "2025-09-23T02:00:00Z",
+        repeats: -1,
+        display_next_run: "2025-09-23T02:00",
+        output: "Success"
+      },
+      {
+        id: 2,
+        name: "Send Reports (Interval)",
+        func: "send_reports",
+        schedule_type: "I",
+        minutes: 30, // I è Interval, minutes è usato
+        next_run: "2025-09-24T09:00:00Z",
+        repeats: 5,
+        display_next_run: "2025-09-24T09:00",
+        output: "Pending"
+      },
+      {
+        id: 3,
+        name: "Clean Temp Files",
+        func: "cleanup_temp",
+        schedule_type: "H",
+        minutes: null, // H è Hourly, minutes deve essere null (o gestito diversamente se necessario)
+        next_run: "2025-09-22T15:30:00Z",
+        repeats: -1,
+        display_next_run: "2025-09-22T15:30",
+        output: "Running..."
+      }
+    ],
+    available_tasks: [
+      ["backup_db", "Database Backup", "Performs full database backup"],
+      ["send_reports", "Send Reports", "Sends daily/weekly reports via email"],
+      ["cleanup_temp", "Cleanup Temp Files", "Removes temporary files and logs"],
+      ["sync_data", "Data Sync", "Synchronizes data between systems"]
+    ]
+  };
 
 
-  const [responseData, setResponseData] = useState<SchedulerResponse>( isDev ? mockData : {
+  const [responseData, setResponseData] = useState<SchedulerResponse>(isDev ? mockData : {
     schedules: [],
     available_tasks: [],
   });
   const [actionLoading, setActionLoading] = useState<{ [key: number]: string }>({});
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const payload = useMemo(() => {
     if (isDev) return null;
     return { apiRoute: 'schedule_list' };
   }, []);
 
-  const { response, loading, error } =     
-      !isDev && payload
+  // useApi gestisce il caricamento iniziale
+  const { response, loading, error } =
+    !isDev && payload
       ? useApi<SchedulerResponse>(payload)
       : { response: null, loading: false, error: null };
 
@@ -103,11 +108,36 @@ export default function SchedulerPage() {
 
   const { schedules = [], available_tasks = [] } = responseData;
 
+  // Funzione per controllare lo stato di caricamento per azioni di riga o refresh
+  const isLoadingOrRefreshing = (id?: number, apiRoute?: string) => {
+    if (id !== undefined && apiRoute) {
+      return actionLoading[id] === apiRoute;
+    }
+    return isRefreshing || loading;
+  };
+
+  // Funzione per eseguire il refresh della lista
+  const refreshData = async () => {
+    if (isDev) return;
+    setIsRefreshing(true);
+    try {
+      const fresh = await axiosInstanceClient.post("/postApi", { apiRoute: "schedule_list" }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setResponseData(fresh.data);
+    } catch (err: any) {
+      console.error("Errore durante il refresh:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+
   // Funzioni helper per il design
   const getScheduleTypeLabel = (type: string) => {
     const types = {
       'O': 'Once',
-      'I': 'Interval', 
+      'I': 'Interval',
       'H': 'Hourly',
       'D': 'Daily',
       'W': 'Weekly',
@@ -117,7 +147,7 @@ export default function SchedulerPage() {
   };
 
   const getScheduleTypeIcon = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'O': return <PlayCircle className="w-4 h-4" />;
       case 'I': return <Repeat className="w-4 h-4" />;
       case 'H': return <Clock className="w-4 h-4" />;
@@ -127,9 +157,14 @@ export default function SchedulerPage() {
   };
 
   const formatNextRun = (nextRun: string | null) => {
-    if (!nextRun) return 'Not scheduled';
+    if (!nextRun) return 'Non schedulato';
     try {
       const date = new Date(nextRun.includes('T') ? nextRun : nextRun + 'T00:00:00');
+      
+      if (isNaN(date.getTime())) {
+          return nextRun; 
+      }
+
       return date.toLocaleString('it-IT', {
         day: '2-digit',
         month: '2-digit',
@@ -145,54 +180,60 @@ export default function SchedulerPage() {
   const getStatusIcon = (schedule: Schedule) => {
     const isActive = !!schedule.next_run;
     const output = schedule.output?.toLowerCase() || '';
-    
+
     if (output.includes('error') || output.includes('failed')) {
       return <XCircle className="w-5 h-5 text-red-600" />;
     }
     
-    return isActive ? 
-      <CheckCircle className="w-5 h-5 text-green-600" /> : 
+    // Mostra un loader se l'azione in corso è "run_now"
+    if (actionLoading[schedule.id] === 'schedule_run_now') {
+        return <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />;
+    }
+
+    if (output.includes('running')) {
+      return <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />;
+    }
+
+    return isActive ?
+      <CheckCircle className="w-5 h-5 text-green-600" /> :
       <XCircle className="w-5 h-5 text-red-600" />;
   };
 
   const callApiAction = async (apiRoute: string, schedule?: any) => {
-    setResponseData(prev => ({
-      ...prev,
-      schedules: prev.schedules.map(s =>
-        s.id === schedule.id
-          ? { ...s, next_run: s.next_run ? null : new Date().toISOString() }
-          : s
-      ),
-    }));
-
     const scheduleId = schedule?.id || Date.now();
     setActionLoading(prev => ({ ...prev, [scheduleId]: apiRoute }));
     
+    setEditingId(null);
+
     try {
       let payload: any = { apiRoute };
 
       if (apiRoute === "schedule_save") {
-        payload.schedule = schedule; // invio oggetto intero
+        payload.schedule = schedule;
       } else {
-        payload.id = schedule?.id ?? scheduleId; // solo ID
+        payload.id = schedule?.id ?? scheduleId;
       }
 
-      const resp = await axiosInstanceClient.post("/postApi", payload, {
+      await axiosInstanceClient.post("/postApi", payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      const fresh = await axiosInstanceClient.post("/postApi", { apiRoute: "schedule_list" }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setResponseData(fresh.data);
+      await refreshData();
     } catch (err: any) {
       console.error(err);
-    } finally {
       setActionLoading(prev => {
         const newState = { ...prev };
         delete newState[scheduleId];
         return newState;
       });
+    } finally {
+      if (!isRefreshing) {
+          setActionLoading(prev => {
+              const newState = { ...prev };
+              delete newState[scheduleId];
+              return newState;
+          });
+      }
     }
   };
 
@@ -209,6 +250,66 @@ export default function SchedulerPage() {
     }));
   };
 
+  const intervalScheduleCount = schedules.filter(s => s.schedule_type === 'I').length;
+
+
+  const renderOutput = (output: string | undefined) => {
+      if (!output) {
+        return <span className="text-slate-400 italic">Nessun output</span>;
+      }
+      
+      let parsedOutput;
+      try {
+        // Tentativo di parsare l'output come JSON
+        parsedOutput = JSON.parse(output.replace(/'/g, '"'));
+      } catch (e) {
+        // Se non è JSON valido (es. "Running...", "Success"), mostralo come testo
+        const textOutput = output.length > 30 ? `${output.substring(0, 30)}...` : output;
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 cursor-help" title={output}>
+            <span className="truncate max-w-[100px]">{textOutput}</span>
+          </Badge>
+        );
+      }
+      
+      // Logica per output JSON parsato
+      const status = parsedOutput.status?.toLowerCase() || 'unknown';
+      const message = parsedOutput.value?.message || parsedOutput.value || status;
+      
+      let variant: "default" | "destructive" | "secondary" = "secondary";
+      let colorClass = "bg-slate-100 text-slate-800";
+      
+      if (status === 'success') {
+        variant = "default"; // Re-usando default per il verde
+        colorClass = "bg-green-100 text-green-800 hover:bg-green-200";
+      } else if (status === 'error' || status === 'failure') {
+        variant = "destructive"; // Re-usando destructive per il rosso
+        colorClass = "bg-red-100 text-red-800 hover:bg-red-200";
+      }
+      
+      // Mostra solo il messaggio chiave nel badge
+      const displayMessage = message.length > 30 ? `${message.substring(0, 30)}...` : message;
+
+      return (
+          <Popover>
+              <PopoverTrigger asChild>
+                  <Badge 
+                      className={`cursor-help font-medium ${colorClass}`}
+                      variant={variant}
+                  >
+                      <span className="truncate max-w-[150px]">{displayMessage}</span>
+                  </Badge>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3 text-sm bg-white shadow-xl border border-slate-200">
+                  <p className="font-semibold mb-1 text-slate-700">Output Completo:</p>
+                  <pre className="whitespace-pre-wrap break-all bg-slate-50 p-2 rounded-md text-xs text-slate-600">
+                      {JSON.stringify(parsedOutput, null, 2)}
+                  </pre>
+              </PopoverContent>
+          </Popover>
+      );
+  };
+  
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: SchedulerResponse) => (
@@ -217,18 +318,31 @@ export default function SchedulerPage() {
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-                    Task Scheduler
-                  </h1>
-                  <p className="text-slate-600 mt-2">Gestisci e monitora le tue attività automatizzate</p>
+                <div className="flex items-center">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                      Task Scheduler
+                    </h1>
+                    <Button
+                        onClick={refreshData}
+                        variant="ghost"
+                        size="sm"
+                        disabled={isLoadingOrRefreshing()}
+                        className="ml-4 h-8 w-8 p-0 text-slate-500 hover:bg-slate-200 hover:text-slate-800"
+                        title="Aggiorna Lista"
+                    >
+                        {isRefreshing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <RefreshCw className="w-4 h-4" />
+                        )}
+                    </Button>
                 </div>
-                <Button 
+                <Button
                   onClick={handleAdd}
-                  disabled={!!actionLoading[0]}
+                  disabled={isLoadingOrRefreshing(0, 'schedule_add')}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200"
                 >
-                  {actionLoading[0] ? (
+                  {isLoadingOrRefreshing(0, 'schedule_add') ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <Plus className="w-4 h-4 mr-2" />
@@ -236,9 +350,10 @@ export default function SchedulerPage() {
                   Aggiungi Task
                 </Button>
               </div>
+              <p className="text-slate-600 mt-2">Gestisci e monitora le tue attività automatizzate</p>
             </div>
 
-            {/* Stats Cards */}
+            {/* Stats Cards - Nessun problema di whitespace qui */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-200">
                 <CardContent className="p-6">
@@ -274,13 +389,13 @@ export default function SchedulerPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-slate-600">Inactive</p>
+                      <p className="text-sm font-medium text-slate-600">Interval Tasks</p>
                       <p className="text-3xl font-bold text-red-600">
-                        {schedules.filter(s => !s.next_run).length}
+                        {intervalScheduleCount}
                       </p>
                     </div>
                     <div className="p-3 bg-red-100 rounded-full">
-                      <XCircle className="w-6 h-6 text-red-600" />
+                      <Repeat className="w-6 h-6 text-red-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -297,7 +412,8 @@ export default function SchedulerPage() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto max-w-full">
-                  <table className="w-full min-w-[1200px]">
+                  {/* INIZIO CORREZIONE WHITESPACE */}
+                  <table className="w-full min-w-[1000px]">
                     <thead className="bg-slate-50 border-b sticky top-0 z-10">
                       <tr>
                         <th className="text-left p-3 font-semibold text-slate-700 min-w-[180px]">Nome Task</th>
@@ -313,11 +429,10 @@ export default function SchedulerPage() {
                     </thead>
                     <tbody>
                       {schedules.map((s, index) => (
-                        <tr key={s.id} 
-                            className={`border-b hover:bg-slate-50/50 transition-colors ${
-                              index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
+                        <tr key={s.id}
+                          className={`border-b hover:bg-slate-50/50 transition-colors ${
+                            index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
                             }`}>
-                          {/* Name */}
                           <td className="p-3">
                             <Input
                               value={s.name}
@@ -326,8 +441,6 @@ export default function SchedulerPage() {
                               placeholder="Nome del task"
                             />
                           </td>
-
-                          {/* Function */}
                           <td className="p-3">
                             <Select
                               value={s.func}
@@ -341,9 +454,10 @@ export default function SchedulerPage() {
                               <SelectContent>
                                 {available_tasks.length > 0 ? (
                                   available_tasks.map((t, idx) => (
-                                    <SelectItem key={t[0]} value={t[0]} title={t[2] || ""} 
-                                    className="hover:bg-slate-100 cursor-pointer rounded-md px-2 py-1"
->                                      <div className="flex flex-col">
+                                    <SelectItem key={t[0]} value={t[0]} title={t[2] || ""}
+                                      className="hover:bg-slate-100 cursor-pointer rounded-md px-2 py-1"
+                                    >
+                                      <div className="flex flex-col">
                                         <span className="font-medium text-black">{t[1]}</span>
                                         {t[2] && (
                                           <span className="text-xs text-slate-500">{t[2]}</span>
@@ -358,10 +472,7 @@ export default function SchedulerPage() {
                                 )}
                               </SelectContent>
                             </Select>
-
                           </td>
-
-                          {/* Schedule Type */}
                           <td className="p-3">
                             <div className="space-y-2">
                               <Select
@@ -370,8 +481,7 @@ export default function SchedulerPage() {
                               >
                                 <SelectTrigger className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md">
                                   <div className="flex items-center space-x-2">
-                                    {/* {getScheduleTypeIcon(s.schedule_type)} */}
-                                    <SelectValue />
+                                    <SelectValue placeholder={getScheduleTypeLabel(s.schedule_type || "O")} />
                                   </div>
                                 </SelectTrigger>
                                 <SelectContent>
@@ -415,35 +525,51 @@ export default function SchedulerPage() {
                               </Select>
                             </div>
                           </td>
-
-                          {/* Minutes */}
                           <td className="p-3">
-                            <Input
-                              type="number"
-                              min={1}
-                              value={s.minutes ?? 1}
-                              onChange={(e) => handleFieldChange(s.id, "minutes", Number(e.target.value))}
-                              className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md text-center font-medium"
-                              placeholder="60"
-                            />
+                              {s.schedule_type === 'I' ? (
+                                  <Input
+                                      type="number"
+                                      min={1}
+                                      value={s.minutes ?? 1}
+                                      onChange={(e) => handleFieldChange(s.id, "minutes", Number(e.target.value))}
+                                      className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md text-center font-medium"
+                                      placeholder="60"
+                                  />
+                              ) : (
+                                  <div className="text-center text-slate-400 italic">N/A</div>
+                              )}
                           </td>
-
-                          {/* Next Run */}
                           <td className="p-3">
-                            <div className="space-y-2">
-                              <Input
-                                type="datetime-local"
-                                value={s.display_next_run ?? ""}
-                                onChange={(e) => handleFieldChange(s.id, "display_next_run", e.target.value)}
-                                className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md text-sm"
-                              />
-                              <div className="text-xs text-slate-500 font-medium px-1">
-                                {formatNextRun(s.next_run)}
+                            {editingId === s.id ? (
+                              <div className="space-y-2">
+                                <Input
+                                  type="datetime-local"
+                                  value={s.display_next_run ?? ""}
+                                  onChange={(e) => handleFieldChange(s.id, "display_next_run", e.target.value)}
+                                  onBlur={() => setEditingId(null)} 
+                                  className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md text-sm"
+                                  autoFocus 
+                                />
+                                <p className="text-xs text-slate-500 font-medium px-1">
+                                  Valore salvato: {formatNextRun(s.next_run)}
+                                </p>
                               </div>
-                            </div>
+                            ) : (
+                              <div
+                                onClick={() => setEditingId(s.id)}
+                                className="cursor-pointer hover:bg-slate-100 p-1 rounded-md transition-colors"
+                                title="Clicca per modificare la prossima esecuzione"
+                              >
+                                <div className="flex items-center space-x-2 font-medium text-slate-700">
+                                  {getScheduleTypeIcon(s.schedule_type || 'O')}
+                                  <span className="truncate">{formatNextRun(s.display_next_run || s.next_run)}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                  {s.next_run ? 'Clicca per aggiornare la data' : 'Non schedulato. Clicca per impostare.'}
+                                </p>
+                              </div>
+                            )}
                           </td>
-
-                          {/* Repeats */}
                           <td className="p-3">
                             <div className="space-y-2">
                               <label className="flex items-center space-x-2 text-sm font-medium cursor-pointer">
@@ -467,82 +593,70 @@ export default function SchedulerPage() {
                               )}
                             </div>
                           </td>
-
-                          {/* Status */}
                           <td className="p-3 text-center">
                             <div className="flex justify-center">
                               {getStatusIcon(s)}
                             </div>
                           </td>
-
-                          {/* Output */}
                           <td className="p-3">
-                            <Input
-                              value={s.output ?? ""}
-                              onChange={(e) => handleFieldChange(s.id, "output", e.target.value)}
-                              className="w-full border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md text-sm"
-                              placeholder="Nessun output"
-                            />
+                            <div className="flex justify-start">
+                                {renderOutput(s.output)}
+                            </div>
                           </td>
-
-                          {/* Actions */}
                           <td className="p-3 sticky right-0 bg-gray-50 border-l">
                             <div className="flex justify-center space-x-1">
                               <Button
                                 onClick={() => handleSave(s)}
                                 variant="ghost"
                                 size="sm"
-                                disabled={!!actionLoading[s.id]}
+                                disabled={isLoadingOrRefreshing(s.id, 'schedule_save')}
                                 className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
                                 title="Salva"
                               >
-                                {actionLoading[s.id] === 'schedule_save' ? 
-                                  <Loader2 className="w-4 h-4 animate-spin" /> : 
+                                {isLoadingOrRefreshing(s.id, 'schedule_save') ?
+                                  <Loader2 className="w-4 h-4 animate-spin" /> :
                                   <Save className="w-4 h-4" />
                                 }
                               </Button>
-                              
                               <Button
                                 onClick={() => handleToggle(s)}
                                 variant="ghost"
                                 size="sm"
-                                disabled={!!actionLoading[s.id]}
-                                className={`h-8 w-8 p-0 ${s.next_run ? 
-                                  "hover:bg-red-100 hover:text-red-600" : 
+                                disabled={isLoadingOrRefreshing(s.id, 'schedule_toggle')}
+                                className={`h-8 w-8 p-0 ${s.next_run ?
+                                  "hover:bg-red-100 hover:text-red-600" :
                                   "hover:bg-green-100 hover:text-green-600"
-                                }`}
+                                  }`}
                                 title={s.next_run ? "Disattiva" : "Attiva"}
                               >
-                                {actionLoading[s.id] === 'schedule_toggle' ? 
-                                  <Loader2 className="w-4 h-4 animate-spin" /> : 
+                                {isLoadingOrRefreshing(s.id, 'schedule_toggle') ?
+                                  <Loader2 className="w-4 h-4 animate-spin" /> :
                                   <Power className="w-4 h-4" />
                                 }
                               </Button>
-                              
                               <Button
                                 onClick={() => handleRunNow(s)}
                                 variant="ghost"
                                 size="sm"
-                                disabled={!!actionLoading[s.id]}
+                                disabled={isLoadingOrRefreshing(s.id, 'schedule_run_now')}
                                 className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
                                 title="Esegui Ora"
                               >
-                                {actionLoading[s.id] === 'schedule_run_now' ? 
-                                  <Loader2 className="w-4 h-4 animate-spin" /> : 
+                                {isLoadingOrRefreshing(s.id, 'schedule_run_now') ?
+                                  <Loader2 className="w-4 h-4 animate-spin" /> :
                                   <Play className="w-4 h-4" />
                                 }
                               </Button>
-                              
                               <Button
                                 onClick={() => handleDelete(s)}
                                 variant="ghost"
                                 size="sm"
-                                disabled={!!actionLoading[s.id]}
+                                disabled={isLoadingOrRefreshing(s.id, 'schedule_delete')}
                                 className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
                                 title="Elimina"
                               >
-                                {actionLoading[s.id] === 'schedule_delete' ? 
-                                  <Loader2 className="w-4 h-4 animate-spin" /> : 
+                                {isLoadingOrRefreshing(s.id, 'schedule_delete') ?
+                                  <Loader2 className="w-4 h-4 animate-spin" /> :
                                   <Trash2 className="w-4 h-4" />
                                 }
                               </Button>
@@ -552,6 +666,7 @@ export default function SchedulerPage() {
                       ))}
                     </tbody>
                   </table>
+                  {/* FINE CORREZIONE WHITESPACE */}
                 </div>
                 
                 {schedules.length === 0 && (

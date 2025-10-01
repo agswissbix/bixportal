@@ -443,14 +443,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
 
             <div className="flex-shrink-0 pt-4">
               {activeServer === 'belotti' ? (
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaveDisabled || isCalculating}
-                  className={`w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${(isSaveDisabled || isCalculating) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  Conferma merce ricevuta
-                </button>
+                <></>
               ) : (
                 <button
                   type="button"
