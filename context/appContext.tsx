@@ -5,6 +5,7 @@ import { checkAuth, logoutUser } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import LoadingComp from '@/components/loading';
+import { set } from 'lodash';
 
 interface AppContextType {
   user: string | null;
@@ -61,7 +62,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const result = await checkAuth(pathname);
       console.info(result)
       if (!result.isAuthenticated || !result.username) {
+        if (pathname === '/login') {
+          setLoadingAuth(false); 
+          return; 
+        }
         router.push('/login');
+        return
       } else {
         setUser(result.username);
         setRole(result.role.toLowerCase() || null);
@@ -72,6 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setActiveServer(result.activeServer ?? null);
         if (pathname === '/login') {
           router.push('/home');
+          return
         }
       }
       setLoadingAuth(false); // <--- Fine verifica
