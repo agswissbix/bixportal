@@ -51,10 +51,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname === '/login') {
-      setLoadingAuth(false); 
-      return; // Evita il controllo se siamo già in /login
-    }
     if (pathname === '/testConnection') {
       setLoadingAuth(false);
       return; // Evita il controllo se siamo in /testConnection
@@ -74,6 +70,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setTelefono(result.telefono || null);
         setUserName(result.name ?? null);
         setActiveServer(result.activeServer ?? null);
+        if (pathname === '/login') {
+          router.push('/home');
+        }
       }
       setLoadingAuth(false); // <--- Fine verifica
     }
