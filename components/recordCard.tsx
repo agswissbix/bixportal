@@ -507,7 +507,7 @@ export default function RecordCard({
                             />
                         )
                       })}
-                        </>
+                      </>
                     )}
                   </div>
                 </div>
