@@ -95,7 +95,18 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
   const servicesTotal = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
   const productsTotal = Object.values(serviceData.section2Products).reduce((sum, product) => sum + product.total, 0)
   const annualTotal = Object.values(serviceData.section2Products)
-    .reduce((sum, product) => sum + (product.yearlyPrice ? product.yearlyPrice * product.quantity : 0), 0)
+    .reduce((sum, product: any) => 
+      sum + (product.billingType === "yearly" && product.yearlyPrice 
+        ? product.yearlyPrice * product.quantity 
+        : 0), 
+    0)
+
+  const monthlyTotal = Object.values(serviceData.section2Products)
+    .reduce((sum, product: any) => 
+      sum + (product.billingType === "monthly" && product.monthlyPrice 
+        ? product.monthlyPrice * product.quantity 
+        : 0), 
+    0)
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const nome = e.target.value
@@ -254,9 +265,37 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
               {/* Subtotale Prodotti */}
               <div className="border-t-2 border-indigo-200 pt-4 mt-4">
-                <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 text-lg">Subtotale Prodotti</h4>
-                  <div className="text-xl font-bold text-gray-900">CHF {productsTotal.toLocaleString("it-CH")}.-</div>
+                <div className="p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-xl shadow-inner">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-base mb-2">Subtotale prodotti</h4>
+                      <p className="text-gray-700 text-lg font-medium">{frequencyLabels[serviceData.section3.selectedFrequency]}</p>
+                    </div>
+
+                    <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
+                      <div className="text-right">
+                          {monthlyTotal > 0 && (
+                            <>
+                              <h3 className="text-2xl font-bold text-gray-900">
+                                    <div className="text-2xl font-bold text-indigo-900">CHF {monthlyTotal.toFixed(2)}.-</div>
+                              </h3>
+                        <p className="text-sm text-gray-600">totale mensile</p>
+                            </>
+                          )}
+                      </div>
+                      <div className="text-right border-t pt-2">
+                          {annualTotal > 0 && (
+                            <>
+                        <h3 className="text-xl font-semibold text-amber-700">
+                          
+                              <div className="text-2xl font-bold text-indigo-900">CHF {annualTotal.toFixed(2)}.-</div>
+                        </h3>
+                        <p className="text-sm text-gray-600">totale annuo</p>
+                            </>
+                          )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

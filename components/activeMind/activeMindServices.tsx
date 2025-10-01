@@ -264,6 +264,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     )
   }
 
+
   return (
     <div className="w-full mx-auto p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl">
       <CompanyHeader recordIdTrattativa={recordIdTrattativa} />
@@ -396,7 +397,6 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           <div className="flex justify-between">
             <Button
               onClick={handlePrevious}
-              disabled={currentStep === 1}
               variant="outline"
               className={
                 "border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent h-12 text-base font-medium" +
@@ -406,6 +406,15 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
               <ChevronLeft className="w-5 h-5 mr-2" />
               Precedente
             </Button>
+            { (currentStep === 1 || currentStep === 2) && (
+              <Button
+                  onClick={() => {setCurrentStep(steps.length)}}
+                  className="bg-white text-blue-700 hover:bg-gray-100 border border-blue-700 h-12 text-base font-medium"
+                >
+                  Salta alla fine
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+            )}
             {currentStep === steps.length ? null : (
               <Button
                 onClick={handleNext}
@@ -472,6 +481,15 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
                   Salva
                 </Button>
               </div>
+            )}
+            { (currentStep === 1 || currentStep === 2) && (
+              <Button
+                  onClick={() => {setCurrentStep(steps.length)}}
+                  className="bg-white text-blue-700 hover:bg-gray-100 border border-blue-700"
+                >
+                  Salta alla fine
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
             )}
             {currentStep !== steps.length ? (
               <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white">
