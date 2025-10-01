@@ -298,6 +298,29 @@ export function useFrontendFunctions() {
       toast.error("Errore durante la creazione dei record")
     }
   },
+  printing_katun_bexio_api_set_invoice: async (params: object) => {
+      console.info("dispatcher: printing_katun_bexio_api_set_invoice")
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+        {
+          apiRoute: "printing_katun_bexio_api_set_invoice",
+          params: params,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Fattura caricata in bexio")
+      return response.data
+    } catch (error) {
+      console.error("Errore durante la creazione dei record", error)
+      toast.error("Errore durante la creazione dei record")
+    }
+  },
+  
   //TODO
   //CUSTOM PITSERVICE
   // offertaChiusaVinta: async ({ recordid }: { recordid: string }) => {
