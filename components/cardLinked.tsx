@@ -25,6 +25,7 @@ const isDev = false;
                 tableid: string;
                 description: string;
                 rowsCount: number;
+                isOpen?: boolean;
             }>;
         }
 
@@ -45,6 +46,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                         tableid: "company",
                         description: "Azienda",
                         rowsCount: 1,
+                        isOpen: true,
                     },
                     {
                         tableid: "contact",
@@ -70,7 +72,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
-    const [openCards, setOpenCards] = useState<boolean[]>(new Array(responseDataDEV.linkedTables.length).fill(false));
+    const [openCards, setOpenCards] = useState<boolean[]>(responseDataDEV.linkedTables.map(table => !!table.isOpen) || []);
 
     const {handleRowClick} = useRecordsStore();
 
@@ -149,7 +151,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
-            setOpenCards(new Array(response.linkedTables.length).fill(false));
+            setOpenCards(response.linkedTables.map(table => !!table.isOpen) || new Array(response.linkedTables.length).fill(false));
         }
     }, [response, responseData]);
 
