@@ -191,10 +191,10 @@ export default function OrdinePage() {
                   {item.diottria && <div className="text-sm text-gray-700">Diottria: {item.diottria}</div>}
                   
                   {/* Per 'MERCE BELOTTI' e altri, mostra il colore se c'è */}
-                  {item.colore && item.formType !== 'MERCE OAKLEY' && <div className="text-sm text-gray-700">Colore: {item.colore}</div>}
+                  {item.colore && item.formType !== 'LAC COLORATE BELOTTI' && <div className="text-sm text-gray-700">Colore: {item.colore}</div>}
 
                   {/* Blocco specifico per visualizzare i dettagli di MERCE OAKLEY */}
-                  {item.formType === 'MERCE OAKLEY' && (
+                  {item.formType === 'LAC BELOTTI' && (
                     <div className="mt-2 pt-2 border-t border-gray-200 space-y-1">
                       {item.boxDl && <div className="text-sm text-gray-700">Box/DL: <span className='font-medium'>{item.boxDl}</span></div>}
                       {item.referenza && <div className="text-sm text-gray-700">Referenza: <span className='font-medium'>{item.referenza}</span></div>}
