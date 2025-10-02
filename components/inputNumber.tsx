@@ -11,17 +11,16 @@ export default function InputNumber({ initialValue = '',onChange }: PropsInterfa
   const [value, setValue] = useState(initialValue ?? '');
 
   useEffect(() => {
-        setValue(initialValue ?? '');
-        if(onChange && initialValue){
-          onChange(initialValue);
-        } 
-      }, [initialValue]);
+     setValue(initialValue);
+   }, [initialValue]);
 
-  useEffect(() => {
-    if (onChange && value !== initialValue) {
-      onChange(value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    if (onChange) {
+      onChange(newValue);
     }
-  }, [value, onChange, initialValue]);
+  };
 
   return (
     <div>
@@ -31,7 +30,7 @@ export default function InputNumber({ initialValue = '',onChange }: PropsInterfa
             name="number"
             type="number"
             value={value}
-            onChange={(e) => setValue(e.target.value)} // Aggiorna lo stato locale
+            onChange={handleChange}
             placeholder=""
             className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
           />

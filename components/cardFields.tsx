@@ -61,12 +61,14 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
   const dummyInputRef = useRef<HTMLInputElement>(null);
 
   const responseDataDEFAULT: ResponseInterface = { fields: [], recordid: '' };
-  const { activeServer } = useContext(AppContext);
+  const { activeServer, role } = useContext(AppContext);
 
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? undefined as any : responseDataDEFAULT);
   const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] | File }>({});
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const [isCalculating, setIsCalculating] = useState(false);
 
@@ -144,7 +146,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     const initialAccordionState: Record<string, boolean> = {};
     labels.forEach(label => {
       if (label !== 'Dati') {
-        initialAccordionState[label] = true;
+        initialAccordionState[label] = false;
       }
     });
     setOpenAccordions(initialAccordionState);
@@ -178,6 +180,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
       return;
     }
 
+    setIsSaving(true);
     try {
       const formData = new FormData();
       formData.append('tableid', tableid || '');
@@ -198,6 +201,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
 
       toast.success('Record salvato con successo');
       setUpdatedFields({});
+      setIsSaving(false)
     } catch (error) {
       console.error('Errore durante il salvataggio del record:', error);
       toast.error('Errore durante il salvataggio del record');
@@ -266,7 +270,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
               <p
                 data-tooltip-id="my-tooltip"
                 data-tooltip-content={`${field.fieldid}${isRequired ? ' (Campo obbligatorio)' : ''}`}
-                data-tooltip-place="left"
+                data-tooltip-place="top"
                 className={`text-sm font-medium ${
                   isRequired ? 'text-gray-900' : 'text-gray-700'
                 }`}
@@ -314,7 +318,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
             <p
               data-tooltip-id="my-tooltip"
               data-tooltip-content={`${field.fieldid}${isRequired ? ' (Campo obbligatorio)' : ''}`}
-              data-tooltip-place="left"
+              data-tooltip-place="top"
               className={`text-sm font-medium ${
                 isRequired ? 'text-gray-900' : 'text-gray-700'
               }`}
@@ -365,7 +369,6 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
             ) : field.fieldtype === 'linkedmaster' ? (
               <InputLinked
                 initialValue={value}
-                valuecode={field.value}
                 onChange={v => handleInputChange(field.fieldid, v)}
                 tableid={tableid}
                 linkedmaster_tableid={field.linked_mastertable}
@@ -422,21 +425,25 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
 
               {Object.keys(groupedFields).filter(label => label !== 'Dati').map(label => (
                 <div key={label} className="border rounded-md overflow-hidden">
-                  <div
-                    className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-200"
-                    onClick={() => toggleAccordion(label)}
-                  >
-                    <h3 className="font-bold text-gray-700">{label}</h3>
-                    <ChevronDownIcon
-                      className={`w-5 h-5 text-gray-600 transition-transform transform ${openAccordions[label] ? 'rotate-180' : ''}`}
-                    />
-                  </div>
-                 
-                  {openAccordions[label] && (
-                    <div className="p-4 space-y-3 bg-white">
-                      {groupedFields[label].map(field => renderField(field))}
+                  { (label !== 'Sistema' || role === 'admin') && (
+                    <>
+                    <div
+                      className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-200"
+                      onClick={() => toggleAccordion(label)}
+                      >
+                      <h3 className="font-bold text-gray-700">{label}</h3>
+                      <ChevronDownIcon
+                        className={`w-5 h-5 text-gray-600 transition-transform transform ${openAccordions[label] ? 'rotate-180' : ''}`}
+                      />
                     </div>
+                    {openAccordions[label] && (
+                      <div className="p-4 space-y-3 bg-white">
+                        {groupedFields[label].map(field => renderField(field))}
+                      </div>
+                    )}
+                    </>
                   )}
+                 
                 </div>
               ))}
             </div>
@@ -451,7 +458,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
                   disabled={isSaveDisabled || isCalculating}
                   className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${(isSaveDisabled || isCalculating) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Salva
+                  {isSaving ? 'Salvataggio...' : 'Salva'}
                 </button>
               )}
             </div>
