@@ -1,17 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import BelottiFormulario from './belottiFormulario';
 import axios from 'axios';
 import axiosInstanceClient from '@/utils/axiosInstanceClient'; 
 import { toast } from 'sonner';
 import { useRecordsStore } from './records/recordsStore';
 import { Trash, X } from 'lucide-react';
+import { useApi } from '@/utils/useApi';
+import GenericComponent from '@/components/genericComponent';
+
+const isDev = false
 
 
+interface FormTypesResponseInterface {
+  formtypes: string[];
+}
 
 export default function OrdinePage() {
-  const [selectedFormType, setSelectedFormType] = useState<'MERCE BELOTTI' | 'LIFESTYLE BELOTTI' | 'LAC BELOTTI' | 'LAC COLORATE BELOTTI' | 'LIQUIDI LAC BELOTTI' | 'UDITO BELOTTI' | 'MERCE BLITZ' | 'LAC BLITZ' | 'LAC COLORATE BLITZ' | 'LIQUIDI LAC BLITZ' | 'UDITO BLITZ' | 'MERCE OAKLEY'>('MERCE BELOTTI');
+
+  const FormTypesResponseDefault = {
+    formtypes: []
+  }
+
+  const FormTypesResponseDev = {
+    formtypes: [
+      'MERCE BELOTTI',
+      'LIFESTYLE BELOTTI',
+      'LAC BELOTTI',
+      'LAC COLORATE BELOTTI',
+      'LIQUIDI LAC BELOTTI',
+      'UDITO BELOTTI',
+      'MERCE BLITZ',
+      'LAC BLITZ',
+      'LAC COLORATE BLITZ',
+      'LIQUIDI LAC BLITZ',
+      'UDITO BLITZ',
+      'MERCE OAKLEY'
+    ]
+  }
+
+  const [selectedFormType, setSelectedFormType] = useState<string>('MERCE BELOTTI');
   const [cartItems, setCartItems] = useState<any[]>([]);
   const { setSelectedMenu } = useRecordsStore();
+  const [responseData, setResponseData] = useState<FormTypesResponseInterface>(isDev ? FormTypesResponseDev : FormTypesResponseDefault);
+
+  const payload = useMemo(() => {
+		if (isDev) return null;
+		return { 
+			apiRoute: 'belotti_get_form_types',
+		};
+	}, []);
+  
+	const { response, loading, error } = !isDev && payload ? useApi<FormTypesResponseInterface>(payload) : { response: null, loading: false, error: null };
+	
+	useEffect(() => {
+			if (!isDev && response) { 
+				setResponseData(response); 
+        console.log("Response form types:", response);
+        if (response.formtypes && response.formtypes.length > 0) {
+          setSelectedFormType(response.formtypes[0] as any); 
+        }
+			}
+	}, [response]);
+
 
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
@@ -112,43 +162,25 @@ export default function OrdinePage() {
   };
 
   return (
+    <GenericComponent response={responseData} loading={loading} error={error}>
+      {(response: FormTypesResponseInterface) => (
+        <>
     <div className="flex h-screen overflow-hidden">
       {/* SINISTRA - Lista scrollabile */}
       <div className="w-2/3 flex flex-col border-r border-gray-300">
-        <div className="p-4 flex gap-2 flex-wrap"> {/* Aggiunto flex-wrap per gestire il responsive */}
-          <button onClick={() => setSelectedFormType('MERCE BELOTTI')} className={`px-4 py-2 rounded ${selectedFormType === 'MERCE BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            MERCE BELOTTI
-          </button>
-          <button onClick={() => setSelectedFormType('LIFESTYLE BELOTTI')} className={`px-4 py-2 rounded ${selectedFormType === 'LIFESTYLE BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            LIFESTYLE BELOTTI
-          </button>
-          <button onClick={() => setSelectedFormType('LAC BELOTTI')} className={`px-4 py-2 rounded ${selectedFormType === 'LAC BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            LAC BELOTTI
-          </button>
-          <button onClick={() => setSelectedFormType('LAC COLORATE BELOTTI')} className={`px-4 py-2 rounded ${selectedFormType === 'LAC COLORATE BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            LAC COLORATE BELOTTI
-          </button>
-          <button onClick={() => setSelectedFormType('LIQUIDI LAC BELOTTI')} className={`px-4 py-2 rounded ${selectedFormType === 'LIQUIDI LAC BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            LIQUIDI LAC BELOTTI
-          </button>
-          <button onClick={() => setSelectedFormType('UDITO BELOTTI')} className={`px-4 py-2 rounded ${selectedFormType === 'UDITO BELOTTI' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            UDITO BELOTTI
-          </button>
-          <button onClick={() => setSelectedFormType('MERCE BLITZ')} className={`px-4 py-2 rounded ${selectedFormType === 'MERCE BLITZ' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            MERCE BLITZ
-          </button>
-          <button onClick={() => setSelectedFormType('LAC BLITZ')} className={`px-4 py-2 rounded ${selectedFormType === 'LAC BLITZ' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            LAC BLITZ
-          </button>
-          <button onClick={() => setSelectedFormType('LAC COLORATE BLITZ')} className={`px-4 py-2 rounded ${selectedFormType === 'LAC COLORATE BLITZ' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            LAC COLORATE BLITZ
-          </button>
-          <button onClick={() => setSelectedFormType('UDITO BLITZ')} className={`px-4 py-2 rounded ${selectedFormType === 'UDITO BLITZ' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            UDITO BLITZ
-          </button>
-          <button onClick={() => setSelectedFormType('MERCE OAKLEY')} className={`px-4 py-2 rounded ${selectedFormType === 'MERCE OAKLEY' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-            MERCE OAKLEY
-          </button>
+        <div className="p-4 flex gap-2 flex-wrap">
+          <>
+          {(response.formtypes || []).map((formType) => (
+            <button 
+              key={formType} 
+              onClick={() => setSelectedFormType(formType as any)} 
+              className={`px-4 py-2 rounded 
+              ${selectedFormType === formType ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+            >
+              {formType}
+            </button>
+          ))}
+          </>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -227,5 +259,8 @@ export default function OrdinePage() {
         </div>
       </div>
     </div>
+    </>
+      )}
+    </GenericComponent>
   );
 }

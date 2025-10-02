@@ -137,7 +137,6 @@ export async function POST(request: Request) {
     case 'stampa_bollettino': djangoUrl = '/customapp_pitservice/stampa_bollettino/'; break;
     case 'stampa_bollettino_test': djangoUrl = '/customapp_pitservice/stampa_bollettino_test/'; break;
     case 'stampa_pdf_test': djangoUrl = '/commonapp/stampa_pdf_test/'; break;
-    case 'stampa_word_test': djangoUrl = '/commonapp/stampa_word_test/'; break;
     case 'crea_lista_lavanderie': djangoUrl = '/customapp_pitservice/crea_lista_lavanderie/'; break;
     case 'get_record_attachments': djangoUrl = '/commonapp/get_record_attachments/'; break;
     case 'stampa_gasoli': djangoUrl = '/customapp_pitservice/stampa_gasoli/'; break;
@@ -189,6 +188,7 @@ export async function POST(request: Request) {
     case 'swissbix_deal_update_status': djangoUrl = '/customapp_swissbix/deal_update_status/'; break;
     case 'calculate_dependent_fields': djangoUrl = '/commonapp/calculate_dependent_fields/'; break;
     case 'belotti_conferma_ricezione': djangoUrl = '/customapp_belotti/belotti_conferma_ricezione/'; break;
+    case 'belotti_get_form_types': djangoUrl = '/customapp_belotti/belotti_get_form_types/'; break;
     case 'printing_katun_bexio_api_set_invoice': djangoUrl = '/customapp_swissbix/printing_katun_bexio_api_set_invoice/'; break;
     
     
