@@ -14,14 +14,18 @@ interface PropsInterface {
   onSaveOrder?: (orderData: any) => void;
 }
 
+// **MODIFICA 1: Aggiunta di _uniqueId all'interfaccia del prodotto per chiarezza**
+interface ProductInterface {
+  id: string;
+  name: string;
+  _uniqueId?: string; // ID univoco generato internamente
+}
+
 interface ResponseInterface {
   formName: string;
   categories: {
     title: string;
-    products: {
-      id: string;
-      name: string;
-    }[];
+    products: ProductInterface[];
   }[];
 }
 
@@ -38,7 +42,9 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
   const [sphValues, setSphValues] = useState<{ [key: string]: string }>({});
   const [diametri, setDiametri] = useState<{ [key: string]: string }>({});
 
-  const [responseData, setResponseData] = useState<ResponseInterface>({ formName: "", categories: [] });
+  // **MODIFICA 2: Aggiunto stato per i dati processati**
+  // responseData è stato rinominato in processedData per maggiore chiarezza
+  const [processedData, setProcessedData] = useState<ResponseInterface>({ formName: "", categories: [] });
 
   const payload = useMemo(() => ({
     apiRoute: 'get_form_data',
@@ -57,26 +63,31 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
     setRaggi({});
     setSphValues({});
     setDiametri({});
+    // Resetta anche i dati processati
+    setProcessedData({ formName: "", categories: [] });
   }, [formType]);
 
   useImperativeHandle(ref, () => ({
+    // **MODIFICA 3: Usare l'identificatore univoco per il reset**
     resetProduct: (item) => {
-      setOrder((prev) => ({ ...prev, [item.id]: "0" }));
-      setDiottrie((prev) => ({ ...prev, [item.id]: "" }));
-      setColori((prev) => ({ ...prev, [item.id]: "" }));
-      setBoxDl((prev) => ({ ...prev, [item.id]: "" }));
-      setReferenze((prev) => ({ ...prev, [item.id]: "" }));
-      setRaggi((prev) => ({ ...prev, [item.id]: "" }));
-      setSphValues((prev) => ({ ...prev, [item.id]: "" }));
-      setDiametri((prev) => ({ ...prev, [item.id]: "" }));
+      const uniqueId = item._uniqueId;
+      if (!uniqueId) return; // Sicurezza
+      setOrder((prev) => ({ ...prev, [uniqueId]: "0" }));
+      setDiottrie((prev) => ({ ...prev, [uniqueId]: "" }));
+      setColori((prev) => ({ ...prev, [uniqueId]: "" }));
+      setBoxDl((prev) => ({ ...prev, [uniqueId]: "" }));
+      setReferenze((prev) => ({ ...prev, [uniqueId]: "" }));
+      setRaggi((prev) => ({ ...prev, [uniqueId]: "" }));
+      setSphValues((prev) => ({ ...prev, [uniqueId]: "" }));
+      setDiametri((prev) => ({ ...prev, [uniqueId]: "" }));
     }
   }));
 
-
   // Handlers generici per i campi input
+  // Non serve modificarli, perché ricevono già l'ID corretto
   const createFieldHandler = (setter: React.Dispatch<React.SetStateAction<{ [key: string]: string; }>>) => 
-    (productId: string, value: string) => {
-      setter(prev => ({ ...prev, [productId]: value }));
+    (uniqueProductId: string, value: string) => {
+      setter(prev => ({ ...prev, [uniqueProductId]: value }));
     };
 
   const handleDiottriaChange = createFieldHandler(setDiottrie);
@@ -87,51 +98,54 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
   const handleSphChange = createFieldHandler(setSphValues);
   const handleDiametroChange = createFieldHandler(setDiametri);
 
-  const handleChange = (productId: string, value: string) => {
+  const handleChange = (uniqueProductId: string, value: string) => {
     if (value === "" || /^\d+$/.test(value)) { // Accetta solo numeri interi
-      setOrder(prev => ({ ...prev, [productId]: value }));
+      setOrder(prev => ({ ...prev, [uniqueProductId]: value }));
     }
   };
 
-  const incrementQuantity = (productId: string) => {
-    const currentValue = parseInt(order[productId] || '0');
-    handleChange(productId, (currentValue + 1).toString());
+  const incrementQuantity = (uniqueProductId: string) => {
+    const currentValue = parseInt(order[uniqueProductId] || '0');
+    handleChange(uniqueProductId, (currentValue + 1).toString());
   };
 
-  const decrementQuantity = (productId: string) => {
-    const currentValue = parseInt(order[productId] || '0');
+  const decrementQuantity = (uniqueProductId: string) => {
+    const currentValue = parseInt(order[uniqueProductId] || '0');
     if (currentValue > 0) {
-      handleChange(productId, (currentValue - 1).toString());
+      handleChange(uniqueProductId, (currentValue - 1).toString());
     }
   };
 
   const getCompleteOrder = () => {
-    const data = response || responseData;
+    const data = processedData;
     return data.categories.map((category) => ({
       title: category.title,
       products: category.products.map((p) => {
+        const uniqueId = p._uniqueId!;
+        
+        // SOLUZIONE 1 (CRITICA): Aggiungi SEMPRE _uniqueId all'oggetto.
         const productData: any = {
           id: p.id,
           name: p.name,
-          quantity: parseInt(order[p.id]) || 0,
+          quantity: parseInt(order[uniqueId]) || 0,
           categoria: category.title,
           formType: formType,
+          _uniqueId: uniqueId, // <-- ESSENZIALE PER IL COMPONENTE GENITORE
         };
 
-        // Aggiungi i campi condizionalmente
-        if (formType === 'MERCE BELOTTI') {
-          productData.colore = colori[p.id] || "";
-        } else if (formType.includes('LAC')) { // Gestisce LAC, LAC COLORATE, etc.
-          productData.diottria = diottrie[p.id] || "";
-          productData.colore = colori[p.id] || "";
-        } else if (formType === 'MERCE OAKLEY') {
-          productData.boxdl = boxdl[p.id] || "";
-          productData.referenza = referenze[p.id] || "";
-          productData.colore = colori[p.id] || "";
-          productData.raggio = raggi[p.id] || "";
-          productData.sph = sphValues[p.id] || "";
-          productData.diametro = diametri[p.id] || "";
-        }
+        // SOLUZIONE 2: Usa una struttura if / else if robusta.
+        // I casi più specifici (come LAC BELOTTI) vanno prima di quelli generici.
+        if (formType === 'LAC BELOTTI' ) {
+          productData.boxdl = boxdl[uniqueId] || "";
+          productData.referenza = referenze[uniqueId] || "";
+          productData.colore = colori[uniqueId] || "";
+          productData.raggio = raggi[uniqueId] || "";
+          productData.sph = sphValues[uniqueId] || "";
+          productData.diametro = diametri[uniqueId] || "";
+        } 
+        else if (formType === 'LAC COLORATE BELOTTI') {
+          productData.colore = colori[uniqueId] || "";
+        } 
 
         return productData;
       }),
@@ -148,14 +162,26 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
     }
   };
 
+  // **MODIFICA 5: useEffect per processare la risposta e aggiungere l'ID univoco**
   useEffect(() => {
     if (response) {
-      setResponseData(response);
+      // Crea una copia profonda per non mutare la risposta originale
+      const dataWithUniqueIds: ResponseInterface = JSON.parse(JSON.stringify(response));
+
+      dataWithUniqueIds.categories.forEach(category => {
+        category.products.forEach(product => {
+          // Aggiungi un ID univoco a ogni prodotto
+          product._uniqueId = crypto.randomUUID();
+        });
+      });
+      
+      setProcessedData(dataWithUniqueIds);
     }
   }, [response]);
 
   return (
-    <GenericComponent response={response || responseData} loading={loading} error={error}>
+    // **MODIFICA 6: Usare processedData invece di 'response' per il rendering**
+    <GenericComponent response={processedData} loading={loading} error={error}>
       {(data: ResponseInterface) => (
         <form className="w-full h-full flex flex-col overflow-hidden">
           <div className="bg-blue-800 text-white p-6">
@@ -175,11 +201,11 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
                         <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Codice</th>
                         <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prodotto</th>
                         
-                        {formType === 'MERCE BELOTTI' && (
+                        {formType === 'LAC COLORATE BELOTTI' && (
                           <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Colore</th>
                         )}
 
-                        {formType === 'MERCE OAKLEY' && (
+                        {formType === 'LAC BELOTTI' && (
                           <>
                             <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Box/DL</th>
                             <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referenza</th>
@@ -195,13 +221,15 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {category.products.map((product, pIdx) => (
-                        <tr key={`${category.title}-${product.id || pIdx}`} className="hover:bg-gray-50">
+                        // **MODIFICA 7: Usare l'ID univoco come key per la riga**
+                        <tr key={product._uniqueId} className="hover:bg-gray-50">
                           <td className="px-2 py-4 text-sm font-medium text-blue-600">{product.id}</td>
                           <td className="px-2 py-4 text-sm text-gray-900">{product.name}</td>
 
-                          {formType === 'MERCE BELOTTI' && (
+                          {/* D'ora in poi, passare sempre product._uniqueId agli handler */}
+                          {formType === 'LAC COLORATE BELOTTI' && (
                             <td className="px-2 py-4 text-sm">
-                              <select className="w-full border rounded-md p-1 text-sm" value={colori[product.id] || ""} onChange={(e) => handleColoreChange(product.id, e.target.value)}>
+                              <select className="w-full border rounded-md p-1 text-sm" value={colori[product._uniqueId!] || ""} onChange={(e) => handleColoreChange(product._uniqueId!, e.target.value)}>
                                 <option value="">--</option>
                                 <option value="Green">Green</option>
                                 <option value="Gray">Gray</option>
@@ -210,38 +238,38 @@ function BelottiFormulario({ formType, onSaveOrder }: PropsInterface, ref) {
                             </td>
                           )}
                           
-                          {formType === 'MERCE OAKLEY' && (
+                          {formType === 'LAC BELOTTI' && (
                             <>
                               <td className="px-2 py-4 text-sm">
-                                <select className="w-full border rounded-md p-1 text-sm" value={boxdl[product.id] || ""} onChange={(e) => handleBoxDlChange(product.id, e.target.value)}>
+                                <select className="w-full border rounded-md p-1 text-sm" value={boxdl[product._uniqueId!] || ""} onChange={(e) => handleBoxDlChange(product._uniqueId!, e.target.value)}>
                                   <option value="">--</option>
                                   <option value="Box">Box</option>
                                   <option value="DL">DL</option>
                                 </select>
                               </td>
                               <td className="px-2 py-4 text-sm">
-                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={referenze[product.id] || ""} onChange={(e) => handleReferenzaChange(product.id, e.target.value)} />
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={referenze[product._uniqueId!] || ""} onChange={(e) => handleReferenzaChange(product._uniqueId!, e.target.value)} />
                               </td>
                               <td className="px-2 py-4 text-sm">
-                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={colori[product.id] || ""} onChange={(e) => handleColoreChange(product.id, e.target.value)} />
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={colori[product._uniqueId!] || ""} onChange={(e) => handleColoreChange(product._uniqueId!, e.target.value)} />
                               </td>
                               <td className="px-2 py-4 text-sm">
-                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={raggi[product.id] || ""} onChange={(e) => handleRaggioChange(product.id, e.target.value)} />
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={raggi[product._uniqueId!] || ""} onChange={(e) => handleRaggioChange(product._uniqueId!, e.target.value)} />
                               </td>
                               <td className="px-2 py-4 text-sm">
-                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={sphValues[product.id] || ""} onChange={(e) => handleSphChange(product.id, e.target.value)} />
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={sphValues[product._uniqueId!] || ""} onChange={(e) => handleSphChange(product._uniqueId!, e.target.value)} />
                               </td>
                               <td className="px-2 py-4 text-sm">
-                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={diametri[product.id] || ""} onChange={(e) => handleDiametroChange(product.id, e.target.value)} />
+                                <input type="text" className="w-full border rounded-md p-1 text-sm" value={diametri[product._uniqueId!] || ""} onChange={(e) => handleDiametroChange(product._uniqueId!, e.target.value)} />
                               </td>
                             </>
                           )}
 
                           <td className="px-2 py-4 text-sm text-gray-500">
                             <div className="flex items-center justify-end">
-                              <button type="button" onClick={() => decrementQuantity(product.id)} className="text-gray-500 hover:text-red-500"><MinusCircle size={20} /></button>
-                              <input type="text" className="mx-2 w-16 text-center border rounded-md p-1" value={order[product.id] || ""} onChange={(e) => handleChange(product.id, e.target.value)} />
-                              <button type="button" onClick={() => incrementQuantity(product.id)} className="text-gray-500 hover:text-green-500"><PlusCircle size={20} /></button>
+                              <button type="button" onClick={() => decrementQuantity(product._uniqueId!)} className="text-gray-500 hover:text-red-500"><MinusCircle size={20} /></button>
+                              <input type="text" className="mx-2 w-16 text-center border rounded-md p-1" value={order[product._uniqueId!] || ""} onChange={(e) => handleChange(product._uniqueId!, e.target.value)} />
+                              <button type="button" onClick={() => incrementQuantity(product._uniqueId!)} className="text-gray-500 hover:text-green-500"><PlusCircle size={20} /></button>
                             </div>
                           </td>
                         </tr>

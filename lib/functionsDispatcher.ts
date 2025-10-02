@@ -313,7 +313,8 @@ export function useFrontendFunctions() {
           },
         },
       )
-      toast.success("Fattura caricata in bexio")
+      toast.success("Fattura caricata in bexio: " + response.data.status)
+      console.info("dispatcher: printing_katun_bexio_api_set_invoice response", response.data)
       return response.data
     } catch (error) {
       console.error("Errore durante la creazione dei record", error)
