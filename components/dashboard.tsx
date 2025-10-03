@@ -254,6 +254,8 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
 
     const [selectedBlock, setSelectedBlock] = useState<string>(''); // Stato per il blocco selezionato
 
+    const isMobile = useMemo(() => window.innerWidth < 768, []);
+
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
         if (isDev) return null;
@@ -312,9 +314,8 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
           },
         }
       );
-      toast.success('Disposizione della dashboard salvata con successo');
-      console.info('[DEBUG] Dashboard disposition saved', response.data);
-
+        toast.success('Disposizione della dashboard salvata con successo');
+        console.info('[DEBUG] Dashboard disposition saved', response.data);
     } catch (error) {
       console.error('Errore durante il salvataggio della disposizione della dashboard', error);
       toast.error('Errore durante il salvataggio della disposizione della dashboard');
@@ -440,7 +441,8 @@ useEffect(() => {
             cellHeight: 80,
             margin: 10, 
             draggable: { handle: '.grid-stack-item-content' },
-            resizable: { handles: 'e, se, s, sw, w' }
+            resizable: { handles: 'e, se, s, sw, w' },
+            staticGrid: isMobile
         };
         gridInstanceRef.current = GridStack.init(options, gridRef.current);
     }
@@ -451,10 +453,10 @@ useEffect(() => {
     if (responseData.blocks && responseData.blocks.length > 0) {
         responseData.blocks.forEach(block => {
             const widget = {
-                w: block.gsw || 2,
+                w: isMobile ? 12 : block.gsw || 2,
                 h: block.gsh != null ? block.gsh : 4,
                 x: block.gsx || 0,
-                y: block.gsy || 0,
+                y: isMobile ? 0 : block.gsy || 0,
                 id: String(block.id),
             };
 
@@ -509,7 +511,7 @@ useEffect(() => {
             gridInstanceRef.current = null;
         }
     };
-}, [responseData]);
+}, [responseData, isMobile]);
 
     console.log('[DEBUG] Rendering Dashboard', { responseData });
       

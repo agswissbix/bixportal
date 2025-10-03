@@ -1,21 +1,25 @@
-import React, { useMemo, useContext, useState, useEffect, Dispatch, SetStateAction } from "react";
+import React, {
+  useMemo,
+  useContext,
+  useState,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
-import { memoWithDebug } from "@/lib/memoWithDebug";
-import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast } from "sonner";
-import { set } from "lodash";
-import BlockChart from "./blockChart";
+import axiosInstanceClient from "@/utils/axiosInstanceClient";
+import ChartPreview from "@/components/charts/chartPreview";
+import { PlusCircle } from "lucide-react"; // esempio per bottone nuovo blocco
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
 
 interface PropsInterface {
-  //definisci closePopup in modo che sia una funzione
-  closePopup: () => void; // Funzione opzionale per chiudere il popup
+  closePopup: () => void;
   propExampleValue?: string;
-  setRefreshDashboard?: Dispatch<SetStateAction<number>>; // Funzione opzionale per
+  setRefreshDashboard?: Dispatch<SetStateAction<number>>;
   onChartSelect?: (chart: { id: string; title: string }) => void;
   selectedChartId?: string;
   placeholder?: string;
@@ -27,8 +31,10 @@ interface DashboardBlock {
   dashboardid: number;
   name: string;
   userid: string;
+  description: string
   reportid: number;
   viewid: number;
+  chartid?: number; 
 }
 
 interface ResponseInterface {
@@ -37,14 +43,11 @@ interface ResponseInterface {
 
 function ChartsList({
   closePopup,
-  propExampleValue,
   setRefreshDashboard,
   onChartSelect,
-  selectedChartId,
-  placeholder = "Seleziona un blocco...",
-  dashboardId
+  dashboardId,
 }: PropsInterface) {
-  const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
+  const { user } = useContext(AppContext);
 
   const responseDataDEFAULT: ResponseInterface = {
     block_list: [
@@ -53,8 +56,10 @@ function ChartsList({
         dashboardid: 11,
         name: "Default Block",
         userid: "user_123",
+        description: "Descrizione",
         reportid: 101,
         viewid: 201,
+        chartid: 1,
       },
     ],
   };
@@ -65,32 +70,39 @@ function ChartsList({
         id: 1,
         dashboardid: 11,
         name: "Sales Dashboard",
+        description: "Descrizione",
         userid: "user_123",
         reportid: 101,
         viewid: 201,
+        chartid: 5,
       },
       {
         id: 2,
         dashboardid: 11,
         name: "Revenue Analytics",
+        description: "Descrizione",
         userid: "user_123",
         reportid: 102,
         viewid: 202,
+        chartid: 6,
       },
       {
         id: 3,
         dashboardid: 11,
         name: "Customer Metrics",
+        description: "Descrizione",
         userid: "user_123",
         reportid: 103,
         viewid: 203,
+        chartid: 7,
       },
     ],
   };
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedChartId, setSelectedChartId] = useState<number | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<DashboardBlock | null>(null);
-  const { user } = useContext(AppContext);
+  
 
   const [responseData, setResponseData] = useState<ResponseInterface>(
     isDev ? responseDataDEV : responseDataDEFAULT
@@ -101,7 +113,7 @@ function ChartsList({
     return {
       apiRoute: "get_dashboard_blocks",
       userid: user,
-      dashboardid: dashboardId
+      dashboardid: dashboardId,
     };
   }, [user, dashboardId]);
 
@@ -111,7 +123,11 @@ function ChartsList({
       : { response: null, loading: false, error: null };
 
   useEffect(() => {
-    if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+    if (
+      !isDev &&
+      response &&
+      JSON.stringify(response) !== JSON.stringify(responseData)
+    ) {
       setResponseData(response);
     }
   }, [response, responseData]);
@@ -119,14 +135,14 @@ function ChartsList({
   const addDashboardBlock = async () => {
     const blockid = selectedBlock?.id;
     try {
-      const response = await axiosInstanceClient.post(
+      await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "add_dashboard_block",
-          blockid,
           userid: user,
           size: "full",
           dashboardid: dashboardId,
+          blockid
         },
         {
           headers: {
@@ -137,11 +153,11 @@ function ChartsList({
       toast.success("Disposizione della dashboard salvata con successo");
       closePopup();
       if (setRefreshDashboard) {
-        setRefreshDashboard((prev) => prev + 1); // Incrementa il contatore per forzare il refresh
+        setRefreshDashboard((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("Errore durante il salvataggio della disposizione della dashboard", error);
-      toast.error("Errore durante il salvataggio della disposizione della dashboard");
+      console.error("Errore durante il salvataggio", error);
+      toast.error("Errore durante il salvataggio della dashboard");
     }
   };
 
@@ -154,23 +170,21 @@ function ChartsList({
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedChartId && responseData.block_list) {
-      const block = responseData.block_list.find(b => b.id.toString() === selectedChartId);
-      if (block) setSelectedBlock(block);
-    }
-  }, [selectedChartId, responseData.block_list]);
-
   const filteredBlocks = useMemo(() => {
     if (!responseData.block_list) return [];
-    return responseData.block_list.filter(block =>
+    return responseData.block_list.filter((block) =>
       block.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [responseData.block_list, searchTerm]);
 
   const handleBlockSelect = (block: DashboardBlock) => {
-    setSelectedBlock(block);
-    onChartSelect?.({ id: block.id.toString(), title: block.name });
+    if (block.chartid) {
+      setSelectedChartId(block.chartid);
+      onChartSelect?.({ id: block.chartid.toString(), title: block.name });
+      setSelectedBlock(block)
+    } else {
+      toast.error("Questo blocco non ha un grafico associato");
+    }
   };
 
   return (
@@ -237,19 +251,7 @@ function ChartsList({
                   </div>
 
                   <div className="inline-block w-full rounded-lg overflow-hidden">
-                    <img
-                      src={`/api/media-proxy?url=chartsPreview/${selectedBlock.id}.png`}
-                      alt={`Preview of ${selectedBlock.name}`}
-                      className="object-cover mx-auto"
-                    />
-                    <BlockChart
-                        id={selectedBlock.id}
-                        name={selectedBlock.name}
-                        type={selectedBlock.viewid ? "chart" : "table"}
-                        chart_data={selectedBlock.name || ""}
-                        onDelete={() => {}}
-                        onExport={() => {}}
-                    />
+                    <ChartPreview chartId={selectedBlock.chartid} viewId={selectedBlock.viewid}/>
                   </div>
                   
                   <div className="space-y-2">
@@ -258,19 +260,7 @@ function ChartsList({
                     </h3>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-gray-700 leading-relaxed">
-                        {/*{selectedChart.description || "Nessuna descrizione disponibile per questo grafico."}*/}
-                        descrizione
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium text-gray-900">Info Blocco</h3>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-700 leading-relaxed">
-                        Report ID: {selectedBlock.reportid}<br />
-                        View ID: {selectedBlock.viewid}<br />
-                        Dashboard ID: {selectedBlock.dashboardid}
+                        {selectedBlock.description || "Nessuna descrizione disponibile per questo grafico."}
                       </p>
                     </div>
                   </div>

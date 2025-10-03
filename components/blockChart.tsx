@@ -3,6 +3,7 @@ import { ArrowLeftRight } from "lucide-react";
 import ValueChart from "./charts/valueChart";
 import GenericApexChart from "./charts/genericApexChart";
 import "./blockChart.css";
+import OverlayBarChart from "./charts/multiBarChart";
 
 interface Props {
   id: number;
@@ -21,6 +22,8 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
     switch (chartType.toLowerCase()) {
       case 'value':
         return <ValueChart chartType={chartType} chartData={chartData} view="chart" />;
+      case 'multibarchart':
+        return <OverlayBarChart chartData={JSON.parse(chartData)} />;
       default:
         return <GenericApexChart chartType={chartType} chartData={chartData} view="chart" />;
     }

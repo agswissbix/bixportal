@@ -38,7 +38,11 @@ const getRandomColor = () => {
 export default function GenericChart({ chartType, chartData, view }: Props) {
     let parsed: ChartDataInterface | null = null;
     try {
-        parsed = JSON.parse(chartData);
+        if (typeof chartData === "string") {
+            parsed = JSON.parse(chartData);
+        } else {
+            parsed = chartData as ChartDataInterface;
+        }
     } catch (e) {
         console.error('Errore durante il parsing dei dati del grafico:', e);
         return <div className="p-4 text-red-500">Dati del grafico non validi.</div>;
@@ -53,7 +57,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
         const allDatasets = parsed.datasets2 && Array.isArray(parsed.datasets2) ? [...parsed.datasets, ...parsed.datasets2] : parsed.datasets;
         return (
             <div className="h-full overflow-y-auto" style={{ transform: 'rotateY(180deg)' }}>
-                <h3 className="text-lg font-semibold mb-2 text-center text-gray-700">{parsed.name}</h3>
                 <table className="min-w-full bg-white border border-gray-300 text-sm">
                     <thead className="bg-gray-100 sticky top-0">
                         <tr>
@@ -100,7 +103,7 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
 
         let finalOptions: ApexOptions = { chart: { toolbar: { show: false } } };
         let finalSeries: ApexOptions['series'] = [];
-        let finalType: ApexOptions['chart']['type'] = 'line';
+        let finalType: 'line' | 'bar' | 'pie' | 'donut' | 'polarArea' | 'radar' | 'heatmap' | 'scatter' = 'line';
 
         switch (chartType) {
             case 'barchart':
@@ -120,7 +123,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 finalOptions = {
                     chart: { toolbar: { show: false } },
                     colors: randomColors,
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     xaxis: { categories: parsed.labels, title: { text: parsed.labels.length > 0 ? 'Anno' : undefined } },
                     yaxis: { title: { text: 'Valore' } },
                     plotOptions: { bar: { borderRadius: 4, horizontal: true, distributed: true } },
@@ -134,7 +136,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 finalOptions = {
                     stroke: { curve: 'smooth', width: 2 },
                     xaxis: { categories: parsed.labels },
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     tooltip: { shared: true, intersect: false },
                     legend: { position: 'bottom' },
                 };
@@ -146,7 +147,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 finalOptions = {
                     labels: parsed.labels,
                     chart: { animations: { enabled: true, speed: 800 }, toolbar: { show: false } },
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     legend: { position: 'bottom' },
                 };
                 break;
@@ -156,7 +156,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 finalOptions = {
                     labels: parsed.labels,
                     chart: { animations: { enabled: true, speed: 800 }, toolbar: { show: false } },
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     legend: { position: 'bottom' },
                     fill: { opacity: 0.8 },
                     stroke: { width: 1, colors: ['#fff'] },
@@ -167,7 +166,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 finalSeries = parsed.datasets.map((d) => ({ name: d.label, data: d.data })) as ApexOptions['series'];
                 finalOptions = {
                     xaxis: { categories: parsed.labels },
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     stroke: { width: 2 },
                     fill: { opacity: 0.3 },
                     markers: { size: 4 },
@@ -190,7 +188,6 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 finalOptions = {
                     dataLabels: { enabled: true, style: { colors: ['#000'] } },
                     colors: ['#008FFB'],
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     xaxis: { type: 'category', categories: parsed.labels },
                     yaxis: { show: true },
                     legend: { show: true },
@@ -207,78 +204,90 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                     chart: { zoom: { enabled: true, type: 'xy' }, toolbar: { show: true } },
                     xaxis: { type: 'category', categories: parsed.labels, title: { text: 'Anno' } },
                     yaxis: { title: { text: 'Valore' } },
-                    title: { text: parsed.name, align: 'center', style: { fontSize: '20px', fontWeight: 'bold' } },
                     markers: { size: 6 },
                     tooltip: { shared: false, intersect: true },
                 };
                 break;
             case 'multibarlinechart':
-                const barSeries = parsed.datasets.map(d => ({
-                    name: d.label,
-                    data: d.data,
-                    type: 'bar',
-                }));
-                const lineSeries = parsed.datasets2 ? {
-                    name: (parsed.datasets2 as Dataset).label,
-                    data: (parsed.datasets2 as Dataset).data,
-                    type: 'line',
-                } : null;
-                finalSeries = (lineSeries ? [...barSeries, lineSeries] : barSeries) as ApexAxisChartSeries;
-                finalType = 'line';
-                finalOptions = {
-                    chart: { stacked: false, toolbar: { show: false } },
-                    dataLabels: { enabled: false },
-                    stroke: {
-                        width: finalSeries.map(s => s.type === 'line' ? 3 : 0),
-                        curve: 'smooth',
-                    },
-                    xaxis: { categories: parsed.labels },
-                    yaxis: [
-                        {
-                            min: 0,
-                            axisTicks: { show: true },
-                            axisBorder: { show: true, color: '#008FFB' },
-                            labels: { style: { colors: '#008FFB' } },
-                            title: { text: "Valori Barre", style: { color: '#008FFB', fontWeight: 600 } },
-                        },
-                        ...(lineSeries ? [{
-                            show: true,
-                            seriesName: lineSeries.name,
-                            opposite: true,
-                            min: 0,
-                            forceNiceScale: true,
-                            axisTicks: { show: true },
-                            axisBorder: { show: true, color: '#FF4560' },
-                            labels: { style: { colors: '#FF4560' } },
-                            title: { text: lineSeries.name, style: { color: '#FF4560', fontWeight: 600 } },
-                        }] : []),
-                    ],
-                    title: {
-                        text: parsed.name,
-                        align: 'center',
-                        style: { fontSize: '20px', fontWeight: 'bold', color: '#333' }
-                    },
-                    tooltip: {
-                        y: { formatter: (val) => val.toString() }
-                    },
-                    legend: {
-                        position: 'top',
-                        horizontalAlign: 'left',
-                        offsetX: 40
-                    }
-                };
-                break;
-            case 'multibarchart':
+                // 1. Prepara TUTTE le serie BARRE (da parsed.datasets)
+                const barSeries = parsed.datasets.map(d => ({
+                    name: d.label,
+                    data: d.data,
+                    type: 'bar' as const, // Aggiunto 'as const' per chiarezza di tipo
+                }));
+
+                // 2. Prepara la singola serie LINEA (da parsed.datasets2)
+                const lineDataset = parsed.datasets2 
+                    ? (Array.isArray(parsed.datasets2) ? parsed.datasets2[0] : parsed.datasets2)
+                    : null;
+                
+                const lineSeries = lineDataset ? {
+                    name: lineDataset.label,
+                    data: lineDataset.data,
+                    type: 'line' as const, // Aggiunto 'as const'
+                } : null;
+
+                // 3. Combina le serie: Bar (multiple) + Line (singola). 
+                // L'ordine è importante: le barre sono le prime, la linea è l'ultima.
+                finalSeries = (lineSeries ? [...barSeries, lineSeries] : barSeries) as ApexAxisChartSeries;
+                finalType = 'line'; 
+
+                // 4. Configura le opzioni (Assi Y)
+                const yaxisConfig: ApexYAxis[] = [
+                    {
+                        // Asse Y Sinistro: Assegna automaticamente a tutte le serie di tipo 'bar'
+                        // Se ci sono più barre, questo asse le gestisce.
+                        min: 0,
+                        axisTicks: { show: true },
+                        axisBorder: { show: true, color: '#008FFB' },
+                        labels: { style: { colors: '#008FFB' } },
+                        title: { text: "Valori Barre", style: { color: '#008FFB', fontWeight: 600 } },
+                    },
+                ];
+
+                if (lineSeries) {
+                    // Asse Y Destro: È sempre il secondo asse nell'array (indice 1)
+                    yaxisConfig.push({
+        // *** PUNTO CRITICO: Non usiamo seriesName, ci affidiamo all'ordine.
+        // ApexCharts assegna automaticamente la serie all'asse Y libero.
+        // Poiché la linea è l'ultima in finalSeries, si prende l'ultimo asse.
+                        show: true,
+                        opposite: true,
+                        min: 0,
+                        forceNiceScale: true,
+                        axisTicks: { show: true },
+                        axisBorder: { show: true, color: '#FF4560' },
+                        labels: { style: { colors: '#FF4560' } },
+                        title: { text: lineSeries.name, style: { color: '#FF4560', fontWeight: 600 } },
+                    });
+                }
+
+                finalOptions = {
+                    // ... (configurazioni precedenti)
+    chart: { stacked: false, toolbar: { show: false } },
+    dataLabels: { enabled: false },
+    stroke: {
+        width: finalSeries.map(s => s.type === 'line' ? 3 : 0),
+        curve: 'smooth',
+    },
+    xaxis: { categories: parsed.labels },
+    yaxis: yaxisConfig, // Usiamo l'array configurato
+                    tooltip: {
+                        y: { formatter: (val) => val.toString() }
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'left',
+                        offsetX: 40
+                    }
+                };
+                break;
+            case 'stackedchart':
                 finalType = 'bar';
-                const allBarDatasets = parsed.datasets2 && Array.isArray(parsed.datasets2) ? [...parsed.datasets, ...parsed.datasets2] : parsed.datasets;
-                finalSeries = allBarDatasets.map(d => ({ name: d.label, data: d.data })) as ApexOptions['series'];
+                const allBarStackedDatasets = parsed.datasets2 && Array.isArray(parsed.datasets2) ? [...parsed.datasets, ...parsed.datasets2] : parsed.datasets;
+                finalSeries = allBarStackedDatasets.map(d => ({ name: d.label, data: d.data })) as ApexOptions['series'];
                 finalOptions = {
-                    chart: { type: 'bar', toolbar: { show: false } },
-                    title: {
-                        text: parsed.name,
-                        align: 'center',
-                        style: { fontSize: '20px', fontWeight: 'bold', color: '#333' },
-                    },
+                    chart: { type: 'bar', toolbar: { show: false }, stacked: true },
                     plotOptions: {
                         bar: { horizontal: false, columnWidth: '55%' },
                     },
@@ -301,7 +310,11 @@ export default function GenericChart({ chartType, chartData, view }: Props) {
                 return (<div className="p-4 text-red-500">Tipo di grafico non supportato.</div>);
         }
 
-        return <ReactApexChart options={finalOptions} series={finalSeries} type={finalType} height="100%" />;
+        console.log("chartData preview:", chartData);
+console.log("series:", finalSeries);
+console.log("options:", finalOptions);
+
+        return <ReactApexChart options={finalOptions} series={finalSeries} type={finalType} height="400" />;
     }
     
     return null;

@@ -1,29 +1,10 @@
 import React, { useMemo, useContext, useState, useEffect } from "react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from "recharts";
 import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
-import { memoWithDebug } from "@/lib/memoWithDebug";
-import SampleChart from "@/components/sampleChart";
-import SampleChart2 from "@/components/sampleChart2";
 import ChartsList from "@/components/chartsList";
 import Dashboard from "@/components/dashboard";
 import DashboardForm from "@/components/newDashboardForm";
-import { set } from "lodash";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -32,6 +13,7 @@ const isDev = false;
 interface PropsInterface {
   initialTab?: string;
   initialYears?: string[];
+  filters?: any;
 }
 
 interface SociOspitiData {
@@ -104,7 +86,7 @@ interface ResponseInterface {
   dashboards?: Dashboards[];
 }
 
-function DashboardSection({ initialTab, initialYears }: PropsInterface) {
+function DashboardSection({ initialTab, initialYears, filters }: PropsInterface) {
   // DATI PROPS PER LO SVILUPPO
 
   // DATI RESPONSE DI DEFAULT
@@ -185,14 +167,14 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
   const [refreshDashboard, setRefreshDashboard] = useState(0);
 
   const availableYears = useMemo(
-    () => ["2021", "2022", "2023", "2024"],
+    () => ["2021", "2022", "2023", "2024", "2025"],
     [],
   );
 
   const [selectedYears, setSelectedYears] = useState<string[]>(
     initialYears && initialYears.length > 0 
       ? initialYears 
-      : [availableYears[0].toString(), availableYears[1].toString(), availableYears[2].toString(), availableYears[3].toString()  ]
+      : [availableYears[0].toString(), availableYears[1].toString(), availableYears[2].toString(), availableYears[3].toString(), availableYears[4].toString()  ]
   );
 
   const [dashboardKey, setDashboardKey] = useState(0);
@@ -483,7 +465,7 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
       data-oid="rv89u1z"
     >
       {(response: ResponseInterface) => (
-        <div className="block opacity-100 transition-opacity duration-400 ease-out h-full overflow-auto p-4 sm:p-6 lg:p-8 bg-gray-50" data-oid="t6b1_3p" >
+<div className="flex flex-col opacity-100 transition-opacity duration-400 ease-out h-full p-4 sm:p-6 lg:p-8 bg-gray-50" data-oid="t6b1_3p" >
           <Popup
             isOpen={showPopup}
             onClose={() => setShowPopup(false)}
@@ -533,7 +515,30 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
         className="w-fit bg-white rounded-xl shadow-sm border border-gray-200 p-4"
         data-oid="w9b7-qc"
     >
-        
+        <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Anni di riferimento
+            </label>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {availableYears.map((year) => (
+                    <div key={year} className="flex items-center">
+                        <input
+                            type="checkbox"
+                            id={`compare-${year}`}
+                            checked={selectedYears.includes(year)}
+                            onChange={() => handleYearToggle(year)}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label
+                            htmlFor={`compare-${year}`}
+                            className="ml-2 text-sm text-gray-700"
+                        >
+                            {year}
+                        </label>
+                    </div>
+                ))}
+            </div>
+        </div>
     </div>
 
   </div>
@@ -541,13 +546,13 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
           
 
           {/* Tab Content */}
-          <div className="h-full max-h-[calc(100vh-400px)] overflow-y-auto">
+<div className="flex-grow min-h-0">
             {responseData.dashboards
               ?.filter(dashboard => dashboard.id === activeTab) // <-- AGGIUNTA CHIAVE: Filtra per la tab attiva
               .map(dashboard => ( // Ora .map() itera solo sull'unico elemento filtrato
                 <div className="w-full h-full" data-oid="qkqmynz" key={`${dashboard.id}-${dashboardKey}`}>
                   <div className="w-full min-h-full" data-oid="fvz15n4">
-                    <Dashboard
+                    <Dashboard 
                       onOpenPopup={() => { 
                         setShowPopup(true); 
                         setPopupContent(<ChartsList closePopup={() => setShowPopup(false)} dashboardId={dashboard.id} setRefreshDashboard={setRefreshDashboard} />); 
@@ -556,6 +561,7 @@ function DashboardSection({ initialTab, initialYears }: PropsInterface) {
                       selectedYears={selectedYears} 
                       refreshDashboard={refreshDashboard} 
                       setRefreshDashboard={setRefreshDashboard} 
+                      filters={filters}
                       data-oid="r-lbass" 
                     />
                   </div>
