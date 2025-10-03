@@ -51,19 +51,12 @@ export default function SelectStandard({
   
   const getInitialValue = () => {
     if (isMulti) {
-      const initialValues = typeof initialValue === 'string'
-        ? initialValue.split(';').filter(Boolean)
-        : Array.isArray(initialValue)
-          ? initialValue.map(String)
-          : [];
-
+      const initialValues = Array.isArray(initialValue)
+        ? initialValue.map(val => String(val))
+        : [String(initialValue)].filter(Boolean);
       return options.filter((option) => initialValues.includes(option.value));
     } else {
-      const value = typeof initialValue === 'string'
-        ? initialValue.split(';')[0]  // usa solo il primo valore se separati da ;
-        : String(initialValue);
-
-      return options.find((option) => option.value === value) || null;
+      return options.find((option) => option.value === String(initialValue)) || null;
     }
   };
 
@@ -97,10 +90,14 @@ export default function SelectStandard({
 
     if (onChange) {
       if (isMulti) {
-        const values = (newValue as MultiValue<OptionType>).map((option) => option.value);
-        onChange(values.join(';')); // <-- importante
+        const values = (newValue as MultiValue<OptionType>).map(
+          (option) => option.value
+        );
+        onChange(values);
       } else {
-        const value = newValue ? (newValue as OptionType).value : '';
+        const value = newValue
+          ? (newValue as SingleValue<OptionType>).value
+          : '';
         onChange(value);
       }
     }

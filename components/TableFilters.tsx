@@ -7,6 +7,7 @@ import { useRecordsStore } from './records/recordsStore';
 import { MoreVertical, X, Plus } from 'lucide-react';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SelectUser from './selectUser';
+import SelectStandard from './selectStandard';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -15,12 +16,18 @@ interface PropsInterface {
     tableid: string;
 }
 
+interface LookupItem {
+    itemcode: string;
+    itemdesc: string; 
+}
+
 interface ResponseInterface {
     filters: Array<{
         fieldid: string;
         type: string;
         label: string;
         lookupitemsuser?: Array<{ userid: string; firstname: string; lastname: string; }>;
+        lookups?: Array<LookupItem>
     }>;
 }
 
@@ -105,7 +112,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 newValue = { min: '', max: '' };
             } else if (type === "Data") {
                 newValue = { from: '', to: '' };
-            } else if (type === "Utente") {
+            } else if (type === "Utente" || type === 'lookup') {
                 newValue = []; // Per gli utenti, si inizializza un array vuoto
             } else {
                 newValue = '';
@@ -153,7 +160,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 combinedValue = JSON.stringify(valuesArray);
             } else if (filter.type === "Parola" || filter.type === "text") {
                 combinedValue = valuesArray.join('|');
-            } else if (filter.type === "Utente") {
+            } else if (filter.type === "Utente" || filter.type === 'lookup') {
                 // Per il tipo 'Utente', il valore è un array di ID che serializziamo in JSON.
                 // Così il backend riceve un array di ID da filtrare.
                 combinedValue = JSON.stringify(valuesArray);
@@ -194,7 +201,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
             
             // Per il tipo "Utente", il `value` è un array di stringhe
             // Rappresenta gli ID degli utenti selezionati
-            if (type === "Utente") {
+            if (type === "Utente" || type == "lookup") {
                 // Se la selezione multipla è usata, `value` è un array di ID
                 return { ...prev, [fieldid]: value };
             }
@@ -265,13 +272,81 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 <div className="h- overflow-y-auto p-2 w-full">
                      <form onSubmit={handleFormSubmit}>
                         <div className="space-y-4 relative">
-                            {response.filters.map((filter, index) => (
+                            {response.filters.map((filter, index) => {
+                            const isLookupField = filter.type === 'lookup' && filter.lookups && filter.lookups.length > 0;
+                            const isUserField = filter.type === "Utente";
+
+
+                            return (
                             <div key={index} className="relative">
                                 <label className="block text-sm font-medium text-gray-900 mb-1">
                                     Filtra per {filter.label}
                                 </label>
 
-                                {(filter.type === "Parola" || filter.type === "text") && (
+                                {isLookupField && !isUserField && (
+                                         <div className="flex flex-col gap-4 relative">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="flex gap-2 items-center w-full">
+                                                        <div className="w-full">
+                                                            <SelectStandard // <-- Il tuo componente Select
+                                                                lookupItems={filter.lookups}
+                                                                initialValue={filterValues[filter.fieldid] || []}
+                                                                onChange={v => updateFilter(
+                                                                    filter.fieldid,
+                                                                    filter.type,
+                                                                    filter.label,
+                                                                    v, // v è l'array di itemcode selezionati
+                                                                    0 // Indice fisso 0
+                                                                )}
+                                                                isMulti={true}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="relative flex items-center">
+                                                         {/* Menu condizioni per Lookup/Utente (indice fisso 0) */}
+                                                         <button type="button" onClick={() => toggleConditionMenu(`${filter.fieldid}_0`)}>
+                                                             <MoreVertical className="text-gray-500 hover:text-gray-700" />
+                                                         </button>
+                                                         {renderConditionMenu(`${filter.fieldid}_0`, filter.type)}
+                                                     </div>
+                                                </div>
+                                                {/* Visualizza la condizione selezionata */}
+                                                {filterConditions[`${filter.fieldid}_0`] && (
+                                                    <span className="text-xs text-gray-500 ml-1 mt-1">
+                                                        Condizione: <strong>{filterConditions[`${filter.fieldid}_0`]}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                {isUserField && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex gap-4 items-center">
+                                                <div className="flex gap-2 items-center w-full">
+                                                    <div className="w-full">
+                                            <SelectUser
+                                                lookupItems={userLookupItems}
+                                                initialValue={filterValues[filter.fieldid] || []}
+                                                onChange={v => updateFilter(
+                                                    filter.fieldid,
+                                                    filter.type,
+                                                    filter.label,
+                                                    v,
+                                                    0 // L'indice 0 è fisso per questo tipo di campo
+                                                )}
+                                                isMulti={true}
+                                            />
+                                            </div>
+                                                </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(!isLookupField && !isUserField) && (filter.type === "Parola" || filter.type === "text") && (
                                     <div className="flex flex-col gap-4 relative">
                                         {(filterValues[filter.fieldid] || ['']).map((val, idx) => (
                                             <div key={idx} className="flex flex-col gap-1 relative">
@@ -437,32 +512,8 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                         </button>
                                     </div>
                                 )}
-                                {(filter.type === "Utente") && (
-                                    <div className="flex flex-col gap-4 relative">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex gap-4 items-center">
-                                                <div className="flex gap-2 items-center w-full">
-                                                    <div className="w-full">
-                                            <SelectUser
-                                                lookupItems={userLookupItems}
-                                                initialValue={filterValues[filter.fieldid] || []}
-                                                onChange={v => updateFilter(
-                                                    filter.fieldid,
-                                                    filter.type,
-                                                    filter.label,
-                                                    v,
-                                                    0 // L'indice 0 è fisso per questo tipo di campo
-                                                )}
-                                                isMulti={true}
-                                            />
-                                            </div>
-                                                </div>
-                                                </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
-                        ))}
+                        )})}
                         <div className="mt-6 flex gap-3">
                             <button
                                 type="submit"

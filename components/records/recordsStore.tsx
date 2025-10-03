@@ -17,7 +17,7 @@ interface RecordsStore {
     removeCard: (tableid: string, recordid: string) => void;
     resetCardsList: () => void;
 
-    handleRowClick: (context: string, recordid: string, tableid: string,  mastertableid?: string, masterrecordid?: string) => Promise<void>; // Aggiungi quia
+    handleRowClick: (context: string, recordid: string, tableid: string,  mastertableid?: string, masterrecordid?: string) => Promise<void>;
 
     searchTerm: string;
     setSearchTerm: (searchTerm: string) => void;
@@ -60,21 +60,20 @@ interface RecordsStore {
     }>;
     setFiltersList: (filtersList: RecordsStore['filtersList']) => void;
 
-
     popUpType: string;
     setPopUpType: (popUpType: string) => void;
 
     popupRecordId: string;
     setPopupRecordId: (recordid: string) => void;
 
-     userid: string;
-     setUserid: (userid: string) => void;
+    userid: string;
+    setUserid: (userid: string) => void;
 
-     theme: string;
-     setTheme: (theme: string) => void;
+    theme: string;
+    setTheme: (theme: string) => void;
 
-     timestamp: number;
-     setTimestamp: (timestamp: number) => void;
+    timestamp: number;
+    setTimestamp: (timestamp: number) => void;
 
     openSignatureDialog: boolean;
     setOpenSignatureDialog: (open: boolean) => void;
@@ -86,9 +85,11 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     
     refreshTable: 0,
     setRefreshTable: (updater) =>
-    set(state => ({ refreshTable: updater(state.refreshTable) })),
+        set(state => ({ refreshTable: updater(state.refreshTable) })),
+    
     isTableChanging: false,
     setTableChangeCompleted: () => set({ isTableChanging: false }),
+
     cardsList: [],
     addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => 
         set((state) => {
@@ -100,26 +101,23 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
             }
             return state;
         }),
+
     removeCard: (tableid: string, recordid: string) =>
         set((state) => ({ 
             cardsList: state.cardsList.filter(
                 (card) => card.tableid !== tableid || card.recordid !== recordid
             )
         })),
+
     resetCardsList: () => set({ cardsList: [] }),
 
     handleRowClick: async (context: string, recordid: string, tableid: string, mastertableid?: string, masterrecordid?: string) => {
-        const { resetCardsList, addCard } = get(); // Ottieni i metodi dallo stato
-        const tableType = context
-
+        const tableType = context;
         if (tableType === 'standard') {
-            // Rimuovi tutte le card dalla lista
-            await resetCardsList();
-
-            // Aggiungi la nuova card
-            addCard(tableid, recordid, tableType);
+            // reset + aggiunta nello stesso set
+            set({ cardsList: [{ tableid, recordid, type: tableType }] });
         } else {
-            addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
+            get().addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
         }
     },
 
@@ -129,10 +127,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     selectedMenu: 'Dashboard',
     setSelectedMenu: (menuName: string) => {
         set({
-            isTableChanging: true, // ★ 4. IMPOSTA SU TRUE QUANDO INIZIA IL CAMBIO
+            isTableChanging: true,
             selectedMenu: menuName,
-            tableView: '', // Resettare la view è ancora fondamentale
-            // ... resetta altri stati se necessario (searchTerm, currentPage, etc.)
+            tableView: '', 
         });
     },
 
@@ -141,16 +138,16 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     tableView: '',
     setTableView: (view) =>
-    set(state => ({
-      tableView: view,
-      refreshTable: state.refreshTable + 1   // ⚡ auto-refresh
-    })),
+        set(state => ({
+            tableView: view,
+            refreshTable: state.refreshTable + 1
+        })),
 
     columnOrder: {
-      columnDesc: null,
-      direction: "asc"
+        columnDesc: null,
+        direction: "asc"
     },
-    setColumnOrder: (columnOrder: { columnDesc: string | null; direction: 'asc' | 'desc' | null }) => set({ columnOrder }),
+    setColumnOrder: (columnOrder) => set({ columnOrder }),
 
     currentPage: 1,
     setCurrentPage: (currentPage: number) => set({ currentPage }),
@@ -159,17 +156,17 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     setPageLimit: (pageLimit: number) => set({ pageLimit }),
     
     tableid: '',
-    setTableid: (tableid: string) => {
-        const { resetCardsList } = get(); // Ottieni la funzione resetCardsList                                                     
-        resetCardsList(); // Resetta la lista delle carte
-        set({ tableid });
-    },
+    setTableid: (tableid: string) =>
+        set({
+            tableid,
+            cardsList: [] // reset diretto, senza doppio set
+        }),
 
     isPopupOpen: false,
-    setIsPopupOpen: (isPopupOpen: boolean) => set({ isPopupOpen: isPopupOpen }),
+    setIsPopupOpen: (isPopupOpen: boolean) => set({ isPopupOpen }),
 
     isFiltersOpen: false,
-    setIsFiltersOpen: (isFiltersOpen: boolean) => set({ isFiltersOpen: isFiltersOpen}),
+    setIsFiltersOpen: (isFiltersOpen: boolean) => set({ isFiltersOpen }),
 
     filtersList: [],
     setFiltersList: (filtersList) => {
@@ -178,19 +175,17 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     },
 
     popUpType: '',
-    setPopUpType: (popUpType: string) => set({ popUpType: popUpType }),
+    setPopUpType: (popUpType: string) => set({ popUpType }),
 
     popupRecordId: '',
     setPopupRecordId: (recordid: string) => set({ popupRecordId: recordid }),
 
     userid: '',
-    setUserid: (userid: string) => set({ userid: userid }),
+    setUserid: (userid: string) => set({ userid }),
 
     theme: 'default',
-    setTheme: (theme: string) => set({ theme: theme }),
+    setTheme: (theme: string) => set({ theme }),
 
     timestamp: Date.now(),
     setTimestamp: (timestamp: number) => set({ timestamp }),
-
 }));
-
