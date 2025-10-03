@@ -9,6 +9,8 @@ import RecordCard from '@/components/recordCard';
 import CardFields from '@/components/cardFields';
 import CardLinked from '@/components/cardLinked';
 import RecordFilters from '@/components/quickFilters';
+import recordTimeline from '@/components/recordTimeline';
+import recordGantt from '@/components/recordGantt';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -37,6 +39,8 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     activeMind: dynamic(() => import('@/components/activeMind/activeMind')),
     bixverify: dynamic(() => import('@/components/bixverify')),
     recordsKanban: dynamic(() => import('@/components/recordsKanban/page')),
+    recordTimeline: dynamic(() => import('@/components/recordTimeline')),
+    recordGantt: dynamic(() => import('@/components/recordGantt')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
