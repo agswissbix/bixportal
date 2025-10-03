@@ -35,7 +35,7 @@ const { setSelectedMenu } = useRecordsStore();
 		if (isDev) return null;
 		return { 
 			apiRoute: 'belotti_conferma_ricezione',
-			recordid: recordId
+			recordid_hashed: recordId
 		};
 	}, [recordId]);
   
