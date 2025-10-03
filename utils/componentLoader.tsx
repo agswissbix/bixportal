@@ -3,12 +3,6 @@
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import React, { use } from 'react';
-import ExampleComponentWithData from '@/components/exampleComponentWithData';
-import { Sidebar } from 'lucide-react';
-import RecordCard from '@/components/recordCard';
-import CardFields from '@/components/cardFields';
-import CardLinked from '@/components/cardLinked';
-import RecordFilters from '@/components/quickFilters';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {

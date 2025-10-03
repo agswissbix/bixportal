@@ -10,11 +10,11 @@ import {
   HelpCircle,
   Menu,
   X,
-  type LucideIcon,
   Settings,
   Lock,
   LogOut,
   Star,
+  SquareArrowOutUpRight,
 } from "lucide-react"
 import { useRecordsStore } from "./records/recordsStore"
 import { AppContext } from "@/context/appContext"
@@ -48,7 +48,7 @@ interface MenuItem {
   subItems?: SubItem[]
 }
 
-const iconMap: Record<string, LucideIcon> = {
+const iconMap: Record<string, any> = {
   Home: Home,
   Package: Package,
   Mail: Mail,
@@ -96,7 +96,7 @@ export default function Sidebar({}: PropsInterface) {
   const [openDropdown, setOpenDropdown] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  const { setSelectedMenu, userid, timestamp, theme } = useRecordsStore()
+  const { selectedMenu, setSelectedMenu, userid, timestamp, theme } = useRecordsStore()
   const { user, activeServer, role } = useContext(AppContext)
 
   const handleMenuClick = (item: string) => {
@@ -129,7 +129,7 @@ export default function Sidebar({}: PropsInterface) {
           {/* Bottone toggle SOLO su mobile */}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-md shadow-lg z-50 xl:hidden"
+            className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-lg shadow-lg z-50 xl:hidden hover:scale-105 active:scale-95 transition-transform"
             aria-label="Toggle menu"
           >
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -153,7 +153,7 @@ export default function Sidebar({}: PropsInterface) {
             `}
           >
             {/* HEADER FISSO - Logo */}
-            <div className="flex-shrink-0 py-6 px-4">
+            <div className="flex-shrink-0 py-6 px-6">
               <Image
                 src={
                     theme === "bixhub"
@@ -163,97 +163,105 @@ export default function Sidebar({}: PropsInterface) {
                 alt="Logo"
                 width={1000}
                 height={1000}
-                className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all"
+                className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all duration-200"
                 onClick={() => window.location.reload()}
               />
             </div>
 
             {/* CONTENUTO SCROLLABILE */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-3">
               {/* MENU ITEMS */}
-              <ul className="list-none p-0 m-0">
+              <ul className="list-none p-0 m-0 space-y-1">
                 {activeServer === "telamico" ? (
                   <>
-                    <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
-                      onClick={() => handleMenuClick("TelAmicoCalendario")}
-                    >
-                      Calendario TelAmico
-                    </span>
+                    <li>
+                      <span
+                        className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        onClick={() => handleMenuClick("TelAmicoCalendario")}
+                      >
+                        Calendario TelAmico
+                      </span>
+                    </li>
 
-                    <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
-                      onClick={() => handleMenuClick("TelAmicoAgenda")}
-                    >
-                      Agenda TelAmico
-                    </span>
+                    <li>
+                      <span
+                        className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        onClick={() => handleMenuClick("TelAmicoAgenda")}
+                      >
+                        Agenda TelAmico
+                      </span>
+                    </li>
 
-                    <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
-                      onClick={() => handleMenuClick("Calendario")}
-                    >
-                      Agenda TelAmico
-                    </span>
+                    <li>
+                      <span
+                        className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        onClick={() => handleMenuClick("Calendario")}
+                      >
+                        Agenda TelAmico
+                      </span>
+                    </li>
                   </>
                 ) : activeServer === "swissbix" ? (
                   <>
-                    <span
-                      className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
-                      onClick={() => handleMenuClick("Dashboard")}
-                    >
-                      Dashboard
-                    </span>
+                    <li>
+                      <span
+                        className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        onClick={() => handleMenuClick("Dashboard")}
+                      >
+                        Dashboard
+                      </span>
+                    </li>
                   </>
                 ) : null}
-                {/*
-                                    <span className="block px-12 py-2 hover:bg-gray-700 transition-colors" onClick={() => handleMenuClick('Dashboard')}> 
-                                        Dashboard
-                                    </span>
-                                */}
+                
                 {activeServer === "belotti" ? (
                   <>
                     {responseData.otherItems.map((item) => (
-                      <span
-                        key={item.id}
-                        className="block px-12 py-2 hover:bg-gray-700 transition-colors cursor-pointer"
-                        onClick={() => handleMenuClick(item.id)}
-                      >
-                        {item.description}
-                      </span>
+                      <li key={item.id}>
+                        <span
+                          className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                          onClick={() => handleMenuClick(item.id)}
+                        >
+                          {item.description}
+                        </span>
+                      </li>
                     ))}
                   </>
                 ) : activeServer === "winteler" ? (
                   <>
-                    <span
-                      className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors"
-                      onClick={() => router.push("/custom/winteler")}
-                    >
-                      Winteler custom
-                    </span>
+                    <li>
+                      <span
+                        className="cursor-pointer block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                        onClick={() => router.push("/custom/winteler")}
+                      >
+                        Winteler custom
+                      </span>
+                    </li>
                   </>
                 ) : null}
 
                 {role === "admin" && (
-                  <>
+                  <li>
                     <Link
                       href="/bixadmin/admin"
                       target="_blank"
-                      className="cursor-pointer block px-12 py-2 hover:bg-gray-700 transition-colors"
+                      className="flex items-center gap-3 cursor-pointer block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                     >
+                      <SquareArrowOutUpRight className="w-5 h-5"/>
                       Admin Settings
                     </Link>
-                  </>
-                  )}
+                  </li>
+                )}
 
                 {responseData.favoriteTables && responseData.favoriteTables.length > 0 && (
-                  <li>
+                  <li className="mt-2">
                     <button
                       onClick={() => setOpenDropdown(openDropdown === "favorites" ? "" : "favorites")}
-                      className="w-full text-md flex items-center justify-between px-6 py-4 hover:bg-secondary hover:text-secondary-foreground focus:text-primary-foreground transition-colors"
+                      className="w-full text-md flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary hover:text-secondary-foreground focus:text-primary-foreground transition-all duration-200 active:scale-[0.98]"
                     >
-                      <div className="flex items-center min-w-[20px]">
+                      <div className="flex items-center gap-3 min-w-[20px]">
                         <Star className="w-5 h-5 min-w-[20px]" />
-                        <span className="text-md ml-3 opacity-100 transition-opacity duration-300">Preferiti</span>
+                        <span className="text-md opacity-100 transition-opacity duration-300">Preferiti</span>
                       </div>
                       <ChevronDown
                         className={`w-5 h-5 transition-transform duration-300 ${openDropdown === "favorites" ? "-rotate-180" : ""}`}
@@ -261,13 +269,13 @@ export default function Sidebar({}: PropsInterface) {
                     </button>
 
                     <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === "favorites" ? "max-h-[800px]" : "max-h-0"}`}
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === "favorites" ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
                     >
-                      <ul className="py-1 ml-6">
+                      <ul className="py-1 ml-3 mt-1 space-y-0.5">
                         {responseData.favoriteTables.map((table) => (
                           <li key={table.id}>
                             <span
-                              className="text-primary-foreground text-sm block px-8 py-2 hover:bg-secondary hover:text-secondary-foreground transition-colors cursor-pointer"
+                              className="text-primary-foreground text-sm block px-4 py-2 rounded-md hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
                               onClick={() => {
                                 handleMenuClick(table.tableid)
                               }}
@@ -283,17 +291,19 @@ export default function Sidebar({}: PropsInterface) {
 
                 {Object.entries(data["menuItems"]).map(([key, item]) => {
                   const Icon = iconMap[item.icon] || HelpCircle
+                  const isActive = item.subItems?.find((subitem) => subitem.id === selectedMenu && openDropdown !== item.id)
+                  
                   return (
-                    <li key={item.id} className="">
+                    <li key={item.id} className="mt-1">
                       {item.subItems ? (
                         <div>
                           <button
                             onClick={() => setOpenDropdown(openDropdown === item.id ? "" : item.id)}
-                            className="w-full text-md flex items-center justify-between px-6 py-4 hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                            className={`w-full text-md flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98] ${isActive ? 'bg-secondary text-secondary-foreground' : ''}`}
                           >
-                            <div className="flex items-center min-w-[20px]">
+                            <div className="flex items-center gap-3 min-w-[20px]">
                               <Icon className="w-5 h-5" />
-                              <span className="text-md ml-3">{item.title}</span>
+                              <span className="text-md">{item.title}</span>
                             </div>
                             <ChevronDown
                               className={`w-5 h-5 transition-transform duration-300 ${openDropdown === item.id ? "-rotate-180" : ""}`}
@@ -301,13 +311,14 @@ export default function Sidebar({}: PropsInterface) {
                           </button>
 
                           <div
-                            className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "max-h-[800px]" : "max-h-0"}`}
+                            className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
                           >
-                            <ul className="py-1 ml-6">
+                            <ul className="py-1 ml-3 mt-1 space-y-0.5">
                               {item.subItems.map((subItem) => (
                                 <li key={subItem.id} className="cursor-pointer">
                                   <span
-                                    className="text-sm block px-8 py-2 hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                                    className={`text-sm block px-4 py-2 rounded-md hover:bg-secondary 
+                                      hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98] ${selectedMenu === subItem.id ? 'bg-secondary text-secondary-foreground font-medium' : ''}`}
                                     onClick={() => handleMenuClick(subItem.id)}
                                   >
                                     {subItem.title}
@@ -320,11 +331,11 @@ export default function Sidebar({}: PropsInterface) {
                       ) : (
                         <a
                           href={item.href}
-                          className="flex items-center px-6 py-4 hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                          className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                           onClick={() => item.id && handleMenuClick(item.id)}
                         >
                           <Icon className="w-5 h-5" />
-                          <span className="ml-3">{item.title}</span>
+                          <span>{item.title}</span>
                         </a>
                       )}
                     </li>
@@ -334,14 +345,14 @@ export default function Sidebar({}: PropsInterface) {
             </div>
 
             {/* FOOTER FISSO - Menu utente */}
-            <div className="flex-shrink-0 border-t border-secondary">
-              <HMenu as="div" className="relative ml-4 mb-4 mt-4">
-                <div className="flex items-center gap-2">
-                  <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none">
+            <div className="flex-shrink-0 border-t border-secondary/50">
+              <HMenu as="div" className="relative mx-4 my-4">
+                <div className="flex items-center gap-3">
+                  <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar transition-all hover:scale-105 active:scale-95">
                     <img
                       src={`/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`}
                       alt="profile"
-                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-400"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-gray-300"
                       onError={(e) => {
                         const target = e.currentTarget
                         if (!target.src.includes("default.jpg")) {
@@ -349,25 +360,25 @@ export default function Sidebar({}: PropsInterface) {
                         }
                       }}
                     />
-                    <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-sidebar" />
+                    <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 rounded-full border-2 border-sidebar" />
                   </MenuButton>
                   <span className="text-sm font-medium truncate">{user}</span>
                 </div>
 
-                <MenuItems className="absolute right-0 bottom-full mb-2 w-48 origin-bottom-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <MenuItems className="absolute right-0 bottom-full mb-2 w-56 origin-bottom-right rounded-xl bg-white py-1 shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <MenuItem>
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <p className="text-sm font-medium text-black truncate">{user}</p>
-                      <p className="text-xs text-gray-700">Profilo attivo</p>
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-black truncate">{user}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Profilo attivo</p>
                     </div>
                   </MenuItem>
                   <MenuItem>
                     <a
                       href="#"
                       onClick={() => setSelectedMenu("userSettings")}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-lg mx-1 my-0.5"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Settings className="w-4 h-4" />
                         <span>Impostazioni</span>
                       </div>
@@ -376,22 +387,22 @@ export default function Sidebar({}: PropsInterface) {
                   <MenuItem>
                     <a
                       href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-lg mx-1 my-0.5"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Lock className="w-4 h-4" />
                         <span>Cambia password</span>
                       </div>
                     </a>
                   </MenuItem>
-                  <div className="my-1 h-px bg-gray-200" />
+                  <div className="my-1 h-px bg-gray-100 mx-2" />
                   <MenuItem>
                     <a
                       href="/login"
                       onClick={logoutUser}
-                      className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                      className="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-lg mx-1 my-0.5"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <LogOut className="w-4 h-4" />
                         <span>Esci</span>
                       </div>
