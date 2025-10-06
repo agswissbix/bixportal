@@ -2,83 +2,160 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import { memo } from 'react'; // Usiamo memo standard di React
+import { memoWithDebug } from '@/lib/memoWithDebug';
 
-// --- SPOSTATO FUORI DAL COMPONENTE ---
+// Styling
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const isDev =  'development'; // Modo standard per controllare l'ambiente
+// FLAG PER LO SVILUPPO
+const isDev = true;
 
 // INTERFACCE
-interface PropsInterface {
-  propExampleValue?: string;
-}
+        // INTERFACCIA PROPS
+        interface PropsInterface {
+          propExampleValue?: string;
+        }
 
-interface ResponseInterface {
-  responseExampleValue: string;
-}
+        interface Event {
+          name: string;
+          description: string;
+          date: Date
+        }
 
-// DATI STATICI DI DEFAULT E SVILUPPO
-const responseDataDEFAULT: ResponseInterface = {
-  responseExampleValue: "Default"
-};
+        // INTERFACCIA RISPOSTA DAL BACKEND
+        interface ResponseInterface {
+          events: Event[];
+        }
 
-const responseDataDEV: ResponseInterface = {
-  responseExampleValue: "Example"
-};
+export default function Timeline({ propExampleValue }: PropsInterface) {
+    //DATI
+            // DATI PROPS PER LO SVILUPPO
+            const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
 
-// --- CUSTOM HOOK PER LA GESTIONE DEI DATI ---
+            // DATI RESPONSE DI DEFAULT
+            const responseDataDEFAULT: ResponseInterface = {
+                events: []
+              };
 
-const useExampleData = (propExampleValue?: string) => {
-  // Se siamo in sviluppo, ritorniamo dati finti e usciamo subito.
-  if (isDev) {
-    // Logica di re-render forzato per debug (ora è isolata qui)
-    const [mockData, setMockData] = useState(responseDataDEV);
+            // DATI RESPONSE PER LO SVILUPPO 
+            const responseDataDEV: ResponseInterface = {
+              events: [
+                {
+                  name: "Demo Event 1",
+                  description: "This is a test event for development",
+                  date: new Date("2025-10-01")
+                },
+                {
+                  name: "Demo Event 2",
+                  description: "Another sample event",
+                  date: new Date("2025-10-15")
+                },
+                {
+                  name: "Demo Event 3",
+                  description: "Another sample event",
+                  date: new Date("2025-10-16")
+                },
+                {
+                  name: "Demo Event 4",
+                  description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text everlore",
+                  date: new Date("2025-10-16")
+                },
+                {
+                  name: "Demo Event 5",
+                  description: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like)",
+                  date: new Date("2025-10-16")
+                },
+                {
+                  name: "Demo Event 6",
+                  description: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like)",
+                  date: new Date("2025-10-16")
+                },
+              ]
+            };
+
+            // DATI DEL CONTESTO
+            const { user } = useContext(AppContext);
+
+    // IMPOSTAZIONE DELLA RESPONSE (non toccare)
+    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
+
+
+    // PAYLOAD (solo se non in sviluppo)
+    const payload = useMemo(() => {
+        if (isDev) return null;
+        return {
+            apiRoute: 'examplepost', // riferimento api per il backend
+            example1: propExampleValue
+        };
+    }, [propExampleValue]);
+
+    // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
+    const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
-      const interval = setInterval(() => {
-        // Forza re-render con un nuovo oggetto per simulare un aggiornamento
-        setMockData({ ...responseDataDEV });
-      }, 3000);
-      return () => clearInterval(interval);
+        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+            setResponseData(response);
+        }
+    }, [response, responseData]);
+
+    // PER DEVELOPMENT 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // forza un setState con lo stesso valore, quindi re-render inutile
+            setResponseData({ ...responseDataDEV }); // stesso valore di prima
+
+        }, 3000);
+        return () => clearInterval(interval);
     }, []);
 
-    return { data: mockData, loading: false, error: null, devPropValue: "Example prop" };
-  }
-
-  // --- Logica di produzione ---
-  const payload = useMemo(() => ({
-    apiRoute: 'examplepost',
-    example1: propExampleValue
-  }), [propExampleValue]);
-
-  // La chiamata API ora è incondizionata (all'interno della logica di produzione)
-  const { response, loading, error } = useApi<ResponseInterface>(payload);
-
-  return { data: response ?? responseDataDEFAULT, loading, error, devPropValue: propExampleValue };
+ 
+    return (
+      <GenericComponent response={responseData} loading={false} error={null}>
+        {(response: ResponseInterface) => (
+          <div className="w-full h-screen overflow-hidden">
+            <div className="h-full overflow-y-auto w-full">
+              <div className="max-w-3xl mx-auto">
+                <div className="relative py-8">
+                  {/* Timeline */}
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 w-1 bg-gray-500 h-full"></div>
+      
+                  {response.events.map((event, idx) => {
+                    const isLeft = idx % 2 === 0;
+                    const containerPosition = isLeft ? 'left-0 pr-8 text-right' : 'left-1/2 pl-8 text-left';
+      
+                    return (
+                      <div key={idx} className="relative w-full mb-8 min-h-[80px]">
+                        <div className="absolute left-1/2 -translate-x-1/2 z-10 top-6">
+                          <CheckCircleIcon 
+                            className="w-8 h-8 text-blue-500 bg-white rounded-full border-2 border-blue-500" 
+                            />
+                        </div>
+                        
+                        <div className={`relative w-1/2 ${containerPosition}`}>
+                          <div className="bg-white p-4 rounded shadow border border-gray-200">
+                            <div className="text-xl font-bold text-blue-600">
+                              {event.date.toLocaleDateString()}
+                            </div>
+                            <div className="text-lg font-semibold text-gray-900 mt-1">
+                              {event.name}
+                            </div>
+                            <p className="text-gray-700 mt-2">
+                              {event.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </GenericComponent>
+    );
 };
 
 
-// --- COMPONENTE PRINCIPALE (ORA MOLTO PIÙ PULITO) ---
-
-function ExampleComponentWithData({ propExampleValue }: PropsInterface) {
-  const { user } = useContext(AppContext);
-  
-  // Tutta la complessità è nascosta nel custom hook
-  const { data, loading, error, devPropValue } = useExampleData(propExampleValue);
-
-  return (
-    <GenericComponent response={data} loading={loading} error={error}>
-      {(response: ResponseInterface) => (
-        <div>
-          <b>propExampleValue:</b> {devPropValue}<br />
-          <b>responseExampleValue:</b> {response.responseExampleValue} <br />
-          <b>Utente loggato</b> (da context): {user ?? 'Nessun utente'} <br />
-          <b>Server:</b> {API_BASE_URL}
-        </div>
-      )}
-    </GenericComponent>
-  );
-}
-
-// Esporta il componente avvolto in React.memo per ottimizzare i re-render
-export default memo(ExampleComponentWithData);
