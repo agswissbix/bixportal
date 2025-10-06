@@ -191,6 +191,9 @@ export async function POST(request: Request) {
     case 'belotti_get_form_types': djangoUrl = '/customapp_belotti/belotti_get_form_types/'; break;
     case 'printing_katun_bexio_api_set_invoice': djangoUrl = '/customapp_swissbix/printing_katun_bexio_api_set_invoice/'; break;
     case 'get_chart_data': djangoUrl = '/commonapp/get_chart_data/'; break;
+    case 'settings_table_usertables': djangoUrl = '/commonapp/settings_table_usertables/'; break;
+    case 'settings_table_fields': djangoUrl = '/commonapp/settings_table_fields/'; break;
+    
     
     
     
