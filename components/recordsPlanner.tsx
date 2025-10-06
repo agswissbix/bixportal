@@ -8,22 +8,23 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 // ===================================================================================
 // FLAG PER LO SVILUPPO
 // ===================================================================================
-const isDev = true;
+const isDev = false;
 
 // ===================================================================================
 // INTERFACCE E TIPI
 // ===================================================================================
 interface Resource {
-  id: string;
+  recordid: string;
   name: string;
 }
 
 interface CalendarEvent {
-  id: string;
+  recordid: string;
   title: string;
   start: Date;
   end: Date;
@@ -33,7 +34,7 @@ interface CalendarEvent {
 }
 
 interface UnplannedEvent {
-  id: string;
+  recordid: string;
   title: string;
   description: string;
   color: string;
@@ -63,20 +64,50 @@ const responseDataDEFAULT: ResponseInterface = {
 
 const responseDataDEV: ResponseInterface = {
   resources: [
-    { id: 'antonijevictoplica', name: 'Antonijevic Toplica' },
-    { id: 'BasarabaTomislav', name: 'Basaraba Tomislav' },
-    { id: 'BerishaBekim', name: 'Berisha Bekim' },
-    { id: 'DokovicDorde', name: 'Dokovic Dorde' },
-    { id: 'FazziLuca', name: 'Fazzi Luca' },
-    { id: 'RossiMario', name: 'Rossi Mario' },
-    { id: 'BianchiGiulia', name: 'Bianchi Giulia' },
-    { id: 'VerdiPaolo', name: 'Verdi Paolo' },
-    { id: 'GalliAnna', name: 'Galli Anna' },
-    { id: 'ContiMarco', name: 'Conti Marco' }
+    { 
+      recordid: 'antonijevictoplica',
+      name: 'Antonijevic Toplica' 
+    },
+    { 
+      recordid: 'BasarabaTomislav', 
+      name: 'Basaraba Tomislav' 
+    },
+    { 
+      recordid: 'BerishaBekim', 
+      name: 'Berisha Bekim' 
+    },
+    { 
+      recordid: 'DokovicDorde',
+      name: 'Dokovic Dorde' 
+    },
+    { 
+      recordid: 'FazziLuca', 
+      name: 'Fazzi Luca' 
+    },
+    { 
+      recordid: 'RossiMario', 
+      name: 'Rossi Mario' 
+    },
+    { 
+      recordid: 'BianchiGiulia',
+      name: 'Bianchi Giulia' 
+    },
+    { 
+      recordid: 'VerdiPaolo',
+      name: 'Verdi Paolo' 
+    },
+    { 
+      recordid: 'GalliAnna',
+      name: 'Galli Anna' 
+    },
+    { 
+      recordid: 'ContiMarco', 
+      name: 'Conti Marco' 
+    }
   ],
   events: [
     {
-      id: '1',
+      recordid: '1',
       title: 'Pulizia completa Condominio Lucino',
       start: new Date(2025, 0, 7, 10, 0),
       end: new Date(2025, 0, 7, 11, 30),
@@ -85,7 +116,7 @@ const responseDataDEV: ResponseInterface = {
       resourceId: 'antonijevictoplica'
     },
     {
-      id: '2',
+      recordid: '2',
       title: 'Pulizia entrata Residenza Nettuno',
       start: new Date(2025, 0, 8, 14, 0),
       end: new Date(2025, 0, 8, 15, 0),
@@ -94,7 +125,7 @@ const responseDataDEV: ResponseInterface = {
       resourceId: 'BasarabaTomislav'
     },
     {
-      id: '3',
+      recordid: '3',
       title: 'Manutenzione giardino Villa Ada',
       start: new Date(2025, 0, 22, 9, 0),
       end: new Date(2025, 0, 22, 12, 0),
@@ -104,18 +135,19 @@ const responseDataDEV: ResponseInterface = {
     }
   ],
   unplannedEvents: [
-    { id: 'u1', title: 'Pulizia finestre Stabile fortuna', description: 'Note aggiuntive', color: '#f97316' },
-    { id: 'u2', title: 'Pulizie finestre Lisano 1 Massagno', description: 'Note aggiuntive', color: '#8b5cf6' }
+    { 
+      recordid: 'u1', 
+      title: 'Pulizia finestre Stabile fortuna', 
+      description: 'Note aggiuntive', 
+      color: '#f97316' 
+    },
+    { 
+      recordid: 'u2', 
+      title: 'Pulizie finestre Lisano 1 Massagno', 
+      description: 'Note aggiuntive', 
+      color: '#8b5cf6' 
+    }
   ]
-};
-
-const defaultNewEvent = {
-  title: '',
-  start: new Date(),
-  end: new Date(Date.now() + 3600000), // +1 ora
-  description: '',
-  color: '#3b82f6',
-  resourceId: ''
 };
 
 // ===================================================================================
@@ -154,13 +186,12 @@ function PitCalendar({ initialDate }: PropsInterface) {
   const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
-  const [draggedEvent, setDraggedEvent] = useState<Partial<CalendarEvent> & { id: string } | null>(null);
-  const [newEvent, setNewEvent] = useState<Omit<CalendarEvent, 'id'>>(defaultNewEvent);
+  const [draggedEvent, setDraggedEvent] = useState<Partial<CalendarEvent> & { recordid: string } | null>(null);
   
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
-      apiRoute: 'getCalendarData',
+      apiRoute: 'get_calendar_data',
       month: currentDate.getMonth(),
       year: currentDate.getFullYear()
     };
@@ -181,9 +212,28 @@ function PitCalendar({ initialDate }: PropsInterface) {
 
   const { resources, events, unplannedEvents } = responseData;
 
+  async function saveEvent(eventid: string, startdate: Date, enddate: Date, resourceid: string) {
+    try {
+      const response = await axiosInstanceClient.post("/postApi", 
+        { 
+          apiRoute: "save_calendar_event",
+          eventid,
+          startdate,
+          enddate,
+          resourceid
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` 
+        },
+      });
+
+    } catch (error) {
+      console.log(error);      
+    }
+  }
+
   const filteredResources = useMemo(() => 
     selectedResourceIds.length > 0
-      ? resources.filter(resource => selectedResourceIds.includes(resource.id))
+      ? resources.filter(resource => selectedResourceIds.includes(resource.recordid))
       : resources,
     [resources, selectedResourceIds]
   );
@@ -240,7 +290,7 @@ function PitCalendar({ initialDate }: PropsInterface) {
     );
     const newEnd = new Date(newStart.getTime() + duration);
 
-    const isAlreadyPlanned = events.some(ev => ev.id === draggedEvent.id);
+    const isAlreadyPlanned = events.some(ev => ev.recordid === draggedEvent.recordid);
 
     setResponseData(prev => {
       let updatedEvents = [...prev.events];
@@ -248,14 +298,14 @@ function PitCalendar({ initialDate }: PropsInterface) {
 
       if (isAlreadyPlanned) {
         updatedEvents = prev.events.map(event =>
-          event.id === draggedEvent.id
+          event.recordid === draggedEvent.recordid
             ? { ...event, start: newStart, end: newEnd, resourceId: newResourceId }
             : event
         );
       } else {
-        updatedUnplanned = prev.unplannedEvents.filter(e => e.id !== draggedEvent.id);
+        updatedUnplanned = prev.unplannedEvents.filter(e => e.recordid !== draggedEvent.recordid);
         const eventToAdd: CalendarEvent = {
-          id: draggedEvent.id,
+          recordid: draggedEvent.recordid,
           title: draggedEvent.title || 'Nuovo Evento',
           description: draggedEvent.description || '',
           color: draggedEvent.color || '#3b82f6',
@@ -265,32 +315,16 @@ function PitCalendar({ initialDate }: PropsInterface) {
         };
         updatedEvents.push(eventToAdd);
       }
+
+      saveEvent(draggedEvent.recordid, newStart, newEnd, newResourceId);
+
       return { ...prev, events: updatedEvents, unplannedEvents: updatedUnplanned };
     });
 
     setDraggedEvent(null);
   }, [draggedEvent, events]);
-  
-  const handleAddEvent = () => {
-    if (!newEvent.title || !newEvent.resourceId) {
-      alert('Titolo e dipendente sono obbligatori.');
-      return;
-    }
-    if (newEvent.end <= newEvent.start) {
-      alert("L'ora di fine deve essere successiva all'ora di inizio.");
-      return;
-    }
-    
-    const eventToAdd: CalendarEvent = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...newEvent
-    };
 
-    setResponseData(prev => ({ ...prev, events: [...prev.events, eventToAdd] }));
-    setNewEvent(defaultNewEvent);
-  };
-  
-  const handleDragStart = (e: React.DragEvent, event: Partial<CalendarEvent> & { id: string }) => {
+  const handleDragStart = (e: React.DragEvent, event: Partial<CalendarEvent> & { recordid: string }) => {
     e.stopPropagation();
     setDraggedEvent(event);
     const dragImage = document.createElement('div');
@@ -349,7 +383,7 @@ function PitCalendar({ initialDate }: PropsInterface) {
                      Questo le dà una dimensione definita (l'altezza del suo genitore).
                   2. `overflow-auto` aggiunge le barre di scorrimento (orizzontale e verticale)
                      solo se il contenuto interno (la griglia) è più grande della Card stessa. */}
-              <Card className="absolute inset-0 p-4 overflow-auto">
+              <Card className="absolute inset-0 overflow-auto">
                 <div className="grid" style={gridColsStyle}>
                   {/* Headers */}
                   <div className="p-2 border-b border-r border-gray-200 bg-gray-100 font-semibold sticky top-0 left-0 z-20">
@@ -364,36 +398,36 @@ function PitCalendar({ initialDate }: PropsInterface) {
                   
                   {/* Righe Risorse */}
                   {filteredResources.map(resource => (
-                    <React.Fragment key={resource.id}>
+                    <React.Fragment key={resource.recordid}>
                       <div className="p-2 border-r border-b border-gray-200 font-medium bg-white sticky left-0 z-10">
                         {resource.name}
                       </div>
                       {displayedDays.map(day => (
                         <div
-                          key={`${resource.id}-${day.toISOString()}`}
+                          key={`${resource.recordid}-${day.toISOString()}`}
                           className="min-h-20 p-1 border-b border-r border-gray-200 transition-colors duration-200 space-y-1"
                           onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('bg-blue-50'); }}
                           onDragLeave={(e) => e.currentTarget.classList.remove('bg-blue-50')}
                           onDrop={(e) => {
                             e.preventDefault();
-                            handleDrop(day, resource.id);
+                            handleDrop(day, resource.recordid);
                             e.currentTarget.classList.remove('bg-blue-50');
                           }}
                         >
                           {data.events
                             .filter(event => 
-                              event.resourceId === resource.id &&
+                              event.resourceId === resource.recordid &&
                               event.start.toDateString() === day.toDateString()
                             )
                             .sort((a, b) => a.start.getTime() - b.start.getTime())
                             .map(event => (
                               <div
-                                key={event.id}
+                                key={event.recordid}
                                 draggable="true"
                                 onDragStart={(e) => handleDragStart(e, event)}
                                 onClick={() => { setSelectedEvent(event); setShowEventDialog(true); }}
                                 className="p-2 rounded text-sm cursor-move text-white select-none shadow"
-                                style={{ backgroundColor: event.color, opacity: draggedEvent?.id === event.id ? 0.5 : 1 }}
+                                style={{ backgroundColor: event.color, opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1 }}
                               >
                                 <div className="font-semibold">{event.title}</div>
                                 <div className="text-xs">{formatEventTime(event.start)} - {formatEventTime(event.end)}</div>
@@ -411,19 +445,12 @@ function PitCalendar({ initialDate }: PropsInterface) {
           
           {/* Sidebar Destra */}
           <aside className="w-80 border-l bg-white flex flex-col">
-              <div className="p-4 border-b">
-                <h3 className="text-lg font-semibold mb-4">Nuovo Evento</h3>
-                <Button onClick={handleAddEvent} className="w-full">
-                  <Plus className="mr-2 h-4 w-4" /> Aggiungi Evento (Form)
-                </Button>
-              </div>
-
               <div className="p-4 flex-grow overflow-y-auto">
                 <h3 className="text-lg font-semibold mb-4">Eventi da pianificare</h3>
                 <div className="space-y-2">
                   {data.unplannedEvents.map(ev => (
                     <div
-                      key={ev.id}
+                      key={ev.recordid}
                       draggable="true"
                       onDragStart={(e) => handleDragStart(e, ev)}
                       className="p-2 rounded cursor-move text-white shadow"
@@ -439,7 +466,7 @@ function PitCalendar({ initialDate }: PropsInterface) {
 
           {/* Dialog Dettaglio Evento */}
           <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-            <DialogContent>
+            <DialogContent className='bg-white'>
               <DialogHeader>
                 <DialogTitle>{selectedEvent?.title}</DialogTitle>
               </DialogHeader>
