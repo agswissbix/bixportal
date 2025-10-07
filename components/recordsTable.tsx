@@ -14,22 +14,28 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
 
 // INTERFACCE
+
+
+
+// OGGETTO ORDINAMENTO (MODIFICATO)
+interface SortOrder {
+  fieldid: string | null;
+  direction: SortDirection;
+}
+
 // INTERFACCIA PROPS
 interface PropsInterface {
   tableid?: string;
   searchTerm?: string;
   filters?: string;
   view?: string;
-  order?: {
-    columnDesc: string | null;
-    direction: "asc" | "desc" | null;
-  };
+  order?: SortOrder;
   context?: string;
   pagination?: {
     page: number;
-    limit: number;
   };
   level?: number;
+  limit?: number;
   filtersList?: Array<{
     fieldid: string;
     type: string;
@@ -60,7 +66,13 @@ interface ResponseInterface {
   columns: Array<{
     fieldtypeid: string;
     desc: string;
+    fieldid: string;
   }>;
+  pagination: {
+    currentPage: number; // La pagina attualmente visualizzata
+    totalPages: number;  // Il numero totale di pagine disponibili
+  };
+  order: SortOrder;
 }
 
 // TIPO DI ORDINAMENTO
@@ -73,11 +85,11 @@ export default function RecordsTable({
   view,
   order,
   context,
-  pagination,
   level,
   masterTableid,
   masterRecordid,
-  filtersList
+  filtersList,
+  limit = 100,
 }: PropsInterface) {
   useEffect(() => {
     const unsub = useRecordsStore.subscribe((state, prevState) => {
@@ -97,6 +109,14 @@ export default function RecordsTable({
     counter: 0,
     rows: [],
     columns: [],
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+    },
+    order: { // <-- Aggiunto valore di default
+        fieldid: null,
+        direction: null
+    }
   };
 
   // DATI RESPONSE PER LO SVILUPPO
@@ -176,20 +196,33 @@ export default function RecordsTable({
       {
         fieldtypeid: "Numero",
         desc: "Product name",
+        fieldid: "1",
       },
       {
         fieldtypeid: "Numero",
         desc: "Color",
+        fieldid: "2",
       },
       {
         fieldtypeid: "Numero",
         desc: "Type",
+        fieldid: "3",
       },
       {
         fieldtypeid: "Numero",
         desc: "Price",
+        fieldid: "4",
+        
       },
     ],
+    pagination: {
+      currentPage: 1,
+      totalPages: 5, // Esempio per lo sviluppo
+    },
+    order: { // <-- Aggiunto per lo sviluppo
+        fieldid: "4", // Esempio: ordinato per Price
+        direction: "desc"
+    }
   };
 
   // DATI DEL CONTESTO
@@ -200,14 +233,12 @@ export default function RecordsTable({
     isDev ? responseDataDEV : responseDataDEFAULT
   );
 
-  // STATO PER L'ORDINAMENTO (solo parte grafica)
-  const [sortConfig, setSortConfig] = useState<{
-    columnDesc: string | null;
-    direction: SortDirection;
-  }>({
-    columnDesc: null,
-    direction: null,
-  });
+   // STATO PER L'ORDINAMENTO (MODIFICATO: ora usa fieldid)
+  const [sortConfig, setSortConfig] = useState<SortOrder>(
+    order || { fieldid: null, direction: null }
+  );
+
+  const [currentPage, setCurrentPage] = useState(1);
 
   // ✅ un selector per chiave
 
@@ -217,10 +248,12 @@ export default function RecordsTable({
     refreshTable,
     setRefreshTable,
     handleRowClick,
-    setCurrentPage,
-    columnOrder,
-    setColumnOrder,
   } = useRecordsStore();
+
+  // Quando la tabella cambia (es. tableid), resetta la pagina a 1
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [tableid]);
 
   // PAYLOAD (solo se non in sviluppo)
   const payload = useMemo(() => {
@@ -231,12 +264,12 @@ export default function RecordsTable({
       searchTerm: searchTerm,
       view: view,
       pagination: {
-        page: pagination?.page || 1,
-        limit: pagination?.limit || 10,
+        page: currentPage,
+        limit: limit,
       },
-      order: {
-        columnDesc: columnOrder.columnDesc,
-        direction: columnOrder.direction,
+      order: { // <-- MODIFICATO
+        fieldid: sortConfig.fieldid,
+        direction: sortConfig.direction,
       },
       filtersList: filtersList,
       masterTableid: masterTableid,
@@ -245,13 +278,14 @@ export default function RecordsTable({
     };
   }, [
     tableid,
-    refreshTable,
-    pagination,
+    searchTerm,
+    view,
+    currentPage,
+    sortConfig, 
+    filtersList,
     masterTableid,
     masterRecordid,
-    columnOrder.columnDesc,
-    columnOrder.direction,
-    filtersList,
+    refreshTable,
   ]);
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
@@ -260,22 +294,21 @@ export default function RecordsTable({
       ? useApi<ResponseInterface>(payload)
       : { response: null, loading: true, error: null };
 
-  // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non toccare)
+  // AGGIORNAMENTO RESPONSE (MODIFICATO per sincronizzare anche l'ordinamento)
   useEffect(() => {
-    if (
-      !isDev &&
-      response &&
-      JSON.stringify(response) !== JSON.stringify(responseData)
-    ) {
-      setResponseData(response);
+    if (!isDev && response) {
+      // Aggiorna i dati della tabella
+      if (JSON.stringify(response) !== JSON.stringify(responseData)) {
+        setResponseData(response);
+      }
     }
-  }, [response, responseData]);
+  }, [response]);
 
-  // FUNZIONE PER GESTIRE IL CLICK SULL'INTESTAZIONE DELLA COLONNA (solo parte grafica)
-  const handleSort = (columnDesc: string) => {
+  // FUNZIONE PER GESTIRE L'ORDINAMENTO (MODIFICATA: ora usa fieldid)
+  const handleSort = (fieldid: string) => {
     let direction: SortDirection = "asc";
 
-    if (sortConfig.columnDesc === columnDesc) {
+    if (sortConfig.fieldid === fieldid) {
       if (sortConfig.direction === "asc") {
         direction = "desc";
       } else if (sortConfig.direction === "desc") {
@@ -284,21 +317,15 @@ export default function RecordsTable({
     }
 
     setSortConfig({
-      columnDesc: direction === null ? null : columnDesc,
+      fieldid: direction === null ? null : fieldid,
       direction,
     });
-
-    // Qui in futuro potresti aggiungere la chiamata al backend per il vero ordinamento
-    console.log(`Ordinamento colonna ${columnDesc} in direzione ${direction}`);
-    setColumnOrder({ columnDesc, direction });
+    // NON è più necessario chiamare setColumnOrder da zustand
   };
+
+
+
   const setTablePage = async (page: number) => {
-    if (page < 1) {
-      page = 1;
-    }
-    if (pagination && page > pagination.limit) {
-      page = pagination.limit;
-    }
     setCurrentPage(page);
     setRefreshTable((v) => v + 1);
   };
@@ -327,9 +354,9 @@ export default function RecordsTable({
                 <tr>
                   {response.columns.map((column, index) => (
                     <th
-                      key={column.desc}
+                      key={column.fieldid}
                       scope="col"
-                      onClick={() => handleSort(column.desc)}
+                      onClick={() => handleSort(column.fieldid)}
                       className={`
               px-4 py-3 cursor-pointer select-none truncate
               ${
@@ -350,20 +377,22 @@ export default function RecordsTable({
                           <div className="flex items-center justify-between">
                             <span className="truncate">{column.desc}</span>
                             <div className="w-4 h-4 ml-1">
-                              {sortConfig.columnDesc === column.desc &&
-                                sortConfig.direction === "asc" && (
-                                  <ArrowUp className="h-4 w-4" />
+                                {/* MODIFICA: usa responseData.order invece di sortConfig */}
+                                {responseData.order.fieldid === column.fieldid &&
+                                  responseData.order.direction === "asc" && (
+                                    <ArrowUp className="h-4 w-4" />
                                 )}
-                              {sortConfig.columnDesc === column.desc &&
-                                sortConfig.direction === "desc" && (
-                                  <ArrowDown className="h-4 w-4" />
+                                {responseData.order.fieldid === column.fieldid &&
+                                  responseData.order.direction === "desc" && (
+                                    <ArrowDown className="h-4 w-4" />
                                 )}
-                              {(sortConfig.columnDesc !== column.desc ||
-                                sortConfig.direction === null) && (
-                                <span className="invisible h-4 w-4">
-                                  <ArrowUp className="h-4 w-4" />
-                                </span>
-                              )}
+                                {/* Questa logica di fallback può rimanere per le colonne non ordinate */}
+                                {(responseData.order.fieldid !== column.fieldid ||
+                                  responseData.order.direction === null) && (
+                                    <span className="invisible h-4 w-4">
+                                      <ArrowUp className="h-4 w-4" />
+                                    </span>
+                                )}
                             </div>
                           </div>
                         </TooltipTrigger>
@@ -457,6 +486,7 @@ export default function RecordsTable({
             </table>
           </div>
 
+          {/* SEZIONE PAGINAZIONE AGGIORNATA */}
           <nav
             aria-label="Page navigation"
             className="mt-4 flex justify-center"
@@ -464,15 +494,15 @@ export default function RecordsTable({
             <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm">
               {/* Previous Button */}
               <button
-                onClick={() => pagination && setTablePage(pagination.page - 1)}
-                disabled={!pagination || pagination.page === 1}
-                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                                                        ${
-                                                          !pagination ||
-                                                          pagination.page === 1
-                                                            ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
-                                                            : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
-                                                        }`}
+                onClick={() =>
+                  setTablePage(response.pagination.currentPage - 1)
+                }
+                disabled={response.pagination.currentPage === 1}
+                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  response.pagination.currentPage === 1
+                    ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                    : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                }`}
               >
                 <ArrowUp className="w-4 h-4 mr-1 rotate-[-90deg]" />
                 Previous
@@ -483,70 +513,70 @@ export default function RecordsTable({
                 {/* First Page */}
                 <button
                   onClick={() => setTablePage(1)}
-                  className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 
-                                                            ${
-                                                              pagination &&
-                                                              pagination.page ===
-                                                                1
-                                                                ? "text-primary-foreground bg-primary shadow-sm"
-                                                                : "text-foreground bg-transparent hover:bg-muted"
-                                                            }`}
+                  className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${
+                    response.pagination.currentPage === 1
+                      ? "text-primary-foreground bg-primary shadow-sm"
+                      : "text-foreground bg-transparent hover:bg-muted"
+                  }`}
                 >
                   1
                 </button>
 
                 {/* Ellipsis */}
-                {pagination && pagination.page > 3 && (
+                {response.pagination.currentPage > 3 && (
                   <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
                     ...
                   </span>
                 )}
 
                 {/* Current Page (if not first or last) */}
-                {pagination &&
-                  pagination.page !== 1 &&
-                  pagination.page !== pagination.limit && (
+                {response.pagination.currentPage !== 1 &&
+                  response.pagination.currentPage !==
+                    response.pagination.totalPages && (
                     <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
-                      {pagination.page}
+                      {response.pagination.currentPage}
                     </button>
                   )}
 
                 {/* Ellipsis */}
-                {pagination && pagination.page < pagination.limit - 2 && (
+                {response.pagination.currentPage <
+                  response.pagination.totalPages - 2 && (
                   <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
                     ...
                   </span>
                 )}
 
                 {/* Last Page */}
-                {pagination && pagination.limit > 1 && (
+                {response.pagination.totalPages > 1 && (
                   <button
-                    onClick={() => setTablePage(pagination.limit)}
-                    className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 
-                                                                ${
-                                                                  pagination.page ===
-                                                                  pagination.limit
-                                                                    ? "text-primary-foreground bg-primary shadow-sm"
-                                                                    : "text-foreground bg-transparent hover:bg-muted"
-                                                                }`}
+                    onClick={() => setTablePage(response.pagination.totalPages)}
+                    className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${
+                      response.pagination.currentPage ===
+                      response.pagination.totalPages
+                        ? "text-primary-foreground bg-primary shadow-sm"
+                        : "text-foreground bg-transparent hover:bg-muted"
+                    }`}
                   >
-                    {pagination.limit}
+                    {response.pagination.totalPages}
                   </button>
                 )}
               </div>
 
               {/* Next Button */}
               <button
-                onClick={() => pagination && setTablePage(pagination.page + 1)}
-                disabled={!pagination || pagination.page === pagination.limit}
-                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                                                        ${
-                                                          !pagination ||
-                                                          pagination.page ===
-                                                            pagination.limit
-                                                            ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
-                                                            : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
-                                                        }`}
+                onClick={() =>
+                  setTablePage(response.pagination.currentPage + 1)
+                }
+                disabled={
+                  response.pagination.currentPage ===
+                  response.pagination.totalPages
+                }
+                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  response.pagination.currentPage ===
+                  response.pagination.totalPages
+                    ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                    : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                }`}
               >
                 Next
                 <ArrowUp className="w-4 h-4 ml-1 rotate-90" />
