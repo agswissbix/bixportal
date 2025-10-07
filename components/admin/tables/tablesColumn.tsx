@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { DraggableList } from "@/components/admin/tables/draggableList"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "@/components/genericComponent"
+import axiosInstanceClient from "@/utils/axiosInstanceClient"
 
 const isDev = false
 
@@ -24,7 +25,6 @@ interface WorkspacesResponse {
   [workspaceKey: string]: Workspace
 }
 
-
 const UserTablesDev: WorkspacesResponse = {
   CRM: {
     name: "CRM",
@@ -41,7 +41,6 @@ const UserTablesDev: WorkspacesResponse = {
   },
 }
 
-
 export const TablesColumn: React.FC<{
   workspaces?: Record<string, Workspace>
   selectedUserId: string
@@ -49,32 +48,73 @@ export const TablesColumn: React.FC<{
   onSelectTable: (tableId: string) => void
   onWorkspacesChange: (workspaces: Record<string, Workspace>) => void
 }> = ({ selectedUserId, selectedTableId, onSelectTable, onWorkspacesChange }) => {
-  const [workspaces, setWorkspaces] = React.useState<Record<string, Workspace>>(isDev ? UserTablesDev : {}) 
+  const [workspaces, setWorkspaces] = React.useState<WorkspacesResponse>(isDev ? UserTablesDev : {}) 
+  const [isSaved, setIsSaved] = React.useState<boolean>(true)
 
   const payload = useMemo(() => {
-		if (isDev) return null;
-		return { 
-			apiRoute: 'settings_table_usertables',
-			userid: selectedUserId
-		};
-	}, [selectedUserId]);
+    if (isDev) return null;
+    return { 
+      apiRoute: 'settings_table_usertables',
+      userid: selectedUserId
+    };
+  }, [selectedUserId]);
   
-	const { response, loading, error } = !isDev && payload ? useApi<Record<string, Workspace>>(payload) : { response: null, loading: false, error: null };
-	
-	useEffect(() => {
-			if (!isDev && response) {
-				setWorkspaces(response); 
-			}
-	}, [response]);
-
+  const { response, loading, error } = !isDev && payload ? useApi<Record<string, Workspace>>(payload) : { response: null, loading: false, error: null };
+  
+  useEffect(() => {
+    if (!isDev && response) {
+      setWorkspaces(response); 
+    }
+  }, [response]);
 
   const handleSave = async () => {
-    if (isDev) {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      toast.success("Tabelle salvate con successo")
-      return
+    if (isDev) return
+
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "settings_table_usertables_save",
+          workspaces: workspaces,
+          userid: selectedUserId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        toast.success("Ordine delle tabelle salvato")
+        setIsSaved(true)
+      }
+    } catch (error) {
+      toast.error("Errore durante il salvataggio dell'ordine tabelle")
     }
-    // API Call logic (omitted for brevity)
+
+  }
+
+  const handleGroupsChange = (groups: any) => {
+    // Convert DraggableGroup[] back to Workspace[] for state update
+    const updatedWorkspaces: Record<string, Workspace> = Object.fromEntries(
+      Object.entries(groups).map(([key, group]: any) => [
+        key,
+        {
+          name: group.name,
+          tables: group.items.map((item: any) => ({
+            id: item.id,
+            description: item.description,
+            order: item.order,
+            workspace: item.workspace,
+          })),
+        },
+      ])
+    )
+    
+    // IMPORTANTE: Aggiorna lo state locale
+    setWorkspaces(updatedWorkspaces)
+    // E notifica il padre
+    onWorkspacesChange(updatedWorkspaces)
   }
 
   if (!workspaces || Object.keys(workspaces).length === 0) {
@@ -89,20 +129,18 @@ export const TablesColumn: React.FC<{
   return (
     <GenericComponent response={workspaces} loading={loading} error={error}>
       {(response: Record<string, Workspace>) => (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          Tabelle Utente
-        </h2>
-        <Button onClick={handleSave} size="sm" className="bg-blue-600 hover:bg-blue-700">
-          Salva Ordine
-        </Button>
-      </div>
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              Tabelle Utente
+            </h2>
+            <Button onClick={handleSave} size="sm" className="bg-blue-600 hover:bg-blue-700">
+              Salva Ordine
+            </Button>
+          </div>
 
-      <DraggableList
-        groups={
-          workspaces
-            ? Object.fromEntries(
+          <DraggableList
+            groups={Object.fromEntries(
               Object.entries(workspaces).map(([key, ws]) => [
                 key,
                 {
@@ -115,34 +153,17 @@ export const TablesColumn: React.FC<{
                   })),
                 },
               ])
-            )
-            : {}
-        }
-        onGroupsChange={(groups: any) => {
-          // Convert DraggableGroup[] back to Workspace[] for state update
-          const updatedWorkspaces: Record<string, Workspace> = Object.fromEntries(
-            Object.entries(groups).map(([key, group]: any) => [
-              key,
-              {
-                name: group.name,
-                tables: group.items.map((item: any) => ({
-                  id: item.id,
-                  description: item.description,
-                  order: item.order,
-                  workspace: item.workspace,
-                })),
-              },
-            ])
-          )
-          onWorkspacesChange(updatedWorkspaces)
-        }}
-        onItemSettings={(tableId: string) => {
-          onSelectTable(tableId)
-        }}
-        showGroups={true}
-      />
-    </div>
+            )}
+            onGroupsChange={handleGroupsChange}
+            onItemSettings={(tableId: string) => {
+              onSelectTable(tableId)
+            }}
+            showGroups={true}
+            isSaved={isSaved}
+            setIsSaved={setIsSaved}
+          />
+        </div>
       )}
-      </GenericComponent>
+    </GenericComponent>
   )
 }

@@ -4,8 +4,8 @@ import Select, { SingleValue, MultiValue, ActionMeta } from 'react-select';
 // INTERFACCIA PROPS
 interface PropsInterface {
   lookupItems: Array<{ itemcode: string; itemdesc: string}>;
-  initialValue?: string;  // Es: "123;456"
-  onChange?: (value: string) => void;  // Es: "123;456"
+  initialValue?: string | string[];  // Es: "123;456"
+  onChange?: (value: string | string[]) => void;  // Es: "123;456"
 
   isMulti?: boolean;
 }
@@ -86,7 +86,12 @@ export default function SelectStandard({
     newValue: SingleValue<OptionType> | MultiValue<OptionType>,
     actionMeta: ActionMeta<OptionType>
   ) => {
-    setSelectedOption(newValue);
+    if (isMulti) {
+      // Convert readonly array to mutable array
+      setSelectedOption(Array.isArray(newValue) ? [...newValue] : []);
+    } else {
+      setSelectedOption(newValue as OptionType | null);
+    }
 
     if (onChange) {
       if (isMulti) {

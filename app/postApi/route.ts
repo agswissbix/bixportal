@@ -195,6 +195,12 @@ export async function POST(request: Request) {
     case 'save_calendar_event': djangoUrl = '/commonapp/save_calendar_event/'; break;
     case 'settings_table_usertables': djangoUrl = '/commonapp/settings_table_usertables/'; break;
     case 'settings_table_fields': djangoUrl = '/commonapp/settings_table_fields/'; break;
+    case 'settings_table_settings': djangoUrl = '/commonapp/settings_table_settings/'; break;
+    case 'settings_table_fields_settings_save': djangoUrl = '/commonapp/settings_table_fields_settings_save/'; break;
+    case 'settings_table_fields_settings_block': djangoUrl = '/commonapp/settings_table_fields_settings_block/'; break;
+    case 'settings_table_usertables_save': djangoUrl = '/commonapp/settings_table_usertables_save/'; break;
+    case 'settings_table_tablefields_save': djangoUrl = '/commonapp/settings_table_tablefields_save/'; break;
+    case 'settings_table_fields_new_field': djangoUrl = '/commonapp/settings_table_fields_new_field/'; break;
     
     
     default:

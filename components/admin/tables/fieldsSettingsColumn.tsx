@@ -1,55 +1,72 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import SettingsHierarchyViewer from "./hierarchyViewer"
+import { useApi } from "@/utils/useApi"
+import GenericComponent from "@/components/genericComponent"
 
-const isDev = true
+const isDev = false
 
 interface SettingsHierarchy {
-  superuser: Record<string, any>
+  standarduser: Record<string, any>
   groups: Record<string, Record<string, any>>
   user: Record<string, any>
 }
 
-const FieldSettingsResponseDev = {
-  settings: {
+interface FieldSetting {
+  value: any
+  type: string
+  label: string
+}
+
+interface ResponseInterface {
+  fieldsettings: Record<string, FieldSetting>
+  record: Record<string, any>
+  items: any[]
+  hierarchy?: SettingsHierarchy // opzionale se il BE la aggiunge in futuro
+}
+
+
+const FieldSettingsResponseDev: ResponseInterface = {
+  fieldsettings: {
     can_read: { value: true, type: "boolean", label: "Può Leggere" },
     can_write: { value: false, type: "boolean", label: "Può Scrivere" },
     required: { value: true, type: "boolean", label: "Campo Obbligatorio" },
   },
+  record: { id: 1, name: "Campo esempio" },
+  items: [],
   hierarchy: {
-    superuser: { can_read: true, can_write: true, required: false },
+    standarduser: { can_read: true, can_write: true, required: false },
     groups: { g_marketing: { can_write: false, required: true } },
     user: { can_read: true },
   },
 }
 
-
 export const FieldSettingsColumn: React.FC<{
   tableId: string
   fieldId: string
   userId: string
-}> = ({ fieldId }) => {
-  const [settings, setSettings] = useState<any>(null)
-  const [hierarchy, setHierarchy] = useState<SettingsHierarchy | null>(null)
-  const [loading, setLoading] = useState(true)
+}> = ({ fieldId, userId, tableId }) => {
+  const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? FieldSettingsResponseDev : { fieldsettings: {}, record: {}, items: [] })
 
-  useEffect(() => {
-    fetchFieldSettings()
-  }, [fieldId])
+  const payload = useMemo(() => {
+		if (isDev) return null;
+		return { 
+			apiRoute: 'settings_table_fields_settings_block',
+			tableid: tableId,
+      fieldid: fieldId,
+      userid: userId
+		};
+	}, [tableId, fieldId, userId]);
 
-  const fetchFieldSettings = async () => {
-    setLoading(true)
-    if (isDev) {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      setSettings(FieldSettingsResponseDev.settings)
-      setHierarchy(FieldSettingsResponseDev.hierarchy as SettingsHierarchy)
-      setLoading(false)
-      return
-    }
-
-    // API Call logic (omitted for brevity)
-  }
+  const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+	
+	useEffect(() => {
+			if (!isDev && response) { 
+				setResponseData(response);
+        console.log("Field Settings Response:", response);
+			}
+	}, [response]);
 
   const handleSave = async () => {
     if (isDev) {
@@ -60,27 +77,24 @@ export const FieldSettingsColumn: React.FC<{
     // API Call logic (omitted for brevity)
   }
 
-  if (loading) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-gray-500">Caricamento...</p>
-      </div>
-    )
-  }
-
   return (
+<GenericComponent response={responseData} loading={loading} error={error}>
+      {(response: ResponseInterface) => (
     <div className="p-6">
       <h2 className="text-lg font-semibold mb-4">Campo: <span className="text-blue-600">{fieldId}</span></h2>
 
-      {hierarchy && (
+      {response.hierarchy && (
         <SettingsHierarchyViewer
-          hierarchy={hierarchy}
-          currentSettings={settings}
+          hierarchy={response.hierarchy}
+          currentSettings={response.fieldsettings}
           onSettingChange={(key: string, value: any) => {
-            setSettings({
-              ...settings,
-              [key]: { ...settings[key], value },
-            })
+            setResponseData((prev) => ({
+              ...prev,
+              fieldsettings: {
+                ...prev.fieldsettings,
+                [key]: { ...prev.fieldsettings[key], value },
+              },
+            }))
           }}
         />
       )}
@@ -89,5 +103,7 @@ export const FieldSettingsColumn: React.FC<{
         Salva Impostazioni
       </Button>
     </div>
+      )}
+      </GenericComponent>
   )
 }
