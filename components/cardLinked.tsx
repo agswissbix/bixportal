@@ -208,9 +208,9 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                         tableid={table.tableid}
                                         searchTerm={''}
                                         context="linked"
-                                        pagination={{ page: 1, limit: 10 }}
                                         masterTableid={tableid}
                                         masterRecordid={recordid}
+                                        limit={10}
                                     />
                                 </div>
                             </div>
