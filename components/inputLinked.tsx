@@ -190,7 +190,10 @@ export default function inputLinked({ initialValue='',onChange,linkedmaster_tabl
                 items.map((item) => (
                   <div
                     key={item.recordid}
-                    onClick={() => handleSelectOption(item)}
+                    onMouseDown={(e) => {
+                        e.preventDefault(); // Impedisce all'input di perdere il focus
+                        handleSelectOption(item);
+                      }}
                     className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <p className="text-sm text-gray-900">{item.name}</p>
