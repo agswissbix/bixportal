@@ -293,6 +293,24 @@ body {
   }
 }
 
+@layer components {
+  [data-radix-select-viewport] [role="option"] {
+    @apply transition-colors duration-150;
+  }
+
+  [data-radix-select-viewport] [role="option"]:hover {
+    @apply bg-blue-50 text-blue-900;
+  }
+
+  [data-radix-select-viewport] [role="option"][data-state="checked"] {
+    @apply bg-blue-100 text-blue-900;
+  }
+
+  [data-radix-select-viewport] [role="option"][data-state="checked"]:hover {
+    @apply bg-blue-200;
+  }
+}
+
 @layer utilities {
   .theme-primary {
     background-color: var(--color-primary);

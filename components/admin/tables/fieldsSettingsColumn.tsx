@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import SettingsHierarchyViewer from "./hierarchyViewer"
+import FieldSettingsViewer from "./hierarchyViewer"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "@/components/genericComponent"
 
@@ -83,25 +83,24 @@ export const FieldSettingsColumn: React.FC<{
     <div className="p-6">
       <h2 className="text-lg font-semibold mb-4">Campo: <span className="text-blue-600">{fieldId}</span></h2>
 
-      {response.hierarchy && (
-        <SettingsHierarchyViewer
-          hierarchy={response.hierarchy}
-          currentSettings={response.fieldsettings}
-          onSettingChange={(key: string, value: any) => {
-            setResponseData((prev) => ({
-              ...prev,
-              fieldsettings: {
-                ...prev.fieldsettings,
-                [key]: { ...prev.fieldsettings[key], value },
-              },
-            }))
-          }}
-        />
+      {response.fieldsettings && (
+        <FieldSettingsViewer 
+        tableId={tableId}
+        fieldId={fieldId}
+        userId={userId}
+        record={response.record}
+        items={response.items ? response.items.map(item => ({
+          itemcode: item.itemcode, 
+          itemdesc: item.itemdesc,
+          status: 'unchanged'
+        })) : []}
+        currentSettings={response.fieldsettings}
+        onSave={(data) => console.log("Salvato:", data)} />
       )}
 
-      <Button onClick={handleSave} className="w-full mt-4 bg-green-600 hover:bg-green-700">
+      {/* <Button onClick={handleSave} className="w-full mt-4 bg-green-600 hover:bg-green-700">
         Salva Impostazioni
-      </Button>
+      </Button> */}
     </div>
       )}
       </GenericComponent>

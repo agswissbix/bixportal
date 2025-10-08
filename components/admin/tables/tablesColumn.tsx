@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo } from "react"
-import { Table } from "lucide-react"
+import React, { useEffect, useMemo, useState } from "react"
+import { Table, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { DraggableList } from "@/components/admin/tables/draggableList"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "@/components/genericComponent"
@@ -48,28 +49,28 @@ export const TablesColumn: React.FC<{
   onSelectTable: (tableId: string) => void
   onWorkspacesChange: (workspaces: Record<string, Workspace>) => void
 }> = ({ selectedUserId, selectedTableId, onSelectTable, onWorkspacesChange }) => {
-  const [workspaces, setWorkspaces] = React.useState<WorkspacesResponse>(isDev ? UserTablesDev : {}) 
-  const [isSaved, setIsSaved] = React.useState<boolean>(true)
+  const [workspaces, setWorkspaces] = useState<WorkspacesResponse>(isDev ? UserTablesDev : {}) 
+  const [isSaved, setIsSaved] = useState<boolean>(true)
+  const [searchTerm, setSearchTerm] = useState<string>("")
 
   const payload = useMemo(() => {
-    if (isDev) return null;
+    if (isDev) return null
     return { 
       apiRoute: 'settings_table_usertables',
       userid: selectedUserId
-    };
-  }, [selectedUserId]);
+    }
+  }, [selectedUserId])
   
-  const { response, loading, error } = !isDev && payload ? useApi<Record<string, Workspace>>(payload) : { response: null, loading: false, error: null };
+  const { response, loading, error } = !isDev && payload ? useApi<Record<string, Workspace>>(payload) : { response: null, loading: false, error: null }
   
   useEffect(() => {
     if (!isDev && response) {
-      setWorkspaces(response); 
+      setWorkspaces(response)
     }
-  }, [response]);
+  }, [response])
 
   const handleSave = async () => {
     if (isDev) return
-
     try {
       const response = await axiosInstanceClient.post(
         "/postApi",
@@ -83,7 +84,7 @@ export const TablesColumn: React.FC<{
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
-      );
+      )
       if (response.status === 200) {
         toast.success("Ordine delle tabelle salvato")
         setIsSaved(true)
@@ -91,11 +92,9 @@ export const TablesColumn: React.FC<{
     } catch (error) {
       toast.error("Errore durante il salvataggio dell'ordine tabelle")
     }
-
   }
 
   const handleGroupsChange = (groups: any) => {
-    // Convert DraggableGroup[] back to Workspace[] for state update
     const updatedWorkspaces: Record<string, Workspace> = Object.fromEntries(
       Object.entries(groups).map(([key, group]: any) => [
         key,
@@ -110,12 +109,29 @@ export const TablesColumn: React.FC<{
         },
       ])
     )
-    
-    // IMPORTANTE: Aggiorna lo state locale
     setWorkspaces(updatedWorkspaces)
-    // E notifica il padre
     onWorkspacesChange(updatedWorkspaces)
   }
+
+  // --- 🔍 Filtro frontend
+  const filteredWorkspaces = useMemo(() => {
+    if (!searchTerm.trim()) return workspaces
+
+    const lower = searchTerm.toLowerCase()
+
+    return Object.fromEntries(
+      Object.entries(workspaces)
+        .map(([key, ws]) => {
+          const filteredTables = ws.tables.filter(
+            (t) =>
+              t.description.toLowerCase().includes(lower) ||
+              t.id.toLowerCase().includes(lower)
+          )
+          return [key, { ...ws, tables: filteredTables }]
+        })
+        .filter(([_, ws]) => typeof ws !== "string" && ws.tables.length > 0)
+    )
+  }, [searchTerm, workspaces])
 
   if (!workspaces || Object.keys(workspaces).length === 0) {
     return (
@@ -129,8 +145,8 @@ export const TablesColumn: React.FC<{
   return (
     <GenericComponent response={workspaces} loading={loading} error={error}>
       {(response: Record<string, Workspace>) => (
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               Tabelle Utente
             </h2>
@@ -139,13 +155,25 @@ export const TablesColumn: React.FC<{
             </Button>
           </div>
 
+          {/* 🔍 Campo ricerca */}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Cerca tabella..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
           <DraggableList
             groups={Object.fromEntries(
-              Object.entries(workspaces).map(([key, ws]) => [
+              Object.entries(filteredWorkspaces).map(([key, ws]) => [
                 key,
                 {
-                  name: ws.name,
-                  items: ws.tables.map((t) => ({
+                  name: (ws as Workspace).name,
+                  items: (ws as Workspace).tables.map((t) => ({
                     id: t.id,
                     description: t.description,
                     order: t.order,
@@ -155,9 +183,7 @@ export const TablesColumn: React.FC<{
               ])
             )}
             onGroupsChange={handleGroupsChange}
-            onItemSettings={(tableId: string) => {
-              onSelectTable(tableId)
-            }}
+            onItemSettings={(tableId: string) => onSelectTable(tableId)}
             showGroups={true}
             isSaved={isSaved}
             setIsSaved={setIsSaved}
