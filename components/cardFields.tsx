@@ -91,7 +91,13 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     setUpdatedFields(prev => ({ ...prev, [fieldid]: newValue }));
   };
 
-  const handleFieldBlur = async () => {
+  const handleFieldBlur = async (event: React.FocusEvent<HTMLDivElement>) => {
+    // 2. Aggiungi questo controllo all'inizio della funzione
+    // Se il nuovo elemento con focus è un figlio del contenitore, non fare nulla.
+    if (event.currentTarget.contains(event.relatedTarget as Node)) {
+      return;
+    }
+
     if (isCalculating) {
       return;
     }
@@ -306,7 +312,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     }
 
     return (
-    <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group" onBlur={hasDependencies ? handleFieldBlur : undefined}>
+    <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group" onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}>
         <div className="w-1/4 pt-2">
           <div className="flex items-center gap-1">
             {isRequired && isNewRecord && (
