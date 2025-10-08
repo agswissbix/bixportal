@@ -7,8 +7,10 @@ import SelectStandard from "@/components/selectStandard";
 import { Button } from "@/components/ui/button";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
-const isDev = false
+const isDev = false;
 
 interface LookupItem {
   id?: string;
@@ -24,7 +26,7 @@ interface TableSettingOption {
 
 interface TableSetting {
   type: "select" | "multiselect" | "parola";
-  options?: (string | TableSettingOption)[]; 
+  options?: (string | TableSettingOption)[];
   value: string | string[];
 }
 
@@ -37,67 +39,29 @@ interface Props {
 }
 
 const ResponseDataDef : ResponseInterface = {
-    tablesettings: {}
-}
+  tablesettings: {}
+};
 
 const ResponseDataDev: ResponseInterface = {
-tablesettings: {
-    edit: {
-      type: "select",
-      options: ["true", "false"],
-      value: "true",
-    },
-    risultati_edit: {
-      type: "select",
-      options: ["true", "false"],
-      value: "false",
-    },
-    default_viewid: {
-      type: "select",
-      options: [
-        { id: "1", name: "Vista 1" },
-        { id: "2", name: "Vista 2" },
-      ],
-      value: "None",
-    },
-    default_recordstab: {
-      type: "parola",
-      value: "Tabella",
-    },
-    default_recordtab: {
-      type: "parola",
-      value: "Fields",
-    },
-    dem_mail_field: {
-      type: "select",
-      options: ["address", "email", "user_mail"],
-      value: "address",
-    },
-    fields_autoscroll: {
-      type: "select",
-      options: ["true", "false"],
-      value: "false",
-    },
-    col_s: {
-      type: "parola",
-      value: "3",
-    },
-    col_m: {
-      type: "parola",
-      value: "3",
-    },
-    col_l: {
-      type: "parola",
-      value: "3",
-    },
+  tablesettings: {
+    edit: { type: "select", options: ["true", "false"], value: "true" },
+    risultati_edit: { type: "select", options: ["true", "false"], value: "false" },
+    default_viewid: { type: "select", options: [{ id: "1", name: "Vista 1" }, { id: "2", name: "Vista 2" }], value: "None" },
+    default_recordstab: { type: "parola", value: "Tabella" },
+    default_recordtab: { type: "parola", value: "Fields" },
+    dem_mail_field: { type: "select", options: ["address", "email", "user_mail"], value: "address" },
+    fields_autoscroll: { type: "select", options: ["true", "false"], value: "false" },
+    col_s: { type: "parola", value: "3" },
+    col_m: { type: "parola", value: "3" },
+    col_l: { type: "parola", value: "3" },
   },
-}
+};
 
 const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? ResponseDataDev : ResponseDataDef);
   const [formValues, setFormValues] = useState<Record<string, string | string[]>>({});
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // payload per la chiamata API
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
@@ -132,7 +96,7 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
         value: Array.isArray(value) ? value.join(",") : value,
       }));
 
-      const response = await axiosInstanceClient.post(
+      await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "settings_table_fields_settings_save",
@@ -152,14 +116,36 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
     }
   };
 
+  // filtro frontend per ricerca
+  const filteredSettings = useMemo(() => {
+    if (!searchTerm.trim()) return responseData.tablesettings;
+    const lower = searchTerm.toLowerCase();
+    return Object.fromEntries(
+      Object.entries(responseData.tablesettings).filter(([key, val]) => {
+        return key.toLowerCase().includes(lower) || 
+               (typeof val.value === "string" && val.value.toLowerCase().includes(lower));
+      })
+    );
+  }, [searchTerm, responseData]);
+
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
         <div className="flex flex-col gap-4 p-4 ">
-          {Object.entries(response.tablesettings).map(([setting, val]) => {
+          {/* Campo di ricerca */}
+          <div className="relative mb-4 max-w-md">
+            <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Cerca impostazione..."
+              className="pl-9 w-full"
+              value={searchTerm}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {Object.entries(filteredSettings).map(([setting, val]) => {
             const initialValue = formValues[setting] ?? val.value ?? "";
 
-            // Gestione SELECT e MULTISELECT
             if (val.type === "select" || val.type === "multiselect") {
               const lookupItems =
                 val.options?.map((opt) =>
@@ -170,10 +156,7 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
                 <div key={setting} className="flex flex-col gap-2">
                   <label className="font-medium text-sm">{setting}</label>
                   <SelectStandard
-                    lookupItems={(lookupItems || []).map(item => ({
-                      itemcode: item.id ?? item.name,
-                      itemdesc: item.name
-                    }))}
+                    lookupItems={lookupItems.map(item => ({ itemcode: item.id ?? item.name, itemdesc: item.name }))}
                     initialValue={initialValue}
                     onChange={(value: string | string[]) => handleInputChange(setting, value)}
                     isMulti={val.type === "multiselect"}
@@ -182,7 +165,6 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
               );
             }
 
-            // Gestione input testuale (parola)
             return (
               <div key={setting} className="flex flex-col gap-2">
                 <label className="font-medium text-sm">{setting}</label>
@@ -197,12 +179,13 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
           })}
 
           <div className="sticky bottom-0 bg-white p-4 border-t w-full">
-
-            <Button onClick={handleSave}
-                className="bg-blue-500 text-white hover:bg-blue-700 w-full self-end">
-                Salva impostazioni
+            <Button
+              onClick={handleSave}
+              className="bg-blue-500 text-white hover:bg-blue-700 w-full self-end"
+            >
+              Salva impostazioni
             </Button>
-            </div>
+          </div>
         </div>
       )}
     </GenericComponent>

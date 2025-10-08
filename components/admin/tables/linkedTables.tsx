@@ -127,7 +127,7 @@ export default function LinkedTables({tableId, userId} : PropsLinkedTables) {
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
-        <Card className="shadow-lg border-slate-200">
+        <Card className="overflow-y-auto h-full shadow-lg border-slate-200">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-200">
             <CardTitle>
               <div className="flex flex-wrap justify-between items-center w-full">

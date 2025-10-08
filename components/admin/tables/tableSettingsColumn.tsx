@@ -468,7 +468,7 @@ export const TableSettingsColumn: React.FC<{
           </Card>
         </TabsContent>
 
-        <TabsContent value="linkedtables" className="mt-4">
+        <TabsContent value="linkedtables" className="mt-4 h-10/12">
           <LinkedTables tableId={tableId} userId={userId}/>
         </TabsContent>
       </Tabs>
