@@ -33,6 +33,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     recordsKanban: dynamic(() => import('@/components/recordsKanban/page')),
     recordTimeline: dynamic(() => import('@/components/recordTimeline')),
     recordGantt: dynamic(() => import('@/components/recordGantt')),
+    recordLog: dynamic(() => import('@/components/recordLog')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
