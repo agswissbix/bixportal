@@ -101,7 +101,7 @@ export default function Sidebar({}: PropsInterface) {
   const [openDropdown, setOpenDropdown] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  const { selectedMenu, setSelectedMenu, userid, timestamp, theme } = useRecordsStore()
+  const { selectedMenu, setSelectedMenu, setUserid, userid, timestamp, theme } = useRecordsStore()
   const { user, activeServer, role } = useContext(AppContext)
 
   const handleMenuClick = (item: string) => {
@@ -124,6 +124,9 @@ export default function Sidebar({}: PropsInterface) {
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       setResponseData(response)
+      if (response.userid) {
+        setUserid(response.userid)
+      }
       console.log(response)
     }
   }, [response, responseData])
@@ -362,7 +365,7 @@ export default function Sidebar({}: PropsInterface) {
                 <div className="flex items-center gap-3">
                   <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar transition-all hover:scale-105 active:scale-95">
                     <img
-                      src={`/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`}
+                      src={`/api/media-proxy?url=userProfilePic/${userid}.png`}
                       alt="profile"
                       className="w-10 h-10 rounded-full object-cover border-2 border-gray-300"
                       onError={(e) => {
