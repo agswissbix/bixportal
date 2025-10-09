@@ -3,16 +3,11 @@
 import type React from "react"
 import { useState, useEffect, useMemo } from "react"
 import { Table, Settings, AlertCircle, CheckCircle2 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useApi } from "@/utils/useApi"
-import GenericComponent from "@/components/genericComponent"
 import {ColumnWrapper} from "@/components/admin/tables/columnWrapper"
 import {UserSelectionColumn} from "@/components/admin/tables/userSelectionColumn"
 import {TablesColumn} from "@/components/admin/tables/tablesColumn"
 import {TableSettingsColumn} from "@/components/admin/tables/tableSettingsColumn"
 import {FieldSettingsColumn} from "@/components/admin/tables/fieldsSettingsColumn"
-import axiosInstanceClient from "@/utils/axiosInstanceClient"
-import { toast } from "sonner"
 
 const isDev = false
 
@@ -90,6 +85,7 @@ const TabellePage: React.FC = () => {
   )
 
   // NEW STATE FOR COLLAPSIBILITY
+  const [isCol1Open, setIsCol1Open] = useState(true) // Users (now collapsible)
   const [isCol2Open, setIsCol2Open] = useState(true) // Tables
   const [isCol3Open, setIsCol3Open] = useState(true) // Table Settings (Fields)
   const [isCol4Open, setIsCol4Open] = useState(true) // Field Settings
@@ -125,43 +121,40 @@ const TabellePage: React.FC = () => {
 
   return (
         <div className="h-[1100px] flex flex-col bg-gray-50">
-          {/* Header */}
-          <div className="flex-none p-6 bg-white border-b shadow-sm">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Settings className="h-8 w-8 text-blue-600" />
-              Impostazioni Sistema
-            </h1>
-            <p className="text-gray-600 mt-2">Gerarchia: Superuser &rarr; Gruppo &rarr; Utente</p>
-
-            {success && (
-              <Alert className="mt-4 bg-green-50 border-green-200">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">{success}</AlertDescription>
-              </Alert>
-            )}
-          </div>
 
           {/* Column Layout - Main container uses flex-nowrap to prevent wrapping */}
-          <div className="flex-1 flex overflow-x-auto overflow-y-hidden">
+          <div className="flex-1 flex overflow-x-auto overflow-y-hidden border">
 
-            {/* Column 1: User Selection - FIXED WIDTH (w-80 = 320px) */}
-            <div className="w-80 flex-none border-r bg-white overflow-y-auto">
-              <UserSelectionColumn
-                users={users}
-                groups={groups}
-                selectedUserId={selectedUserId}
-                onSelectUser={setSelectedUserId}
-                onUsersUpdate={setUsers}
-                onGroupsUpdate={setGroups}
-              />
+            {/* Column 1: User Selection - COLLAPSIBLE - 1/7 proportion */}
+            <div
+              className={`
+                flex-none border-r bg-white overflow-y-auto transition-all duration-300
+                ${isCol1Open ? 'flex-[1] min-w-[200px]' : 'w-16'}
+              `}
+            >
+              <ColumnWrapper
+                title="Utenti"
+                icon={<Table className="h-5 w-5 text-gray-600" />}
+                isOpen={isCol1Open}
+                onToggle={() => setIsCol1Open(!isCol1Open)}
+              >
+                <UserSelectionColumn
+                  users={users}
+                  groups={groups}
+                  selectedUserId={selectedUserId}
+                  onSelectUser={setSelectedUserId}
+                  onUsersUpdate={setUsers}
+                  onGroupsUpdate={setGroups}
+                />
+              </ColumnWrapper>
             </div>
 
-            {/* Column 2: Tables List - DYNAMIC & COLLAPSIBLE */}
+            {/* Column 2: Tables List - COLLAPSIBLE - 2/7 proportion */}
             {isCol2Visible && (
               <div
                 className={`
                   flex-none border-r bg-gray-50 transition-all duration-300 overflow-hidden
-                  ${isCol2Open ? 'flex-1 min-w-[200px]' : 'w-16'}
+                  ${isCol2Open ? 'flex-[2] min-w-[280px]' : 'w-16'}
                 `}
               >
                 <ColumnWrapper
@@ -184,12 +177,12 @@ const TabellePage: React.FC = () => {
               </div>
             )}
 
-            {/* Column 3: Table Settings with Tabs - DYNAMIC & COLLAPSIBLE */}
+            {/* Column 3: Table Settings with Tabs - COLLAPSIBLE - 2/7 proportion */}
             {isCol3Visible && (
               <div
                 className={`
                   flex-none border-r bg-white transition-all duration-300 overflow-hidden
-                  ${isCol3Open ? 'flex-1 min-w-[300px]' : 'w-16'}
+                  ${isCol3Open ? 'flex-[2] min-w-[280px]' : 'w-16'}
                 `}
               >
                 <ColumnWrapper
@@ -212,12 +205,12 @@ const TabellePage: React.FC = () => {
               </div>
             )}
 
-            {/* Column 4: Field Settings - DYNAMIC & COLLAPSIBLE */}
+            {/* Column 4: Field Settings - COLLAPSIBLE - 2/7 proportion */}
             {isCol4Visible && (
               <div
                 className={`
                   flex-none border-l bg-gray-50 transition-all duration-300 overflow-hidden
-                  ${isCol4Open ? 'flex-1 min-w-[300px]' : 'w-16'}
+                  ${isCol4Open ? 'flex-[2] min-w-[280px]' : 'w-16'}
                 `}
               >
                 <ColumnWrapper
