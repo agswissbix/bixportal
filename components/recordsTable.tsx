@@ -472,26 +472,49 @@ export default function RecordsTable({
                 ))}
               </tbody>
 
-              <tfoot className="bg-table-header dark:bg-gray-700">
+              <tfoot className="z-20 sticky bottom-0 bg-table-header dark:bg-gray-700">
                 <tr>
-                  <td
-                    colSpan={response.columns.length}
-                    className="px-4 py-3 text-right rounded-b-xl"
-                  >
-                    <span className="font-medium">Totale:</span>{" "}
-                    {response.counter}
-                  </td>
+                  {response.columns.map((column, index) => (
+                    <td
+                      key={`total-${column.fieldid}`}
+                      className={`
+                        px-4 py-3 align-middle font-bold text-gray-900 dark:text-white border-t border-table-border
+                        ${
+                          column.fieldtypeid === "Numero"
+                            ? "min-w-[60px] max-w-[80px] text-right"
+                            : "min-w-[80px] max-w-[300px] text-left"
+                        }
+                        ${
+                          index === 0 ? "sticky left-0 bg-table-header rounded-bl-xl" : ""
+                        }
+                      `}
+                    >
+                      {index === 0 && "Totali"}
+                    </td>
+                  ))}
                 </tr>
               </tfoot>
             </table>
           </div>
 
+          
           {/* SEZIONE PAGINAZIONE AGGIORNATA */}
           <nav
             aria-label="Page navigation"
-            className="mt-4 flex justify-center"
+            className="mt-4 flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0"
           >
-            <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm">
+            {/* 1. Conteggio Totale Record a Sinistra (per schermi larghi) */}
+            <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
+              <span className="font-semibold text-gray-800 dark:text-gray-200">
+                Totale Record:
+              </span>
+              <span className="font-medium">
+                {response.counter}
+              </span>
+            </div>
+
+            {/* 2. Bottoni di Paginazione al Centro */}
+            <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm order-1 sm:order-2">
               {/* Previous Button */}
               <button
                 onClick={() =>
@@ -533,18 +556,18 @@ export default function RecordsTable({
                 {response.pagination.currentPage !== 1 &&
                   response.pagination.currentPage !==
                     response.pagination.totalPages && (
-                    <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
-                      {response.pagination.currentPage}
-                    </button>
-                  )}
+                      <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
+                        {response.pagination.currentPage}
+                      </button>
+                    )}
 
                 {/* Ellipsis */}
                 {response.pagination.currentPage <
                   response.pagination.totalPages - 2 && (
-                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
-                    ...
-                  </span>
-                )}
+                    <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">
+                      ...
+                    </span>
+                  )}
 
                 {/* Last Page */}
                 {response.pagination.totalPages > 1 && (
@@ -582,6 +605,13 @@ export default function RecordsTable({
                 <ArrowUp className="w-4 h-4 ml-1 rotate-90" />
               </button>
             </div>
+
+            {/* 3. Dettaglio Pagina a Destra (per schermi larghi) */}
+            {limit && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 order-3 text-center sm:text-right">
+                Visualizzati: {response.rows.length} (Pagina {response.pagination.currentPage} di {response.pagination.totalPages})
+              </span>
+            )}
           </nav>
         </div>
       )}
