@@ -38,6 +38,7 @@ interface SubItem {
   id: string
   title: string
   href: string
+  order: number | null
 }
 
 interface MenuItem {
@@ -45,6 +46,7 @@ interface MenuItem {
   title: string
   icon: string
   href?: string
+  order: number | null
   subItems?: SubItem[]
 }
 
@@ -67,17 +69,19 @@ export default function Sidebar({}: PropsInterface) {
         title: "Home",
         icon: "Home",
         href: "#",
+        order: 1,
         subItems: [],
       },
       prodotti: {
         id: "prodotti",
         title: "Prodotti",
         icon: "Package",
+        order: 2,
         subItems: [
-          { id: "cat1", title: "Categoria 1", href: "#" },
-          { id: "cat2", title: "Categoria 2", href: "#" },
-          { id: "cat3", title: "Categoria 3", href: "#" },
-          { id: "cat4", title: "Categoria 4", href: "#" },
+          { id: "cat1", title: "Categoria 1", href: "#", order: 1 },
+          { id: "cat2", title: "Categoria 2", href: "#", order: 2 },
+          { id: "cat3", title: "Categoria 3", href: "#", order: 3 },
+          { id: "cat4", title: "Categoria 4", href: "#", order: 4 },
         ],
       },
       contatti: {
@@ -85,6 +89,7 @@ export default function Sidebar({}: PropsInterface) {
         title: "Contatti",
         icon: "Mail",
         href: "#",
+        order: 3,
         subItems: [],
       },
     },
@@ -119,6 +124,7 @@ export default function Sidebar({}: PropsInterface) {
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       setResponseData(response)
+      console.log(response)
     }
   }, [response, responseData])
 
@@ -289,7 +295,10 @@ export default function Sidebar({}: PropsInterface) {
                   </li>
                 )}
 
-                {Object.entries(data["menuItems"]).map(([key, item]) => {
+                {Object.entries(data["menuItems"])
+                  .filter(([, item]) => item.order !== null)
+                  .sort(([, a], [, b]) => a.order - b.order)
+                  .map(([key, item]) => {
                   const Icon = iconMap[item.icon] || HelpCircle
                   const isActive = item.subItems?.find((subitem) => subitem.id === selectedMenu && openDropdown !== item.id)
                   
@@ -314,7 +323,10 @@ export default function Sidebar({}: PropsInterface) {
                             className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
                           >
                             <ul className="py-1 ml-3 mt-1 space-y-0.5">
-                              {item.subItems.map((subItem) => (
+                              {item.subItems
+                                .filter((subItem) => subItem.order !== null)
+                                .sort((a, b) => a.order - b.order)
+                                .map((subItem) => (
                                 <li key={subItem.id} className="cursor-pointer">
                                   <span
                                     className={`text-sm block px-4 py-2 rounded-md hover:bg-secondary 
