@@ -200,6 +200,33 @@ export default function RecordLog({ propExampleValue }: PropsInterface) {
       setResponseData({ ...responseDataDEV });
     }, []);
 
+
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredEvents = (events: Event[], showDetails: boolean) => {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    
+      return events.filter((event) => {
+        const userMatch = event.user.name.toLowerCase().includes(lowerCaseSearchTerm);
+        
+        const commandMatch = event.command.toLowerCase().includes(lowerCaseSearchTerm);
+    
+        const detailsMatch = event.details.some((detail) =>
+          detail.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+
+        var dataMatch;
+
+        if (showDetails) {
+          dataMatch = event.data.some((data) =>
+            data.toLowerCase().includes(lowerCaseSearchTerm)
+          );
+        }
+    
+        return userMatch || commandMatch || detailsMatch || dataMatch;
+      });
+    };
+
     const EventCard = ({event, showDetails}: EventCardProps) => {
       const [isOpen, setIsOpen] = useState(false);
     
@@ -331,8 +358,38 @@ export default function RecordLog({ propExampleValue }: PropsInterface) {
                 <div className="relative py-8">
                   {/* Timeline */}
                   <div className="absolute top-0 -translate-x-1/2 w-1 bg-gray-500 h-full"></div>
+
+                  <div className="mb-10 max-w-lg mx-auto">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-gray-400"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        name="search"
+                        id="search"
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 
+                          focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Cerca evento ..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
       
-                  {response.events.map((event, index) => (
+                  {filteredEvents(response.events, response.data_details).map((event, index) => (
                     <div key={event.recordid || index} className="relative w-full mb-8 min-h-[80px]">
                       <div className="absolute -translate-x-1/2 z-10 top-6">
                         {

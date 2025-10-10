@@ -7,7 +7,7 @@ import SelectStandard from "@/components/selectStandard";
 import { Button } from "@/components/ui/button";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Save, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 const isDev = false;
@@ -36,6 +36,7 @@ interface ResponseInterface {
 
 interface Props {
   tableId: string;
+  userId: string
 }
 
 const ResponseDataDef : ResponseInterface = {
@@ -57,7 +58,7 @@ const ResponseDataDev: ResponseInterface = {
   },
 };
 
-const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
+const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? ResponseDataDev : ResponseDataDef);
   const [formValues, setFormValues] = useState<Record<string, string | string[]>>({});
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -67,6 +68,7 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
     return {
       apiRoute: "settings_table_settings",
       tableid: tableId,
+      userid: userId
     };
   }, [tableId]);
 
@@ -102,6 +104,7 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
           apiRoute: "settings_table_fields_settings_save",
           settings,
           tableid: tableId,
+          userid: userId
         },
         {
           headers: {
@@ -133,8 +136,8 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
       {(response: ResponseInterface) => (
         <div className="flex flex-col gap-4 p-4 ">
           {/* Campo di ricerca */}
-          <div className="relative mb-4 max-w-md">
-            <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+          <div className="relative mb-4 max-w-full">
+            <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Cerca impostazione..."
               className="pl-9 w-full"
@@ -181,9 +184,9 @@ const TableSettingsForm: React.FC<Props> = ({ tableId }) => {
           <div className="sticky bottom-0 bg-white p-4 border-t w-full">
             <Button
               onClick={handleSave}
-              className="bg-blue-500 text-white hover:bg-blue-700 w-full self-end"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors"
             >
-              Salva impostazioni
+              <Save className="h-4 w-4 mr-2" /> Salva Impostazioni
             </Button>
           </div>
         </div>

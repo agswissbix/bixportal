@@ -205,6 +205,8 @@ export async function POST(request: Request) {
     case 'settings_table_linkedtables': djangoUrl = '/commonapp/settings_table_linkedtables/'; break;
     case 'fieldsupdate': djangoUrl = '/commonapp/fieldsupdate/'; break;
     
+    case 'settings_table_linkedtables_save': djangoUrl = '/commonapp/settings_table_linkedtables_save/'; break;
+    case 'save_new_table': djangoUrl = '/commonapp/save_new_table/'; break;
     
     
     default:
