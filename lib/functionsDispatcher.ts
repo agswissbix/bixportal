@@ -349,6 +349,29 @@ export function useFrontendFunctions() {
     } catch (error) {
       toast.error("Errore durante la conferma della merce ricevuta");
     }
-  }
+  },
+  
+  fieldsupdate: async (params: object) => {
+      console.info("dispatcher: printing_katun_bexio_api_set_invoice")
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+        {
+          apiRoute: "fieldsupdate",
+          params: params,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Task chiuso")
+      return response.data
+    } catch (error) {
+      console.error("Errore durante il salvataggio", error)
+      toast.error("Errore durante il salvataggio")
+    }
+  },
 }
 }
