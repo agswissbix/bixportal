@@ -128,7 +128,7 @@ const TabellePage: React.FC = () => {
             {/* Column 1: User Selection - COLLAPSIBLE - 1/7 proportion */}
             <div
               className={`
-                flex-none border-r bg-white overflow-y-auto transition-all duration-300
+                 border-r bg-white overflow-y-auto transition-all duration-300
                 ${isCol1Open ? 'flex-[1] min-w-[200px]' : 'w-16'}
               `}
             >
@@ -153,7 +153,7 @@ const TabellePage: React.FC = () => {
             {isCol2Visible && (
               <div
                 className={`
-                  flex-none border-r bg-gray-50 transition-all duration-300 overflow-hidden
+                   border-r bg-gray-50 transition-all duration-300 overflow-hidden
                   ${isCol2Open ? 'flex-[2] min-w-[280px]' : 'w-16'}
                 `}
               >
@@ -181,7 +181,7 @@ const TabellePage: React.FC = () => {
             {isCol3Visible && (
               <div
                 className={`
-                  flex-none border-r bg-white transition-all duration-300 overflow-hidden
+                   border-r bg-white transition-all duration-300 overflow-hidden
                   ${isCol3Open ? 'flex-[2] min-w-[280px]' : 'w-16'}
                 `}
               >
@@ -209,7 +209,7 @@ const TabellePage: React.FC = () => {
             {isCol4Visible && (
               <div
                 className={`
-                  flex-none border-l bg-gray-50 transition-all duration-300 overflow-hidden
+                   border-l bg-gray-50 transition-all duration-300 overflow-hidden
                   ${isCol4Open ? 'flex-[2] min-w-[280px]' : 'w-16'}
                 `}
               >
