@@ -240,6 +240,8 @@ export default function RecordsTable({
 
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [rowOpen, setRowOpen] = useState<string | null>(null);
+
   // ✅ un selector per chiave
 
   const {
@@ -248,12 +250,25 @@ export default function RecordsTable({
     refreshTable,
     setRefreshTable,
     handleRowClick,
+    cardsList,
   } = useRecordsStore();
 
   // Quando la tabella cambia (es. tableid), resetta la pagina a 1
     useEffect(() => {
         setCurrentPage(1);
     }, [tableid]);
+
+  useEffect(() => {
+    const openCard = cardsList.find(
+      (card) => card.tableid === tableid && card.recordid
+    );
+
+    if (openCard) {
+      setRowOpen(openCard.recordid);
+    } else {
+      setRowOpen(null);
+    }
+  }, [cardsList, tableid]);
 
   // PAYLOAD (solo se non in sviluppo)
   const payload = useMemo(() => {
@@ -407,7 +422,9 @@ export default function RecordsTable({
                 {response.rows.map((row) => (
                   <tr
                     key={row.recordid}
-                    className={`theme-table border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer group hover:bg-records-background dark:hover:bg-secondary-hover ${row.css}`}
+                    className={`theme-table border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer group hover:bg-records-background dark:hover:bg-secondary-hover 
+                        ${row.css}
+                      `}
                     onClick={() =>
                       handleRowClick &&
                       tableid &&
@@ -418,11 +435,13 @@ export default function RecordsTable({
                         tableid,
                         masterTableid,
                         masterRecordid
-                      )
+                      ) &&
+                      setRowOpen(String(row.recordid))
                     }
                   >
                     {row.fields.map((field, index) => {
                       const column = response.columns[index];
+                      const isNumberField = column?.fieldtypeid === "Numero";
                       return (
                         <td
                           key={`${row.recordid}-${field.fieldid}`}
@@ -437,6 +456,8 @@ export default function RecordsTable({
                   ${
                   field.css && field.css.includes("bg-")
                     ? " group-hover:bg-records-background"
+                    : String(rowOpen) === String(row.recordid) 
+                    ? "bg-records-background group-hover:bg-records-background"
                     : " bg-table-background group-hover:bg-records-background"
                   }
                   ${
@@ -460,10 +481,18 @@ export default function RecordsTable({
                                 }}
                               />
                             )}
-                            <span
-                              className="block truncate"
-                              dangerouslySetInnerHTML={{ __html: field.value }}
-                            />
+                            {isNumberField ? (
+                                <span className="block truncate w-full text-right">
+                                {field.value && !isNaN(Number(field.value))
+                                  ? Number(field.value).toLocaleString("de-CH")
+                                  : field.value}
+                                </span>
+                            ) : (
+                              <span
+                                className={`block truncate w-full`}
+                                dangerouslySetInnerHTML={{ __html: field.value }}
+                              />
+                            )}
                           </div>
                         </td>
                       );
@@ -501,7 +530,7 @@ export default function RecordsTable({
           {/* SEZIONE PAGINAZIONE AGGIORNATA */}
           <nav
             aria-label="Page navigation"
-            className="mt-4 flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0"
+            className="mt-4 flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0"
           >
             {/* 1. Conteggio Totale Record a Sinistra (per schermi larghi) */}
             <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">

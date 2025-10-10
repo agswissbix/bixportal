@@ -226,6 +226,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
 
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+      console.log("[API Response]", response);
       setResponseData(response);
       // Initialize updatedFields with default values from response
       const initialFields: { [key: string]: string | string[] | File } = {};
@@ -350,12 +351,19 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
           }`}>
             {field.fieldtype === 'Parola' ? (
               <InputWord initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === 'Categoria' && field.lookupitems ? (
+            ) : (field.fieldtype === 'lookup' || field.fieldtype === 'Categoria') && field.lookupitems ? (
               <SelectStandard
                 lookupItems={field.lookupitems}
                 initialValue={value}
                 onChange={v => handleInputChange(field.fieldid, v)}
-                isMulti={field.fieldtypewebid === 'multiselect'}
+                isMulti={false}
+              />
+            ) : field.fieldtype === 'multiselect' && field.lookupitems ? (
+              <SelectStandard
+                lookupItems={field.lookupitems}
+                initialValue={value}
+                onChange={v => handleInputChange(field.fieldid, v)}
+                isMulti={true}
               />
             ) : field.fieldtype === 'Numero' ? (
               <InputNumber initialValue={value} onChange={v => handleInputChange(field.fieldid, v)} />
@@ -370,7 +378,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
                 lookupItems={field.lookupitemsuser}
                 initialValue={value}
                 onChange={v => handleInputChange(field.fieldid, v)}
-                isMulti={field.fieldtypewebid === 'multiselect'}
+                isMulti={false}
               />
             ) : field.fieldtype === 'linkedmaster' ? (
               <InputLinked
