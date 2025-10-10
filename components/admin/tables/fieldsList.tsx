@@ -73,6 +73,8 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
   const [newField, setNewField] = useState({ fieldid: "", description: "", fieldtype: "string" })
   const [typePreference, setTypePreference] = useState<string>("view_fields")
   const [searchTerm, setSearchTerm] = useState<string>("")
+  const [masterTableId, setMasterTableId] = useState<string>("")
+  const [linkedTables, setLinkedTables] = useState<{tableid_id: string}[]>([])
 
   const payload = useMemo(() => {
     if (isDev) return null
@@ -81,8 +83,9 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
       tableid: tableId,
       userid: userId,
       typepreference: typePreference,
+      mastertableid: typePreference === "linked_columns" ? masterTableId : undefined,
     }
-  }, [tableId, userId, typePreference])
+  }, [tableId, userId, typePreference, masterTableId])
 
 	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
@@ -91,6 +94,22 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
       setFields(response.fields)
     }
   }, [response])
+
+  useEffect(() => {
+    if (typePreference === "linked_columns") {
+      axiosInstanceClient.post("/postApi", {
+        apiRoute: "get_master_linked_tables", tableid: tableId
+      })
+      .then(res => {
+        setLinkedTables(res.data.linked_tables || [])
+        if (res.data.linked_tables?.length) setMasterTableId(res.data.linked_tables[0].tableid_id)
+          console.log(res.data.linked_tables)
+      })
+      .catch((e) => console.error("Errore nel caricamento delle tabelle collegate", e))
+    } else {
+      setMasterTableId("") // reset quando cambio tipo
+    }
+  }, [typePreference])
 
   const handleFieldsReorder = async (reorderedFields: Field[]) => {
     if (isDev) {
@@ -174,7 +193,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
   }), [filteredFields])
 
   const handleFieldsChange = (groups: Record<string, any>) => {
-    const updatedFields = groups.fields.items.map((item: any) => ({
+    const updatedFilteredFields = groups.fields.items.map((item: any) => ({
       id: item.id,
       fieldid: item.fieldid,
       description: item.description,
@@ -183,8 +202,13 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
       order: item.order,
       visible: item.visible,
     }))
-    setFields(updatedFields)
-    handleFieldsReorder(updatedFields)
+    setFields(prevFields =>
+      prevFields.map(f => {
+        const updated = updatedFilteredFields.find(u => u.id === f.id)
+        return updated ? updated : f
+      })
+    )
+    handleFieldsReorder(updatedFilteredFields)
   }
 
   const selectedFieldType = fieldTypeOptions.find(opt => opt.value === newField.fieldtype);
@@ -289,6 +313,24 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
                 </SelectContent>
               </Select>
             </div>
+
+            {typePreference === "linked_columns" && (
+              <div className="w-full mt-4">
+                <Label className="text-sm font-medium text-slate-700">Tabella Master</Label>
+                <Select value={masterTableId} onValueChange={setMasterTableId}>
+                  <SelectTrigger className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 mt-1">
+                    {masterTableId 
+                      ? linkedTables.find(t => t.tableid_id === masterTableId)?.tableid_id 
+                      : "Seleziona tabella"}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {linkedTables.map(table => (
+                      <SelectItem key={table.tableid_id} value={table.tableid_id}>{table.tableid_id}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="relative mb-2 mt-2 bg-white">
               <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />

@@ -70,28 +70,6 @@ const FieldsResponseDev: ResponseInterface = {
   ],
 }
 
-const fieldTypeOptions = [
-  { value: "Parola", label: "Parola", icon: Pencil },
-  { value: "Seriale", label: "Seriale", icon: Binary },
-  { value: "Data", label: "Data", icon: Calendar },
-  { value: "Ora", label: "Ora", icon: Clock },
-  { value: "Numero", label: "Numero", icon: Hash },
-  { value: "lookup", label: "Lookup", icon: Search },
-  { value: "Utente", label: "Utente", icon: User },
-  { value: "Memo", label: "Memo", icon: FileText },
-];
-
-const typePreferenceOptions = [
-  { value: "view_fields", label: "Campi di Visualizzazione", icon: Eye },
-  { value: "insert_fields", label: "Campi di Inserimento", icon: PlusSquare },
-  { value: "search_results_fields", label: "Campi Risultati Ricerca", icon: Search },
-  { value: "linked_columns", label: "Colonne Collegate", icon: Link },
-  { value: "search_fields", label: "Campi di Ricerca", icon: Filter },
-  { value: "badge_fields", label: "Campi Distintivi", icon: BadgeCheck },
-  { value: "report_fields", label: "Campi tabella report", icon: Table },
-  { value: "kanban_fields", label: "Campi di Kanban", icon: LayoutGrid },
-]
-
 export const TableSettingsColumn: React.FC<{
   tableId: string
   userId: string
