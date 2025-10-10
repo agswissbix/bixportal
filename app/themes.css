@@ -109,57 +109,59 @@
 
 .oceanic {
   /* Primary brand colors - Ocean blue palette */
-  --color-primary: #0284c7;
-  --color-primary-hover: #0369a1;
+  --color-primary: #1f8aa3;
+  --color-primary-hover: #1f8aa3;
   --color-primary-foreground: #ffffff;
 
-  /* Secondary colors - Deep navy */
-  --color-secondary: #1e293b;
-  --color-secondary-hover: #0f172a;
+  /* Secondary colors - Complementary slate */
+  --color-secondary: #475569;
+  --color-secondary-hover: #334155;
   --color-secondary-foreground: #ffffff;
 
-  /* Accent color - Turquoise */
-  --color-accent: #06b6d4;
-  --color-accent-hover: #0891b2;
+  /* Accent color - Warm orange for highlights */
+  --color-accent: #f97316;
+  --color-accent-hover: #ea580c;
   --color-accent-foreground: #ffffff;
 
-  /* Neutral backgrounds with blue tint */
-  --background: #f0f9ff;
-  --foreground: #0c4a6e;
+  /* Neutral backgrounds */
+  --background: #ffffff;
+  --foreground: #0f172a;
   --card-background: #ffffff;
-  --card-border: #bae6fd;
-  --records-background: #f0f9ff;
+  --card-border: #e2e8f0;
+  --records-background: #f8fafc;
 
   /* Navigation and sidebar */
   --navbar-background: #ffffff;
-  --sidebar-background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  --sidebar-background: linear-gradient(180deg, #1f8aa3  0%, #155e6e  100%);
   --sidebar-text: #ffffff;
 
   /* Table styling */
   --table-background: #ffffff;
-  --table-border: #bae6fd;
-  --table-header: #f0f9ff;
+  --table-border: #e2e8f0;
+  --table-header: #f1f5f9;
 
   /* Badge styling */
-  --badge-background: #0284c7;
-  --badge-border: #0369a1;
+  --badge-background: #0891b2;
+  --badge-border: #0e7490;
 
   /* shadcn/ui variables */
-  --primary: 199 89% 48%;
+  --primary: 188 100% 42%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 215 28% 17%;
+  --secondary: 215 25% 27%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 199 95% 97%;
-  --muted-foreground: 199 25% 35%;
-  --accent: 188 95% 42%;
+  --muted: 210 40% 98%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 24 95% 53%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 199 89% 85%;
-  --input: 199 89% 85%;
-  --ring: 199 89% 48%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 188 100% 42%;
   --radius: 0.5rem;
 }
+
+
 
 .sunset {
   /* Primary brand colors - Warm sunset palette */
