@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import React, { use } from 'react';
 import RecordHoursRing from '@/components/recordHoursRing';
 import recordSpeedometer from '@/components/recordSpeedometer';
+import recordBattery from '@/components/recordBattery';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -38,6 +39,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     recordLog: dynamic(() => import('@/components/recordLog')),
     recordHoursRing: dynamic(() => import('@/components/recordHoursRing')),
     recordSpeedometer: dynamic(() => import('@/components/recordSpeedometer')),
+    recordBattery: dynamic(() => import('@/components/recordBattery')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
