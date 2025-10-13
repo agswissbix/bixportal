@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function recordHoursRing({ propExampleValue }: PropsInterface) {
+export default function recordSpeedometer({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -38,7 +38,7 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
 
     const responseDataDEV: ResponseInterface = {
       stats :{
-        hours: 4.5
+        hours: 4
       }
     };
 
@@ -73,7 +73,6 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
       setResponseData({ ...responseDataDEV });
     }, []);
 
-
     const [displayedPercentage, setDisplayedPercentage] = useState(0);
 
     const days = 1;
@@ -85,10 +84,7 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
     const actualPercentage = responseData?.stats?.hours !== undefined
       ? calcPercentage(responseData.stats.hours)
       : 0;
-
-    const ringFillPercentage = Math.min(actualPercentage, 100);
-
-    // Effetto per animare il conteggio della percentuale
+      
     useEffect(() => {
         const target = Math.round(actualPercentage);
         if (target === displayedPercentage) return;
@@ -109,18 +105,61 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
         return () => clearInterval(interval); 
     }, [actualPercentage]);
 
-
     const openAlert = () => {
       alert('Funzione non implementata');
     };
+
+    const SegmentedGauge = ({ workload }) => {
+      const workloadCalcolato = Math.min(workload, 100);
+  
+      const angle = (workloadCalcolato / 100) * 180 - 90;
+  
+      let color;
+      if (workload > 100) {
+          color = '#ef4444'; 
+      } else if (workload >= 85) {
+          color = '#ef4444'; 
+      } else if (workload >= 50) {
+          color = '#f59e0b'; 
+      } else {
+          color = '#22c55e'; 
+      }
+  
+      return (
+          <div className="w-full max-w-[200px] mx-auto text-center">
+              <svg viewBox="0 0 64 36">
+                  {/* Segmenti colorati */}
+                  <path d="M4 32 A 28 28 0 0 1 32 4" stroke="#22c55e" strokeWidth="8" fill="none" />
+                  <path d="M32 4 A 28 28 0 0 1 54.7 15.5" stroke="#f59e0b" strokeWidth="8" fill="none" />
+                  <path d="M54.7 15.5 A 28 28 0 0 1 60 32" stroke="#ef4444" strokeWidth="8" fill="none" />
+                  
+                  {/* Perno della lancetta */}
+                  <circle cx="32" cy="32" r="4" fill={color} />
+  
+                  {/* Lancetta */}
+                  <line
+                      style={{
+                          transform: `rotate(${angle}deg)`,
+                          transformOrigin: '32px 32px',
+                          stroke: color,
+                      }}
+                      className="transition-transform duration-500 ease-in-out"
+                      x1="32" y1="32" x2="32" y2="10"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                  />
+              </svg>
+          </div>
+      );
+    };
    
     return (
-      <GenericComponent response={responseData} loading={false} error={null}>
+      <GenericComponent response={responseData} loading={loading} error={error}>
         {(response: ResponseInterface) => {
           if (!response || !response.stats) {
             return (
               <div className="flex items-center justify-center p-4">
-                <div className="flex h-48 w-48 items-center justify-center rounded-full bg-gray-200">
+                <div className="flex h-48 w-48 items-center justify-center">
                   <span className="text-sm text-gray-500">Caricamento...</span>
                 </div>
               </div>
@@ -128,14 +167,6 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
           }
 
           const isOvertime = actualPercentage > 100;
-          
-          const size = 192; 
-          const strokeWidth = 24;
-          const center = size / 2;
-          const radius = center - strokeWidth / 2;
-          const circumference = 2 * Math.PI * radius;
-          const offset = circumference * (1 - ringFillPercentage / 100);
-
           const hoursDifference = totalHours - response.stats.hours;
 
           let bottomText;
@@ -146,52 +177,21 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
           } else {
               bottomText = <>Hai superato di <b>{Math.abs(hoursDifference).toFixed(1)}</b> ore.</>;
           }
-  
+
           return (
             <div className="flex items-center justify-center p-4">
-              <div className="overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
+              <div className="min-w-64 overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
                 <div className='bg-white p-5 border-t border-gray-200'>
                   <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute top-2 right-2"
                       onClick={openAlert}>
                     Nuovo
                   </button>
                 </div>  
-                <div className='bg-white p-5'>
-                  <div className="relative h-48 w-48">
-                    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-                      {/* Cerchio di sfondo */}
-                      <circle
-                        className="text-gray-200"
-                        stroke="currentColor"
-                        strokeWidth={strokeWidth}
-                        fill="transparent"
-                        r={radius}
-                        cx={center}
-                        cy={center}
-                      />
-                      {/* Cerchio di progresso */}
-                      <circle
-                        className={isOvertime ? "text-amber-500" : "text-blue-500"}
-                        stroke="currentColor"
-                        strokeWidth={strokeWidth}
-                        strokeLinecap="round" 
-                        fill="transparent"
-                        r={radius}
-                        cx={center}
-                        cy={center}
-                        style={{
-                          strokeDasharray: circumference,
-                          strokeDashoffset: offset,
-                          transition: 'stroke-dashoffset 0.8s ease-out',
-                        }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-4xl font-bold text-gray-700 dark:text-gray-200 flex items-center">
-                        {isOvertime && <ExclamationTriangleIcon className="h-8 w-8 text-amber-500 mr-2" />}
-                        {displayedPercentage}%
-                      </span>
-                    </div>
+                <div className="w-full flex flex-col justify-center items-center p-5">
+                  <SegmentedGauge workload={actualPercentage} />
+                  <div className="text-3xl font-bold text-gray-800 mt-2 flex items-center">
+                    {isOvertime && <ExclamationTriangleIcon className="h-7 w-7 text-amber-500 mr-2" />}
+                    <span>{displayedPercentage}%</span>
                   </div>
                 </div>
                 <div className='bg-white p-5 border-t border-gray-200 text-sm'>
