@@ -129,9 +129,8 @@ export default function RecordHoursRing({ propExampleValue }: PropsInterface) {
 
           const isOvertime = actualPercentage > 100;
           
-          // --- NUOVI PARAMETRI PER SVG ---
-          const size = 192; // Corrisponde a h-48 e w-48 di Tailwind (48 * 4 = 192px)
-          const strokeWidth = 16;
+          const size = 192; 
+          const strokeWidth = 24;
           const center = size / 2;
           const radius = center - strokeWidth / 2;
           const circumference = 2 * Math.PI * radius;
