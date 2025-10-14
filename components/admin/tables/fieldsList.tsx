@@ -109,7 +109,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     } else {
       setMasterTableId("") // reset quando cambio tipo
     }
-  }, [typePreference])
+  }, [typePreference, tableId])
 
   const handleFieldsReorder = async (reorderedFields: Field[]) => {
     if (isDev) {
