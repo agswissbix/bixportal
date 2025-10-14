@@ -25,6 +25,7 @@ interface Schedule {
   repeats: number;
   display_next_run: string | null;
   output?: string;
+  send_to_endpoint?: boolean;
 }
 
 type AvailableTask = [string, string, string?];
@@ -274,7 +275,15 @@ export default function SchedulerPage() {
       
       // Logica per output JSON parsato
       const status = parsedOutput.status?.toLowerCase() || 'unknown';
-      const message = parsedOutput.value?.message || parsedOutput.value || status;
+      let message: string;
+
+      if (typeof parsedOutput.value === 'object') {
+        message = parsedOutput.value?.message
+          ? String(parsedOutput.value.message)
+          : JSON.stringify(parsedOutput.value);
+      } else {
+        message = parsedOutput.value ? String(parsedOutput.value) : status;
+      }
       
       let variant: "default" | "destructive" | "secondary" = "secondary";
       let colorClass = "bg-slate-100 text-slate-800";
@@ -314,7 +323,7 @@ export default function SchedulerPage() {
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: SchedulerResponse) => (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-[90%] mx-auto">
             {/* Header */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
@@ -424,6 +433,7 @@ export default function SchedulerPage() {
                         <th className="text-left p-3 font-semibold text-slate-700 min-w-[120px]">Ripetizioni</th>
                         <th className="text-center p-3 font-semibold text-slate-700 min-w-[80px]">Stato</th>
                         <th className="text-left p-3 font-semibold text-slate-700 min-w-[150px]">Output</th>
+                        <th className="text-left p-3 font-semibold text-slate-700 min-w-[150px]">Send to Endpoint</th>
                         <th className="text-center p-3 font-semibold text-slate-700 min-w-[200px] sticky right-0 bg-slate-100 border-l">Azioni</th>
                       </tr>
                     </thead>
@@ -601,6 +611,19 @@ export default function SchedulerPage() {
                           <td className="p-3">
                             <div className="flex justify-start">
                                 {renderOutput(s.output)}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex justify-start">
+                                <label className="flex items-center space-x-2 text-sm font-medium cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={!!s.send_to_endpoint}
+                                  onChange={(e) => handleFieldChange(s.id, "send_to_endpoint", e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
+                                />
+                                <span className="text-slate-700">Invia all'endpoint</span>
+                              </label>
                             </div>
                           </td>
                           <td className="p-3 sticky right-0 bg-gray-50 border-l">
