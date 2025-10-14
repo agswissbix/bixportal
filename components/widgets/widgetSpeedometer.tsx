@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function widgetSpeedometer({ propExampleValue }: PropsInterface) {
+export default function WidgetSpeedometer({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;

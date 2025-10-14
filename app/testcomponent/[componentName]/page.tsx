@@ -8,6 +8,7 @@ import recordSpeedometer from '@/components/widgets/widgetSpeedometer';
 import recordBattery from '@/components/widgets/widgetBattery';
 import recordHighlightCard from '@/components/widgets/widgetHighlightCard';
 import widgetFastAdd from '@/components/widgets/widgetFastAdd';
+import widgetReactionsBoard from '@/components/widgets/widgetReactionsBoard';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -44,6 +45,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     widgetBattery: dynamic(() => import('@/components/widgets/widgetBattery')),
     widgetHighlightCard: dynamic(() => import('@/components/widgets/widgetHighlightCard')),
     widgetFastAdd: dynamic(() => import('@/components/widgets/widgetFastAdd')),
+    widgetReactionsBoard: dynamic(() => import('@/components/widgets/widgetReactionsBoard')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

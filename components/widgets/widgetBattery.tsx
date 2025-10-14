@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function widgetBattery({ propExampleValue }: PropsInterface) {
+export default function WidgetBattery({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;

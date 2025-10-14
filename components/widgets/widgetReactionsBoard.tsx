@@ -5,7 +5,7 @@ import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // Styling & Icons
-import { HeartIcon } from '@heroicons/react/24/solid';
+import { FaceFrownIcon, FaceSmileIcon, RocketLaunchIcon } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function WidgetFastAdd({ propExampleValue }: PropsInterface) {
+export default function WidgetReactionsBoard({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -73,16 +73,11 @@ export default function WidgetFastAdd({ propExampleValue }: PropsInterface) {
       setResponseData({ ...responseDataDEV });
     }, []);
 
-    function addNumber() {
-      setResponseData((prevState) => {
-        return {
-          ...prevState,
-          stats: {
-            value: prevState.stats.value + 1
-          }
-        };
-      });
-    }
+    const [reaction, setReaction] = useState(null);
+
+    const handleReactionClick = (reaction) => {
+      setReaction(reaction);
+    };
 
     return (
       <GenericComponent response={responseData} loading={loading} error={error}>
@@ -102,13 +97,23 @@ export default function WidgetFastAdd({ propExampleValue }: PropsInterface) {
               <div className="min-w-64 overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
                 <div className="w-full flex flex-col justify-center items-center p-5">
                   <div className="mt-2 flex w-full items-center justify-between text-4xl font-bold text-blue-500">
-                    <span>{response.stats.value}</span>
-                    
                     <button
                       className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-200 text-blue-700 transition-colors hover:bg-blue-300"
-                      onClick={addNumber}
+                      onClick={() => handleReactionClick('happy')}
                     >
-                      <HeartIcon className="h-7 w-7" />
+                      <FaceSmileIcon className="h-7 w-7" />
+                    </button>
+                    <button
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-200 text-blue-700 transition-colors hover:bg-blue-300"
+                      onClick={() => handleReactionClick('sad')}
+                    >
+                      <FaceFrownIcon className="h-7 w-7" />
+                    </button>
+                    <button
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-200 text-blue-700 transition-colors hover:bg-blue-300" 
+                      onClick={() => handleReactionClick('rocket')}
+                    >
+                      <RocketLaunchIcon className="h-7 w-7" />
                     </button>
                   </div>
                 </div>
