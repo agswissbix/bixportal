@@ -3,11 +3,11 @@
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import React, { use } from 'react';
-import RecordHoursRing from '@/components/widgetHoursRing';
-import recordSpeedometer from '@/components/widgetSpeedometer';
-import recordBattery from '@/components/widgetBattery';
-import recordHighlightCard from '@/components/widgetHighlightCard';
-import widgetFastAdd from '@/components/widgetFastAdd';
+import RecordHoursRing from '@/components/widgets/widgetHoursRing';
+import recordSpeedometer from '@/components/widgets/widgetSpeedometer';
+import recordBattery from '@/components/widgets/widgetBattery';
+import recordHighlightCard from '@/components/widgets/widgetHighlightCard';
+import widgetFastAdd from '@/components/widgets/widgetFastAdd';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -39,11 +39,11 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     recordTimeline: dynamic(() => import('@/components/recordTimeline')),
     recordGantt: dynamic(() => import('@/components/recordGantt')),
     recordLog: dynamic(() => import('@/components/recordLog')),
-    widgetHoursRing: dynamic(() => import('@/components/widgetHoursRing')),
-    widgetSpeedometer: dynamic(() => import('@/components/widgetSpeedometer')),
-    widgetBattery: dynamic(() => import('@/components/widgetBattery')),
-    widgetHighlightCard: dynamic(() => import('@/components/widgetHighlightCard')),
-    widgetFastAdd: dynamic(() => import('@/components/widgetFastAdd')),
+    widgetHoursRing: dynamic(() => import('@/components/widgets/widgetHoursRing')),
+    widgetSpeedometer: dynamic(() => import('@/components/widgets/widgetSpeedometer')),
+    widgetBattery: dynamic(() => import('@/components/widgets/widgetBattery')),
+    widgetHighlightCard: dynamic(() => import('@/components/widgets/widgetHighlightCard')),
+    widgetFastAdd: dynamic(() => import('@/components/widgets/widgetFastAdd')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

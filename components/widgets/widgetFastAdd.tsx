@@ -1,11 +1,11 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent';
+import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // Styling & Icons
-import { TrophyIcon } from '@heroicons/react/24/solid';
+import { HeartIcon } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -18,10 +18,7 @@ interface PropsInterface {
 }
 
 interface Stats {
-  title: string;
-  description: string;
   value: number;
-  value_measure: string;
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
@@ -29,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function widgetHighlightCard({ propExampleValue }: PropsInterface) {
+export default function widgetFastAdd({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -41,10 +38,7 @@ export default function widgetHighlightCard({ propExampleValue }: PropsInterface
 
     const responseDataDEV: ResponseInterface = {
       stats :{
-        title: 'Title',
-        description: 'This is a description of the value',
-        value: 3.5,
-        value_measure: '%'
+        value: 0
       }
     };
 
@@ -79,6 +73,16 @@ export default function widgetHighlightCard({ propExampleValue }: PropsInterface
       setResponseData({ ...responseDataDEV });
     }, []);
 
+    function addNumber() {
+      setResponseData((prevState) => {
+        return {
+          ...prevState,
+          stats: {
+            value: prevState.stats.value + 1
+          }
+        };
+      });
+    }
 
     return (
       <GenericComponent response={responseData} loading={loading} error={error}>
@@ -97,20 +101,16 @@ export default function widgetHighlightCard({ propExampleValue }: PropsInterface
             <div className="flex items-center justify-center p-4">
               <div className="min-w-64 overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
                 <div className="w-full flex flex-col justify-center items-center p-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500">
-                    <TrophyIcon className="h-6 w-6 text-white" />
+                  <div className="mt-2 flex w-full items-center justify-between text-4xl font-bold text-blue-500">
+                    <span>{response.stats.value}</span>
+                    
+                    <button
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-200 text-blue-700 transition-colors hover:bg-blue-300" // Rimosso ml-4
+                      onClick={addNumber}
+                    >
+                      <HeartIcon className="h-7 w-7" />
+                    </button>
                   </div>
-                  <div className="text-2xl font-bold text-gray-800 mt-2 flex items-center">
-                    {response.stats.title}
-                  </div>
-                  <div className="text-4xl font-bold text-blue-500 mt-2 flex items-center">
-                    {response.stats.value}{response.stats.value_measure}
-                  </div>
-                </div>
-                <div className='bg-white p-5 border-t border-gray-200 text-sm'>
-                  <span>
-                    {response.stats.description}
-                  </span>
                 </div>
               </div>
             </div>
