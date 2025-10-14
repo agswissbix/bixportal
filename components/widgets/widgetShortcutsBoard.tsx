@@ -5,7 +5,7 @@ import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // Styling & Icons
-import { TrophyIcon } from '@heroicons/react/24/solid';
+import { FaceFrownIcon, FaceSmileIcon, RocketLaunchIcon } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -18,10 +18,7 @@ interface PropsInterface {
 }
 
 interface Stats {
-  title: string;
-  description: string;
   value: number;
-  value_measure: string;
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
@@ -29,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function WidgetHighlightCard({ propExampleValue }: PropsInterface) {
+export default function WidgetShortcutsBoard({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -41,10 +38,7 @@ export default function WidgetHighlightCard({ propExampleValue }: PropsInterface
 
     const responseDataDEV: ResponseInterface = {
       stats :{
-        title: 'Title',
-        description: 'This is a description of the value',
-        value: 3.5,
-        value_measure: '%'
+        value: 0
       }
     };
 
@@ -79,6 +73,11 @@ export default function WidgetHighlightCard({ propExampleValue }: PropsInterface
       setResponseData({ ...responseDataDEV });
     }, []);
 
+    const [reaction, setReaction] = useState(null);
+
+    const handleReactionClick = (reaction) => {
+      setReaction(reaction);
+    };
 
     return (
       <GenericComponent response={responseData} loading={loading} error={error}>
@@ -97,20 +96,29 @@ export default function WidgetHighlightCard({ propExampleValue }: PropsInterface
             <div className="flex items-center justify-center p-4">
               <div className="min-w-64 overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
                 <div className="w-full flex flex-col justify-center items-center p-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500">
-                    <TrophyIcon className="h-6 w-6 text-white" />
+                  <div className="mt-2 flex w-full items-center gap-x-3 font-bold text-blue-500">
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-blue-200 px-6 text-blue-700 transition-colors hover:bg-blue-300"
+                      onClick={() => handleReactionClick('happy')}
+                    >
+                      <FaceSmileIcon className="h-7 w-7 mr-2" />
+                      <span>Happy</span>
+                    </button>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-blue-200 px-6 text-blue-700 transition-colors hover:bg-blue-300"
+                      onClick={() => handleReactionClick('happy')}
+                    >
+                      <FaceFrownIcon className="h-7 w-7 mr-2" />
+                      <span>Sad</span>
+                    </button>
+                    <button
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-blue-200 px-6 text-blue-700 transition-colors hover:bg-blue-300"
+                      onClick={() => handleReactionClick('happy')}
+                    >
+                      <RocketLaunchIcon className="h-7 w-7 mr-2" />
+                      <span>Rocket</span>
+                    </button>
                   </div>
-                  <div className="text-2xl font-bold text-gray-800 mt-2 flex items-center">
-                    {response.stats.title}
-                  </div>
-                  <div className="text-4xl font-bold text-blue-500 mt-2 flex items-center">
-                    {response.stats.value}{response.stats.value_measure}
-                  </div>
-                </div>
-                <div className='bg-white p-5 border-t border-gray-200 text-sm'>
-                  <span>
-                    {response.stats.description}
-                  </span>
                 </div>
               </div>
             </div>
