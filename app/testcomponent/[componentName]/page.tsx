@@ -3,10 +3,11 @@
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import React, { use } from 'react';
-import RecordHoursRing from '@/components/recordHoursRing';
-import recordSpeedometer from '@/components/recordSpeedometer';
-import recordBattery from '@/components/recordBattery';
-import recordHighlightCard from '@/components/recordHighlightCard';
+import RecordHoursRing from '@/components/widgetHoursRing';
+import recordSpeedometer from '@/components/widgetSpeedometer';
+import recordBattery from '@/components/widgetBattery';
+import recordHighlightCard from '@/components/widgetHighlightCard';
+import widgetFastAdd from '@/components/widgetFastAdd';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -38,10 +39,11 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     recordTimeline: dynamic(() => import('@/components/recordTimeline')),
     recordGantt: dynamic(() => import('@/components/recordGantt')),
     recordLog: dynamic(() => import('@/components/recordLog')),
-    recordHoursRing: dynamic(() => import('@/components/recordHoursRing')),
-    recordSpeedometer: dynamic(() => import('@/components/recordSpeedometer')),
-    recordBattery: dynamic(() => import('@/components/recordBattery')),
-    recordHighlightCard: dynamic(() => import('@/components/recordHighlightCard')),
+    widgetHoursRing: dynamic(() => import('@/components/widgetHoursRing')),
+    widgetSpeedometer: dynamic(() => import('@/components/widgetSpeedometer')),
+    widgetBattery: dynamic(() => import('@/components/widgetBattery')),
+    widgetHighlightCard: dynamic(() => import('@/components/widgetHighlightCard')),
+    widgetFastAdd: dynamic(() => import('@/components/widgetFastAdd')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

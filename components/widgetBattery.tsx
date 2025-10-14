@@ -5,7 +5,7 @@ import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // Styling & Icons
-import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { BoltIcon } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function recordHoursRing({ propExampleValue }: PropsInterface) {
+export default function widgetBattery({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -38,7 +38,7 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
 
     const responseDataDEV: ResponseInterface = {
       stats :{
-        hours: 4.5
+        hours: 3
       }
     };
 
@@ -73,7 +73,6 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
       setResponseData({ ...responseDataDEV });
     }, []);
 
-
     const [displayedPercentage, setDisplayedPercentage] = useState(0);
 
     const days = 1;
@@ -85,12 +84,9 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
     const actualPercentage = responseData?.stats?.hours !== undefined
       ? calcPercentage(responseData.stats.hours)
       : 0;
-
-    const ringFillPercentage = Math.min(actualPercentage, 100);
-
-    // Effetto per animare il conteggio della percentuale
+      
     useEffect(() => {
-        const target = Math.round(actualPercentage);
+        const target = Math.round(100 - actualPercentage);
         if (target === displayedPercentage) return;
 
         const interval = setInterval(() => {
@@ -109,18 +105,62 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
         return () => clearInterval(interval); 
     }, [actualPercentage]);
 
-
     const openAlert = () => {
       alert('Funzione non implementata');
     };
+
+    const useWorkloadColor = (workload) => {
+      if (workload > 90) return '#22c55e'; 
+      if (workload > 50) return '#f59e0b';
+      if (workload > 20) return '#ef4444';
+      return '#b91c1c'; 
+    };
+
+    const Battery = ({ workload }) => {
+      const batteryLevel = 100 - workload;
+  
+      const color = useWorkloadColor(batteryLevel);
+      const fillPercentage = Math.max(0, Math.min(100, batteryLevel));
+      const isOverloaded = batteryLevel < 0;
+      
+      // Condition to show the lightning bolt icon
+      const showLightning = batteryLevel <= 0;
+  
+      return (
+          <div className="flex items-center justify-center">
+              <div className={`w-24 h-10 bg-white border-2 border-gray-700 rounded-lg p-1 relative flex items-center ${isOverloaded ? 'animate-[flash-red-border_1.2s_infinite]' : ''}`}>
+                  <div 
+                      style={{ width: `${fillPercentage}%`, backgroundColor: color }} 
+                      className="h-full rounded transition-all duration-500 ease-in-out"
+                  ></div>
+
+                  {showLightning && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                          <svg 
+                              className="w-6 h-6 text-gray-700" 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              viewBox="0 0 20 20" 
+                              fill="currentColor"
+                          >
+                              <path d="M11 0L3 11h4v9l8-11h-4V0z" />
+                          </svg>
+                      </div>
+                  )}
+  
+              </div>
+              <div className="w-1.5 h-5 bg-gray-700 rounded-r-sm"></div>
+          </div>
+      );
+    };
+  
    
     return (
-      <GenericComponent response={responseData} loading={false} error={null}>
+      <GenericComponent response={responseData} loading={loading} error={error}>
         {(response: ResponseInterface) => {
           if (!response || !response.stats) {
             return (
               <div className="flex items-center justify-center p-4">
-                <div className="flex h-48 w-48 items-center justify-center rounded-full bg-gray-200">
+                <div className="flex h-48 w-48 items-center justify-center">
                   <span className="text-sm text-gray-500">Caricamento...</span>
                 </div>
               </div>
@@ -128,70 +168,31 @@ export default function recordHoursRing({ propExampleValue }: PropsInterface) {
           }
 
           const isOvertime = actualPercentage > 100;
-          
-          const size = 192; 
-          const strokeWidth = 24;
-          const center = size / 2;
-          const radius = center - strokeWidth / 2;
-          const circumference = 2 * Math.PI * radius;
-          const offset = circumference * (1 - ringFillPercentage / 100);
-
           const hoursDifference = totalHours - response.stats.hours;
 
           let bottomText;
           if (hoursDifference > 0) {
               bottomText = <>Mancano ancora <b>{hoursDifference.toFixed(1)}</b> ore.</>;
           } else if (hoursDifference === 0) {
-              bottomText = <span className='flex items-center gap-2'>100% raggiunto</span>;
+              bottomText = <span className='flex items-center gap-2'>0 ore rimanenti</span>;
           } else {
               bottomText = <>Hai superato di <b>{Math.abs(hoursDifference).toFixed(1)}</b> ore.</>;
           }
-  
+
           return (
             <div className="flex items-center justify-center p-4">
-              <div className="overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
+              <div className="min-w-64 overflow-hidden rounded-lg bg-white shadow-md border border-gray-200">
                 <div className='bg-white p-5 border-t border-gray-200'>
                   <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded absolute top-2 right-2"
                       onClick={openAlert}>
                     Nuovo
                   </button>
                 </div>  
-                <div className='bg-white p-5'>
-                  <div className="relative h-48 w-48">
-                    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-                      {/* Cerchio di sfondo */}
-                      <circle
-                        className="text-gray-200"
-                        stroke="currentColor"
-                        strokeWidth={strokeWidth}
-                        fill="transparent"
-                        r={radius}
-                        cx={center}
-                        cy={center}
-                      />
-                      {/* Cerchio di progresso */}
-                      <circle
-                        className={isOvertime ? "text-amber-500" : "text-blue-500"}
-                        stroke="currentColor"
-                        strokeWidth={strokeWidth}
-                        strokeLinecap="round" 
-                        fill="transparent"
-                        r={radius}
-                        cx={center}
-                        cy={center}
-                        style={{
-                          strokeDasharray: circumference,
-                          strokeDashoffset: offset,
-                          transition: 'stroke-dashoffset 0.8s ease-out',
-                        }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-4xl font-bold text-gray-700 dark:text-gray-200 flex items-center">
-                        {isOvertime && <ExclamationTriangleIcon className="h-8 w-8 text-amber-500 mr-2" />}
-                        {displayedPercentage}%
-                      </span>
-                    </div>
+                <div className="w-full flex flex-col justify-center items-center p-5">
+                  <Battery workload={actualPercentage} />
+                  <div className="text-3xl font-bold text-gray-800 mt-2 flex items-center">
+                    {isOvertime && <BoltIcon className="h-7 w-7 text-amber-500 mr-2" />}
+                    <span>{displayedPercentage}%</span>
                   </div>
                 </div>
                 <div className='bg-white p-5 border-t border-gray-200 text-sm'>

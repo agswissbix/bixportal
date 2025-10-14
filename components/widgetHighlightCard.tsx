@@ -29,7 +29,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function recordHighlightCard({ propExampleValue }: PropsInterface) {
+export default function widgetHighlightCard({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
