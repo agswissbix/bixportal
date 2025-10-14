@@ -48,6 +48,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     widgetFastAdd: dynamic(() => import('@/components/widgets/widgetFastAdd')),
     widgetReactionsBoard: dynamic(() => import('@/components/widgets/widgetReactionsBoard')),
     widgetShortcutsBoard: dynamic(() => import('@/components/widgets/widgetShortcutsBoard')),
+    widgetToDo: dynamic(() => import('@/components/widgets/widgetToDo')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
