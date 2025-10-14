@@ -3,9 +3,13 @@
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import React, { use } from 'react';
-import RecordHoursRing from '@/components/recordHoursRing';
-import recordSpeedometer from '@/components/recordSpeedometer';
-import recordBattery from '@/components/recordBattery';
+import RecordHoursRing from '@/components/widgets/widgetHoursRing';
+import recordSpeedometer from '@/components/widgets/widgetSpeedometer';
+import recordBattery from '@/components/widgets/widgetBattery';
+import recordHighlightCard from '@/components/widgets/widgetHighlightCard';
+import widgetFastAdd from '@/components/widgets/widgetFastAdd';
+import widgetReactionsBoard from '@/components/widgets/widgetReactionsBoard';
+import widgetShortcutsBoard from '@/components/widgets/widgetShortcutsBoard';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -37,9 +41,13 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     recordTimeline: dynamic(() => import('@/components/recordTimeline')),
     recordGantt: dynamic(() => import('@/components/recordGantt')),
     recordLog: dynamic(() => import('@/components/recordLog')),
-    recordHoursRing: dynamic(() => import('@/components/recordHoursRing')),
-    recordSpeedometer: dynamic(() => import('@/components/recordSpeedometer')),
-    recordBattery: dynamic(() => import('@/components/recordBattery')),
+    widgetHoursRing: dynamic(() => import('@/components/widgets/widgetHoursRing')),
+    widgetSpeedometer: dynamic(() => import('@/components/widgets/widgetSpeedometer')),
+    widgetBattery: dynamic(() => import('@/components/widgets/widgetBattery')),
+    widgetHighlightCard: dynamic(() => import('@/components/widgets/widgetHighlightCard')),
+    widgetFastAdd: dynamic(() => import('@/components/widgets/widgetFastAdd')),
+    widgetReactionsBoard: dynamic(() => import('@/components/widgets/widgetReactionsBoard')),
+    widgetShortcutsBoard: dynamic(() => import('@/components/widgets/widgetShortcutsBoard')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

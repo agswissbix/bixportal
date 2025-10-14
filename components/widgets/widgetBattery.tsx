@@ -1,11 +1,11 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent';
+import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // Styling & Icons
-import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { BoltIcon } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function recordSpeedometer({ propExampleValue }: PropsInterface) {
+export default function WidgetBattery({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -38,7 +38,7 @@ export default function recordSpeedometer({ propExampleValue }: PropsInterface) 
 
     const responseDataDEV: ResponseInterface = {
       stats :{
-        hours: 4
+        hours: 3
       }
     };
 
@@ -86,7 +86,7 @@ export default function recordSpeedometer({ propExampleValue }: PropsInterface) 
       : 0;
       
     useEffect(() => {
-        const target = Math.round(actualPercentage);
+        const target = Math.round(100 - actualPercentage);
         if (target === displayedPercentage) return;
 
         const interval = setInterval(() => {
@@ -109,49 +109,50 @@ export default function recordSpeedometer({ propExampleValue }: PropsInterface) 
       alert('Funzione non implementata');
     };
 
-    const SegmentedGauge = ({ workload }) => {
-      const workloadCalcolato = Math.min(workload, 100);
+    const useWorkloadColor = (workload) => {
+      if (workload > 90) return '#22c55e'; 
+      if (workload > 50) return '#f59e0b';
+      if (workload > 20) return '#ef4444';
+      return '#b91c1c'; 
+    };
+
+    const Battery = ({ workload }) => {
+      const batteryLevel = 100 - workload;
   
-      const angle = (workloadCalcolato / 100) * 180 - 90;
-  
-      let color;
-      if (workload > 100) {
-          color = '#ef4444'; 
-      } else if (workload >= 85) {
-          color = '#ef4444'; 
-      } else if (workload >= 50) {
-          color = '#f59e0b'; 
-      } else {
-          color = '#22c55e'; 
-      }
+      const color = useWorkloadColor(batteryLevel);
+      const fillPercentage = Math.max(0, Math.min(100, batteryLevel));
+      const isOverloaded = batteryLevel < 0;
+      
+      // Condition to show the lightning bolt icon
+      const showLightning = batteryLevel <= 0;
   
       return (
-          <div className="w-full max-w-[200px] mx-auto text-center">
-              <svg viewBox="0 0 64 36">
-                  {/* Segmenti colorati */}
-                  <path d="M4 32 A 28 28 0 0 1 32 4" stroke="#22c55e" strokeWidth="8" fill="none" />
-                  <path d="M32 4 A 28 28 0 0 1 54.7 15.5" stroke="#f59e0b" strokeWidth="8" fill="none" />
-                  <path d="M54.7 15.5 A 28 28 0 0 1 60 32" stroke="#ef4444" strokeWidth="8" fill="none" />
-                  
-                  {/* Perno della lancetta */}
-                  <circle cx="32" cy="32" r="4" fill={color} />
+          <div className="flex items-center justify-center">
+              <div className={`w-24 h-10 bg-white border-2 border-gray-700 rounded-lg p-1 relative flex items-center ${isOverloaded ? 'animate-[flash-red-border_1.2s_infinite]' : ''}`}>
+                  <div 
+                      style={{ width: `${fillPercentage}%`, backgroundColor: color }} 
+                      className="h-full rounded transition-all duration-500 ease-in-out"
+                  ></div>
+
+                  {showLightning && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                          <svg 
+                              className="w-6 h-6 text-gray-700" 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              viewBox="0 0 20 20" 
+                              fill="currentColor"
+                          >
+                              <path d="M11 0L3 11h4v9l8-11h-4V0z" />
+                          </svg>
+                      </div>
+                  )}
   
-                  {/* Lancetta */}
-                  <line
-                      style={{
-                          transform: `rotate(${angle}deg)`,
-                          transformOrigin: '32px 32px',
-                          stroke: color,
-                      }}
-                      className="transition-transform duration-500 ease-in-out"
-                      x1="32" y1="32" x2="32" y2="10"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                  />
-              </svg>
+              </div>
+              <div className="w-1.5 h-5 bg-gray-700 rounded-r-sm"></div>
           </div>
       );
     };
+  
    
     return (
       <GenericComponent response={responseData} loading={loading} error={error}>
@@ -173,7 +174,7 @@ export default function recordSpeedometer({ propExampleValue }: PropsInterface) 
           if (hoursDifference > 0) {
               bottomText = <>Mancano ancora <b>{hoursDifference.toFixed(1)}</b> ore.</>;
           } else if (hoursDifference === 0) {
-              bottomText = <span className='flex items-center gap-2'>100% raggiunto</span>;
+              bottomText = <span className='flex items-center gap-2'>0 ore rimanenti</span>;
           } else {
               bottomText = <>Hai superato di <b>{Math.abs(hoursDifference).toFixed(1)}</b> ore.</>;
           }
@@ -188,9 +189,9 @@ export default function recordSpeedometer({ propExampleValue }: PropsInterface) 
                   </button>
                 </div>  
                 <div className="w-full flex flex-col justify-center items-center p-5">
-                  <SegmentedGauge workload={actualPercentage} />
+                  <Battery workload={actualPercentage} />
                   <div className="text-3xl font-bold text-gray-800 mt-2 flex items-center">
-                    {isOvertime && <ExclamationTriangleIcon className="h-7 w-7 text-amber-500 mr-2" />}
+                    {isOvertime && <BoltIcon className="h-7 w-7 text-amber-500 mr-2" />}
                     <span>{displayedPercentage}%</span>
                   </div>
                 </div>

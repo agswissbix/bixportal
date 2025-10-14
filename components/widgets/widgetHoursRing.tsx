@@ -1,6 +1,6 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from './genericComponent';
+import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
@@ -26,7 +26,7 @@ interface ResponseInterface {
   stats: Stats
 }
 
-export default function recordHoursRing({ propExampleValue }: PropsInterface) {
+export default function WidgetHoursRing({ propExampleValue }: PropsInterface) {
     //DATI
     // DATI PROPS PER LO SVILUPPO
     const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
