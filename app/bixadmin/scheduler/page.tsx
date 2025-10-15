@@ -11,6 +11,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { useApi } from "@/utils/useApi";
 import { Trash2, Play, Save, Plus, Power, Calendar, Clock, Repeat, Settings, CheckCircle, XCircle, PlayCircle, Loader2, RefreshCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 
 
 const isDev = false;
@@ -89,6 +90,8 @@ export default function SchedulerPage() {
   const [actionLoading, setActionLoading] = useState<{ [key: number]: string }>({});
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [backendResponse, setBackendResponse] = useState<any>(null);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   const payload = useMemo(() => {
     if (isDev) return null;
@@ -211,17 +214,33 @@ export default function SchedulerPage() {
 
       if (apiRoute === "schedule_save") {
         payload.schedule = schedule;
+      } else if (apiRoute === "run_function") {
+        payload.func = schedule?.func;
       } else {
         payload.id = schedule?.id ?? scheduleId;
       }
 
-      await axiosInstanceClient.post("/postApi", payload, {
+      const response = await axiosInstanceClient.post("/postApi", payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
+      setBackendResponse({
+        apiRoute,
+        status: response.data.success ? response.data.success : 'success',
+        data: response.data ? response.data : null,
+      });
+
+      toast.success(response.data.message || "Azione completata con successo");
+
       await refreshData();
     } catch (err: any) {
-      console.error(err);
+      toast.error(err?.message || "Azione completata con errore");
+      setBackendError(err?.message || "Errore generico dal backend");
+      setBackendResponse({
+        apiRoute,
+        status: "error",
+        data: err?.response?.data || null,
+      });
       setActionLoading(prev => {
         const newState = { ...prev };
         delete newState[scheduleId];
@@ -241,6 +260,7 @@ export default function SchedulerPage() {
   const handleSave = (schedule: Schedule) => callApiAction("schedule_save", schedule);
   const handleToggle = (schedule: Schedule) => callApiAction("schedule_toggle", { id: schedule.id });
   const handleRunNow = (schedule: Schedule) => callApiAction("schedule_run_now", { id: schedule.id });
+  const handleRunFunction = (schedule: Schedule) => callApiAction("run_function", { func: schedule.func });
   const handleDelete = (schedule: Schedule) => callApiAction("schedule_delete", { id: schedule.id });
   const handleAdd = () => callApiAction("schedule_add", {});
 
@@ -253,6 +273,26 @@ export default function SchedulerPage() {
 
   const intervalScheduleCount = schedules.filter(s => s.schedule_type === 'I').length;
 
+  const deepParseJSON = (obj: any): any => {
+    if (typeof obj === "string") {
+      try {
+        const parsed = JSON.parse(obj);
+        // Se il parsing ha successo, chiama ricorsivamente
+        return deepParseJSON(parsed);
+      } catch {
+        return obj; // non è JSON valido, restituisci com’è
+      }
+    } else if (Array.isArray(obj)) {
+      return obj.map(item => deepParseJSON(item));
+    } else if (obj && typeof obj === "object") {
+      const result: any = {};
+      for (const key of Object.keys(obj)) {
+        result[key] = deepParseJSON(obj[key]);
+      }
+      return result;
+    }
+    return obj;
+  };
 
   const renderOutput = (output: string | undefined) => {
       if (!output) {
@@ -410,6 +450,53 @@ export default function SchedulerPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {(backendResponse || backendError) && (
+              <Card className="mb-8 border-0 shadow-md bg-white/80 backdrop-blur-sm">
+                <CardHeader className={`border-b ${backendResponse?.status === "error" ? "bg-red-50" : "bg-green-50"}`}>
+                  <CardTitle className="flex items-center text-slate-800">
+                    {backendResponse?.status === "error" ? (
+                      <XCircle className="w-5 h-5 text-red-600 mr-2" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                    )}
+                    {backendResponse?.status === "error" ? "Errore Backend" : "Risposta Backend"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 text-sm text-slate-700">
+                  <p className="mb-2">
+                    <span className="font-semibold text-slate-900">API Route:</span>{" "}
+                    {backendResponse?.apiRoute || "—"}
+                  </p>
+
+                  {backendError && (
+                    <p className="text-red-600 mb-2 font-medium">
+                      {backendError}
+                    </p>
+                  )}
+
+                  {backendResponse?.data && (
+                    <pre className="bg-slate-50 border border-slate-200 rounded-lg p-3 overflow-x-auto text-xs text-slate-600">
+                      {JSON.stringify(deepParseJSON(backendResponse.data), null, 2)}
+                    </pre>
+                  )}
+
+                  <div className="flex justify-end mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-600 hover:text-slate-900"
+                      onClick={() => {
+                        setBackendResponse(null);
+                        setBackendError(null);
+                      }}
+                    >
+                      Chiudi
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Scheduler Table */}
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
@@ -663,9 +750,23 @@ export default function SchedulerPage() {
                                 size="sm"
                                 disabled={isLoadingOrRefreshing(s.id, 'schedule_run_now')}
                                 className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
-                                title="Esegui Ora"
+                                title="Avvia il task pianificato ora"
                               >
-                                {isLoadingOrRefreshing(s.id, 'schedule_run_now') ?
+                                {isLoadingOrRefreshing(s.id, 'schedule_run_now') ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <PlayCircle className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                onClick={() => handleRunFunction(s)}
+                                variant="ghost"
+                                size="sm"
+                                disabled={isLoadingOrRefreshing(s.id, 'run_function')}
+                                className="h-8 w-8 p-0 hover:bg-yellow-100 hover:text-yellow-600"
+                                title="Esegui ora la funzione python"
+                              >
+                                {isLoadingOrRefreshing(s.id, 'run_function') ?
                                   <Loader2 className="w-4 h-4 animate-spin" /> :
                                   <Play className="w-4 h-4" />
                                 }
