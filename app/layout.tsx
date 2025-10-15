@@ -13,6 +13,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap"
           rel="stylesheet"
         />  
+        <style>
+          {`
+            .toastui-editor-defaultUI, 
+            .toastui-editor-popup-wrapper,
+            .toastui-editor-ww-popup {
+              z-index: 0 !important;
+            }
+          `}
+        </style>
       </head>
       <body>
         <AppProvider>
