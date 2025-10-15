@@ -46,6 +46,7 @@
     "framer-motion": "^12.4.10",
     "gridstack": "^11.5.1",
     "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
     "js-cookie": "3.0.5",
     "jspdf": "^3.0.1",
     "loadsh": "^0.0.4",

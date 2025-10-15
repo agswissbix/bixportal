@@ -3,13 +3,6 @@
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import React, { use } from 'react';
-import RecordHoursRing from '@/components/widgets/widgetHoursRing';
-import recordSpeedometer from '@/components/widgets/widgetSpeedometer';
-import recordBattery from '@/components/widgets/widgetBattery';
-import recordHighlightCard from '@/components/widgets/widgetHighlightCard';
-import widgetFastAdd from '@/components/widgets/widgetFastAdd';
-import widgetReactionsBoard from '@/components/widgets/widgetReactionsBoard';
-import widgetShortcutsBoard from '@/components/widgets/widgetShortcutsBoard';
 
 // Mappa dei componenti disponibili (anche in sotto-cartelle)
 const componentsMap: Record<string, React.ComponentType<any>> = {
@@ -51,6 +44,13 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     widgetToDo: dynamic(() => import('@/components/widgets/widgetToDo')),
     widgetToggle: dynamic(() => import('@/components/widgets/widgetToggle')),
     widgetTime: dynamic(() => import('@/components/widgets/widgetTime')),
+
+    // Winteler
+    pageLogin: dynamic(() => import('@/components/winteler/components/pageLogin')),
+    pageMenu: dynamic(() => import('@/components/winteler/components/pageMenu')),
+    pageSchedaAuto: dynamic(() => import('@/components/winteler/components/pageSchedaAuto')),
+    pageSchedaDettagliAuto: dynamic(() => import('@/components/winteler/components/pageSchedaDettagliAuto')),
+    pageNoteSpese: dynamic(() => import('@/components/winteler/components/pageNoteSpese')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
