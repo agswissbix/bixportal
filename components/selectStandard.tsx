@@ -1,43 +1,47 @@
-import React, { useEffect, useMemo, useState, KeyboardEvent } from 'react';
-import Select, { SingleValue, MultiValue, ActionMeta } from 'react-select';
+"use client"
+
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
+import Select, { type SingleValue, type MultiValue, type ActionMeta } from "react-select"
 
 // INTERFACCIA PROPS
 interface PropsInterface {
-  lookupItems: Array<{ itemcode: string; itemdesc: string}>;
-  initialValue?: string | string[];  // Es: "123;456"
-  onChange?: (value: string | string[]) => void;  // Es: "123;456"
+  lookupItems: Array<{ itemcode: string; itemdesc: string }>
+  initialValue?: string | string[] // Es: "123;456"
+  onChange?: (value: string | string[]) => void // Es: "123;456"
 
-  isMulti?: boolean;
+  isMulti?: boolean
 }
 
 interface OptionType {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
-// Stili custom per react-select
 const customStyles = {
   control: () =>
-    "min-h-[42px] rounded-lg border border-gray-300 bg-gray-50 hover:border-gray-500 focus:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 pl-2 pr-2",
-  menu: () =>
-    "mt-1 bg-white rounded-lg shadow-lg max-h-50 overflow-y-auto z-50",
-  option: () =>
-    "px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-900",
-  singleValue: () => "text-sm text-gray-900",
-  multiValue: () => "bg-blue-100 rounded-md m-1",
-  multiValueLabel: () => "px-2 py-1 text-sm text-blue-700",
-  multiValueRemove: () =>
-    "px-2 py-1 hover:bg-blue-200 hover:text-blue-900 rounded-r-md",
-  placeholder: () => "text-sm text-gray-500",
-  input: () => "text-sm text-gray-900",
-};
+    "min-h-[42px] rounded-lg border border-gray-300 bg-gray-50 hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary pl-2 pr-2 transition-all duration-200",
+  menu: () => "mt-2 bg-white rounded-lg shadow-lg border border-gray-300 z-[9999]",
+  option: (state: any) => {
+    const baseClasses =
+      "px-3 py-2.5 cursor-pointer text-sm transition-colors duration-150 rounded-md border-b border-gray-200 last:border-0"
 
-export default function SelectStandard({
-  lookupItems,
-  initialValue = '',
-  onChange,
-  isMulti = false,
-}: PropsInterface) {
+    // Selected (checked) state
+    if (state.isSelected) {
+      return `${baseClasses} bg-secondary-hover text-secondary-foreground`
+    }
+
+    // Hover state (not selected)
+    return `${baseClasses} hover:text-secondary-foreground hover:bg-secondary`
+  },
+  singleValue: () => "text-sm text-foreground",
+  multiValue: () => "bg-primary bg-blue-100 border border-primary rounded-md m-1",
+  multiValueLabel: () => "px-2 py-1 text-sm text-primary-foreground text-blue-700",
+  multiValueRemove: () => "px-2 py-1 hover:bg-primary-hover text-primary-foreground hover:border-primary-foreground rounded-r-md transition-colors",
+  placeholder: () => "text-sm text-muted-foreground",
+  input: () => "text-sm text-foreground",
+}
+
+export default function SelectStandard({ lookupItems, initialValue = "", onChange, isMulti = false }: PropsInterface) {
   // Calcola le opzioni a partire da lookupItems
   const options: OptionType[] = useMemo(
     () =>
@@ -45,93 +49,78 @@ export default function SelectStandard({
         value: String(item.itemcode),
         label: `${item.itemdesc}`,
       })),
-    [lookupItems]
-  );
+    [lookupItems],
+  )
 
-  
   const getInitialValue = () => {
     if (isMulti) {
       const initialValues = Array.isArray(initialValue)
-        ? initialValue.map(val => String(val))
-        : [String(initialValue)].filter(Boolean);
-      return options.filter((option) => initialValues.includes(option.value));
+        ? initialValue.map((val) => String(val))
+        : [String(initialValue)].filter(Boolean)
+      return options.filter((option) => initialValues.includes(option.value))
     } else {
-      return options.find((option) => option.value === String(initialValue)) || null;
+      return options.find((option) => option.value === String(initialValue)) || null
     }
-  };
+  }
 
+  const [selectedOption, setSelectedOption] = useState<OptionType | OptionType[] | null>(getInitialValue())
 
-  // Stato per gestire l'opzione selezionata
-  const [selectedOption, setSelectedOption] = useState<
-    OptionType | OptionType[] | null
-  >(getInitialValue());
-
-  
-  // Aggiorna lo stato se cambiano initialValue, lookupItems o la modalità isMulti
   useEffect(() => {
-    const computed = getInitialValue();
-    console.log("DEBUG: lookupItems:", lookupItems);
-    console.log("DEBUG: options:", options);
-    console.log("DEBUG: computed selectedOption:", computed);
-    setSelectedOption(computed);
-  }, [initialValue, isMulti, lookupItems, options]);
+    const computed = getInitialValue()
+    console.log("DEBUG: lookupItems:", lookupItems)
+    console.log("DEBUG: options:", options)
+    console.log("DEBUG: computed selectedOption:", computed)
+    setSelectedOption(computed)
+  }, [initialValue, isMulti, lookupItems, options])
 
-  // Effetto per il debug del valore di initialValue
   useEffect(() => {
-    console.log("DEBUG: initialValue ricevuto:", initialValue);
-  }, [initialValue]);
+    console.log("DEBUG: initialValue ricevuto:", initialValue)
+  }, [initialValue])
 
-  // Gestione della modifica della selezione
   const handleChange = (
     newValue: SingleValue<OptionType> | MultiValue<OptionType>,
-    actionMeta: ActionMeta<OptionType>
+    actionMeta: ActionMeta<OptionType>,
   ) => {
     if (isMulti) {
-      // Convert readonly array to mutable array
-      setSelectedOption(Array.isArray(newValue) ? [...newValue] : []);
+      setSelectedOption(Array.isArray(newValue) ? [...newValue] : [])
     } else {
-      setSelectedOption(newValue as OptionType | null);
+      setSelectedOption(newValue as OptionType | null)
     }
 
     if (onChange) {
       if (isMulti) {
-        const values = (newValue as MultiValue<OptionType>).map(
-          (option) => option.value
-        );
-        onChange(values);
+        const values = (newValue as MultiValue<OptionType>).map((option) => option.value)
+        onChange(values)
       } else {
-        const value = newValue
-          ? (newValue as SingleValue<OptionType>).value
-          : '';
-        onChange(value);
+        const value = newValue ? (newValue as SingleValue<OptionType>).value : ""
+        onChange(value)
       }
     }
-  };
+  }
 
-
-  // Gestione del tasto Invio: simula il click sulla prima opzione del menu se presente
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter') {
-      const select = event.target as HTMLElement;
-      const menu = select.querySelector('[class$="-menu"]');
+    if (event.key === "Enter") {
+      const select = event.target as HTMLElement
+      const menu = select.querySelector('[class$="-menu"]')
       if (menu) {
-        const firstOption = menu.querySelector('[class$="-option"]');
+        const firstOption = menu.querySelector('[class$="-option"]')
         if (firstOption) {
-          (firstOption as HTMLElement).click();
+          ;(firstOption as HTMLElement).click()
         }
       }
     }
-  };
+  }
 
   useEffect(() => {
-        if(onChange && initialValue){
-          onChange(initialValue);
-        } 
-      }, [initialValue]);
+    if (onChange && initialValue) {
+      onChange(initialValue)
+    }
+  }, [initialValue])
 
   return (
     <div className="relative">
       <Select
+        menuPortalTarget={document.body}
         isMulti={isMulti}
         options={options}
         value={selectedOption}
@@ -139,14 +128,14 @@ export default function SelectStandard({
         onKeyDown={handleKeyDown}
         placeholder="Seleziona un'opzione"
         isClearable
-        // Fornisci le funzioni per far riconoscere i valori delle opzioni
+        menuPlacement="auto"
         getOptionValue={(option: OptionType) => option.value}
         getOptionLabel={(option: OptionType) => option.label}
         classNames={{
           container: () => "relative",
           control: () => customStyles.control(),
           menu: () => customStyles.menu(),
-          option: () => customStyles.option(),
+          option: (state) => customStyles.option(state),
           singleValue: () => customStyles.singleValue(),
           multiValue: () => customStyles.multiValue(),
           multiValueLabel: () => customStyles.multiValueLabel(),
@@ -154,8 +143,11 @@ export default function SelectStandard({
           placeholder: () => customStyles.placeholder(),
           input: () => customStyles.input(),
         }}
+        styles={{
+          menuPortal: (base) => ({ ...base, zIndex: 50 }),
+        }}
         unstyled
       />
     </div>
-  );
+  )
 }

@@ -1,41 +1,43 @@
-import React, { useEffect,useState } from 'react';
+"use client"
+
+import type React from "react"
+import { useEffect, useState } from "react"
+import { Textarea } from "./ui/textarea"
 
 // INTERFACCIA PROPS
 interface PropsInterface {
-  initialValue?: string;
-  onChange?: (value: string) => void;
+  initialValue?: string
+  onChange?: (value: string) => void
 }
 
-export default function InputMemo({ initialValue = '',onChange }: PropsInterface) {
+export default function InputMemo({ initialValue = "", onChange }: PropsInterface) {
+  const [value, setValue] = useState(initialValue)
 
-  const [value, setValue] = useState(initialValue);
   useEffect(() => {
-      setValue(initialValue);
-    }, [initialValue]);
-  
+    setValue(initialValue)
+  }, [initialValue])
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
+    const newValue = e.target.value
+    setValue(newValue)
     if (onChange) {
-      onChange(newValue);
+      onChange(newValue)
     }
-  };
+  }
 
   return (
-    <div>
-      <div className="">
-        <div className="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-          <textarea
-            name="date"
-            value={value}
-            onChange={handleChange} // Aggiorna lo stato locale
-            placeholder=""
-            className="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"
-          />
-        </div>
+    <div className="relative">
+      <div className="relative rounded-md bg-background transition-all duration-200 hover:shadow-sm">
+        <Textarea
+          name="memo"
+          value={value}
+          onChange={handleChange}
+          placeholder="Inserisci note..."
+          className="min-h-[100px] resize-y border border-gray-300 hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary bg-transparent text-sm text-foreground placeholder:text-muted-foreground transition-all duration-200"
+        />
+        {/* Gradient accent line on focus */}
+        <div className="pointer-events-none absolute bottom-0 left-1 right-1 h-0.5 scale-x-0 bg-gradient-to-r from-primary via-accent to-primary opacity-0 transition-all duration-300 group-focus-within:scale-x-100 group-focus-within:opacity-100" />
       </div>
     </div>
-  );
-};
-
-
+  )
+}
