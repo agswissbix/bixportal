@@ -8,6 +8,7 @@ import CardLinked from './cardLinked';
 import RecordAttachments from './recordAttachments';
 import RecordAttachmentsDemo from './recordAttachmentsDemo';
 import { set } from 'lodash';
+import DynamicTableBridge from './customCardFields/dynamicCardFieldsBridge';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -24,7 +25,7 @@ const isDev = false;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
-            cardTabs: []
+            cardTabs: string[];
             activeTab: string;
         }
 
@@ -51,7 +52,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
     );
 
     const payload = useMemo(() => {
-        if (isDev || isNewRecord) return null;
+        if (isDev) return null;
         return {
             apiRoute: 'get_card_active_tab',
             tableid: tableid
@@ -68,6 +69,15 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
             setActiveTab(response.activeTab);
+            if (response.cardTabs.includes('Custom')) {
+                setResponseData({
+                ...responseData,
+                cardTabs: [
+                  'Custom',
+                  ...response.cardTabs.filter(tab => tab !== 'Custom')
+                ]
+                });
+            }
         }
     }, [response]);
 
@@ -143,14 +153,31 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                     <div className=" p-4" style={{ height: `calc(100% - ${tabsHeight}px)` }}>
                     {/* Mostra solo CardFields se recordid è nullo */}
                     {isNewRecord ? (
-                      <CardFields
-                        tableid={tableid}
-                        recordid={recordid}
-                        mastertableid={mastertableid}
-                        masterrecordid={masterrecordid}
-                      />
+                      responseData.cardTabs.find(tab => tab === 'Custom') ? (
+                        <DynamicTableBridge 
+                            tableId={tableid}
+                            recordid={recordid}
+                            mastertableid={mastertableid}
+                            masterrecordid={masterrecordid}
+                          />
+                      ) : (
+                        <CardFields
+                          tableid={tableid}
+                          recordid={recordid}
+                          mastertableid={mastertableid}
+                          masterrecordid={masterrecordid}
+                        />
+                      )
                     ) : (
                       <>
+                        {activeTab === 'Custom' && (
+                          <DynamicTableBridge 
+                            tableId={tableid}
+                            recordid={recordid}
+                            mastertableid={mastertableid}
+                            masterrecordid={masterrecordid}
+                          />
+                        )}
                         {activeTab === 'Campi' && (
                           <CardFields
                             tableid={tableid}
@@ -168,8 +195,8 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                         {activeTab === 'AttachmentsDemo' && (
                           <RecordAttachmentsDemo tableid={tableid} recordid={recordid} />
                         )}
-                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo'].indexOf(activeTab) === -1 && (
-                          <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
+                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Custom'].indexOf(activeTab) === -1 && (
+                          <div className="text-gray-400 italic">Nessun contenuto da mostrare {activeTab}</div>
                         )}
                       </>
                     )}

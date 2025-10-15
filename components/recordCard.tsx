@@ -238,7 +238,7 @@ export default function RecordCard({
   const containerStyleDesktop: React.CSSProperties = {
     right: `${getOffset() + 10}px`,
     marginTop: `${getOffset()}px`,
-    zIndex: 50 + index,
+    zIndex: 40 + index,
   };
 
   return (

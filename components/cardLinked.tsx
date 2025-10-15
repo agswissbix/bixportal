@@ -181,7 +181,8 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2 hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
+                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2 hover:scale-110 transition-all duration-100" 
+                                onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
                                     <SquarePlus name="Plus" className="mr-2" /> 
                                     Aggiungi    
                                 </button>

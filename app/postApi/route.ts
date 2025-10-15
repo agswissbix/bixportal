@@ -178,6 +178,7 @@ export async function POST(request: Request) {
     case 'schedule_toggle': djangoUrl = `/scheduler/toggle/`; break;
     case 'schedule_run_now': djangoUrl = `/scheduler/run/`; break;
     case 'schedule_delete': djangoUrl = `/scheduler/delete/`; break;
+    case 'run_function': djangoUrl = `/scheduler/run_function/`; break;
     case 'save_newuser': djangoUrl = `/commonapp/save_newuser/`; break;
     case 'get_users_and_groups_api': djangoUrl = `/commonapp/get_users_and_groups_api/`; break;
     case 'save_user_theme_api': djangoUrl = `/commonapp/save_user_settings_api/`; break;
@@ -204,6 +205,7 @@ export async function POST(request: Request) {
     case 'settings_table_fields_settings_fields_save': djangoUrl = '/commonapp/settings_table_fields_settings_fields_save/'; break;
     case 'settings_table_linkedtables': djangoUrl = '/commonapp/settings_table_linkedtables/'; break;
     case 'fieldsupdate': djangoUrl = '/commonapp/fieldsupdate/'; break;
+    case 'get_fields_swissbix_deal': djangoUrl = '/customapp_swissbix/get_fields_swissbix_deal/'; break;
     
     case 'settings_table_linkedtables_save': djangoUrl = '/commonapp/settings_table_linkedtables_save/'; break;
     case 'save_new_table': djangoUrl = '/commonapp/save_new_table/'; break;

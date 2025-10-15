@@ -32,7 +32,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
   const { refreshTable, setIsFiltersOpen, isFiltersOpen } = useRecordsStore() // Stato per il valore di ricerca
 
-  const { cardsList, addCard, removeCard, resetCardsList, handleRowClick, searchTerm, tableView } = useRecordsStore() // Stato per il valore di ricerca
+  const { cardsList, addCard, removeCard, resetCardsList, handleRowClick, searchTerm, filtersList, tableView } = useRecordsStore() // Stato per il valore di ricerca
 
   const { activeServer } = useContext(AppContext)
 
@@ -110,6 +110,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
           tableid: tableid,
           searchTerm: searchTerm,
           view: tableView,
+          filters: filtersList
         },
         {
           responseType: "blob",
