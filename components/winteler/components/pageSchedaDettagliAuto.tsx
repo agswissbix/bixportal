@@ -209,15 +209,16 @@ export default function PageSchedaDettagliAuto({ propExampleValue }: PropsInterf
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="flex items-center justify-center p-4">
+                <div className="flex items-center justify-center p-4 overflow-y-auto max-h-screen">
                     <div className="overflow-hidden bg-white shadow-md border border-gray-200">
                         <div className="w-full flex flex-col justify-center items-center p-4">
                             <Image
-                                    src="/bixdata/logos/winteler.png"
-                                    alt=""
-                                    width={400}
-                                    height={200}
-                                />
+                                src="/bixdata/logos/winteler.png"
+                                alt="Logo Winteler"
+                                width={400}
+                                height={200}
+                                className="w-full h-auto" 
+                            />
                         </div>
 
                         <div className="w-full flex flex-col justify-center p-5 mb-8">

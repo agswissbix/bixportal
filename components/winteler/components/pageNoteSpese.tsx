@@ -43,7 +43,7 @@ type PagamentoValue = ExtractValue<typeof PAGAMENTO>;
             importo: number;
             pagamento: PagamentoValue;
             note: string;
-            foto: File | null;
+            foto: File[] ;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -63,7 +63,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                     importo: 0,
                     pagamento: PAGAMENTO[0].value, 
                     note: "",
-                    foto: null
+                    foto: []
                 }
             };
 
@@ -74,7 +74,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                     importo: 0,
                     pagamento: PAGAMENTO[0].value, 
                     note: "",
-                    foto: null
+                    foto: []
                 }
             };
 
@@ -84,7 +84,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
 
-    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+    const [fotoPreview, setFotoPreview] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // PAYLOAD (solo se non in sviluppo)
@@ -143,19 +143,22 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+        const files = e.target.files;
     
-        if (file) {
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+
             setResponseData(prev => ({
                 ...prev,
                 spesa: {
                     ...prev.spesa,
-                    foto: file
+                    foto: [...prev.spesa.foto, ...newFiles] 
                 }
             }));
     
-            const previewUrl = URL.createObjectURL(file);
-            setFotoPreview(previewUrl);
+            const newPreviewUrls = newFiles.map(file => URL.createObjectURL(file));
+
+            setFotoPreview(prev => [...prev, ...newPreviewUrls]);
         }
     };
 
@@ -163,16 +166,18 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
         fileInputRef.current?.click();
     };
 
-    const rimuoviFoto = () => {
+    const rimuoviFoto = (indexToRemove: number) => {
+        URL.revokeObjectURL(fotoPreview[indexToRemove]);
+
         setResponseData(prev => ({
             ...prev,
             spesa: {
                 ...prev.spesa,
-                foto: null
+                foto: prev.spesa.foto.filter((_, index) => index !== indexToRemove)
             }
         }));
     
-        setFotoPreview(null);
+        setFotoPreview(prev => prev.filter((_, index) => index !== indexToRemove));
     
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -181,9 +186,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
 
     useEffect(() => {
         return () => {
-            if (fotoPreview) {
-                URL.revokeObjectURL(fotoPreview);
-            }
+            fotoPreview.forEach(url => URL.revokeObjectURL(url));
         };
     }, [fotoPreview]);
 
@@ -194,15 +197,16 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="flex items-center justify-center p-4">
+                <div className="flex items-center justify-center p-4 overflow-y-auto max-h-screen">
                     <div className="overflow-hidden bg-white shadow-md border border-gray-200">
                         <div className="w-full flex flex-col justify-center items-center p-4">
                             <Image
-                                    src="/bixdata/logos/winteler.png"
-                                    alt=""
-                                    width={400}
-                                    height={200}
-                                />
+                                src="/bixdata/logos/winteler.png"
+                                alt="Logo Winteler"
+                                width={400}
+                                height={200}
+                                className="w-full h-auto" 
+                            />
                         </div>
 
                         <div className="w-full flex flex-col justify-center p-5 mb-8">
@@ -212,7 +216,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                                         <FloatingLabelSelect
                                             id="tipo"
                                             name="tipo"
-                                            label="tipo"
+                                            label="Tipo"
                                             value={response.spesa.tipo}
                                             onChange={handleChange}
                                             options={TIPO}
@@ -224,7 +228,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                                             type='number'
                                             id="importo"
                                             name="importo"
-                                            label="importo"
+                                            label="Importo"
                                             value={response.spesa.importo}
                                             onChange={handleChange}
                                         />
@@ -234,7 +238,7 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                                         <FloatingLabelSelect
                                             id="pagamento"
                                             name="pagamento"
-                                            label="pagamento"
+                                            label="Pagamento"
                                             value={response.spesa.pagamento}
                                             onChange={handleChange}
                                             options={PAGAMENTO}
@@ -245,22 +249,32 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                                         <FloatingLabelInput
                                             id="note"
                                             name="note"
-                                            label="note"
+                                            label="Note"
                                             value={response.spesa.note}
                                             onChange={handleChange}
                                         />
                                     </div>
 
-                                    {fotoPreview && (
-                                        <div className="mb-4 flex flex-col items-center">
-                                            <p className="font-semibold mb-2">Anteprima:</p>
-                                            <Image
-                                                src={fotoPreview}
-                                                alt="Anteprima scontrino"
-                                                width={200}
-                                                height={200}
-                                                className="object-contain border border-gray-300"
-                                            />
+                                    {fotoPreview.length > 0 && (
+                                        <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                            {fotoPreview.map((previewUrl, index) => (
+                                                <div key={index} className="relative flex flex-col items-center">
+                                                    <Image
+                                                        src={previewUrl}
+                                                        alt={`Anteprima ${index + 1}`}
+                                                        width={150}
+                                                        height={150}
+                                                        className="object-contain border border-gray-300 rounded"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => rimuoviFoto(index)}
+                                                        className="mt-2 text-sm text-red-600 hover:text-red-800"
+                                                    >
+                                                        Rimuovi
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
 
@@ -270,23 +284,15 @@ export default function PageNoteSpese({ propExampleValue }: PropsInterface) {
                                             onChange={handleFileChange}
                                             className="hidden"
                                             accept="image/*"
+                                            multiple
                                         />
 
                                     <GeneralButton
-                                        text={responseData.spesa.foto ? 'Cambia Foto' : 'Carica Foto'} 
+                                        text={response.spesa.foto.length > 0 ? 'Aggiungi Foto' : 'Carica Foto'} 
                                         className='mb-4'
                                         action={caricaFoto}
                                         type="button" 
                                     />
-
-                                    {fotoPreview && (
-                                            <GeneralButton
-                                                text='Rimuovi foto'
-                                                action={rimuoviFoto}
-                                                type="button"
-                                                className="mb-4" 
-                                            />
-                                        )}
 
                                     <GeneralButton 
                                         type="submit" 

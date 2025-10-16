@@ -22,7 +22,7 @@ const isDev = true;
           responseExampleValue: string;
         }
 
-export default function PageMenu({ propExampleValue }: PropsInterface) {
+export default function PageProveAutoMenu({ propExampleValue }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -78,14 +78,10 @@ export default function PageMenu({ propExampleValue }: PropsInterface) {
     };
 
     const buttonsList = [
-        { text: 'SCHEDA AUTO', route: '/scheda-auto' },
-        { text: 'NOTE SPESE', route: '/note-spese' },
-        { text: 'PROVE AUTO', route: '/prove-auto' },
-        { text: 'SERVICE MAN', route: '/service-man' },
-        { text: 'PREVENTIVO CARROZZERIA', route: '/preventivo-carrozzeria' },
-        { text: 'AUTO NUOVE', route: '/auto-nuove' },
-        { text: 'CHECK LIST', route: '/check-list' },
-        { text: 'LOGOUT', route: '/logout' }
+        { text: 'nuova', route: '/nuova-prova-auto' },
+        { text: 'precompilate', route: '/precompilate' },
+        { text: 'in corso', route: '/prove-auto-in-corso' },
+        { text: 'menu', route: '/menu' },
     ]
 
     return (

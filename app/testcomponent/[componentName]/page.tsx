@@ -51,6 +51,8 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     pageSchedaAuto: dynamic(() => import('@/components/winteler/components/pageSchedaAuto')),
     pageSchedaDettagliAuto: dynamic(() => import('@/components/winteler/components/pageSchedaDettagliAuto')),
     pageNoteSpese: dynamic(() => import('@/components/winteler/components/pageNoteSpese')),
+    pageProveAutoMenu: dynamic(() => import('@/components/winteler/components/pageProveAutoMenu')),
+    pageNuovaProvaAuto: dynamic(() => import('@/components/winteler/components/pageNuovaProvaAuto')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
