@@ -75,9 +75,9 @@ const TabellePage: React.FC = () => {
 	const [users, setUsers] = useState<User[]>([])
 	const [groups, setGroups] = useState<User[]>([])
   const [selectedUserId, setSelectedUserId] = useState<string>(isDev ? "2" : "")
-  const [workspaces, setWorkspaces] = useState<Record<string, Workspace> | undefined>(
-    isDev ? UserTablesDev.workspaces : undefined,
-  )
+  // const [workspaces, setWorkspaces] = useState<Record<string, Workspace> | undefined>(
+  //   isDev ? UserTablesDev.workspaces : undefined,
+  // )
   const [selectedTableId, setSelectedTableId] = useState<string>(isDev ? "tbl_campaigns" : "")
   const [selectedFieldId, setSelectedFieldId] = useState<string>(isDev ? "f1" : "")
   const [success, setSuccess] = useState<string | null>(
@@ -171,7 +171,6 @@ const TabellePage: React.FC = () => {
                     selectedUserId={selectedUserId}
                     selectedTableId={selectedTableId}
                     onSelectTable={setSelectedTableId}
-                    onWorkspacesChange={setWorkspaces}
                   />
                 </ColumnWrapper>
               </div>

@@ -61,21 +61,25 @@ interface LinkedTable {
   tableid: string
   description: string
   rowsCount: number
+  tablelinkid?: number
+  fieldorder?: number
+}
+
+interface Step {
+  id: number
+  name: string
+  type: "campi" | "collegate"
+  order: number
+  fields?: Array<FieldInterface>
+  linked_tables?: Array<LinkedTable>
 }
 
 interface ResponseInterface {
-  fields: Array<FieldInterface>
   recordid: string
-  linkedTables?: Array<LinkedTable>
+  steps?: Array<Step>
 }
 
-const PRIORITY_FIELDS = [
-  "recordidcompany_",
-  "recordidproject_",
-  "recordidticket_",
-  "timesheetline",
-  "traveltime"
-]
+const PRIORITY_FIELDS = ["recordidcompany_", "recordidproject_", "recordidticket_", "timesheetline", "traveltime"]
 
 export default function CustomFormBuilder({
   tableid,
@@ -88,7 +92,7 @@ export default function CustomFormBuilder({
   const dummyInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
 
-  const responseDataDEFAULT: ResponseInterface = { fields: [], recordid: "" }
+  const responseDataDEFAULT: ResponseInterface = { recordid: "" }
   const { activeServer, role } = useContext(AppContext)
 
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? (undefined as any) : responseDataDEFAULT)
@@ -110,10 +114,17 @@ export default function CustomFormBuilder({
 
   const currentValues = useMemo(() => {
     const obj: Record<string, any> = {}
-    responseData?.fields.forEach((f) => {
-      const backendValue = typeof f.value === "object" ? ((f.value as any).code ?? (f.value as any).value) : f.value
-      obj[f.fieldid] = updatedFields.hasOwnProperty(f.fieldid) ? updatedFields[f.fieldid] : (backendValue ?? "")
+
+    // Collect all fields from all steps
+    responseData?.steps?.forEach((step) => {
+      if (step.type === "campi" && step.fields) {
+        step.fields?.forEach((f) => {
+          const backendValue = typeof f.value === "object" ? ((f.value as any).code ?? (f.value as any).value) : f.value
+          obj[f.fieldid] = updatedFields.hasOwnProperty(f.fieldid) ? updatedFields[f.fieldid] : (backendValue ?? "")
+        })
+      }
     })
+
     return obj
   }, [responseData, updatedFields])
 
@@ -168,112 +179,49 @@ export default function CustomFormBuilder({
   const [currentStep, setCurrentStep] = useState(0)
 
   const stepsData = useMemo(() => {
-    if (!responseData?.fields) return []
+    if (!responseData?.steps) return []
 
-    const priority: FieldInterface[] = []
-    const secondary: FieldInterface[] = []
-    const fatturazione: FieldInterface[] = []
-    const sistema: FieldInterface[] = []
-    const linkedTablesForPriority: LinkedTable[] = []
-    const linkedTablesForLinked: LinkedTable[] = []
+    return responseData.steps
+      .sort((a, b) => a.order - b.order)
+      .map((step) => {
+        if (step.type === "campi") {
+          const stepFields = (step.fields || []).sort((a, b) => {
+            const orderA = Number(a.fieldorder) || 0
+            const orderB = Number(b.fieldorder) || 0
+            return orderA - orderB
+          })
 
-    // Separate linked tables based on whether they should be in priority
-    if (responseData.linkedTables) {
-      responseData.linkedTables.forEach((table) => {
-        // Check if this linked table should be in priority (you can customize this logic)
-        if (PRIORITY_FIELDS.includes(table.tableid.toLowerCase())) {
-          linkedTablesForPriority.push(table)
+          return {
+            id: `step_${step.id}`,
+            title: step.name,
+            description: `Compila i campi e salva.`,
+            fields: stepFields,
+            type: "fields" as const,
+          }
+        } else if (step.type === "collegate") {
+          const linkedTables = (step.linked_tables || []).sort((a, b) => (a.fieldorder ?? 0) - (b.fieldorder ?? 0))
+
+          return {
+            id: `step_${step.id}`,
+            title: step.name,
+            description: `Aggiungi e visualizza le righe collegate.`,
+            fields: [],
+            linkedTables,
+            type: "linked" as const,
+          }
         }
-          
-        linkedTablesForLinked.push(table)
+
+        return {
+          id: `step_${step.id}`,
+          title: step.name,
+          description: `Step ${step.order + 1}`,
+          fields: [],
+          linkedTables: [],
+          type: "linked" as const,
+        }
       })
-    }
-
-    responseData.fields.forEach((field) => {
-      if (
-        PRIORITY_FIELDS.includes(field.fieldid.toLowerCase()) ||
-        (typeof field.settings === "object" && field.settings.obbligatorio === "true")
-      ) {
-        priority.push(field)
-      } else if (field.label === "Fatturazione") {
-        fatturazione.push(field)
-      } else if (field.label === "Sistema") {
-        sistema.push(field)
-      } else {
-        secondary.push(field)
-      }
-    })
-
-    priority.sort((a, b) => {
-      const indexA = PRIORITY_FIELDS.indexOf(a.fieldid.toLowerCase())
-      const indexB = PRIORITY_FIELDS.indexOf(b.fieldid.toLowerCase())
-      if (indexA === -1) return 1
-      if (indexB === -1) return -1
-      return indexA - indexB
-    })
-
-    type StepType = "fields" | "linked"
-    const steps: Array<{
-      id: string
-      title: string
-      description: string
-      fields: FieldInterface[]
-      linkedTables?: LinkedTable[]
-      type: StepType
-    }> = [
-      {
-        id: "main",
-        title: "Dati Principali",
-        description: "Informazioni essenziali del timesheet",
-        fields: priority,
-        linkedTables: linkedTablesForPriority,
-        type: "fields",
-      },
-    ]
-
-    if (secondary.length > 0) {
-      steps.push({
-        id: "secondary",
-        title: "Campi Aggiuntivi",
-        description: "Altri campi del timesheet",
-        fields: secondary,
-        type: "fields" as const,
-      })
-    }
-
-    if (fatturazione.length > 0) {
-      steps.push({
-        id: "fatturazione",
-        title: "Fatturazione",
-        description: "Informazioni di fatturazione",
-        fields: fatturazione,
-        type: "fields" as const,
-      })
-    }
-
-    if (sistema.length > 0 && role === "admin") {
-      steps.push({
-        id: "sistema",
-        title: "Sistema",
-        description: "Campi di sistema (solo admin)",
-        fields: sistema,
-        type: "fields" as const,
-      })
-    }
-
-    if (linkedTablesForLinked.length > 0) {
-      steps.push({
-        id: "linked",
-        title: "Tabelle Collegate",
-        description: "Visualizza record collegati",
-        fields: [],
-        linkedTables: linkedTablesForLinked,
-        type: "linked" as const,
-      })
-    }
-
-    return steps
-  }, [responseData, role])
+      .filter((step): step is NonNullable<typeof step> => step !== null)
+  }, [responseData])
 
   const goToNextStep = () => {
     if (currentStep < stepsData.length - 1) {
@@ -311,19 +259,26 @@ export default function CustomFormBuilder({
       setResponseData(response)
 
       const initialFields: { [key: string]: string | string[] | File } = {}
-      response.fields.forEach((field) => {
-        const settings = typeof field.settings === "object" ? field.settings : null
-        const defaultValue = settings?.default
 
-        const backendValue =
-          typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
+      // Collect all fields from all steps
+      response.steps?.forEach((step) => {
+        if (step.type === "campi" && step.fields) {
+          step.fields?.forEach((field) => {
+            const settings = typeof field.settings === "object" ? field.settings : null
+            const defaultValue = settings?.default
 
-        if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
-          initialFields[field.fieldid] = defaultValue
-        } else if (backendValue !== undefined && backendValue !== null) {
-          initialFields[field.fieldid] = backendValue
+            const backendValue =
+              typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
+
+            if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
+              initialFields[field.fieldid] = defaultValue
+            } else if (backendValue !== undefined && backendValue !== null) {
+              initialFields[field.fieldid] = backendValue
+            }
+          })
         }
       })
+
       setUpdatedFields(initialFields)
     }
   }, [response, isDev, responseData])
@@ -338,10 +293,17 @@ export default function CustomFormBuilder({
   }, [stepsData])
 
   useEffect(() => {
-    const requiredFields =
-      responseData?.fields.filter(
-        (field) => typeof field.settings === "object" && field.settings.obbligatorio === "true",
-      ) || []
+    // Collect all required fields from all steps
+    const allFields: FieldInterface[] = []
+    responseData?.steps?.forEach((step) => {
+      if (step.type === "campi" && step.fields) {
+        allFields.push(...step.fields)
+      }
+    })
+
+    const requiredFields = allFields.filter(
+      (field) => typeof field.settings === "object" && field.settings.obbligatorio === "true",
+    )
 
     if (requiredFields.length === 0) {
       setIsSaveDisabled(Object.keys(updatedFields).length === 0)
@@ -354,7 +316,7 @@ export default function CustomFormBuilder({
     })
 
     setIsSaveDisabled(!allRequiredFilled || Object.keys(updatedFields).length === 0)
-  }, [currentValues, responseData?.fields, updatedFields])
+  }, [currentValues, responseData?.steps, updatedFields])
 
   const toggleAccordion = (label: string) => {
     setOpenAccordions((prev) => ({ ...prev, [label]: !prev[label] }))
@@ -393,7 +355,6 @@ export default function CustomFormBuilder({
       toast.error("Errore durante il salvataggio del record")
     } finally {
       setRefreshTable((v) => v + 1)
-      removeCard(tableid, recordid)
     }
   }
 
@@ -452,7 +413,9 @@ export default function CustomFormBuilder({
           <button
             type="button"
             disabled={recordid === undefined || recordid === null || recordid === ""}
-            title={recordid === undefined || recordid === null || recordid === "" ? "Salva il record per abilitare" : ""}
+            title={
+              recordid === undefined || recordid === null || recordid === "" ? "Salva il record per abilitare" : ""
+            }
             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
             ${recordid === undefined || recordid === null || recordid === "" ? "opacity-50 cursor-not-allowed" : ""}
               `}
@@ -680,7 +643,7 @@ export default function CustomFormBuilder({
                     zIndex: 1,
                   }}
                 />
-                <div className="relative flex items-center justify-between gap-2 md:gap-4" style={{ zIndex: 2 }}>
+                <div className="relative flex items-center justify-around gap-2 md:gap-4" style={{ zIndex: 2 }}>
                   {stepsData.map((step, index) => {
                     const isActive = index === currentStep
                     const isCompleted = index < currentStep
@@ -691,24 +654,18 @@ export default function CustomFormBuilder({
                         key={step.id}
                         type="button"
                         onClick={() => goToStep(index)}
-                        className={`
-                          flex flex-col items-center gap-2 transition-all duration-300 group relative
-                          ${isActive ? "scale-110" : "scale-100 hover:scale-105"}
-                          flex-1 md:flex-initial
-                        `}
+                        className={`flex flex-col items-center gap-2 transition-all duration-300 group relative ${
+                          isActive ? "scale-110" : "scale-100 hover:scale-105"
+                        } flex-1 md:flex-initial`}
                       >
                         <div
-                          className={`
-                            relative flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold
-                            transition-all duration-300 border-2
-                            ${
-                              isActive
-                                ? "theme-primary text-white border-primary shadow-lg"
-                                : isCompleted
-                                  ? "bg-green-500 text-white border-green-500 shadow-md"
-                                  : "bg-white text-gray-400 border-gray-300 group-hover:border-gray-400 group-hover:shadow-md"
-                            }
-                          `}
+                          className={`relative flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 border-2 ${
+                            isActive
+                              ? "theme-primary text-white border-primary shadow-lg"
+                              : isCompleted
+                                ? "bg-green-500 text-white border-green-500 shadow-md"
+                                : "bg-white text-gray-400 border-gray-300 group-hover:border-gray-400 group-hover:shadow-md"
+                          }`}
                         >
                           {isCompleted ? (
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -732,27 +689,21 @@ export default function CustomFormBuilder({
 
                         <div className="flex flex-col items-center gap-0.5 min-w-0">
                           <span
-                            className={`
-                              text-xs md:text-sm font-medium transition-colors duration-300 text-center
-                              ${
-                                isActive
-                                  ? "text-primary"
-                                  : isCompleted
-                                    ? "text-gray-700"
-                                    : "text-gray-500 group-hover:text-gray-700"
-                              }
-                              hidden sm:block truncate max-w-[120px]
-                            `}
+                            className={`text-xs md:text-sm font-medium transition-colors duration-300 text-center ${
+                              isActive
+                                ? "text-primary"
+                                : isCompleted
+                                  ? "text-gray-700"
+                                  : "text-gray-500 group-hover:text-gray-700"
+                            } hidden sm:block truncate max-w-[120px]`}
                           >
                             {step.title}
                           </span>
 
                           <span
-                            className={`
-                              text-xs font-medium transition-colors duration-300 text-center
-                              ${isActive ? "text-primary" : isCompleted ? "text-gray-700" : "text-gray-500"}
-                              sm:hidden
-                            `}
+                            className={`text-xs font-medium transition-colors duration-300 text-center ${
+                              isActive ? "text-primary" : isCompleted ? "text-gray-700" : "text-gray-500"
+                            } sm:hidden`}
                           >
                             {step.title.split(" ")[0]}
                           </span>
@@ -780,7 +731,7 @@ export default function CustomFormBuilder({
 
               {stepsData[currentStep]?.type === "fields" ? (
                 <>
-                  {stepsData[currentStep]?.fields.map((field, index) => {
+                  {stepsData[currentStep]?.fields?.map((field, index) => {
                     const nextField = stepsData[currentStep]?.fields[index + 1]
 
                     if (
@@ -806,7 +757,7 @@ export default function CustomFormBuilder({
                     return renderField(field)
                   })}
 
-                  {stepsData[currentStep]?.linkedTables?.map((table) => renderLinkedTableButton(table))}
+                  {(stepsData[currentStep]?.linkedTables || [])?.map((table) => renderLinkedTableButton(table))}
                 </>
               ) : (
                 <div className="space-y-6">
@@ -823,9 +774,11 @@ export default function CustomFormBuilder({
                         <button
                           type="button"
                           disabled={recordid === undefined || recordid === null || recordid === ""}
-                          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
-                          ${recordid === undefined || recordid === null || recordid === "" ? "opacity-50 cursor-not-allowed" : ""}
-                          `}
+                          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] ${
+                            recordid === undefined || recordid === null || recordid === ""
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
                           onClick={() => handleRowClick("linked", "", table.tableid, tableid, recordid)}
                         >
                           <SquarePlus className="h-5 w-5" />
@@ -851,14 +804,11 @@ export default function CustomFormBuilder({
                 type="button"
                 onClick={goToPreviousStep}
                 disabled={currentStep === 0}
-                className={`
-                  inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200
-                  ${
-                    currentStep === 0
-                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border-2 border-gray-300 hover:border-gray-400 hover:scale-105 active:scale-95 shadow-sm hover:shadow"
-                  }
-                `}
+                className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  currentStep === 0
+                    ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                    : "bg-white text-gray-700 hover:bg-gray-100 border-2 border-gray-300 hover:border-gray-400 hover:scale-105 active:scale-95 shadow-sm hover:shadow"
+                }`}
               >
                 <ChevronLeftIcon className="h-4 w-4" />
                 <span className="hidden sm:inline">Indietro</span>
@@ -868,10 +818,10 @@ export default function CustomFormBuilder({
                 {currentStep < stepsData.length - 1 && (
                   <button
                     type="button"
-                    onClick={goToNextStep}
+                    onClick={() =>{handleSave(); goToNextStep()}}
                     className="inline-flex items-center gap-2 rounded-lg theme-primary px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
                   >
-                    <span>Avanti</span>
+                    <span>Salva e Avanti</span>
                     <ChevronRightIcon className="h-4 w-4" />
                   </button>
                 )}
@@ -879,7 +829,7 @@ export default function CustomFormBuilder({
                 {activeServer !== "belotti" && (
                   <button
                     type="button"
-                    onClick={handleSave}
+                    onClick={() => {handleSave(); removeCard(tableid, recordid)}}
                     disabled={isSaveDisabled || isCalculating}
                     className={`theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-2.5 shadow-md hover:shadow-lg transition-all duration-200 ${
                       isSaveDisabled || isCalculating
