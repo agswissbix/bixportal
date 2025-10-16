@@ -22,7 +22,7 @@ const isDev = true;
           responseExampleValue: string;
         }
 
-export default function PageProveAutoMenu({ propExampleValue }: PropsInterface) {
+export default function PageServiceManMenu({ propExampleValue }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
             const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
@@ -78,9 +78,8 @@ export default function PageProveAutoMenu({ propExampleValue }: PropsInterface) 
     };
 
     const buttonsList = [
-        { text: 'nuova', route: '/nuova-prova-auto' },
-        { text: 'precompilate', route: '/precompilate' },
-        { text: 'in corso', route: '/prove-auto-in-corso' },
+        { text: 'nuova', route: '/nuova' },
+        { text: 'in attesa di conferma', route: '/in-attesa-di-conferma' },
     ]
 
     return (

@@ -122,7 +122,7 @@ export default function PageLogin({ propExampleValue }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="flex items-center justify-center p-4 overflow-y-auto max-h-screen">
+                <div className="flex items-start justify-center p-0 sm:p-4 overflow-y-auto max-h-screen">
                     <div className="overflow-hidden bg-white shadow-md border border-gray-200">
                         <div className="w-full flex flex-col justify-center items-center p-4">
                             <Image

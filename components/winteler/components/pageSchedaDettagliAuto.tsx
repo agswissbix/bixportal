@@ -209,7 +209,7 @@ export default function PageSchedaDettagliAuto({ propExampleValue }: PropsInterf
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="flex items-center justify-center p-4 overflow-y-auto max-h-screen">
+                <div className="flex items-start justify-center p-0 sm:p-4 overflow-y-auto max-h-screen">
                     <div className="overflow-hidden bg-white shadow-md border border-gray-200">
                         <div className="w-full flex flex-col justify-center items-center p-4">
                             <Image
@@ -306,47 +306,50 @@ export default function PageSchedaDettagliAuto({ propExampleValue }: PropsInterf
                                 </button>
 
                                 {activeIndex === "allegati" && (
-                                    <div className="w-full text-sm border-t border-gray-200 p-4 ">
-                                        {response.scheda_auto.allegati.length > 0 ? (
-                                            response.scheda_auto.allegati.map((documento) => (
-                                                <div 
-                                                    key={documento.path} 
-                                                    className="flex items-center justify-between px-4 py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors duration-150"
-                                                >
-                                                    <span className="font-medium text-gray-700">
-                                                        {documento.titolo || documento.path.split('/').pop()}
-                                                    </span>
+                                    <div className="w-full text-sm border-t border-gray-200 p-4 overflow-x-auto">
+                                        <div className="min-w-max">
+                                            {response.scheda_auto.allegati.length > 0 ? (
+                                                response.scheda_auto.allegati.map((documento) => (
+                                                    <div 
+                                                        key={documento.path} 
+                                                        className="flex items-center justify-between px-4 py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors duration-150"
+                                                    >
+                                                        <span className="font-medium text-gray-700">
+                                                            {documento.titolo || documento.path.split('/').pop()}
+                                                        </span>
 
-                                                    <div className="flex items-center gap-3">
-                                                        <button
-                                                            onClick={() => window.open(`${API_BASE_URL}${documento.path}`, '_blank')}
-                                                            className="text-gray-500 hover:text-blue-600 transition-colors"
-                                                            title="Visualizza"
-                                                        >
-                                                            <EyeIcon className="h-5 w-5" />
-                                                        </button>
+                                                        <div className="flex items-center gap-3">
+                                                            <button
+                                                                onClick={() => window.open(`${API_BASE_URL}${documento.path}`, '_blank')}
+                                                                className="text-gray-500 hover:text-blue-600 transition-colors"
+                                                                title="Visualizza"
+                                                            >
+                                                                <EyeIcon className="h-5 w-5" />
+                                                            </button>
 
-                                                        <button
-                                                            onClick={() => scaricaDocumento(documento.path)}
-                                                            className="text-gray-500 hover:text-green-600 transition-colors"
-                                                            title="Scarica"
-                                                        >
-                                                            <ArrowDownTrayIcon className="h-5 w-5" />
-                                                        </button>
+                                                            <button
+                                                                onClick={() => scaricaDocumento(documento.path)}
+                                                                className="text-gray-500 hover:text-green-600 transition-colors"
+                                                                title="Scarica"
+                                                            >
+                                                                <ArrowDownTrayIcon className="h-5 w-5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="px-4 py-3 text-gray-500">Nessun allegato presente.</div>
-                                        )}
-                                </div>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-3 text-gray-500">Nessun allegato presente.</div>
+                                            )}
+                                            
+                                        </div>
+                                    </div>
                                 )}
 
                             </div>
 
                             <div
                                 key="collegati"
-                                className="bg-white shadow overflow-hidden border border-gray-200"
+                                className="bg-white shadow overflow-x-auto border border-gray-200"
                             >
                                 <button
                                     className="w-full text-left flex items-center p-4 text-lg font-medium text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out border-b border-gray-200"
@@ -358,32 +361,34 @@ export default function PageSchedaDettagliAuto({ propExampleValue }: PropsInterf
                                 </button>
 
                                 {activeIndex === "collegati" && (
-                                    <div className="w-full text-sm border-t border-gray-200 p-4">
-                                        {response.scheda_auto.collegati.length > 0 ? (
-                                            response.scheda_auto.collegati.map((documento) => (
-                                                isExternalLink(documento.path) ? (
-                                                    <a
-                                                        key={documento.path}
-                                                        href={documento.path}
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
-                                                    >
-                                                        <span className="font-medium text-gray-700">{documento.titolo || documento.path}</span>
-                                                        <ArrowTopRightOnSquareIcon className="h-5 w-5 text-gray-500" />
-                                                    </a>
-                                                ) : (
-                                                    <Link href={documento.path} key={documento.path} legacyBehavior>
-                                                        <a className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                                    <div className="w-full text-sm border-t border-gray-200 p-4 overflow-x-auto">
+                                            <div className="min-w-max">
+                                                {response.scheda_auto.collegati.length > 0 ? (
+                                                    response.scheda_auto.collegati.map((documento) => (
+                                                    isExternalLink(documento.path) ? (
+                                                        <a
+                                                            key={documento.path}
+                                                            href={documento.path}
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                                                        >
                                                             <span className="font-medium text-gray-700">{documento.titolo || documento.path}</span>
                                                             <ArrowTopRightOnSquareIcon className="h-5 w-5 text-gray-500" />
                                                         </a>
-                                                    </Link>
-                                                )
-                                            ))
-                                        ) : (
-                                            <div className="px-4 py-3 text-gray-500">Nessun collegamento presente.</div>
-                                        )}
+                                                    ) : (
+                                                        <Link href={documento.path} key={documento.path} legacyBehavior>
+                                                            <a className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                                                                <span className="font-medium text-gray-700">{documento.titolo || documento.path}</span>
+                                                                <ArrowTopRightOnSquareIcon className="h-5 w-5 text-gray-500" />
+                                                            </a>
+                                                        </Link>
+                                                    )
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-3 text-gray-500">Nessun collegamento presente.</div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 

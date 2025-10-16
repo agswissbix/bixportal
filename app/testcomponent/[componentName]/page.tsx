@@ -53,6 +53,9 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     pageNoteSpese: dynamic(() => import('@/components/winteler/components/pageNoteSpese')),
     pageProveAutoMenu: dynamic(() => import('@/components/winteler/components/pageProveAutoMenu')),
     pageNuovaProvaAuto: dynamic(() => import('@/components/winteler/components/pageNuovaProvaAuto')),
+    pageProveAuto: dynamic(() => import('@/components/winteler/components/pageProveAuto')),
+    pageServiceManMenu: dynamic(() => import('@/components/winteler/components/pageServiceManMenu')),
+    pageNuovaServiceMan: dynamic(() => import('@/components/winteler/components/pageNuovaServiceMan')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
