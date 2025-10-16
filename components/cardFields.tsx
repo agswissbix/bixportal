@@ -262,6 +262,7 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
     const isRequiredEmpty = isNewRecord && isRequired && isEmpty;
     const isRequiredFilled = isNewRecord && isRequired && !isEmpty;
     const hasDependencies = field.hasDependencies;
+    console.log("field: ", field)
 
     if (isCalculated) {
       return (
@@ -295,7 +296,36 @@ export default function CardFields({ tableid, recordid, mastertableid, masterrec
             isRequiredFilled ? 'ring-2 ring-green-500/20' : ''
           }`}>
             <div className="p-2 bg-gray-100 rounded-md">
-              {value}
+              {field.fieldtype === 'Utente' ? (
+                <>
+                {value && field.lookupitemsuser?.find((u) => u.userid.toString() === value) && (
+                <div className="flex items-center gap-2">
+                    <img
+                      src={`/api/media-proxy?url=userProfilePic/${value}.png`}
+                      alt={
+                        field.lookupitemsuser.find((u) => u.userid.toString() === value)?.firstname +
+                        " " +
+                        field.lookupitemsuser.find((u) => u.userid.toString() === value)?.lastname
+                      }
+                      className="w-6 h-6 rounded-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes("default.jpg")) {
+                          target.src = "/api/media-proxy?url=userProfilePic/default.jpg";
+                        }
+                      }}
+                    />
+                  <label>{field.lookupitemsuser.find((u) => u.userid.toString() === value)?.firstname +
+                        " " +
+                        field.lookupitemsuser.find((u) => u.userid.toString() === value)?.lastname}</label>
+                </div>
+                  )}
+                  </>
+                ): 
+                <>
+                {value}
+                </>
+              }
             </div>
             
             {isRequired && (
