@@ -2,11 +2,10 @@
 
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
-import { GripVertical, Settings, Eye, EyeOff } from "lucide-react"
+import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { set } from "lodash"
 
 interface DraggableItem {
   id: string
@@ -18,6 +17,9 @@ interface DraggableItem {
 interface DraggableGroup {
   name: string
   items: DraggableItem[]
+  groupOrder?: number | null
+  groupHidden?: boolean
+  groupCollapsed?: boolean
 }
 
 interface DraggableListProps {
@@ -37,9 +39,10 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   title,
   showGroups = true,
   isSaved = true,
-  setIsSaved
+  setIsSaved,
 }) => {
   const [draggedItem, setDraggedItem] = useState<{ groupName: string; itemIndex: number } | null>(null)
+  const [draggedGroup, setDraggedGroup] = useState<string | null>(null)
   const initialOrders = useRef<Record<string, Record<string, number | null>>>({})
 
   useEffect(() => {
@@ -83,14 +86,14 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     // Crea nuovi oggetti con order aggiornato
     const reorderedWithNewOrder = reorderedVisible.map((item, index) => ({
       ...item,
-      order: index
+      order: index,
     }))
 
     // Combina con gli elementi nascosti (crea copie)
     const hiddenItems = group.items
       .filter((item) => item.order === null || item.order === undefined)
-      .map(item => ({ ...item }))
-    
+      .map((item) => ({ ...item }))
+
     const newItems = [...reorderedWithNewOrder, ...hiddenItems]
 
     onGroupsChange({
@@ -103,6 +106,41 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
   const handleDragEnd = () => {
     setDraggedItem(null)
+    setDraggedGroup(null)
+  }
+
+  const handleGroupDragStart = (groupKey: string) => {
+    setDraggedGroup(groupKey)
+  }
+
+  const handleGroupDragOver = (e: React.DragEvent, targetGroupKey: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!draggedGroup || draggedGroup === targetGroupKey) return
+
+    // Get visible groups sorted by order
+    const visibleGroups = Object.entries(groups)
+      .filter(([_, group]) => !group.groupHidden)
+      .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
+
+    const draggedIndex = visibleGroups.findIndex(([key]) => key === draggedGroup)
+    const targetIndex = visibleGroups.findIndex(([key]) => key === targetGroupKey)
+
+    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return
+
+    // Reorder visible groups
+    const reordered = [...visibleGroups]
+    const [movedGroup] = reordered.splice(draggedIndex, 1)
+    reordered.splice(targetIndex, 0, movedGroup)
+
+    // Update group orders
+    const updatedGroups = { ...groups }
+    reordered.forEach(([key, group], index) => {
+      updatedGroups[key] = { ...group, groupOrder: index }
+    })
+
+    onGroupsChange(updatedGroups)
   }
 
   const toggleItemVisibility = (groupName: string, itemId: string) => {
@@ -112,15 +150,14 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     const item = group.items.find((i) => i.id === itemId)
     if (!item) return
 
-
     const isCurrentlyVisible = item.order !== null && item.order !== undefined
 
     // Crea una copia di tutti gli items
-    let newItems = group.items.map(i => ({ ...i }))
+    const newItems = group.items.map((i) => ({ ...i }))
 
     if (isCurrentlyVisible) {
       // Nascondi: setta order a null
-      const itemToHide = newItems.find(i => i.id === itemId)
+      const itemToHide = newItems.find((i) => i.id === itemId)
       if (itemToHide) itemToHide.order = null
 
       // Riordina gli altri elementi visibili
@@ -134,7 +171,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     } else {
       // Mostra: setta order come ultimo
       const visibleItems = newItems.filter((i) => i.order !== null && i.order !== undefined)
-      const itemToShow = newItems.find(i => i.id === itemId)
+      const itemToShow = newItems.find((i) => i.id === itemId)
       if (itemToShow) itemToShow.order = visibleItems.length
     }
 
@@ -144,28 +181,138 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     })
   }
 
+  const toggleGroupVisibility = (groupKey: string) => {
+    const group = groups[groupKey]
+    if (!group) return
+
+    const isCurrentlyVisible = !group.groupHidden
+
+    const updatedGroups = { ...groups }
+
+    if (isCurrentlyVisible) {
+      // Hide group
+      updatedGroups[groupKey] = { ...group, groupHidden: true, groupOrder: null }
+
+      // Reorder remaining visible groups
+      const visibleGroups = Object.entries(updatedGroups)
+        .filter(([key, g]) => key !== groupKey && !g.groupHidden)
+        .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
+
+      visibleGroups.forEach(([key, g], index) => {
+        updatedGroups[key] = { ...g, groupOrder: index }
+      })
+    } else {
+      // Show group - add as last
+      const visibleGroups = Object.entries(updatedGroups).filter(([_, g]) => !g.groupHidden)
+      updatedGroups[groupKey] = { ...group, groupHidden: false, groupOrder: visibleGroups.length }
+    }
+
+    onGroupsChange(updatedGroups)
+  }
+
+  const toggleGroupCollapse = (groupKey: string) => {
+    const group = groups[groupKey]
+    if (!group) return
+
+    onGroupsChange({
+      ...groups,
+      [groupKey]: { ...group, groupCollapsed: !group.groupCollapsed },
+    })
+  }
+
   const renderContent = () => {
     if (!groups || Object.keys(groups).length === 0) return null
-    
-    if (showGroups) {
-      return Object.entries(groups).map(([key, group]) => {
-        const visibleItems = group.items
-          .filter((item) => item.order !== null && item.order !== undefined)
-          .sort((a, b) => (a.order || 0) - (b.order || 0))
-        const hiddenItems = group.items.filter((item) => item.order === null || item.order === undefined)
 
-        return (
-          <Card key={key}>
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>{group.name}</span>
-                <Badge variant="outline">{visibleItems.length} visibili</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">{renderItems(group.name, visibleItems, hiddenItems)}</CardContent>
-          </Card>
-        )
-      })
+    if (showGroups) {
+      const visibleGroups = Object.entries(groups)
+        .filter(([_, group]) => !group.groupHidden)
+        .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
+
+      const hiddenGroups = Object.entries(groups).filter(([_, group]) => group.groupHidden)
+
+      return (
+        <>
+          {/* Visible Groups */}
+          {visibleGroups.map(([key, group]) => {
+            const visibleItems = group.items
+              .filter((item) => item.order !== null && item.order !== undefined)
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+            const hiddenItems = group.items.filter((item) => item.order === null || item.order === undefined)
+
+            return (
+              <Card
+                key={key}
+                draggable
+                onDragStart={() => handleGroupDragStart(key)}
+                onDragOver={(e) => handleGroupDragOver(e, key)}
+                onDragEnd={handleDragEnd}
+                className={`
+                  cursor-move transition-all
+                  ${draggedGroup === key ? "opacity-50 scale-95" : ""}
+                `}
+              >
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleGroupCollapse(key)}
+                        className="hover:bg-white"
+                      >
+                        {group.groupCollapsed ? (
+                          <ChevronRight className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <span>{group.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{visibleItems.length} visibili</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleGroupVisibility(key)}
+                        className="hover:bg-green-50"
+                      >
+                        <Eye className="h-4 w-4 text-green-600" />
+                      </Button>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                {!group.groupCollapsed && (
+                  <CardContent className="pt-4">{renderItems(group.name, visibleItems, hiddenItems)}</CardContent>
+                )}
+              </Card>
+            )
+          })}
+
+          {hiddenGroups.length > 0 && (
+            <div className="space-y-2 pt-4 border-t-2 border-dashed">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Gruppi Nascosti</h4>
+              {hiddenGroups.map(([key, group]) => (
+                <Card key={key} className="opacity-60 bg-gray-50">
+                  <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-50">
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      <span className="text-gray-700">{group.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleGroupVisibility(key)}
+                        className="hover:bg-gray-200"
+                      >
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
+      )
     } else {
       // Single group mode (no card wrapper)
       const firstGroup = Object.values(groups)[0]

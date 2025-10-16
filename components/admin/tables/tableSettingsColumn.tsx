@@ -21,6 +21,7 @@ import {
 import TableSettingsForm from "./settingsTableInput"
 import LinkedTables from "./linkedTables"
 import {FieldsList} from "./fieldsList"
+import StepsList from "./stepsList"
 
 const isDev = false
 
@@ -88,7 +89,7 @@ export const TableSettingsColumn: React.FC<{
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-        <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm border border-slate-200 p-1 rounded-lg mb-4">
+        <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border border-slate-200 p-1 rounded-lg mb-4">
           <TabsTrigger
             value="table"
             className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
@@ -106,6 +107,12 @@ export const TableSettingsColumn: React.FC<{
             className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
           >
             Tabelle collegate
+          </TabsTrigger>
+          <TabsTrigger
+            value="steps"
+            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+          >
+            Steps
           </TabsTrigger>
         </TabsList>
 
@@ -127,6 +134,11 @@ export const TableSettingsColumn: React.FC<{
         <TabsContent value="linkedtables" className="mt-4 h-10/12">
           <LinkedTables tableId={tableId} userId={userId}/>
         </TabsContent>
+
+        <TabsContent value="steps" className="mt-4 h-10/12">
+          <StepsList tableId={tableId} userId={userId}/>
+        </TabsContent>
+
       </Tabs>
     </div>
   )

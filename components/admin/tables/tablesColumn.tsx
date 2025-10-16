@@ -1,4 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react"
+"use client"
+
+import type React from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Table, Search, Save, Plus, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -22,6 +25,9 @@ interface TableType {
 interface Workspace {
   name: string
   tables: TableType[]
+  groupOrder?: number
+  groupHidden?: boolean
+  groupCollapsed?: boolean
 }
 
 interface WorkspacesResponse {
@@ -35,12 +41,16 @@ const UserTablesDev: WorkspacesResponse = {
       { id: "deal", description: "Trattative", workspace: "CRM", order: 1 },
       { id: "cliente", description: "Anagrafica clienti", workspace: "CRM", order: 2 },
     ],
+    groupOrder: 0,
+    groupHidden: false,
+    groupCollapsed: false,
   },
   FINANCE: {
     name: "FINANCE",
-    tables: [
-      { id: "invoice", description: "Fattura", workspace: "FINANCE", order: 1 },
-    ],
+    tables: [{ id: "invoice", description: "Fattura", workspace: "FINANCE", order: 1 }],
+    groupOrder: 1,
+    groupHidden: false,
+    groupCollapsed: false,
   },
 }
 
@@ -49,9 +59,8 @@ export const TablesColumn: React.FC<{
   selectedUserId: string
   selectedTableId: string
   onSelectTable: (tableId: string) => void
-  onWorkspacesChange: (workspaces: Record<string, Workspace>) => void
-}> = ({ selectedUserId, selectedTableId, onSelectTable, onWorkspacesChange }) => {
-  const [workspaces, setWorkspaces] = useState<WorkspacesResponse>(isDev ? UserTablesDev : {}) 
+}> = ({ selectedUserId, selectedTableId, onSelectTable }) => {
+  const [workspaces, setWorkspaces] = useState<WorkspacesResponse>(isDev ? UserTablesDev : {})
   const [isSaved, setIsSaved] = useState<boolean>(true)
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [showAddTable, setShowAddTable] = useState(false)
@@ -59,18 +68,18 @@ export const TablesColumn: React.FC<{
 
   const payload = useMemo(() => {
     if (isDev) return null
-    return { 
-      apiRoute: 'settings_table_usertables',
-      userid: selectedUserId
+    return {
+      apiRoute: "settings_table_usertables",
+      userid: selectedUserId,
     }
   }, [selectedUserId])
-  
-  const { response, loading, error } = !isDev && payload ? useApi<Record<string, Workspace>>(payload) : { response: null, loading: false, error: null }
-  
+
+  const { response, loading, error } = useApi<Record<string, Workspace>>(payload)
+
   useEffect(() => {
     if (!isDev && response) {
       setWorkspaces(response)
-      setNewTable({ ...newTable, workspace: Object.keys(response)[0] || "" } )
+      setNewTable({ ...newTable, workspace: Object.keys(response)[0] || "" })
     }
   }, [response])
 
@@ -94,7 +103,7 @@ export const TablesColumn: React.FC<{
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       )
 
       if (response.status === 200) {
@@ -112,7 +121,6 @@ export const TablesColumn: React.FC<{
           [newTable.workspace]: updatedWorkspace,
         }
         setWorkspaces(updatedWorkspaces)
-        onWorkspacesChange(updatedWorkspaces)
 
         setNewTable({ id: "", description: "", workspace: "" })
         setShowAddTable(false)
@@ -136,13 +144,16 @@ export const TablesColumn: React.FC<{
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       )
       if (response.data.success) {
         toast.success("Ordine delle tabelle salvato")
         setIsSaved(true)
       } else {
-        toast.error("Errore durante il salvataggio dell'ordine tabelle: " + (response.data.error || response.data.errors.join(", ")))
+        toast.error(
+          "Errore durante il salvataggio dell'ordine tabelle: " +
+            (response.data.error || response.data.errors.join(", ")),
+        )
       }
     } catch (error) {
       toast.error("Errore durante il salvataggio dell'ordine tabelle")
@@ -161,11 +172,13 @@ export const TablesColumn: React.FC<{
             order: item.order,
             workspace: item.workspace,
           })),
+          groupOrder: group.groupOrder,
+          groupHidden: group.groupHidden,
+          groupCollapsed: group.groupCollapsed,
         },
-      ])
+      ]),
     )
     setWorkspaces(updatedWorkspaces)
-    onWorkspacesChange(updatedWorkspaces)
   }
 
   // --- 🔍 Filtro frontend
@@ -178,13 +191,11 @@ export const TablesColumn: React.FC<{
       Object.entries(workspaces)
         .map(([key, ws]) => {
           const filteredTables = ws.tables.filter(
-            (t) =>
-              t.description.toLowerCase().includes(lower) ||
-              t.id.toLowerCase().includes(lower)
+            (t) => t.description.toLowerCase().includes(lower) || t.id.toLowerCase().includes(lower),
           )
           return [key, { ...ws, tables: filteredTables }]
         })
-        .filter(([_, ws]) => typeof ws !== "string" && ws.tables.length > 0)
+        .filter(([_, ws]) => typeof ws !== "string" && ws.tables.length > 0),
     )
   }, [searchTerm, workspaces])
 
@@ -202,9 +213,7 @@ export const TablesColumn: React.FC<{
       {(response: Record<string, Workspace>) => (
         <div className="p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              Tabelle Utente
-            </h2>
+            <h2 className="text-lg font-semibold flex items-center gap-2">Tabelle Utente</h2>
             <div className="flex items-center gap-2">
               <Button
                 onClick={() => setShowAddTable((prev) => !prev)}
@@ -301,10 +310,7 @@ export const TablesColumn: React.FC<{
                 >
                   Annulla
                 </Button>
-                <Button
-                  onClick={handleCreateTable}
-                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                >
+                <Button onClick={handleCreateTable} className="bg-blue-600 hover:bg-blue-700 text-white shadow-md">
                   <Save className="h-4 w-4 mr-2" /> Crea Tabella
                 </Button>
               </div>
@@ -335,8 +341,11 @@ export const TablesColumn: React.FC<{
                     order: t.order,
                     workspace: t.workspace,
                   })),
+                  groupOrder: (ws as Workspace).groupOrder,
+                  groupHidden: (ws as Workspace).groupHidden || (ws as Workspace).groupOrder === null,
+                  groupCollapsed: (ws as Workspace).groupCollapsed === undefined ? true : (ws as Workspace).groupCollapsed,
                 },
-              ])
+              ]),
             )}
             onGroupsChange={handleGroupsChange}
             onItemSettings={(tableId: string) => onSelectTable(tableId)}
