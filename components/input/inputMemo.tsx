@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
-import { Textarea } from "./ui/textarea"
+import { Textarea } from "../ui/textarea"
 
 // INTERFACCIA PROPS
 interface PropsInterface {

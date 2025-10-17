@@ -9,6 +9,7 @@ import RecordAttachments from './recordAttachments';
 import RecordAttachmentsDemo from './recordAttachmentsDemo';
 import { set } from 'lodash';
 import DynamicTableBridge from './customCardFields/dynamicCardFieldsBridge';
+import CardSteps from './customCardFields/cardSteps';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -154,8 +155,8 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                     {/* Mostra solo CardFields se recordid è nullo */}
                     {isNewRecord ? (
                       responseData.cardTabs.find(tab => tab === 'Custom') ? (
-                        <DynamicTableBridge 
-                            tableId={tableid}
+                        <CardSteps 
+                            tableid={tableid}
                             recordid={recordid}
                             mastertableid={mastertableid}
                             masterrecordid={masterrecordid}
@@ -166,13 +167,14 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                           recordid={recordid}
                           mastertableid={mastertableid}
                           masterrecordid={masterrecordid}
+                          showSaveButton={true}
                         />
                       )
                     ) : (
                       <>
                         {activeTab === 'Custom' && (
-                          <DynamicTableBridge 
-                            tableId={tableid}
+                          <CardSteps 
+                            tableid={tableid}
                             recordid={recordid}
                             mastertableid={mastertableid}
                             masterrecordid={masterrecordid}

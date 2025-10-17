@@ -64,6 +64,7 @@ export default function InputDate({
 
   // 🔁 Aggiorna se cambia initialValue da fuori
   React.useEffect(() => {
+    console.log("InputDate: initialValue changed:", initialValue)
     const d =
       initialValue && !isNaN(new Date(initialValue).getTime())
         ? new Date(initialValue)

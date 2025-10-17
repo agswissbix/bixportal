@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { Loader2 } from "lucide-react"
 import _ from "lodash"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
-import { useRecordsStore } from "./records/recordsStore"
+import { useRecordsStore } from "../records/recordsStore"
 import { Plus, ExternalLink } from "lucide-react"
 
 interface PropsInterface {
