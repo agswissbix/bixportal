@@ -26,7 +26,7 @@ interface Props {
   userId?: string
   items?: LookupItem[]
   currentSettings: Record<string, FieldSetting>
-  record?: { description?: string; label?: string }
+  record?: { lookuptableid?: string, description?: string; label?: string }
   onSave?: (updatedSettings: Record<string, FieldSetting>) => void
 }
 
@@ -35,6 +35,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
   const [description, setDescription] = useState(record?.description || "")
   const [label, setLabel] = useState(record?.label || "")
   const [lookupItems, setLookupItems] = useState<LookupItem[]>(items || [])
+  const [lookupTableId, setLookupTableId] = useState(record?.lookuptableid || "")
 
   // Se cambia currentSettings esterno, aggiorno lo stato interno
   useEffect(() => {
@@ -44,6 +45,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
   useEffect(() => {
     setDescription(record?.description || "")
     setLabel(record?.label || "")
+    setLookupTableId(record?.lookuptableid || "")
   }, [record])
 
   useEffect(() => {
@@ -186,7 +188,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
             </div>
           ))}
 
-          {items && items.length > 0 && (
+          {lookupTableId && (
             <div className="mt-6 space-y-4">
               <h3 className="text-lg font-semibold text-gray-700">Lookup Items</h3>
 
