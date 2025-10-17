@@ -3,13 +3,14 @@ import React from 'react';
 type InputProps = {
   id: string;
   name: string;
-  label: string;
+  label: React.ReactNode;
   value: string | number;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
+  [key: string]: any;
 };
 
-function FloatingLabelInput({ id, name, label, value, onChange, type = 'text' }: InputProps) {
+function FloatingLabelInput({ id, name, label, value, onChange, type = 'text', ...rest }: InputProps) {
   return (
     <div className="relative">
       <input
@@ -21,6 +22,7 @@ function FloatingLabelInput({ id, name, label, value, onChange, type = 'text' }:
         placeholder=" " 
         className="block w-full px-1 pt-4 pb-1 bg-transparent border-b border-gray-300 
                    focus:outline-none focus:border-green-500 peer"
+        {...rest}
       />
 
       <label

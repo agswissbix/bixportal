@@ -1,4 +1,3 @@
-// FloatingLabelSelect.tsx
 import React from 'react';
 
 type OptionType = {
@@ -9,7 +8,7 @@ type OptionType = {
 type SelectProps = {
   id: string;
   name: string;
-  label: string;
+  label: React.ReactNode; 
   value: string | number;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   options: OptionType[];
