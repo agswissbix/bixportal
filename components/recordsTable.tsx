@@ -367,13 +367,23 @@ export default function RecordsTable({
             <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
               <thead className="sticky top-0 z-20 text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
                 <tr>
-                  {response.columns.map((column, index) => (
+                  {response.columns.map((column, index) => {
+                    const isCurrentSortField = responseData.order.fieldid === column.fieldid;
+                    const sortDirection = isCurrentSortField ? responseData.order.direction : null;
+                    const shouldShowIcon = isCurrentSortField && (sortDirection === "asc" || sortDirection === "desc");
+                    const iconComponent = sortDirection === "asc"
+                      ? <ArrowUp className="h-4 w-4" />
+                      : sortDirection === "desc"
+                        ? <ArrowDown className="h-4 w-4" />
+                        : null;
+
+                    return (
                     <th
                       key={column.fieldid}
                       scope="col"
                       onClick={() => handleSort(column.fieldid)}
                       className={`
-              px-4 py-3 cursor-pointer select-none truncate
+              px-2 py-3 cursor-pointer select-none truncate
               ${
                 column.fieldtypeid === "Numero"
                   ? "min-w-[60px] max-w-[80px] text-right"
@@ -391,30 +401,18 @@ export default function RecordsTable({
                         <TooltipTrigger asChild>
                           <div className="flex items-center justify-between">
                             <span className="truncate">{column.desc}</span>
-                            <div className="w-4 h-4 ml-1">
-                                {/* MODIFICA: usa responseData.order invece di sortConfig */}
-                                {responseData.order.fieldid === column.fieldid &&
-                                  responseData.order.direction === "asc" && (
-                                    <ArrowUp className="h-4 w-4" />
-                                )}
-                                {responseData.order.fieldid === column.fieldid &&
-                                  responseData.order.direction === "desc" && (
-                                    <ArrowDown className="h-4 w-4" />
-                                )}
-                                {/* Questa logica di fallback può rimanere per le colonne non ordinate */}
-                                {(responseData.order.fieldid !== column.fieldid ||
-                                  responseData.order.direction === null) && (
-                                    <span className="invisible h-4 w-4">
-                                      <ArrowUp className="h-4 w-4" />
-                                    </span>
-                                )}
-                            </div>
+                            {shouldShowIcon && (
+                              <div className="w-4 h-4 ml-1">
+                                {iconComponent}
+                              </div>
+                            )}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>{column.desc}</TooltipContent>
                       </Tooltip>
                     </th>
-                  ))}
+                    )
+                  })}
                 </tr>
               </thead>
 
