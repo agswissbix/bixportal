@@ -48,7 +48,7 @@ export default function RecordCard({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
-  const { removeCard, setOpenSignatureDialog, openSignatureDialog } = useRecordsStore();
+  const { removeCard, setOpenSignatureDialog, openSignatureDialog, setRefreshTable } = useRecordsStore();
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
@@ -186,7 +186,7 @@ export default function RecordCard({
     toast.warning('Sei sicuro di voler eliminare questo record?', {
       action: {
         label: 'Conferma',
-        onClick: () => deleteRecord(),
+        onClick: async () => {await deleteRecord(); setRefreshTable((v) => v + 1)},
       },
     });
   };

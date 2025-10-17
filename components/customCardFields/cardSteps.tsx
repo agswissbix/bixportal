@@ -1,20 +1,9 @@
 "use client"
-
-import type React from "react"
 import { useMemo, useContext, useState, useEffect, useRef } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "../genericComponent"
 import { AppContext } from "@/context/appContext"
-import InputWord from "../inputWord"
-import InputNumber from "../inputNumber"
-import InputDate from "../inputDate"
-import InputMemo from "../inputMemo"
-import InputCheckbox from "../inputCheckbox"
-import SelectUser from "../selectUser"
-import SelectStandard from "../selectStandard"
-import InputLinked from "../inputLinked"
-import InputEditor from "../inputEditor"
-import InputFile from "../inputFile"
+import CardFields from "../cardFields"
 import { toast } from "sonner"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useRecordsStore } from "@/components/records/recordsStore"
@@ -79,9 +68,7 @@ interface ResponseInterface {
   steps?: Array<Step>
 }
 
-const PRIORITY_FIELDS = ["recordidcompany_", "recordidproject_", "recordidticket_", "timesheetline", "traveltime"]
-
-export default function CustomFormBuilder({
+export default function cardSteps({
   tableid,
   recordid,
   mastertableid,
@@ -89,19 +76,17 @@ export default function CustomFormBuilder({
   ...rest
 }: PropsInterface) {
   const [delayedLoading, setDelayedLoading] = useState(true)
-  const dummyInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
 
   const responseDataDEFAULT: ResponseInterface = { recordid: "" }
-  const { activeServer, role } = useContext(AppContext)
+  const { activeServer } = useContext(AppContext)
 
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? (undefined as any) : responseDataDEFAULT)
   const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] | File }>({})
   const [isSaveDisabled, setIsSaveDisabled] = useState(true)
-  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({})
 
   const [isSaving, setIsSaving] = useState(false)
-  const [isCalculating, setIsCalculating] = useState(false)
+  const [newRecordId, setNewRecordId] = useState<string | undefined>(undefined)
 
   const { removeCard, setRefreshTable, handleRowClick } = useRecordsStore()
 
@@ -114,66 +99,19 @@ export default function CustomFormBuilder({
 
   const currentValues = useMemo(() => {
     const obj: Record<string, any> = {}
-
-    // Collect all fields from all steps
     responseData?.steps?.forEach((step) => {
       if (step.type === "campi" && step.fields) {
-        step.fields?.forEach((f) => {
+        step.fields.forEach((f) => {
           const backendValue = typeof f.value === "object" ? ((f.value as any).code ?? (f.value as any).value) : f.value
           obj[f.fieldid] = updatedFields.hasOwnProperty(f.fieldid) ? updatedFields[f.fieldid] : (backendValue ?? "")
         })
       }
     })
-
     return obj
   }, [responseData, updatedFields])
 
-  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
-    if (currentValues[fieldid] === newValue) {
-      return
-    }
-    setUpdatedFields((prev) => ({ ...prev, [fieldid]: newValue }))
-  }
-
-  const handleFieldBlur = async (event: React.FocusEvent<HTMLDivElement>) => {
-    if (event.currentTarget.contains(event.relatedTarget as Node)) {
-      return
-    }
-
-    if (isCalculating) {
-      return
-    }
-    if (Object.keys(updatedFields).length === 0) {
-      return
-    }
-
-    setIsCalculating(true)
-    try {
-      const payload = {
-        apiRoute: "calculate_dependent_fields",
-        tableid,
-        recordid,
-        fields: currentValues,
-      }
-
-      const response = await axiosInstanceClient.post("/postApi", payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-
-      const data: { updated_fields: { [key: string]: any } } = response.data
-
-      if (data && data.updated_fields) {
-        setUpdatedFields((prev) => ({
-          ...prev,
-          ...data.updated_fields,
-        }))
-      }
-    } catch (error) {
-      console.error("Errore durante il calcolo dei campi dipendenti:", error)
-      toast.error("Errore durante l'aggiornamento dei calcoli.")
-    } finally {
-      setIsCalculating(false)
-    }
+  const handleFieldChange = (fieldid: string, value: any) => {
+    setUpdatedFields((prev) => ({ ...prev, [fieldid]: value }))
   }
 
   const [currentStep, setCurrentStep] = useState(0)
@@ -182,6 +120,7 @@ export default function CustomFormBuilder({
     if (!responseData?.steps) return []
 
     return responseData.steps
+      .filter((step) => step.order !== undefined && step.order !== null)
       .sort((a, b) => a.order - b.order)
       .map((step) => {
         if (step.type === "campi") {
@@ -211,14 +150,7 @@ export default function CustomFormBuilder({
           }
         }
 
-        return {
-          id: `step_${step.id}`,
-          title: step.name,
-          description: `Step ${step.order + 1}`,
-          fields: [],
-          linkedTables: [],
-          type: "linked" as const,
-        }
+        return null
       })
       .filter((step): step is NonNullable<typeof step> => step !== null)
   }, [responseData])
@@ -239,31 +171,15 @@ export default function CustomFormBuilder({
     setCurrentStep(stepIndex)
   }
 
-  const isCurrentStepValid = useMemo(() => {
-    const currentStepFields = stepsData[currentStep]?.fields || []
-    const requiredFields = currentStepFields.filter(
-      (field) => typeof field.settings === "object" && field.settings.obbligatorio === "true",
-    )
-
-    if (requiredFields.length === 0) return true
-
-    return requiredFields.every((field) => {
-      const value = currentValues[field.fieldid]
-      return value !== null && value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0)
-    })
-  }, [currentStep, stepsData, currentValues])
-
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       console.log("[API Response]", response)
       setResponseData(response)
 
       const initialFields: { [key: string]: string | string[] | File } = {}
-
-      // Collect all fields from all steps
       response.steps?.forEach((step) => {
         if (step.type === "campi" && step.fields) {
-          step.fields?.forEach((field) => {
+          step.fields.forEach((field) => {
             const settings = typeof field.settings === "object" ? field.settings : null
             const defaultValue = settings?.default
 
@@ -284,16 +200,6 @@ export default function CustomFormBuilder({
   }, [response, isDev, responseData])
 
   useEffect(() => {
-    const labels = Object.keys(stepsData)
-    const initialAccordionState: Record<string, boolean> = {}
-    labels.forEach((label) => {
-      initialAccordionState[label] = false
-    })
-    setOpenAccordions(initialAccordionState)
-  }, [stepsData])
-
-  useEffect(() => {
-    // Collect all required fields from all steps
     const allFields: FieldInterface[] = []
     responseData?.steps?.forEach((step) => {
       if (step.type === "campi" && step.fields) {
@@ -318,8 +224,10 @@ export default function CustomFormBuilder({
     setIsSaveDisabled(!allRequiredFilled || Object.keys(updatedFields).length === 0)
   }, [currentValues, responseData?.steps, updatedFields])
 
-  const toggleAccordion = (label: string) => {
-    setOpenAccordions((prev) => ({ ...prev, [label]: !prev[label] }))
+  const handleSaveFromCardFields = async (fieldsToSave: { [key: string]: string | string[] | File }) => {
+    // This is called from CardFields, but we handle save at the form level
+    // Just update the fields state
+    setUpdatedFields((prev) => ({ ...prev, ...fieldsToSave }))
   }
 
   const handleSave = async () => {
@@ -332,7 +240,7 @@ export default function CustomFormBuilder({
     try {
       const formData = new FormData()
       formData.append("tableid", tableid || "")
-      formData.append("recordid", recordid || "")
+      formData.append("recordid", newRecordId || recordid || "")
 
       const standardFields: { [key: string]: any } = {}
       Object.entries(updatedFields).forEach(([fieldId, value]) => {
@@ -343,16 +251,23 @@ export default function CustomFormBuilder({
       formData.append("fields", JSON.stringify(standardFields))
       formData.append("apiRoute", "save_record_fields")
 
-      await axiosInstanceClient.post("/postApi", formData, {
+      const saveResponse = await axiosInstanceClient.post("/postApi", formData, {
         headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
 
-      toast.success("Record salvato con successo")
+      if (!saveResponse.data.success) {
+        throw new Error(saveResponse.data.error || "Errore sconosciuto durante il salvataggio.")
+      }
+
+      setNewRecordId(saveResponse.data.recordid)
+
+      toast.success(`Record ${saveResponse.data.recordid} salvato con successo`)
       setUpdatedFields({})
       setIsSaving(false)
     } catch (error) {
       console.error("Errore durante il salvataggio del record:", error)
       toast.error("Errore durante il salvataggio del record")
+      setIsSaving(false)
     } finally {
       setRefreshTable((v) => v + 1)
     }
@@ -404,213 +319,22 @@ export default function CustomFormBuilder({
   }, [loading])
 
   const renderLinkedTableButton = (table: LinkedTable) => {
+    const thereIsRecordId = (recordid === undefined || recordid === null || recordid === "") &&
+           (newRecordId === undefined || newRecordId === null || newRecordId === "")
     return (
-      <div key={table.tableid} className="flex items-start space-x-4 w-full group">
-        <div className="w-1/4 pt-2">
-          <p className="text-sm font-medium text-gray-700">{table.description}</p>
-        </div>
-        <div className="w-3/4">
-          <button
-            type="button"
-            disabled={recordid === undefined || recordid === null || recordid === ""}
-            title={
-              recordid === undefined || recordid === null || recordid === "" ? "Salva il record per abilitare" : ""
-            }
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
-            ${recordid === undefined || recordid === null || recordid === "" ? "opacity-50 cursor-not-allowed" : ""}
-              `}
-            onClick={() => handleRowClick("linked", "", table.tableid, tableid, recordid)}
-          >
-            <SquarePlus className="h-5 w-5" />
-            <span>Aggiungi {table.description}</span>
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  const renderField = (field: FieldInterface, isParallel = false) => {
-    const rawValue = typeof field.value === "object" ? field.value?.value : field.value
-    const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
-    const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
-    const value = currentValues[field.fieldid] ?? rawValue ?? ""
-    const isNewRecord = recordid === undefined || recordid === null || recordid === ""
-    const currentValue = currentValues[field.fieldid]
-    const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
-    const isRequiredEmpty = isNewRecord && isRequired && isEmpty
-    const isRequiredFilled = isNewRecord && isRequired && !isEmpty
-    const hasDependencies = field.hasDependencies
-
-    if (isCalculated) {
-      return (
-        <div
-          key={`${field.fieldid}-container`}
-          className={`flex items-start space-x-4 group ${isParallel ? "w-1/2" : "w-full"}`}
-        >
-          <div className={`pt-2 ${isParallel ? "w-1/2" : "w-1/4"}`}>
-            <div className="flex items-center gap-1">
-              {isRequired && isNewRecord && (
-                <div
-                  className={`w-1 h-4 rounded-full mr-1 transition-colors duration-200 ${
-                    isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-                  }`}
-                />
-              )}
-              <p
-                data-tooltip-id="my-tooltip"
-                data-tooltip-content={`${field.fieldid}${isRequired ? " (Campo obbligatorio)" : ""}`}
-                data-tooltip-place="top"
-                className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
-              >
-                {field.description}
-                {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
-              </p>
-            </div>
-          </div>
-
-          <div
-            className={`relative transition-all duration-200 rounded-md ${isParallel ? "w-1/2" : "w-3/4"} ${
-              isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
-            }`}
-          >
-            <div className="p-2 bg-gradient-to-br from-gray-50 to-gray-100 rounded-md border border-gray-200">
-              {value}
-            </div>
-
-            {isRequired && (
-              <div
-                className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm transition-all duration-200 ${
-                  isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              >
-                {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div
-        key={`${field.fieldid}-container`}
-        className={`flex items-start space-x-4 group ${isParallel ? "w-1/2" : "w-full"}`}
-        onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}
+      <button
+        type="button"
+        disabled={thereIsRecordId}
+        title={thereIsRecordId ? "Salva il record per abilitare" : ""}
+        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
+        ${thereIsRecordId ? "opacity-50 cursor-not-allowed" : ""}
+          `}
+        onClick={() => handleRowClick("linked", "", table.tableid, tableid, newRecordId || recordid)}
       >
-        <div className={`pt-2 ${isParallel ? "w-1/2" : "w-1/4"}`}>
-          <div className="flex items-center gap-1">
-            {isRequired && isNewRecord && (
-              <div
-                className={`w-1 h-4 rounded-full mr-1 transition-colors duration-200 ${
-                  isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              />
-            )}
-            <p
-              data-tooltip-id="my-tooltip"
-              data-tooltip-content={`${field.fieldid}${isRequired ? " (Campo obbligatorio)" : ""}`}
-              data-tooltip-place="top"
-              className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
-            >
-              {field.description}
-              {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
-            </p>
-          </div>
-        </div>
-
-        <div
-          className={`relative transition-all duration-200 rounded-md ${isParallel ? "w-1/2" : "w-3/4"} ${
-            isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
-          }`}
-        >
-          <div
-            className={`${
-              isRequiredEmpty
-                ? "[&>*]:!border-red-400 [&>*]:focus:!border-red-500 [&>*]:focus:!ring-red-500/20"
-                : isRequiredFilled
-                  ? "[&>*]:!border-green-400 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
-                  : "[&>*]:hover:!border-blue-400 [&>*]:focus:!border-blue-500 [&>*]:focus:!ring-blue-500/10"
-            }`}
-          >
-            {renderFieldInput(field, value)}
-          </div>
-
-          {isRequired && (
-            <div
-              className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm transition-all duration-200 ${
-                isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-              }`}
-            >
-              {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-            </div>
-          )}
-        </div>
-      </div>
+        <SquarePlus className="h-5 w-5" />
+        <span>Aggiungi {table.description}</span>
+      </button>
     )
-  }
-
-  function renderFieldInput(field: FieldInterface, value: any) {
-    if (field.fieldtype === "Parola") {
-      return <InputWord initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-    } else if ((field.fieldtype === "lookup" || field.fieldtype === "Categoria") && field.lookupitems) {
-      return (
-        <SelectStandard
-          lookupItems={field.lookupitems}
-          initialValue={value}
-          onChange={(v) => handleInputChange(field.fieldid, v)}
-          isMulti={false}
-        />
-      )
-    } else if (field.fieldtype === "multiselect" && field.lookupitems) {
-      return (
-        <SelectStandard
-          lookupItems={field.lookupitems}
-          initialValue={value}
-          onChange={(v) => handleInputChange(field.fieldid, v)}
-          isMulti={true}
-        />
-      )
-    } else if (field.fieldtype === "Numero") {
-      return <InputNumber initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-    } else if (field.fieldtype === "Data") {
-      return <InputDate initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-    } else if (field.fieldtype === "Memo") {
-      return <InputMemo initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-    } else if (field.fieldtype === "Checkbox") {
-      return <InputCheckbox initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-    } else if (field.fieldtype === "Utente" && field.lookupitemsuser) {
-      return (
-        <SelectUser
-          lookupItems={field.lookupitemsuser}
-          initialValue={value}
-          onChange={(v) => handleInputChange(field.fieldid, v)}
-          isMulti={false}
-        />
-      )
-    } else if (field.fieldtype === "linkedmaster") {
-      return (
-        <InputLinked
-          initialValue={value}
-          valuecode={typeof field.value === "object" ? field.value : undefined}
-          onChange={(v) => handleInputChange(field.fieldid, v)}
-          tableid={tableid}
-          linkedmaster_tableid={field.linked_mastertable}
-          linkedmaster_recordid={typeof field.value === "object" ? field.value?.code : ""}
-          fieldid={field.fieldid}
-          formValues={currentValues}
-        />
-      )
-    } else if (field.fieldtype === "LongText") {
-      return <InputEditor initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-    } else if (field.fieldtype === "Attachment") {
-      return (
-        <InputFile
-          initialValue={value ? `/api/media-proxy?url=${value}` : null}
-          onChange={(v) => handleInputChange(field.fieldid, v)}
-        />
-      )
-    }
-    return null
   }
 
   return (
@@ -620,12 +344,6 @@ export default function CustomFormBuilder({
           <div className={"absolute inset-0 flex items-center justify-center " + (delayedLoading ? "" : " hidden")}>
             <LoadingComp />
           </div>
-
-          {isCalculating && (
-            <div className="absolute inset-0 bg-gray-500 bg-opacity-20 flex items-center justify-center z-20">
-              <LoadingComp />
-            </div>
-          )}
 
           <div ref={formRef} className={"max-h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
             <Tooltip id="my-tooltip" className="tooltip" />
@@ -647,7 +365,6 @@ export default function CustomFormBuilder({
                   {stepsData.map((step, index) => {
                     const isActive = index === currentStep
                     const isCompleted = index < currentStep
-                    const isUpcoming = index > currentStep
 
                     return (
                       <button
@@ -720,8 +437,6 @@ export default function CustomFormBuilder({
             </div>
 
             <div className="flex-grow overflow-y-auto max-h-[83%] space-y-4 pr-2">
-              <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
-
               <div className="mb-6 pb-3 border-b-2 border-gray-200">
                 <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {stepsData[currentStep]?.title}
@@ -730,35 +445,16 @@ export default function CustomFormBuilder({
               </div>
 
               {stepsData[currentStep]?.type === "fields" ? (
-                <>
-                  {stepsData[currentStep]?.fields?.map((field, index) => {
-                    const nextField = stepsData[currentStep]?.fields[index + 1]
-
-                    if (
-                      field.fieldid.toLowerCase().includes("worktime") &&
-                      nextField?.fieldid.toLowerCase().includes("traveltime")
-                    ) {
-                      return (
-                        <div key={`parallel-${field.fieldid}`} className="flex gap-4 w-full">
-                          {renderField(field, true)}
-                          {renderField(nextField, true)}
-                        </div>
-                      )
-                    }
-
-                    if (
-                      field.fieldid.toLowerCase().includes("traveltime") &&
-                      index > 0 &&
-                      stepsData[currentStep]?.fields[index - 1]?.fieldid.toLowerCase().includes("worktime")
-                    ) {
-                      return null
-                    }
-
-                    return renderField(field)
-                  })}
-
-                  {(stepsData[currentStep]?.linkedTables || [])?.map((table) => renderLinkedTableButton(table))}
-                </>
+                <CardFields
+                  tableid={tableid}
+                  recordid={newRecordId || recordid}
+                  mastertableid={mastertableid}
+                  masterrecordid={masterrecordid}
+                  fields={stepsData[currentStep]?.fields}
+                  onSave={handleSaveFromCardFields}
+                  onFieldChange={handleFieldChange}
+                  showSaveButton={false}
+                />
               ) : (
                 <div className="space-y-6">
                   {stepsData[currentStep]?.linkedTables?.map((table) => {
@@ -771,19 +467,7 @@ export default function CustomFormBuilder({
                           <div className="w-1 h-6 theme-primary rounded-full"></div>
                           {table.description} - <Badge>{table.rowsCount}</Badge>
                         </h3>
-                        <button
-                          type="button"
-                          disabled={recordid === undefined || recordid === null || recordid === ""}
-                          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] ${
-                            recordid === undefined || recordid === null || recordid === ""
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                          onClick={() => handleRowClick("linked", "", table.tableid, tableid, recordid)}
-                        >
-                          <SquarePlus className="h-5 w-5" />
-                          <span>Aggiungi {table.description}</span>
-                        </button>
+                        {renderLinkedTableButton(table)}
                         <RecordsTable
                           tableid={table.tableid}
                           searchTerm=""
@@ -791,7 +475,7 @@ export default function CustomFormBuilder({
                           masterTableid={tableid}
                           masterRecordid={recordid}
                           limit={10}
-                        />
+                          />
                       </div>
                     )
                   })}
@@ -818,7 +502,10 @@ export default function CustomFormBuilder({
                 {currentStep < stepsData.length - 1 && (
                   <button
                     type="button"
-                    onClick={() =>{handleSave(); goToNextStep()}}
+                    onClick={() => {
+                      handleSave()
+                      goToNextStep()
+                    }}
                     className="inline-flex items-center gap-2 rounded-lg theme-primary px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
                   >
                     <span>Salva e Avanti</span>
@@ -829,12 +516,13 @@ export default function CustomFormBuilder({
                 {activeServer !== "belotti" && (
                   <button
                     type="button"
-                    onClick={() => {handleSave(); removeCard(tableid, recordid)}}
-                    disabled={isSaveDisabled || isCalculating}
+                    onClick={() => {
+                      handleSave()
+                      removeCard(tableid, recordid)
+                    }}
+                    disabled={isSaveDisabled}
                     className={`theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-2.5 shadow-md hover:shadow-lg transition-all duration-200 ${
-                      isSaveDisabled || isCalculating
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:scale-105 active:scale-95"
+                      isSaveDisabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
                     }`}
                   >
                     {isSaving ? "Salvataggio..." : "Salva"}

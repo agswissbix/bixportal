@@ -1,7 +1,7 @@
-import cardFieldsTimesheet from "./cardFieldsTimesheet";;
+import cardSteps from "./cardSteps";;
 
 const cardFieldsMap = {
-    'timesheet': cardFieldsTimesheet
+    'timesheet': cardSteps
 };
 
 export default cardFieldsMap;
