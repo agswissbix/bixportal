@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useMemo, useContext, useState, useEffect, useRef } from "react"
+import { useMemo, useContext, useState, useEffect, useRef, useCallback } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "./genericComponent"
 import { AppContext } from "@/context/appContext"
@@ -119,16 +119,25 @@ export default function CardFields({
     return obj
   }, [currentFields, updatedFields])
 
-  const handleInputChange = (fieldid: string, newValue: any | any[]) => {
-    if (currentValues[fieldid] === newValue) {
-      return
-    }
-    setUpdatedFields((prev) => ({ ...prev, [fieldid]: newValue }))
+  const handleInputChange = useCallback(
+    (fieldid: string, newValue: any | any[]) => {
+      setUpdatedFields((prev) => {
+        // Check if value actually changed
+        const currentValue = prev[fieldid]
+        if (currentValue === newValue) {
+          return prev
+        }
 
-    if (externalOnFieldChange) {
-      externalOnFieldChange(fieldid, newValue)
-    }
-  }
+        // Notify parent of change
+        if (externalOnFieldChange) {
+          externalOnFieldChange(fieldid, newValue)
+        }
+
+        return { ...prev, [fieldid]: newValue }
+      })
+    },
+    [externalOnFieldChange],
+  )
 
   const handleFieldBlur = async (event: React.FocusEvent<HTMLDivElement>) => {
     if (event.currentTarget.contains(event.relatedTarget as Node)) {
@@ -234,6 +243,7 @@ export default function CardFields({
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
 
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
+    console.log("Rendering field:", field.fieldid, "Value:", value)
     const isNewRecord = recordid === undefined || recordid === null || recordid === ""
     const currentValue = currentValues[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)

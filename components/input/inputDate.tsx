@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { on } from "events"
 
 interface PropsInterface {
   initialValue?: string // formato "yyyy-MM-dd"
@@ -51,28 +52,37 @@ export default function InputDate({
   onChange,
 }: PropsInterface) {
   // ✅ Se initialValue è vuoto → oggi
-  const initialDate =
-    initialValue && !isNaN(new Date(initialValue).getTime())
-      ? new Date(initialValue)
-      : new Date()
+  const calculatedDate = React.useMemo(() => {
+    if (initialValue && !isNaN(new Date(initialValue).getTime())) {
+      return new Date(initialValue);
+    }
+    return new Date();
+  }, [initialValue]);
 
   const [open, setOpen] = React.useState(false)
-  const [date, setDate] = React.useState<Date>(initialDate)
-  const [month, setMonth] = React.useState<Date>(initialDate)
-  const [value, setValue] = React.useState(formatDisplayDate(initialDate))
+  const [date, setDate] = React.useState<Date>(calculatedDate)
+  const [month, setMonth] = React.useState<Date>(calculatedDate)
+  const [value, setValue] = React.useState(formatDisplayDate(calculatedDate))
   const uniqueId = React.useId()
 
-  // 🔁 Aggiorna se cambia initialValue da fuori
+  const isFirstRender = React.useRef(true)
+
   React.useEffect(() => {
-    console.log("InputDate: initialValue changed:", initialValue)
-    const d =
-      initialValue && !isNaN(new Date(initialValue).getTime())
-        ? new Date(initialValue)
-        : new Date()
-    setDate(d)
-    setMonth(d)
-    setValue(formatDisplayDate(d))
-  }, [initialValue])
+    console.log("InputDate: useEffect [calculatedDate] triggered.", calculatedDate);
+    
+    // Aggiorna lo stato interno con la data calcolata
+    setDate(calculatedDate);
+    setMonth(calculatedDate);
+    setValue(formatDisplayDate(calculatedDate));
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      onChange?.(format(calculatedDate, "yyyy-MM-dd"))
+    }
+    
+    // Dipendenze pulite
+  }, [calculatedDate]);
+
 
   const handleChange = (val: string) => {
     setValue(val)

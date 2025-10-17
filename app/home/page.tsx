@@ -29,31 +29,27 @@ export default function Home() {
   const router = useRouter();
 
 useEffect(() => {
-  if (selectedMenu) {
-    setTableid(selectedMenu);
-  }
-
-  const fetchTheme = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        { apiRoute: "get_user_theme" },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-      if (!response.data || !response.data.theme) {
-        console.log('Nessun tema trovato nella risposta dell\'API');
-        return;
-      } else {
-        setTheme(response.data.theme.value);
+    const fetchTheme = async () => {
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          { apiRoute: "get_user_theme" },
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
+        if (!response.data || !response.data.theme) {
+          console.log('Nessun tema trovato nella risposta dell\'API');
+          return;
+        } else {
+          setTheme(response.data.theme.value);
+        }
+      } catch (error) {
+        console.error('Errore ', error);
+        toast.error('Errore durante il recupero del tema');
       }
-    } catch (error) {
-      console.error('Errore ', error);
-      toast.error('Errore durante il recupero del tema');
-    }
-  };
-
-  fetchTheme();
-}, [selectedMenu]);
+    };
+  
+    fetchTheme();
+  }, [setTheme]); 
 
 useEffect(() => {
   if (theme) {

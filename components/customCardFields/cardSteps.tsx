@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useContext, useState, useEffect, useRef } from "react"
+import { useMemo, useContext, useState, useEffect, useRef, useCallback } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "../genericComponent"
 import { AppContext } from "@/context/appContext"
@@ -110,9 +110,10 @@ export default function cardSteps({
     return obj
   }, [responseData, updatedFields])
 
-  const handleFieldChange = (fieldid: string, value: any) => {
+  const handleFieldChange = useCallback((fieldid: string, value: any) => {
+    console.log("CardFields: notifying parent of field change:", fieldid, value)
     setUpdatedFields((prev) => ({ ...prev, [fieldid]: value }))
-  }
+  }, [])
 
   const [currentStep, setCurrentStep] = useState(0)
 
@@ -225,8 +226,6 @@ export default function cardSteps({
   }, [currentValues, responseData?.steps, updatedFields])
 
   const handleSaveFromCardFields = async (fieldsToSave: { [key: string]: string | string[] | File }) => {
-    // This is called from CardFields, but we handle save at the form level
-    // Just update the fields state
     setUpdatedFields((prev) => ({ ...prev, ...fieldsToSave }))
   }
 
