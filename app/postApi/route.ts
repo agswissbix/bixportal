@@ -215,6 +215,7 @@ export async function POST(request: Request) {
     case 'settings_table_steps_save': djangoUrl = '/commonapp/settings_table_steps_save/'; break;
     
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
+    case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;
     
     default:
       return NextResponse.json(

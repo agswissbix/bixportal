@@ -13,7 +13,7 @@ import CondizioniNoleggio from './condizioni_noleggio';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -30,22 +30,8 @@ const isDev = true;
 
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
-            serviceMan: ServiceMan[];
+            serviceMen: ServiceMan[];
         }
-
-const formatDateForInput = (date: Date | null): string => {
-    if (!date) return ''; 
-    return new Date(date).toISOString().split('T')[0];
-};
-
-const formatTimeForInput = (date: Date | null): string => {
-    if (!date) return '';
-    const d = new Date(date);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-};
-
 
 export default function PageServiceMan({ propExampleValue }: PropsInterface) {
     //DATI
@@ -54,12 +40,12 @@ export default function PageServiceMan({ propExampleValue }: PropsInterface) {
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
-                serviceMan: []
+                serviceMen: []
             };
 
             // DATI RESPONSE PER LO SVILUPPO
             const responseDataDEV: ResponseInterface = {
-                "serviceMan": [
+                serviceMen: [
                     {
                         id: "1",
                         cliente: "Mario Rossi",
@@ -134,24 +120,26 @@ export default function PageServiceMan({ propExampleValue }: PropsInterface) {
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
-            example1: propExampleValue
+            apiRoute: 'get_service_man',
         };
-    }, [propExampleValue]);
+    }, []);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
-    // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
     useEffect(() => {
-        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-            setResponseData(response);
+        if (!isDev && response) {
+            const parsedEvents = response.serviceMen.map(event => ({
+                ...event,
+                data: new Date(event.data)
+            }));
+            setResponseData({ ...response, serviceMen: parsedEvents });
         }
-    }, [response, responseData]);
+    }, [response]);
 
-    // PER DEVELLOPMENT
+    // PER DEVELOPMENT
     useEffect(() => {
-        setResponseData({ ...responseDataDEV });
+        isDev ? setResponseData({ ...responseDataDEV }) : '';
     }, []);
 
     const openPage = (route) => {
@@ -183,13 +171,13 @@ export default function PageServiceMan({ propExampleValue }: PropsInterface) {
                                     </thead>
                                     <tbody>
                                         {
-                                            response.serviceMan.map((prova) => (
-                                                <tr key={`${prova.cliente}-${prova.data}`}
-                                                    className={prova.highlight ? "bg-green-200" : ""}>
-                                                    <td className="px-4 py-3 border-b border-gray-200">{prova.cliente}</td>
+                                            response.serviceMen.map((serviceMan) => (
+                                                <tr key={`${serviceMan.cliente}-${serviceMan.data}`}
+                                                    className={serviceMan.highlight ? "bg-green-200" : ""}>
+                                                    <td className="px-4 py-3 border-b border-gray-200">{serviceMan.cliente}</td>
                                                     <td className="px-4 py-3 border-b border-gray-200">
                                                         {
-                                                            new Date(prova.data).toLocaleDateString('it-IT')
+                                                            new Date(serviceMan.data).toLocaleDateString('it-IT')
                                                         }
                                                     </td>
                                                 </tr>
