@@ -57,6 +57,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     pageServiceManMenu: dynamic(() => import('@/components/winteler/components/pageServiceManMenu')),
     pageNuovaServiceMan: dynamic(() => import('@/components/winteler/components/pageNuovaServiceMan')),
     pageServiceMan: dynamic(() => import('@/components/winteler/components/pageServiceMan')),
+    pageNuovoPreventivoCarrozzeria: dynamic(() => import('@/components/winteler/components/pageNuovoPreventivoCarrozzeria')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
