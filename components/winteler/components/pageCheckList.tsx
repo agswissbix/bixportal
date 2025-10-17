@@ -64,10 +64,10 @@ const isDev = true;
         }
 
         interface Pneumatici {
-            antSx: { mm: string | number | null, data: Date | null },
-            antDx: { mm: string | number | null, data: Date | null },
-            postSx: { mm: string | number | null, data: Date | null },
-            postDx: { mm: string | number | null, data: Date | null },
+            antSx: { mm: string | number | null, data: Date | string | null },
+            antDx: { mm: string | number | null, data: Date | string | null },
+            postSx: { mm: string | number | null, data: Date | string | null },
+            postDx: { mm: string | number | null, data: Date | string | null },
         }
 
         interface FrenoDati {
@@ -116,12 +116,12 @@ const isDev = true;
 
         interface MSIPlus {
             presente: 'si' | 'no' | string,
-            scadenza: Date | null
+            scadenza: Date | string | null
         }
 
         interface Starclass {
             presente: 'si' | 'no' | string,
-            scadenza: Date | null
+            scadenza: Date | string | null
         }
 
         interface ControlloCarrozzeria {
@@ -160,10 +160,10 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
                     },
                     controlloOfficina: {
                         pneumatici: { 
-                            antSx: { mm: "", data: null },
-                            antDx: { mm: "", data: null },
-                            postSx: { mm: "", data: null },
-                            postDx: { mm: "", data: null },
+                            antSx: { mm: "", data: "" },
+                            antDx: { mm: "", data: "" },
+                            postSx: { mm: "", data: "" },
+                            postDx: { mm: "", data: "" },
                         },
                         cerchi: {},
                         freni: {
@@ -203,11 +203,11 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
                         testBreve: "",
                         msiPlus: {
                             presente: "",
-                            scadenza: null,
+                            scadenza: "",
                         },
                         starclass: {
                             presente: "",
-                            scadenza: null,
+                            scadenza: "",
                         },
                         osservazioni: "",
                         stimaCosti: "",
@@ -241,10 +241,10 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
                     },
                     controlloOfficina: {
                         pneumatici: { 
-                            antSx: { mm: "", data: null },
-                            antDx: { mm: "", data: null },
-                            postSx: { mm: "", data: null },
-                            postDx: { mm: "", data: null },
+                            antSx: { mm: "", data: "" },
+                            antDx: { mm: "", data: "" },
+                            postSx: { mm: "", data: "" },
+                            postDx: { mm: "", data: "" },
                         },
                         cerchi: {},
                         freni: {
@@ -284,11 +284,11 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
                         testBreve: "",
                         msiPlus: {
                             presente: "",
-                            scadenza: null,
+                            scadenza: "",
                         },
                         starclass: {
                             presente: "",
-                            scadenza: null,
+                            scadenza: "",
                         },
                         osservazioni: "",
                         stimaCosti: "",
@@ -384,8 +384,8 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
         handleFileChange, rimuoviFoto, photoUrlMaps, fileInputRef,
     } = useGeneralFormState(responseData, allFotoPaths);
 
-    const formatDateForInput = (date: Date | null): string => date ? new Date(date).toISOString().split('T')[0] : '';
-    const formatTimeForInput = (date: Date | null): string => {
+    const formatDateForInput = (date: Date | string | null): string => date ? new Date(date).toISOString().split('T')[0] : '';
+    const formatTimeForInput = (date: Date | string | null): string => {
         if (!date) return ''; //
         const d = new Date(date);
         return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;

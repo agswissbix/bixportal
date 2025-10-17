@@ -52,12 +52,12 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
                 id: 'divider-pneumatici', 
                 label: 'Pneumatici', 
                 type: 'divider', 
-                path: '',
+                path: ' ',
                 className: 'w-full px-2'
             },
 
-            { id: 'pnAntSxTitle', label: 'ANT SX', type: 'label-only', path: '', className: 'w-1/2' }, 
-            { id: 'pnAntDxTitle', label: 'ANT DX', type: 'label-only', path: '', className: 'w-1/2' },
+            { id: 'pnAntSxTitle', label: 'ANT SX', type: 'label-only', path: ' ', className: 'w-1/2' }, 
+            { id: 'pnAntDxTitle', label: 'ANT DX', type: 'label-only', path: ' ', className: 'w-1/2' },
             
             { id: 'antSxMm', label: 'mm', type: 'number', path: 'checkList.controlloOfficina.pneumatici.antSx.mm', className: 'w-1/2 px-2'}, 
             { id: 'antDxMm', label: 'mm', type: 'number', path: 'checkList.controlloOfficina.pneumatici.antDx.mm', className: 'w-1/2 px-2'}, 
@@ -65,8 +65,8 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             { id: 'antSxData', label: 'Data', type: 'date', path: 'checkList.controlloOfficina.pneumatici.antSx.data', className: 'w-1/2 px-2 mt-8'}, 
             { id: 'antDxData', label: 'Data', type: 'date', path: 'checkList.controlloOfficina.pneumatici.antDx.data', className: 'w-1/2 px-2 mt-8'}, 
 
-            { id: 'pnPostSxTitle', label: 'POST SX', type: 'label-only', path: '', className: 'w-1/2 mt-8' }, 
-            { id: 'pnPostDxTitle', label: 'POST DX', type: 'label-only', path: '', className: 'w-1/2 mt-8' },
+            { id: 'pnPostSxTitle', label: 'POST SX', type: 'label-only', path: ' ', className: 'w-1/2 mt-8' }, 
+            { id: 'pnPostDxTitle', label: 'POST DX', type: 'label-only', path: ' ', className: 'w-1/2 mt-8' },
 
             { id: 'postSxMm', label: 'mm', type: 'number', path: 'checkList.controlloOfficina.pneumatici.postSx.mm', className: 'w-1/2 px-2'}, 
             { id: 'postDxMm', label: 'mm', type: 'number', path: 'checkList.controlloOfficina.pneumatici.postDx.mm', className: 'w-1/2 px-2'}, 
@@ -74,7 +74,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             { id: 'postSxData', label: 'Data', type: 'date', path: 'checkList.controlloOfficina.pneumatici.postSx.data', className: 'w-1/2 px-2 mt-8'}, 
             { id: 'postDxData', label: 'Data', type: 'date', path: 'checkList.controlloOfficina.pneumatici.postDx.data', className: 'w-1/2 px-2 mt-8'}, 
         
-            { id: 'cerchiDivider', label: 'Cerchi', type: 'divider', path: '' }, 
+            { id: 'cerchiDivider', label: 'Cerchi', type: 'divider', path: ' ' }, 
             
             { 
                 id: 'antSxCerchi', 
@@ -110,18 +110,18 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
 
             // Freni
-            { id: 'freniDivider', label: 'Freni', type: 'divider', path: '' }, 
+            { id: 'freniDivider', label: 'Freni', type: 'divider', path: ' ' }, 
             
 
-            { id: 'antSxTitle', label: 'ANT SX', type: 'label-only', path: '', className: 'w-1/2' }, 
-            { id: 'antDxTitle', label: 'ANT DX', type: 'label-only', path: '', className: 'w-1/2' },
+            { id: 'antSxTitle', label: 'ANT SX', type: 'label-only', path: ' ', className: 'w-1/2' }, 
+            { id: 'antDxTitle', label: 'ANT DX', type: 'label-only', path: ' ', className: 'w-1/2' },
 
             { id: 'antSxFreniPercent', label: '%', type: 'number', path: 'checkList.controlloOfficina.freni.antSx.perc', className: 'w-1/2 pr-8 pl-8' },
             { id: 'antDxFreniPercent', label: '%', type: 'number', path: 'checkList.controlloOfficina.freni.antDx.perc', className: 'w-1/2 pr-8 pl-8' },
 
             { 
                 id: 'antSxFreniStato', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.freni.antSx.stato', 
                 options: [{ value: 'ok', label: 'Ok' }, { value: 'sost', label: 'Sost' }],
@@ -129,22 +129,22 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
             { 
                 id: 'antDxFreniStato', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.freni.antDx.stato', 
                 options: [{ value: 'ok', label: 'Ok' }, { value: 'sost', label: 'Sost' }],
                 className: 'w-1/2',
             },
 
-            { id: 'postSxTitle', label: 'POST SX', type: 'label-only', path: '', className: 'w-1/2 mt-4' }, 
-            { id: 'postDxTitle', label: 'POST DX', type: 'label-only', path: '', className: 'w-1/2 mt-4' },
+            { id: 'postSxTitle', label: 'POST SX', type: 'label-only', path: ' ', className: 'w-1/2 mt-4' }, 
+            { id: 'postDxTitle', label: 'POST DX', type: 'label-only', path: ' ', className: 'w-1/2 mt-4' },
 
             { id: 'postSxFreniPercent', label: '%', type: 'number', path: 'checkList.controlloOfficina.freni.postSx.perc', className: 'w-1/2 pr-8 pl-8' },
             { id: 'postDxFreniPercent', label: '%', type: 'number', path: 'checkList.controlloOfficina.freni.postDx.perc', className: 'w-1/2 pr-8 pl-8' },
 
             { 
                 id: 'postSxFreniStato', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.freni.postSx.stato', 
                 options: [{ value: 'ok', label: 'Ok' }, { value: 'sost', label: 'Sost' }],
@@ -152,7 +152,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
             { 
                 id: 'postDxFreniStato', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.freni.postDx.stato', 
                 options: [{ value: 'ok', label: 'Ok' }, { value: 'sost', label: 'Sost' }],
@@ -160,15 +160,15 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
 
             // Motore
-            { id: 'motoreDivider', label: 'Motore / Cambio', type: 'divider', path: '' }, 
+            { id: 'motoreDivider', label: 'Motore / Cambio', type: 'divider', path: ' ' }, 
             
 
-            { id: 'olioTitle', label: 'PERDITE OLIO', type: 'label-only', path: '', className: 'w-1/2' }, 
-            { id: 'liquidoTitle', label: 'PERDITE LIQUIDO', type: 'label-only', path: '', className: 'w-1/2' },
+            { id: 'olioTitle', label: 'PERDITE OLIO', type: 'label-only', path: ' ', className: 'w-1/2' }, 
+            { id: 'liquidoTitle', label: 'PERDITE LIQUIDO', type: 'label-only', path: ' ', className: 'w-1/2' },
 
             { 
                 id: 'perditeOlio', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.motore.olio.perdite', 
                 options: [{ value: 'si', label: 'Si' }, { value: 'no', label: 'No' }],
@@ -176,7 +176,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
             { 
                 id: 'perditeLiquido', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.motore.liquido.perdite', 
                 options: [{ value: 'si', label: 'Si' }, { value: 'no', label: 'No' }],
@@ -187,15 +187,15 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             { id: 'liquidoDove', label: 'Dove', type: 'text', path: 'checkList.controlloOfficina.motore.liquido.dove', className: 'w-1/2 pr-8 pl-8' },
 
             //Assale 
-            { id: 'assaleDivider', label: 'Assale', type: 'divider', path: '' }, 
+            { id: 'assaleDivider', label: 'Assale', type: 'divider', path: ' ' }, 
             
 
-            { id: 'antTitle', label: 'ANTERIORE', type: 'label-only', path: '', className: 'w-1/2' }, 
-            { id: 'posTitle', label: 'POSTERIORE', type: 'label-only', path: '', className: 'w-1/2' },
+            { id: 'antTitle', label: 'ANTERIORE', type: 'label-only', path: ' ', className: 'w-1/2' }, 
+            { id: 'posTitle', label: 'POSTERIORE', type: 'label-only', path: ' ', className: 'w-1/2' },
 
             { 
                 id: 'assaleAnt', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.assale.anteriore.presente', 
                 options: [{ value: 'si', label: 'Si' }, { value: 'no', label: 'No' }],
@@ -203,7 +203,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
             { 
                 id: 'assalePos', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.assale.posteriore.presente', 
                 options: [{ value: 'si', label: 'Si' }, { value: 'no', label: 'No' }],
@@ -214,7 +214,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             { id: 'assalePosDove', label: 'Dove', type: 'text', path: 'checkList.controlloOfficina.assale.posteriore.dove', className: 'w-1/2 pr-8 pl-8' },
 
             // Parabrezza
-            { id: 'parabrezzaDivider', label: 'Parabrezza', type: 'divider', path: '' },
+            { id: 'parabrezzaDivider', label: 'Parabrezza', type: 'divider', path: ' ' },
             
             { 
                 id: 'parabrezzaDanni', 
@@ -234,7 +234,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
 
             // Batteria
-            { id: 'batteriaDivider', label: 'Batteria', type: 'divider', path: '' },
+            { id: 'batteriaDivider', label: 'Batteria', type: 'divider', path: ' ' },
             
             { 
                 id: 'batteriaDanni', 
@@ -254,11 +254,11 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
 
             // Test Breve
-            { id: 'testBreveDivider', label: 'Test Breve', type: 'divider', path: '' },
+            { id: 'testBreveDivider', label: 'Test Breve', type: 'divider', path: ' ' },
             
             { 
                 id: 'testBreve', 
-                label: '', 
+                label: ' ', 
                 type: 'radio', 
                 path: 'checkList.controlloOfficina.testBreve', 
                 options: [{ value: 'si', label: 'Si' }, { value: 'no', label: 'No' }],
@@ -266,7 +266,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             },
 
             // MSI Plus
-            { id: 'msiPlusDivider', label: 'MSI Plus', type: 'divider', path: '' },
+            { id: 'msiPlusDivider', label: 'MSI Plus', type: 'divider', path: ' ' },
             
             { 
                 id: 'msiPlus', 
@@ -280,7 +280,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             { id: 'msiPlusScadenza', label: 'Scadenza', type: 'date', path: 'checkList.controlloOfficina.msiPlus.scadenza'}, 
 
             // Starclass
-            { id: 'starclassDivider', label: 'Starclass', type: 'divider', path: '' },
+            { id: 'starclassDivider', label: 'Starclass', type: 'divider', path: ' ' },
             
             { 
                 id: 'starclass', 
@@ -294,11 +294,11 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
             { id: 'starclassScadenza', label: 'Scadenza', type: 'date', path: 'checkList.controlloOfficina.starclass.scadenza'}, 
 
             // Osservazioni
-            { id: 'osservazioniDivider', label: 'Osservazioni', type: 'divider', path: '' },
+            { id: 'osservazioniDivider', label: 'Osservazioni', type: 'divider', path: ' ' },
             { id: 'osservazioni', label: ' ', type: 'text', path: 'checkList.controlloOfficina.osservazioni', className: "w-full"},
             
             // Stima Costi
-            { id: 'stimaCostiDivider', label: 'Stima Costi', type: 'divider', path: '' },
+            { id: 'stimaCostiDivider', label: 'Stima Costi', type: 'divider', path: ' ' },
             { id: 'stimaCosti', label: ' ', type: 'text', path: 'checkList.controlloOfficina.stimaCosti', className: "w-full"},
         ],
     },
@@ -306,7 +306,7 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
         key: 'controlloCarrozzeria',
         title: 'Controllo Carrozzeria',
         fields: [
-            { id: 'grandinataDivider', label: 'Grandinata', type: 'divider', path: '' },
+            { id: 'grandinataDivider', label: 'Grandinata', type: 'divider', path: ' ' },
             
             { 
                 id: 'grandinata', 
@@ -317,10 +317,10 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
                 className: "w-full flex items-center"
             },
 
-            { id: 'osservazioniCarrozzeriaDivider', label: 'Osservazioni', type: 'divider', path: '' },
+            { id: 'osservazioniCarrozzeriaDivider', label: 'Osservazioni', type: 'divider', path: ' ' },
             { id: 'osservazioniCarrozzeria', label: ' ', type: 'text', path: 'checkList.controlloOfficina.controlloCarrozzeria.osservazioni', className: "w-full"},
             
-            { id: 'stimaCostiCarrozzeriaDivider', label: 'Stima Costi', type: 'divider', path: '' },
+            { id: 'stimaCostiCarrozzeriaDivider', label: 'Stima Costi', type: 'divider', path: ' ' },
             { id: 'stimaCostiCarrozzeria', label: ' ', type: 'text', path: 'checkList.controlloOfficina.controlloCarrozzeria.stimaCosti', className: "w-full"},
         ],
     },
