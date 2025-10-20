@@ -326,10 +326,10 @@ export default function CardFields({
     return (
       <div
         key={`${field.fieldid}-container`}
-        className="flex items-start space-x-4 w-full group"
+        className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group"
         onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}
       >
-        <div className="w-1/4 pt-2">
+        <div className="w-full lg:w-1/4 pt-2">
           <div className="flex items-center gap-1">
             {isRequired && isNewRecord && (
               <div
@@ -351,7 +351,7 @@ export default function CardFields({
         </div>
 
         <div
-          className={`w-3/4 relative transition-all duration-200 rounded-md ${
+          className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
             isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
           }`}
         >

@@ -12,6 +12,7 @@ import LoadingComp from "../loading"
 import { ChevronRightIcon, ChevronLeftIcon, SquarePlus } from "lucide-react"
 import RecordsTable from "@/components/recordsTable"
 import { Badge } from "../ui/badge"
+import CardsList from "@/components/mobile/cardList"
 
 const isDev = false
 
@@ -467,14 +468,27 @@ export default function cardSteps({
                           {table.description} - <Badge>{table.rowsCount}</Badge>
                         </h3>
                         {renderLinkedTableButton(table)}
-                        <RecordsTable
-                          tableid={table.tableid}
-                          searchTerm=""
-                          context="linked"
-                          masterTableid={tableid}
-                          masterRecordid={recordid}
-                          limit={10}
-                          />
+                        {/* Mobile: CardList */}
+                        <div className="block xl:hidden w-full">
+                            <CardsList 
+                            tableid={table.tableid}
+                            searchTerm={''}
+                            context="linked"
+                            masterTableid={tableid}
+                            masterRecordid={recordid}
+                            />
+                        </div>
+                        {/* Desktop: RecordsTable */}
+                        <div className="hidden xl:block w-full">
+                            <RecordsTable
+                                tableid={table.tableid}
+                                searchTerm={''}
+                                context="linked"
+                                masterTableid={tableid}
+                                masterRecordid={recordid}
+                                limit={10}
+                            />
+                        </div>
                       </div>
                     )
                   })}
