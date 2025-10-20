@@ -400,7 +400,7 @@ export default function RecordsTable({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="flex items-center justify-between">
-                            <span className="truncate">{column.desc}</span>
+                            <span className="w-full truncate">{column.desc}</span>
                             {shouldShowIcon && (
                               <div className="w-4 h-4 ml-1">
                                 {iconComponent}
