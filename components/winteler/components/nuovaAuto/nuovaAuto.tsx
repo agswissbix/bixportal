@@ -156,7 +156,7 @@ export default function NuovaAuto({ onChangeView }) {
         try {
             const response = await axiosInstanceClient.post("/postApi",
                 { 
-                    apiRoute: "save_auto",
+                    apiRoute: "save_nuova_auto",
                     telaio,
                     modello,
                     utente

@@ -251,6 +251,7 @@ export default function NuovaServiceman({onChangeView}) {
                     },
                 }
             );
+            
         } catch (error) {
             console.log(error);
         }

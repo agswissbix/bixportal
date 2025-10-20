@@ -6,7 +6,7 @@ import { AppContext } from '@/context/appContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -41,10 +41,10 @@ const formatTimeForInput = (date: Date | null): string => {
 };
 
 
-export default function ProveAuto({ onChangeView }) {
+export default function ProveAuto({ onChangeView, data }) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
-            const filter = isDev ? "Example prop" : onChangeView.data.filter;
+            const filter = isDev ? "Example prop" : data.filter;
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
@@ -137,8 +137,9 @@ export default function ProveAuto({ onChangeView }) {
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
         if (isDev) return null;
+        console.log("filter " + filter);
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
+            apiRoute: 'get_prove_auto', // riferimento api per il backend
             filter: filter
         };
     }, [filter]);

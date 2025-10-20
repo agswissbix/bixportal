@@ -63,8 +63,12 @@ export default function MenuProveAuto({onChangeView}) {
         return () => clearInterval(interval);
     }, []);
 
-    const openPage = (route) => {
-        onChangeView(route, {filter: filter})
+    const openPage = (route, filter?) => {
+        const filter_data = {
+            filter: filter
+        }
+
+        onChangeView(route, filter_data);
     };
 
     const buttonsList = [
@@ -82,7 +86,7 @@ export default function MenuProveAuto({onChangeView}) {
                             <GeneralButton
                                 key={link.text}
                                 text={link.text}
-                                action={() => openPage(link.route)}
+                                action={() => openPage(link.route, link.filter)}
                                 className='mb-4'
                             />
                             ))}

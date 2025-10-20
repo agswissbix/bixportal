@@ -12,8 +12,8 @@ export const CHECK_LIST_SCHEMA: GenericFormSchema = [
                 path: 'dummy.path',
                 className: 'w-full px-2'
             },
-            { id: 'nome', label: 'Nome detentore', type: 'text', path: 'checkList.datiCliente.nome'},
-            { id: 'indirizzo', label: 'Indirizzo', type: 'text', path: 'checkList.datiCliente.indirizzo'},
+            { id: 'nome', label: 'Nome detentore', type: 'text', path: 'checkList.datiCliente.nomedetentore'},
+            { id: 'indirizzo', label: 'Indirizzo', type: 'text', path: 'checkList.datiCliente.via'},
             
             { 
                 id: 'divider-contatti', 

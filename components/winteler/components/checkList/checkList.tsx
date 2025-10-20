@@ -7,6 +7,7 @@ import { CHECK_LIST_SCHEMA } from '../schema/checkListSchema';
 import GenericComponent from '@/components/genericComponent';
 import { GeneralFormTemplate } from '../generalFormTemplate';
 import GeneralButton from '../generalButton';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -27,8 +28,8 @@ const isDev = true;
         }
 
         interface DatiCliente {
-            nome: string;
-            indirizzo: string;
+            nomedetentore: string;
+            via: string;
             telefono: string;
             email: string;
             venditore: string;
@@ -136,8 +137,8 @@ export default function CheckList({ onChangeView }) {
             const responseDataDEFAULT: ResponseInterface = {
                 checkList: {
                     datiCliente: {
-                        nome: "",
-                        indirizzo: "",
+                        nomedetentore: "",
+                        via: "",
                         telefono: "",
                         email: "",
                         venditore: "", 
@@ -217,8 +218,8 @@ export default function CheckList({ onChangeView }) {
             const responseDataDEV: ResponseInterface = {
                 checkList: {
                     datiCliente: {
-                        nome: "",
-                        indirizzo: "",
+                        nomedetentore: "",
+                        via: "",
                         telefono: "",
                         email: "",
                         venditore: "", 
@@ -403,8 +404,30 @@ export default function CheckList({ onChangeView }) {
 
         console.log("Form Data Validated and ready to submit:", formData);
         
+        saveCheckList(formData.checkList);
         
     }, [formData, toggleCategory]);
+
+    async function saveCheckList(checkList: CheckList) {
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "save_checklist",
+                    checkList
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     const schemaWithVenditori = useMemo(() => {
         const venditoriOptions = responseData.venditori.map(v => ({

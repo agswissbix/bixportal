@@ -124,21 +124,21 @@ export default function SchedaAuto({onChangeView}) {
 
     async function searchSchedaAuto({ barcode, telaio }: Auto) {
         try {
-            // const response = await axiosInstanceClient.post(
-            //     "/postApi",
-            //     {
-            //         apiRoute: "search_scheda_auto",
-            //         barcode,
-            //         telaio,
-            //     },
-            //     {
-            //         headers: {
-            //             Authorization: `Bearer ${localStorage.getItem(
-            //                 "token"
-            //             )}`,
-            //         },
-            //     }
-            // );
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "search_scheda_auto",
+                    barcode,
+                    telaio,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
 
             onChangeView('scheda-dettagli-auto', {id: 'id'});
         } catch (error) {

@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         // INTERFACCIA PROPS
@@ -53,10 +53,10 @@ const isDev = true;
           scheda_auto: SchedaAuto
         }
 
-export default function SchedaDettagliAuto({onChangeView}) {
+export default function SchedaDettagliAuto({onChangeView, data}) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
-            const schedaAuto = isDev ? "Example prop" : onChangeView.data.id;
+            const schedaAuto = isDev ? "Example prop" : data.id;
 
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
@@ -156,8 +156,9 @@ export default function SchedaDettagliAuto({onChangeView}) {
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
         if (isDev) return null;
+        
         return {
-            apiRoute: "examplepost", // riferimento api per il backend
+            apiRoute: "get_scheda_auto", 
             id: schedaAuto,
         };
     }, [schedaAuto]);

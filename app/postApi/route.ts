@@ -216,7 +216,13 @@ export async function POST(request: Request) {
     
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
     case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;
+    case 'save_checklist': djangoUrl = "/customapp_winteler/save_checklist/"; break;
     case "search_scheda_auto": djangoUrl = "/customapp_winteler/search_scheda_auto/"; break;
+    case "save_nota_spesa": djangoUrl = "/customapp_winteler/save_nota_spesa/"; break;
+    case "save_preventivo_carrozzeria": djangoUrl = "/customapp_winteler/save_preventivo_carrozzeria/"; break;
+    case "save_nuova_auto": djangoUrl = "/customapp_winteler/save_nuova_auto/"; break;
+    case "save_prova_auto": djangoUrl = "/customapp_winteler/save_prova_auto/"; break;
+    case "get_prove_auto": djangoUrl = "/customapp_winteler/get_prove_auto/"; break;
     
     default:
       return NextResponse.json(

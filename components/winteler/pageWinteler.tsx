@@ -1,19 +1,19 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import Image from 'next/image';
-import Login from './login/login';
-import Menu from './menu/pageMenu';
-import SchedaAuto from './schedaAuto/schedaAuto';
-import SchedaDettagliAuto from './schedaAuto/schedaDettagliAuto';
-import NoteSpese from './noteSpese/pageNoteSpese';
-import MenuProveAuto from './proveAuto/menuProveAuto';
-import ProveAuto from './proveAuto/proveAuto';
-import NuovaProvaAuto from './proveAuto/nuovaProvaAuto';
-import MenuServiceman from './serviceman/menuServiceman';
-import NuovaServiceman from './serviceman/nuovaServiceman';
-import Serviceman from './serviceman/serviceman';
-import PreventivoCarrozzeria from './preventivoCarrozzeria/preventivoCarrozzeria';
-import NuovaAuto from './nuovaAuto/nuovaAuto';
-import CheckList from './checkList/checkList';
+import CheckList from './components/checkList/checkList';
+import NoteSpese from './components/noteSpese/pageNoteSpese';
+import NuovaAuto from './components/nuovaAuto/nuovaAuto';
+import PreventivoCarrozzeria from './components/preventivoCarrozzeria/preventivoCarrozzeria';
+import MenuProveAuto from './components/proveAuto/menuProveAuto';
+import NuovaProvaAuto from './components/proveAuto/nuovaProvaAuto';
+import ProveAuto from './components/proveAuto/proveAuto';
+import SchedaAuto from './components/schedaAuto/schedaAuto';
+import SchedaDettagliAuto from './components/schedaAuto/schedaDettagliAuto';
+import MenuServiceman from './components/serviceman/menuServiceman';
+import NuovaServiceman from './components/serviceman/nuovaServiceman';
+import Serviceman from './components/serviceman/serviceman';
+import Login from './components/login/login';
+import Menu from './components/menu/pageMenu';
 
 const MappedComponents = {
     "login": Login,

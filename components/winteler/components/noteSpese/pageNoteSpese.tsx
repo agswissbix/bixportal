@@ -9,6 +9,7 @@ import FloatingLabelInput from '../floatingLabelInput';
 import Image from 'next/image';
 import BarcodeScanner from '../barcodeScanner';
 import FloatingLabelSelect from '../floatingLabelSelect';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -182,8 +183,32 @@ export default function NoteSpese({onChangeView}) {
     }, [fotoPreview]);
 
     const handleSubmit = (event: React.FormEvent) => {
-        
+        saveNotaSpesa(responseData.spesa);
     };
+
+    async function saveNotaSpesa({tipo, importo, pagamento, note}: Spesa) {
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "save_nota_spesa",
+                    tipo,
+                    importo,
+                    pagamento,
+                    note,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { PROVA_AUTO_SCHEMA } from '../schema/provaAutoSchema';
 import { useGeneralFormState } from '../useGeneralFormState';
 import { GeneralFormTemplate } from '../generalFormTemplate';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -236,8 +237,48 @@ export default function NuovaProvaAuto({ onChangeView }) {
 
         console.log("Form Data Validated and ready to submit:", formData);
         
-        
+        const provaAuto = formData.provaAuto;
+        saveProvaAuto(
+            provaAuto,
+        );
     }, [formData, toggleCategory]);
+
+    async function saveProvaAuto(provaAuto: ProvaAuto) {
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "save_prova_auto",
+                    barcode: provaAuto.datiAuto.barcode,
+                    telaio: provaAuto.datiAuto.telaio,
+                    modello: provaAuto.datiAuto.modello,
+                    targa: provaAuto.datiAuto.targa,
+                    provaFutura: provaAuto.datiAuto.provaFutura,
+                    cognome: provaAuto.datiCliente.nome,
+                    nome: provaAuto.datiCliente.nome,
+                    email: provaAuto.datiCliente.email,
+                    via: provaAuto.datiCliente.indirizzo,
+                    cap: provaAuto.datiCliente.cap,
+                    citta: provaAuto.datiCliente.citta,
+                    telefono: provaAuto.datiCliente.telefono,
+                    kmpartenza: provaAuto.situazionePartenza.km,
+                    datapartenza: provaAuto.situazionePartenza.data,
+                    kmarrivo: provaAuto.situazioneRientro.km,
+                    dataarrivo: provaAuto.situazioneRientro.data,
+                    note: provaAuto.note,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
