@@ -1,24 +1,18 @@
 import React, { useMemo, useContext, useState, useEffect, useCallback } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from "../../genericComponent";
-import { AppContext } from '@/context/appContext';
-import GeneralButton from './generalButton';
-import FloatingLabelInput from './floatingLabelInput';
 import Image from 'next/image';
-import { CHECK_LIST_SCHEMA } from './schema/checkListSchema';
-import { useGeneralFormState } from './useGeneralFormState';
-import { GeneralFormTemplate } from './generalFormTemplate';
+import { AppContext } from '@/context/appContext';
+import { useGeneralFormState } from '../useGeneralFormState';
+import { CHECK_LIST_SCHEMA } from '../schema/checkListSchema';
+import GenericComponent from '@/components/genericComponent';
+import { GeneralFormTemplate } from '../generalFormTemplate';
+import GeneralButton from '../generalButton';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = true;
 
 // INTERFACCE
-        // INTERFACCIA PROPS
-        interface PropsInterface {
-          propExampleValue?: string;
-        }
-
         interface Venditore {
             value: number;
             label: string;
@@ -136,11 +130,8 @@ const isDev = true;
             venditori: Venditore[]
         }
 
-export default function PageCheckList({ propExampleValue }: PropsInterface) {
+export default function CheckList({ onChangeView }) {
     //DATI
-            // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
-
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
                 checkList: {
@@ -318,9 +309,8 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
         if (isDev) return null;
         return {
             apiRoute: 'examplepost', // riferimento api per il backend
-            example1: propExampleValue
         };
-    }, [propExampleValue]);
+    }, []);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -375,8 +365,8 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
             .map(section => section.specialDataPath as string);
     }, []);
 
-    function openPage(arg0: string) {
-        throw new Error('Function not implemented.');
+    function openPage(route: string) {
+        onChangeView(route);
     }
 
     const {
@@ -437,55 +427,41 @@ export default function PageCheckList({ propExampleValue }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
             {(response: ResponseInterface) => (
-                <div className="flex items-start justify-center p-0 sm:p-4 overflow-y-auto max-h-screen">
-                    <div className="overflow-hidden bg-white shadow-md border border-gray-200">
-                        <div className="w-full flex flex-col justify-center items-center p-4">
-                            <Image
-                                src="/bixdata/logos/winteler.png"
-                                alt="Logo Winteler"
-                                width={400}
-                                height={200}
-                                className="w-full h-auto"
-                            />
+                <div className="w-full flex flex-col justify-center p-5 mb-8">
+                    <form onSubmit={handleSubmit} className='w-full'>
+                        <div className='p-4'>
+                            <div className="w-full flex flex-col justify-center p-5 mb-8">
+
+                                <GeneralFormTemplate
+                                    schema={schemaWithVenditori}
+                                    formData={formData} 
+                                    handleChange={handleChange}
+                                    activeIndex={activeIndex}
+                                    toggleCategory={toggleCategory}
+                                    handleCaricaFotoClick={handleCaricaFotoClick}
+                                    rimuoviFoto={rimuoviFoto}
+                                    photoUrlMaps={photoUrlMaps}
+                                    formatDateForInput={formatDateForInput}
+                                    formatTimeForInput={formatTimeForInput}
+                                    validationErrors={validationErrors}
+                                    validateForm={validateForm}
+                                    
+                                />
+
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    accept="image/*"
+                                    multiple
+                                />
+                            </div>
+
+                            <GeneralButton type="submit" text='salva' className='mb-4' />
                         </div>
-
-                        <div className="w-full flex flex-col justify-center p-5 mb-8">
-                            <form onSubmit={handleSubmit} className='w-full'>
-                                <div className='p-4'>
-                                    <div className="w-full flex flex-col justify-center p-5 mb-8">
-
-                                        <GeneralFormTemplate
-                                            schema={schemaWithVenditori}
-                                            formData={formData} 
-                                            handleChange={handleChange}
-                                            activeIndex={activeIndex}
-                                            toggleCategory={toggleCategory}
-                                            handleCaricaFotoClick={handleCaricaFotoClick}
-                                            rimuoviFoto={rimuoviFoto}
-                                            photoUrlMaps={photoUrlMaps}
-                                            formatDateForInput={formatDateForInput}
-                                            formatTimeForInput={formatTimeForInput}
-                                            validationErrors={validationErrors}
-                                            validateForm={validateForm}
-                                            
-                                        />
-
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            className="hidden"
-                                            accept="image/*"
-                                            multiple
-                                        />
-                                    </div>
-
-                                    <GeneralButton type="submit" text='salva' className='mb-4' />
-                                </div>
-                            </form>
-                            <GeneralButton text='menu' action={() => {openPage("/menu")}} />
-                        </div>
-                    </div>
+                    </form>
+                    <GeneralButton text='menu' action={() => {openPage("menu")}} />
                 </div>
             )}
         </GenericComponent>

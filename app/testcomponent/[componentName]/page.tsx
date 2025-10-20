@@ -47,20 +47,7 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     widgetActivityTimer: dynamic(() => import('@/components/widgets/widgetActivityTimer')),
 
     // Winteler
-    pageLogin: dynamic(() => import('@/components/winteler/components/pageLogin')),
-    pageMenu: dynamic(() => import('@/components/winteler/components/pageMenu')),
-    pageSchedaAuto: dynamic(() => import('@/components/winteler/components/pageSchedaAuto')),
-    pageSchedaDettagliAuto: dynamic(() => import('@/components/winteler/components/pageSchedaDettagliAuto')),
-    pageNoteSpese: dynamic(() => import('@/components/winteler/components/pageNoteSpese')),
-    pageProveAutoMenu: dynamic(() => import('@/components/winteler/components/pageProveAutoMenu')),
-    pageNuovaProvaAuto: dynamic(() => import('@/components/winteler/components/pageNuovaProvaAuto')),
-    pageProveAuto: dynamic(() => import('@/components/winteler/components/pageProveAuto')),
-    pageServiceManMenu: dynamic(() => import('@/components/winteler/components/pageServiceManMenu')),
-    pageNuovaServiceMan: dynamic(() => import('@/components/winteler/components/pageNuovaServiceMan')),
-    pageServiceMan: dynamic(() => import('@/components/winteler/components/pageServiceMan')),
-    pageNuovoPreventivoCarrozzeria: dynamic(() => import('@/components/winteler/components/pageNuovoPreventivoCarrozzeria')),
-    pageNuovaAuto: dynamic(() => import('@/components/winteler/components/pageNuovaAuto')),
-    pageCheckList: dynamic(() => import('@/components/winteler/components/pageCheckList')),
+    pageWinteler: dynamic(() => import('@/components/winteler/components/pageWinteler')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {

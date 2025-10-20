@@ -1,26 +1,21 @@
 import React, { useMemo, useContext, useState, useEffect, useRef } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from "../../genericComponent";
+import GenericComponent from "../../../genericComponent";
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 import { forEach } from 'lodash';
-import GeneralButton from './generalButton';
-import FloatingLabelInput from './floatingLabelInput';
+import GeneralButton from '../generalButton';
+import FloatingLabelInput from '../floatingLabelInput';
 import Image from 'next/image';
-import BarcodeScanner from './barcodeScanner';
-import FloatingLabelSelect from './floatingLabelSelect';
-import CondizioniNoleggio from './condizioni_noleggio';
+import BarcodeScanner from '../barcodeScanner';
+import FloatingLabelSelect from '../floatingLabelSelect';
+import CondizioniNoleggio from '../condizioni_noleggio';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = false;
 
 // INTERFACCE
-        // INTERFACCIA PROPS
-        interface PropsInterface {
-          propExampleValue?: string;
-        }
-
         interface ServiceMan {
             id: string;
             cliente: string;
@@ -33,11 +28,8 @@ const isDev = false;
             serviceMen: ServiceMan[];
         }
 
-export default function PageServiceMan({ propExampleValue }: PropsInterface) {
+export default function Serviceman({onChangeView}) {
     //DATI
-            // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
-
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
                 serviceMen: []
@@ -143,56 +135,43 @@ export default function PageServiceMan({ propExampleValue }: PropsInterface) {
     }, []);
 
     const openPage = (route) => {
-        
+        onChangeView(route);
     };
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
             {(response: ResponseInterface) => (
-                <div className="flex items-start justify-center p-0 sm:p-4 overflow-y-auto max-h-screen">
-                    <div className="overflow-x-auto bg-white shadow-md border border-gray-200">
-                        <div className="w-full flex flex-col justify-center items-center p-4">
-                            <Image
-                                src="/bixdata/logos/winteler.png"
-                                alt="Logo Winteler"
-                                width={400}
-                                height={200}
-                            />
-                        </div>
-
-                        <div className="w-full flex flex-col justify-center p-5 mb-8">    
-                            <div className="overflow-auto w-full text-sm text-gray-900 border-t border-gray-200 p-4">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-3 font-bold text-gray-900 border-b border-gray-300">Cliente</th>
-                                            <th className="px-4 py-3 font-bold text-gray-900 border-b border-gray-300">Data</th>
+                <div className="w-full flex flex-col justify-center p-5 mb-8">    
+                    <div className="overflow-auto w-full text-sm text-gray-900 border-t border-gray-200 p-4">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th className="px-4 py-3 font-bold text-gray-900 border-b border-gray-300">Cliente</th>
+                                    <th className="px-4 py-3 font-bold text-gray-900 border-b border-gray-300">Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    response.serviceMen.map((serviceMan) => (
+                                        <tr key={`${serviceMan.cliente}-${serviceMan.data}`}
+                                            className={serviceMan.highlight ? "bg-green-200" : ""}>
+                                            <td className="px-4 py-3 border-b border-gray-200">{serviceMan.cliente}</td>
+                                            <td className="px-4 py-3 border-b border-gray-200">
+                                                {
+                                                    new Date(serviceMan.data).toLocaleDateString('it-IT')
+                                                }
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            response.serviceMen.map((serviceMan) => (
-                                                <tr key={`${serviceMan.cliente}-${serviceMan.data}`}
-                                                    className={serviceMan.highlight ? "bg-green-200" : ""}>
-                                                    <td className="px-4 py-3 border-b border-gray-200">{serviceMan.cliente}</td>
-                                                    <td className="px-4 py-3 border-b border-gray-200">
-                                                        {
-                                                            new Date(serviceMan.data).toLocaleDateString('it-IT')
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <GeneralButton
-                                text='menu'
-                                action={() => openPage("/menu")}
-                                />
-                        </div>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
                     </div>
+
+                    <GeneralButton
+                        text='menu'
+                        action={() => openPage("menu")}
+                        />
                 </div>
             )}
         </GenericComponent>

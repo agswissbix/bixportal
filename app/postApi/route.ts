@@ -216,6 +216,7 @@ export async function POST(request: Request) {
     
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
     case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;
+    case "search_scheda_auto": djangoUrl = "/customapp_winteler/search_scheda_auto/"; break;
     
     default:
       return NextResponse.json(

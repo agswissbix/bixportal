@@ -1,32 +1,22 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
-import GenericComponent from "../../genericComponent";
 import { AppContext } from '@/context/appContext';
-import { memoWithDebug } from '@/lib/memoWithDebug';
-import { forEach } from 'lodash';
-import GeneralButton from './generalButton';
 import Image from 'next/image';
+import GenericComponent from '@/components/genericComponent';
+import GeneralButton from '../generalButton';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = true;
 
 // INTERFACCE
-        // INTERFACCIA PROPS
-        interface PropsInterface {
-          propExampleValue?: string;
-        }
-
         // INTERFACCIA RISPOSTA DAL BACKEND
         interface ResponseInterface {
           responseExampleValue: string;
         }
 
-export default function PageServiceManMenu({ propExampleValue }: PropsInterface) {
+export default function Menu({onChangeView}) {
     //DATI
-            // DATI PROPS PER LO SVILUPPO
-            const devPropExampleValue = isDev ? "Example prop" : propExampleValue;
-
             // DATI RESPONSE DI DEFAULT
             const responseDataDEFAULT: ResponseInterface = {
                 responseExampleValue: "Default"
@@ -49,9 +39,8 @@ export default function PageServiceManMenu({ propExampleValue }: PropsInterface)
         if (isDev) return null;
         return {
             apiRoute: 'examplepost', // riferimento api per il backend
-            example1: propExampleValue
         };
-    }, [propExampleValue]);
+    }, []);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -74,47 +63,40 @@ export default function PageServiceManMenu({ propExampleValue }: PropsInterface)
     }, []);
 
     const openPage = (route) => {
-        
+        onChangeView(route);
     };
 
     const buttonsList = [
-        { text: 'nuova', route: '/nuova' },
-        { text: 'in attesa di conferma', route: '/in-attesa-di-conferma' },
+        { text: 'SCHEDA AUTO', route: 'scheda-auto' },
+        { text: 'NOTE SPESE', route: 'note-spese' },
+        { text: 'PROVE AUTO', route: 'menu-prove-auto' },
+        { text: 'SERVICE MAN', route: 'menu-serviceman' },
+        { text: 'PREVENTIVO CARROZZERIA', route: 'preventivo-carrozzeria' },
+        { text: 'AUTO NUOVE', route: 'nuova-auto' },
+        { text: 'CHECK LIST', route: 'check-list' },
     ]
+
+    const logout = () => {
+        onChangeView('login');
+    }
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
-                <div className="flex items-start justify-center p-0 sm:p-4 overflow-y-auto max-h-screen">
-                    <div className="overflow-hidden bg-white shadow-md border border-gray-200">
-                        <div className="w-full flex flex-col justify-center items-center p-4">
-                            <Image
-                                src="/bixdata/logos/winteler.png"
-                                alt="Logo Winteler"
-                                width={400}
-                                height={200}
-                                className="w-full h-auto" 
-                            />
-                        </div>
+                <div className="w-full flex flex-col justify-center p-5 mb-8">
+                {buttonsList.map((link) => (
+                    <GeneralButton
+                        key={link.route}
+                        text={link.text}
+                        action={() => openPage(link.route)}
+                        className='mb-4'
+                    />
+                    ))}
 
-                        <div className="w-full flex flex-col justify-center p-5 mb-8">
-                            <div className='pl-4 pr-4'> 
-                                {buttonsList.map((link) => (
-                                    <GeneralButton
-                                        key={link.route}
-                                        text={link.text}
-                                        action={() => openPage(link.route)}
-                                        className='mb-4'
-                                    />
-                                    ))}
-                            </div>
-
-                            <GeneralButton
-                                text='menu'
-                                action={() => openPage("/menu")}
-                                />
-                        </div>
-                    </div>
+                    <GeneralButton
+                        text='logout'
+                        action={() => logout()}
+                        className='mb-4'/>
                 </div>
             )}
         </GenericComponent>
