@@ -128,13 +128,13 @@ export default function CardFields({
           return prev
         }
 
-        // Notify parent of change
-        if (externalOnFieldChange) {
-          externalOnFieldChange(fieldid, newValue)
-        }
-
         return { ...prev, [fieldid]: newValue }
       })
+      if (externalOnFieldChange) {
+        queueMicrotask(() => {
+          externalOnFieldChange?.(fieldid, newValue)
+        })
+      }
     },
     [externalOnFieldChange],
   )
@@ -243,7 +243,7 @@ export default function CardFields({
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
 
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
-    console.log("Rendering field:", field.fieldid, "Value:", value)
+
     const isNewRecord = recordid === undefined || recordid === null || recordid === ""
     const currentValue = currentValues[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
@@ -256,32 +256,32 @@ export default function CardFields({
     if (isCalculated) {
       return (
         <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
-          <div className="w-1/4 pt-2">
+            <div className="w-1/4 pt-2">
             <div className="flex items-center gap-1">
               {isRequired && isNewRecord && (
-                <div
-                  className={`w-1 h-4 rounded-full mr-1 ${
-                    isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-                  }`}
-                />
+              <div
+                className={`w-1 h-4 rounded-full mr-1 ${
+                isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
+                }`}
+              />
               )}
               <p
-                data-tooltip-id="my-tooltip"
-                data-tooltip-content={`${field.fieldid}${isRequired ? " (Campo obbligatorio)" : ""}`}
-                data-tooltip-place="top"
-                className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
+              data-tooltip-id="my-tooltip"
+              data-tooltip-content={`${role === "admin" ? field.fieldid : ""}${isRequired ? " (Campo obbligatorio)" : ""}`}
+              data-tooltip-place="top"
+              className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
               >
-                {field.description}
-                {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
+              {field.description}
+              {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
               </p>
             </div>
-          </div>
+            </div>
 
-          <div
+            <div
             className={`w-3/4 relative transition-all duration-200 rounded-md ${
               isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
             }`}
-          >
+            >
             <div className="p-2 bg-gray-100 rounded-md">
               {field.fieldtype === "Utente" ? (
                 <>
@@ -340,7 +340,7 @@ export default function CardFields({
             )}
             <p
               data-tooltip-id="my-tooltip"
-              data-tooltip-content={`${field.fieldid}${isRequired ? " (Campo obbligatorio)" : ""}`}
+              data-tooltip-content={`${role === "admin" ? field.fieldid : ""}${isRequired ? " (Campo obbligatorio)" : ""}`}
               data-tooltip-place="top"
               className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
             >
