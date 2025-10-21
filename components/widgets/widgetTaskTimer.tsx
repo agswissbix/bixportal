@@ -40,7 +40,7 @@ interface ResponseInterface {
     task: Task;
 }
 
-export default function WidgetActivityTimer({
+export default function WidgetTaskTimer({
     propExampleValue,
 }: PropsInterface) {
     //DATI
@@ -229,7 +229,7 @@ export default function WidgetActivityTimer({
                                 ) : (
                                     <>
                                         {timeFromStart ? (
-                                            <>
+                                            <div className="w-full flex flex-col justify-center items-center p-5 space-y-3">
                                                 <span className="text-gray-700">
                                                     Tempo dall'inizio:
                                                 </span>
@@ -275,7 +275,7 @@ export default function WidgetActivityTimer({
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </>
+                                            </div>
                                         ) : (
                                             <></>
                                         )}
@@ -285,49 +285,44 @@ export default function WidgetActivityTimer({
                             {progress !== null &&
                             response.task &&
                             !response.task.completed ? (
-                                <div className="bg-white p-5 border-t border-gray-200 text-sm text-gray-600">
-                                    <div className="text-center mb-2 font-medium text-gray-700">
-                                        Avanzamento: {progress}%
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-3">
-                                        <div
-                                            style={{ width: `${progress}%` }}
-                                            className={`h-3 rounded-full transition-all duration-500 ease-out 
-                                                        ${
-                                                            progress < 100
-                                                                ? "bg-blue-600"
-                                                                : "bg-red-600"
-                                                        }
-                                                        ${
-                                                            progress > 95 &&
-                                                            progress < 100
-                                                                ? "animate-pulse"
-                                                                : ""
-                                                        }
-                                                        `}></div>
-                                    </div>
-
-                                    {timeToEnd && (
-                                        <div className="mt-4 text-center">
-                                            <span className="text-red-600 font-semibold">
-                                                Tempo rimanente:
-                                            </span>{" "}
-                                            {timeToEnd.giorni > 0
-                                                ? `${timeToEnd.giorni}g `
-                                                : ""}
-                                            {format(timeToEnd.ore)}h :{" "}
-                                            {format(timeToEnd.minuti)}m :{" "}
-                                            {format(timeToEnd.secondi)}s
-                                        </div>
-                                    )}
-
-                                    {progress === 100 &&
-                                        !response.task.completed && (
-                                            <div className="flex items-center justify-center mt-3 text-red-500 font-bold">
-                                                <ExclamationTriangleIcon className="w-5 h-5 mr-1" />
-                                                Tempo Scaduto
+                                <div className="w-full flex flex-col justify-center items-center pl-5 pr-5 pb-5 space-y-3">
+                                    <span className="text-gray-700">
+                                        Tempo alla fine:
+                                    </span>
+                                    <div className="flex justify-center items-center space-x-2 text-center">
+                                        <div className="p-2 bg-gray-100 rounded-md w-16">
+                                            <div className="text-2xl font-bold text-blue-800">
+                                                {timeToEnd.giorni}
                                             </div>
-                                        )}
+                                            <div className="text-xs text-gray-500">
+                                                G
+                                            </div>
+                                        </div>
+                                        <div className="p-2 bg-gray-100 rounded-md w-16">
+                                            <div className="text-2xl font-bold text-blue-800">
+                                                {format(timeToEnd.ore)}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                H
+                                            </div>
+                                        </div>
+                                        <div className="p-2 bg-gray-100 rounded-md w-16">
+                                            <div className="text-2xl font-bold text-blue-800">
+                                                {format(timeToEnd.minuti)}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                M
+                                            </div>
+                                        </div>
+                                        <div className="p-2 bg-gray-100 rounded-md w-16">
+                                            <div className="text-2xl font-bold text-red-500">
+                                                {format(timeToEnd.secondi)}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                S
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <></>

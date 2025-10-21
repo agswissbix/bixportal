@@ -256,7 +256,7 @@ export default function NuovaProvaAuto({ onChangeView }) {
                     modello: provaAuto.datiAuto.modello,
                     targa: provaAuto.datiAuto.targa,
                     provaFutura: provaAuto.datiAuto.provaFutura,
-                    cognome: provaAuto.datiCliente.nome,
+                    cognome: provaAuto.datiCliente.cognome,
                     nome: provaAuto.datiCliente.nome,
                     email: provaAuto.datiCliente.email,
                     via: provaAuto.datiCliente.indirizzo,

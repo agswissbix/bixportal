@@ -453,7 +453,7 @@ export default function CheckList({ onChangeView }) {
                 <div className="w-full flex flex-col justify-center p-5 mb-8">
                     <form onSubmit={handleSubmit} className='w-full'>
                         <div className='p-4'>
-                            <div className="w-full flex flex-col justify-center p-5 mb-8">
+                            <div className="w-full flex flex-col justify-center mb-8">
 
                                 <GeneralFormTemplate
                                     schema={schemaWithVenditori}

@@ -130,8 +130,8 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
             ) : (
                 <div className="text-center p-4 mb-4 bg-gray-50 border border-gray-200">
                     <p className="text-sm text-gray-800">
-                        Nessuna fotocamera trovata o permessi negati. Puoi
-                        caricare un'immagine.
+                        Nessuna fotocamera trovata o permessi negati. <br/>
+                        Puoi caricare un'immagine per la scansione.
                     </p>
                 </div>
             )}
@@ -143,16 +143,16 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
                     accept="image/*"
                     onChange={handleFileChange}
                     disabled={!isScannerReady}
-                    ref={fileInputRef} 
+                    ref={fileInputRef}
                     className="hidden"
                 />
 
                 <button
                     type="button"
-                    onClick={() => fileInputRef.current.click()} 
+                    onClick={() => fileInputRef.current.click()}
                     disabled={!isScannerReady}
-                    className="w-full px-4 py-2 bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                    Carica Immagine per Scansione
+                    className="w-1/2 px-4 py-2 bg-black hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed ">
+                    Carica immagine con Barcode
                 </button>
             </div>
         </div>
