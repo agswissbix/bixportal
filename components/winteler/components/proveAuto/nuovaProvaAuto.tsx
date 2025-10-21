@@ -158,6 +158,8 @@ export default function NuovaProvaAuto({ onChangeView }) {
         setResponseData({ ...responseDataDEV });
     }, []);
 
+    const [searchError, setSearchError] = useState<string | null>(null);
+
 
     const validateForm = (schema: any, formData: any) => {
         const errors: any = {};
@@ -281,77 +283,134 @@ export default function NuovaProvaAuto({ onChangeView }) {
     }
 
     const handleSearchBarcode = useCallback(async () => {
+        setSearchError(null);
         const barcodeValue = formData.provaAuto.datiAuto.barcode;
         if (!barcodeValue) {
-            alert("Inserisci un Barcode per la ricerca.");
+            setSearchError("Inserisci un Barcode per la ricerca.");
             return;
         }
 
-        const response = await axiosInstanceClient.post(
-            "/postApi",
-            {
-                apiRoute: "search_scheda_auto",
-                barcode: barcodeValue,
-                telaio: ''
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "search_scheda_auto",
+                    barcode: barcodeValue,
+                    telaio: "",
                 },
-            }
-        );
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
 
-        if (response.status == 200) {
-            console.log(response.data.scheda_auto)
-            handleChange(
-                "provaAuto.datiAuto.barcode", 
-                response.data.scheda_auto.barcode);
-            handleChange(
+            if (response.status == 200) {
+                console.log(response.data.scheda_auto);
+                handleChange(
+                    "provaAuto.datiAuto.barcode",
+                    response.data.scheda_auto.barcode
+                );
+                handleChange(
                     "provaAuto.datiAuto.telaio",
                     response.data.scheda_auto.telaio
                 );
-            handleChange(
-                "provaAuto.datiAuto.modello",
-                response.data.scheda_auto.modello
-            );
+                handleChange(
+                    "provaAuto.datiAuto.modello",
+                    response.data.scheda_auto.modello
+                );
+            }
+        } catch (error) {
+            console.error("Errore nella ricerca scheda:", error);
+
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage =
+                    error.response.data?.messaggio || "Errore sconosciuto.";
+
+                if (status === 400) {
+                    setSearchError(`Errore di input: ${errorMessage}`);
+                } else if (status === 404) {
+                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                } else {
+                    setSearchError(
+                        "Si è verificato un errore del server. Riprova più tardi."
+                    );
+                }
+            } else {
+                setSearchError(
+                    "Impossibile connettersi al server. Controlla la tua connessione."
+                );
+            }
         }
+        
     }, [formData, handleChange]);
 
     const handleSearchTelaio = useCallback(async () => {
+        setSearchError(null);
+
         const telaioValue = formData.provaAuto.datiAuto.telaio;
         if (!telaioValue) {
-            alert("Inserisci un Telaio per la ricerca.");
+            setSearchError("Inserisci un Telaio per la ricerca.");
             return;
         }
 
-        const response = await axiosInstanceClient.post(
-            "/postApi",
-            {
-                apiRoute: "search_scheda_auto",
-                barcode: "",
-                telaio: telaioValue,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "search_scheda_auto",
+                    barcode: "",
+                    telaio: telaioValue,
                 },
-            }
-        );
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
 
-        if (response.status == 200) {
-            console.log(response.data.scheda_auto);
-            handleChange(
-                "provaAuto.datiAuto.barcode",
-                response.data.scheda_auto.barcode
-            );
-            handleChange(
-                "provaAuto.datiAuto.telaio",
-                response.data.scheda_auto.telaio
-            );
-            handleChange(
-                "provaAuto.datiAuto.modello",
-                response.data.scheda_auto.modello
-            );
+            if (response.status == 200) {
+                console.log(response.data.scheda_auto);
+                handleChange(
+                    "provaAuto.datiAuto.barcode",
+                    response.data.scheda_auto.barcode
+                );
+                handleChange(
+                    "provaAuto.datiAuto.telaio",
+                    response.data.scheda_auto.telaio
+                );
+                handleChange(
+                    "provaAuto.datiAuto.modello",
+                    response.data.scheda_auto.modello
+                );
+            }
+        } catch (error) {
+            console.error("Errore nella ricerca scheda:", error);
+
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage =
+                    error.response.data?.messaggio || "Errore sconosciuto.";
+
+                if (status === 400) {
+                    setSearchError(`Errore di input: ${errorMessage}`);
+                } else if (status === 404) {
+                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                } else {
+                    setSearchError(
+                        "Si è verificato un errore del server. Riprova più tardi."
+                    );
+                }
+            } else {
+                setSearchError(
+                    "Impossibile connettersi al server. Controlla la tua connessione."
+                );
+            }
         }
     }, [formData, handleChange]);
 
@@ -399,6 +458,14 @@ export default function NuovaProvaAuto({ onChangeView }) {
                         className="w-full">
                         <div className="p-4">
                             <div className="w-full flex flex-col justify-center p-5 mb-8">
+                                {searchError && (
+                                    <div className="text-center p-4 mb-4 bg-red-50 border border-red-200">
+                                        <p className="text-sm text-gray-800">
+                                            {searchError}
+                                        </p>
+                                    </div>
+                                )}
+
                                 <GeneralFormTemplate
                                     schema={dynamicSchema}
                                     formData={formData}
