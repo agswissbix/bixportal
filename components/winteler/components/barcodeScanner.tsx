@@ -38,7 +38,7 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
                     }
             })
                 .catch(err => {
-                    console.error("Nessuna fotocamera trovata o permessi negati.", err);
+                    console.log("Nessuna fotocamera trovata o permessi negati.", err);
                     setHasCameras(false);
             });
         }
@@ -117,7 +117,7 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
             ) : (
                 <div className="text-center p-4 mb-4 bg-gray-50 border border-gray-200">
                     <p className="text-sm text-gray-800">
-                            Nessuna fotocamera trovata. Puoi caricare un'immagine.
+                            Nessuna fotocamera trovata o permessi negati. Puoi caricare un'immagine.
                     </p>
                 </div>
             )}
