@@ -10,19 +10,20 @@ import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
+// Modifica: Il tipo per onChange accetta stringa (formato yyyy-MM-dd) o null
 interface PropsInterface {
   initialValue?: string // formato "yyyy-MM-dd"
-  onChange?: (value: string) => void
+  onChange?: (value: string | null) => void // Può essere stringa o null
 }
 
-// ✅ Formatta per input
-function formatDisplayDate(date?: Date): string {
+// ✅ Formatta per input. Accetta Date o undefined/null.
+function formatDisplayDate(date?: Date | null): string {
   if (!date || isNaN(date.getTime())) return ""
   return format(date, "dd/MM/yyyy", { locale: it })
 }
 
 // ✅ Verifica validità
-function isValidDate(date?: Date): boolean {
+function isValidDate(date?: Date | null): boolean {
   return !!date && !isNaN(date.getTime())
 }
 
@@ -79,16 +80,19 @@ function autoFormatDateInput(input: string, prev: string): string {
 }
 
 export default function InputDate({ initialValue, onChange }: PropsInterface) {
+  // Modifica: calculatedDate ora può essere Date o undefined
   const calculatedDate = React.useMemo(() => {
     if (initialValue && !isNaN(new Date(initialValue).getTime())) {
       return new Date(initialValue)
     }
-    return new Date()
+    return undefined // Ritorna undefined se initialValue non è valido/presente
   }, [initialValue])
 
   const [open, setOpen] = React.useState(false)
-  const [date, setDate] = React.useState<Date>(calculatedDate)
-  const [month, setMonth] = React.useState<Date>(calculatedDate)
+  // Modifica: date e month possono essere Date o undefined
+  const [date, setDate] = React.useState<Date | undefined>(calculatedDate)
+  // Inizializza month con la data calcolata o la data odierna se calculatedDate è undefined.
+  const [month, setMonth] = React.useState<Date>(calculatedDate || new Date())
   const [value, setValue] = React.useState(formatDisplayDate(calculatedDate))
   const uniqueId = React.useId()
 
@@ -100,7 +104,9 @@ export default function InputDate({ initialValue, onChange }: PropsInterface) {
     if (!hasMounted.current) {
       hasMounted.current = true
       queueMicrotask(() => {
-        onChange?.(format(calculatedDate, "yyyy-MM-dd"))
+        // Modifica: Segnala null se calculatedDate non esiste
+        const output = calculatedDate ? format(calculatedDate, "yyyy-MM-dd") : null
+        onChange?.(output)
       })
     }
   }, [])
@@ -108,14 +114,22 @@ export default function InputDate({ initialValue, onChange }: PropsInterface) {
   // 🔹 Sincronizza quando cambia initialValue
   React.useEffect(() => {
     if (isTypingRef.current) return
-    if (date.getTime() !== calculatedDate.getTime()) {
+
+    const dateChanged = isValidDate(date) !== isValidDate(calculatedDate) ||
+      (isValidDate(date) && isValidDate(calculatedDate) && date!.getTime() !== calculatedDate!.getTime())
+
+    if (dateChanged) {
       setDate(calculatedDate)
-      setMonth(calculatedDate)
+      // Imposta month solo se c'è una data, altrimenti rimane l'attuale/default
+      if (calculatedDate) setMonth(calculatedDate)
       setValue(formatDisplayDate(calculatedDate))
     }
     queueMicrotask(() => {
-      onChange?.(format(calculatedDate, "yyyy-MM-dd"))
+      // Modifica: Segnala null se calculatedDate non esiste
+      const output = calculatedDate ? format(calculatedDate, "yyyy-MM-dd") : null
+      onChange?.(output)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calculatedDate])
 
   const handleChange = (val: string) => {
@@ -133,13 +147,28 @@ export default function InputDate({ initialValue, onChange }: PropsInterface) {
       setValue(formatDisplayDate(parsed))
       onChange?.(format(parsed, "yyyy-MM-dd"))
     } else if (value.trim() === "") {
+      // Modifica: Se l'input è vuoto dopo il blur
+      setDate(undefined)
+      // Non cambiamo 'month' per evitare di saltare troppo nel calendario
       setValue("")
-      onChange?.("")
+      onChange?.(null) // Segnala null al padre
+    } else {
+      // Caso in cui la data digitata è invalida ma non vuota, ripristina il valore precedente (se esisteva)
+      setValue(formatDisplayDate(date))
     }
   }
 
   const handleSelect = (selected?: Date) => {
-    if (!selected) return
+    if (!selected) {
+      // Se l'utente in qualche modo deseleziona
+      isTypingRef.current = false
+      setDate(undefined)
+      setValue("")
+      onChange?.(null)
+      setOpen(false)
+      return
+    }
+
     isTypingRef.current = false
     setDate(selected)
     setMonth(selected)
@@ -155,7 +184,7 @@ export default function InputDate({ initialValue, onChange }: PropsInterface) {
           inputMode="numeric"
           pattern="[0-9/]*"
           value={value}
-          placeholder="gg/mm/aaaa"
+          placeholder="gg/mm/aa"
           className="bg-background pr-10 placeholder:text-gray-500"
           onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
@@ -187,12 +216,14 @@ export default function InputDate({ initialValue, onChange }: PropsInterface) {
           >
             <Calendar
               mode="single"
-              selected={date}
+              selected={date} // selected può essere undefined
               onSelect={handleSelect}
               captionLayout="dropdown"
               month={month}
               onMonthChange={setMonth}
               locale={itCH}
+              // Modifica: Aggiunto initialFocus
+              initialFocus
             />
           </PopoverContent>
         </Popover>
