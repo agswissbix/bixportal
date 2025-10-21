@@ -197,9 +197,15 @@ export default function CardFields({
       setResponseData(response)
       const initialFields: { [key: string]: string | string[] | File } = {}
       response.fields.forEach((field) => {
+        const settings = typeof field.settings === "object" ? field.settings : null
+        const defaultValue = settings?.default
         const backendValue =
           typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
-        if (backendValue !== undefined && backendValue !== null) {
+        
+        if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
+          initialFields[field.fieldid] = defaultValue
+        } 
+          if (backendValue !== undefined && backendValue !== null) {
           initialFields[field.fieldid] = backendValue
         }
       })
