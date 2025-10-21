@@ -27,20 +27,6 @@ const isDev = false;
             proveAuto: ProvaAuto[];
         }
 
-const formatDateForInput = (date: Date | null): string => {
-    if (!date) return ''; 
-    return new Date(date).toISOString().split('T')[0];
-};
-
-const formatTimeForInput = (date: Date | null): string => {
-    if (!date) return '';
-    const d = new Date(date);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-};
-
-
 export default function ProveAuto({ onChangeView, data }) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
@@ -137,7 +123,7 @@ export default function ProveAuto({ onChangeView, data }) {
     // PAYLOAD (solo se non in sviluppo)
     const payload = useMemo(() => {
         if (isDev) return null;
-        console.log("filter " + filter);
+        
         return {
             apiRoute: 'get_prove_auto', // riferimento api per il backend
             filter: filter

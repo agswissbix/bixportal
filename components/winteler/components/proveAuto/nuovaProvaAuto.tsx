@@ -158,6 +158,8 @@ export default function NuovaProvaAuto({ onChangeView }) {
         setResponseData({ ...responseDataDEV });
     }, []);
 
+    const [searchError, setSearchError] = useState<string | null>(null);
+
 
     const validateForm = (schema: any, formData: any) => {
         const errors: any = {};
@@ -280,27 +282,205 @@ export default function NuovaProvaAuto({ onChangeView }) {
         }
     }
 
+    const handleSearchBarcode = useCallback(async () => {
+        setSearchError(null);
+        const barcodeValue = formData.provaAuto.datiAuto.barcode;
+        if (!barcodeValue) {
+            setSearchError("Inserisci un Barcode per la ricerca.");
+            return;
+        }
+
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "search_scheda_auto",
+                    barcode: barcodeValue,
+                    telaio: "",
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+
+            if (response.status == 200) {
+                console.log(response.data.scheda_auto);
+                handleChange(
+                    "provaAuto.datiAuto.barcode",
+                    response.data.scheda_auto.barcode
+                );
+                handleChange(
+                    "provaAuto.datiAuto.telaio",
+                    response.data.scheda_auto.telaio
+                );
+                handleChange(
+                    "provaAuto.datiAuto.modello",
+                    response.data.scheda_auto.modello
+                );
+            }
+        } catch (error) {
+            console.error("Errore nella ricerca scheda:", error);
+
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage =
+                    error.response.data?.messaggio || "Errore sconosciuto.";
+
+                if (status === 400) {
+                    setSearchError(`Errore di input: ${errorMessage}`);
+                } else if (status === 404) {
+                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                } else {
+                    setSearchError(
+                        "Si è verificato un errore del server. Riprova più tardi."
+                    );
+                }
+            } else {
+                setSearchError(
+                    "Impossibile connettersi al server. Controlla la tua connessione."
+                );
+            }
+        }
+        
+    }, [formData, handleChange]);
+
+    const handleSearchTelaio = useCallback(async () => {
+        setSearchError(null);
+
+        const telaioValue = formData.provaAuto.datiAuto.telaio;
+        if (!telaioValue) {
+            setSearchError("Inserisci un Telaio per la ricerca.");
+            return;
+        }
+
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "search_scheda_auto",
+                    barcode: "",
+                    telaio: telaioValue,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+
+            if (response.status == 200) {
+                console.log(response.data.scheda_auto);
+                handleChange(
+                    "provaAuto.datiAuto.barcode",
+                    response.data.scheda_auto.barcode
+                );
+                handleChange(
+                    "provaAuto.datiAuto.telaio",
+                    response.data.scheda_auto.telaio
+                );
+                handleChange(
+                    "provaAuto.datiAuto.modello",
+                    response.data.scheda_auto.modello
+                );
+            }
+        } catch (error) {
+            console.error("Errore nella ricerca scheda:", error);
+
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage =
+                    error.response.data?.messaggio || "Errore sconosciuto.";
+
+                if (status === 400) {
+                    setSearchError(`Errore di input: ${errorMessage}`);
+                } else if (status === 404) {
+                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                } else {
+                    setSearchError(
+                        "Si è verificato un errore del server. Riprova più tardi."
+                    );
+                }
+            } else {
+                setSearchError(
+                    "Impossibile connettersi al server. Controlla la tua connessione."
+                );
+            }
+        }
+    }, [formData, handleChange]);
+
+    const dynamicSchema = useMemo(() => {
+        return PROVA_AUTO_SCHEMA.map((section) => {
+            if (section.key === "datiAuto") {
+                return {
+                    ...section,
+                    fields: section.fields.map((field) => {
+                        if (field.id === "barcode" && field.actionButton) {
+                            return {
+                                ...field,
+                                actionButton: {
+                                    ...field.actionButton,
+                                    action: handleSearchBarcode, 
+                                },
+                            };
+                        }
+                        if (field.id === "telaio" && field.actionButton) {
+                            return {
+                                ...field,
+                                actionButton: {
+                                    ...field.actionButton,
+                                    action: handleSearchTelaio,
+                                },
+                            };
+                        }
+                        return field;
+                    }),
+                };
+            }
+            return section;
+        });
+    }, [handleSearchBarcode, handleSearchTelaio]);
+
     return (
-        <GenericComponent response={responseData} loading={loading} error={error}>
+        <GenericComponent
+            response={responseData}
+            loading={loading}
+            error={error}>
             {(response: ResponseInterface) => (
                 <div className="w-full flex flex-col justify-center p-5 mb-8">
-                    <form onSubmit={handleSubmit} className='w-full'>
-                        <div className='p-4'>
+                    <form
+                        onSubmit={handleSubmit}
+                        className="w-full">
+                        <div className="p-4">
                             <div className="w-full flex flex-col justify-center p-5 mb-8">
+                                {searchError && (
+                                    <div className="text-center p-4 mb-4 bg-red-50 border border-red-200">
+                                        <p className="text-sm text-gray-800">
+                                            {searchError}
+                                        </p>
+                                    </div>
+                                )}
 
                                 <GeneralFormTemplate
-                                    schema={PROVA_AUTO_SCHEMA}
-                                    formData={formData} 
+                                    schema={dynamicSchema}
+                                    formData={formData}
                                     handleChange={handleChange}
                                     activeIndex={activeIndex}
                                     toggleCategory={toggleCategory}
-                                    handleCaricaFotoClick={handleCaricaFotoClick}
+                                    handleCaricaFotoClick={
+                                        handleCaricaFotoClick
+                                    }
                                     rimuoviFoto={rimuoviFoto}
                                     photoUrlMaps={photoUrlMaps}
                                     formatDateForInput={formatDateForInput}
                                     formatTimeForInput={formatTimeForInput}
                                     validationErrors={validationErrors}
-                                    validateForm={validateForm} 
+                                    validateForm={validateForm}
                                 />
 
                                 <input
@@ -319,14 +499,28 @@ export default function NuovaProvaAuto({ onChangeView }) {
                                     name="note"
                                     label="Note"
                                     value={formData.provaAuto.note}
-                                    onChange={(e) => handleChange('provaAuto.note', e.target.value)}
+                                    onChange={(e) =>
+                                        handleChange(
+                                            "provaAuto.note",
+                                            e.target.value
+                                        )
+                                    }
                                 />
                             </div>
 
-                            <GeneralButton type="submit" text='salva' className='mb-4' />
+                            <GeneralButton
+                                type="submit"
+                                text="salva"
+                                className="mb-4"
+                            />
                         </div>
                     </form>
-                    <GeneralButton text='menu' action={() => {openPage("menu")}} />
+                    <GeneralButton
+                        text="menu"
+                        action={() => {
+                            openPage("menu");
+                        }}
+                    />
                 </div>
             )}
         </GenericComponent>
