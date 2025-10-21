@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = false;
+const isDev = true;
 
 // INTERFACCE
         // INTERFACCIA PROPS

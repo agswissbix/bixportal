@@ -109,7 +109,7 @@ export default function SchedaAuto({onChangeView}) {
 
             return {
                 ...prevData,
-                spesa: {
+                auto: {
                     ...prevData.auto,
                     [name]: processedValue as any,
                 },

@@ -223,6 +223,8 @@ export async function POST(request: Request) {
     case "save_nuova_auto": djangoUrl = "/customapp_winteler/save_nuova_auto/"; break;
     case "save_prova_auto": djangoUrl = "/customapp_winteler/save_prova_auto/"; break;
     case "get_prove_auto": djangoUrl = "/customapp_winteler/get_prove_auto/"; break;
+    case "get_venditori": djangoUrl = "/customapp_winteler/get_venditori/"; break;
+    case "get_scheda_auto": djangoUrl = "/customapp_winteler/get_scheda_auto/"; break;
     
     default:
       return NextResponse.json(
