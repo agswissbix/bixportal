@@ -114,7 +114,7 @@ export default function NoteSpese({onChangeView}) {
             let processedValue: string | number | boolean = value;
     
             if (type === 'number') {
-                processedValue = parseInt(value) || 0;
+                processedValue = parseInt(value) || '';
             } 
             else if (type === 'checkbox') {
                 const isChecked = (e.target as HTMLInputElement).checked;
@@ -187,6 +187,9 @@ export default function NoteSpese({onChangeView}) {
     };
 
     async function saveNotaSpesa({tipo, importo, pagamento, note}: Spesa) {
+        if (!importo || importo < 0)
+            importo = 0;
+
         try {
             const response = await axiosInstanceClient.post(
                 "/postApi",

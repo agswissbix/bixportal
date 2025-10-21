@@ -77,7 +77,7 @@ const renderInputField = (field: FieldWithAction, props: GeneralFormTemplateProp
                 key={field.id} 
                 className={`mt-8 mb-4 ${field.className || 'w-full'} border border-gray-200  shadow-sm bg-gray-50 p-4`}
             >
-                <h3 className="text-lg font-semibold text-gray-800">
+                <h3 className="text-lg text-gray-800">
                     {field.label}
                     {field.required && <span className="text-red-500 ml-1">*</span>}
                 </h3>
@@ -336,7 +336,7 @@ export const GeneralFormTemplate: React.FC<GeneralFormTemplateProps> = (props) =
                 >
                     <button
                         type="button"
-                        className="w-full text-left flex items-center p-4 text-lg font-medium text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out border-b border-gray-200"
+                        className="w-full text-left flex items-center p-4 text-lg font-semibold text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out border-b border-gray-200"
                         onClick={() => toggleCategory(section.key)}
                         aria-expanded={activeIndex === section.key}
                     >

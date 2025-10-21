@@ -11,7 +11,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
-const isDev = true;
+const isDev = false;
 
 // INTERFACCE
         interface Venditore {
@@ -309,7 +309,7 @@ export default function CheckList({ onChangeView }) {
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
+            apiRoute: "get_venditori", // riferimento api per il backend
         };
     }, []);
 
@@ -414,7 +414,7 @@ export default function CheckList({ onChangeView }) {
                 "/postApi",
                 {
                     apiRoute: "save_checklist",
-                    checkList
+                    checkList,
                 },
                 {
                     headers: {

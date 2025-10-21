@@ -8,13 +8,13 @@ export const PROVA_AUTO_SCHEMA: GenericFormSchema = [
             { id: 'barcode', label: 'Barcode', type: 'text', path: 'provaAuto.datiAuto.barcode',
                 actionButton: {
                     text: 'Cerca',
-                    action: (path) => { console.log(`Cerca dati per: ${path}`); }
+                    action: (path) => {  }
                     }
                 },
             { id: 'telaio', label: 'Telaio', type: 'text', path: 'provaAuto.datiAuto.telaio',
                 actionButton: {
                     text: 'Cerca',
-                    action: (path) => { console.log(`Cerca dati per: ${path}`); }
+                    action: (path) => {  }
                     }
                 }, 
             { id: 'modello', label: 'Modello', type: 'text', path: 'provaAuto.datiAuto.modello' }, 

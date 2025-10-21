@@ -2,11 +2,8 @@ import React, { useMemo, useContext, useState, useEffect } from "react";
 import { useApi } from "@/utils/useApi";
 import GenericComponent from "../../../genericComponent";
 import { AppContext } from "@/context/appContext";
-import { memoWithDebug } from "@/lib/memoWithDebug";
-import { forEach, result } from "lodash";
 import GeneralButton from "../generalButton";
 import FloatingLabelInput from "../floatingLabelInput";
-import Image from "next/image";
 import BarcodeScanner from "../barcodeScanner";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 
@@ -80,13 +77,15 @@ export default function SchedaAuto({onChangeView}) {
         setResponseData({ ...responseDataDEV });
     }, []);
 
-    const openPage = (route) =>
-    {
+    const openPage = (route) => {
         onChangeView(route);
     };
 
     const [scanResult, setScanResult] = useState(null);
     const [scanError, setScanError] = useState(null);
+
+    const [searchError, setSearchError] = useState<string | null>(null);
+
 
     const handleChange = (
         e: React.ChangeEvent<
@@ -109,7 +108,7 @@ export default function SchedaAuto({onChangeView}) {
 
             return {
                 ...prevData,
-                spesa: {
+                auto: {
                     ...prevData.auto,
                     [name]: processedValue as any,
                 },
@@ -123,6 +122,13 @@ export default function SchedaAuto({onChangeView}) {
     };
 
     async function searchSchedaAuto({ barcode, telaio }: Auto) {
+        setSearchError(null);
+
+        if (!barcode.trim() && !telaio.trim()) {
+            setSearchError("Inserisci un Barcode o un Telaio.");
+            return;
+        }
+
         try {
             const response = await axiosInstanceClient.post(
                 "/postApi",
@@ -140,9 +146,37 @@ export default function SchedaAuto({onChangeView}) {
                 }
             );
 
-            onChangeView('scheda-dettagli-auto', {id: 'id'});
+            if (response.status === 200) {
+                const schedaId = response.data.scheda_auto?.id;
+
+                if (schedaId) {
+                    onChangeView("scheda-dettagli-auto", { id: schedaId });
+                } else {
+                    setSearchError("Risposta del server non valida.");
+                }
+            }
         } catch (error) {
-            console.log(error);
+            console.error("Errore nella ricerca scheda:", error);
+
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage =
+                    error.response.data?.messaggio || "Errore sconosciuto.";
+
+                if (status === 400) {
+                    setSearchError(`Errore di input: ${errorMessage}`);
+                } else if (status === 404) {
+                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                } else {
+                    setSearchError(
+                        "Si è verificato un errore del server. Riprova più tardi."
+                    );
+                }
+            } else {
+                setSearchError(
+                    "Impossibile connettersi al server. Controlla la tua connessione."
+                );
+            }
         }
     }
 
@@ -179,6 +213,14 @@ export default function SchedaAuto({onChangeView}) {
                         onSubmit={handleSubmit}
                         className="w-full">
                         <div className="p-4">
+                            {searchError && (
+                                <div className="text-center p-4 mb-4 bg-red-50 border border-red-200">
+                                    <p className="text-sm text-gray-800">
+                                        {searchError}
+                                    </p>
+                                </div>
+                            )}
+
                             {/* QR Code reader */}
                             <BarcodeScanner
                                 onScanSuccess={handleScanSuccess}
