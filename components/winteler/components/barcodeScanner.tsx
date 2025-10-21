@@ -4,6 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 export default function BarcodeScanner({ onScanSuccess, onScanError }) {
     // --- Refs ---
     const readerRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     // --- Stati ---
     const [scanner, setScanner] = useState(null);
@@ -76,40 +77,52 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
             stopScanning();
             scanner.scanFile(file, true)
                 .then(handleScanSuccess)
-                .catch(handleScanError);
+                .catch(handleScanError)
+                .finally( () => {
+                    e.target.value = null;
+                });
         }
     };
 
     return (
         <div>
-            <div 
-                id="barcode-reader" 
-                ref={readerRef} 
-                style={{ display: hasCameras ? 'block' : 'none', width: '100%' }}
-            ></div>
+            <div
+                id="barcode-reader"
+                ref={readerRef}
+                style={{
+                    display: hasCameras ? "block" : "none",
+                    width: "100%",
+                }}></div>
 
             {hasCameras ? (
                 <div className="text-center p-4 mb-4 bg-gray-50 border border-gray-200">
-                    <label htmlFor="camera-select" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                        htmlFor="camera-select"
+                        className="block text-sm font-medium text-gray-700 mb-1">
                         Scegli Fotocamera:
                     </label>
                     <select
                         id="camera-select"
                         value={selectedCamera}
                         onChange={(e) => setSelectedCamera(e.target.value)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md"
-                        >
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">
                         {cameras.map((camera) => (
-                            <option key={camera.id} value={camera.id}>
+                            <option
+                                key={camera.id}
+                                value={camera.id}>
                                 {camera.label || `Fotocamera ${camera.id}`}
                             </option>
                         ))}
                     </select>
                     <div className="mt-4 grid grid-cols-2 gap-4">
-                        <button onClick={startScanning} className="w-full px-4 py-2 bg-black text-white">
+                        <button
+                            onClick={startScanning}
+                            className="w-full px-4 py-2 bg-black text-white">
                             Avvia
                         </button>
-                        <button onClick={stopScanning} className="w-full px-4 py-2 bg-black text-white">
+                        <button
+                            onClick={stopScanning}
+                            className="w-full px-4 py-2 bg-black text-white">
                             Ferma
                         </button>
                     </div>
@@ -117,20 +130,30 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
             ) : (
                 <div className="text-center p-4 mb-4 bg-gray-50 border border-gray-200">
                     <p className="text-sm text-gray-800">
-                            Nessuna fotocamera trovata o permessi negati. Puoi caricare un'immagine.
+                        Nessuna fotocamera trovata o permessi negati. Puoi
+                        caricare un'immagine.
                     </p>
                 </div>
             )}
 
             <div className="text-center">
-                <input 
+                <input
                     id="file-input"
-                    type="file" 
+                    type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     disabled={!isScannerReady}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    ref={fileInputRef} 
+                    className="hidden"
                 />
+
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current.click()} 
+                    disabled={!isScannerReady}
+                    className="w-full px-4 py-2 bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                    Carica Immagine per Scansione
+                </button>
             </div>
         </div>
     );
