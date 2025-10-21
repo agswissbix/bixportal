@@ -309,7 +309,7 @@ export default function CheckList({ onChangeView }) {
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'examplepost', // riferimento api per il backend
+            apiRoute: 'get_venditori', // riferimento api per il backend
         };
     }, []);
 
@@ -414,7 +414,7 @@ export default function CheckList({ onChangeView }) {
                 "/postApi",
                 {
                     apiRoute: "save_checklist",
-                    checkList
+                    checkList,
                 },
                 {
                     headers: {
