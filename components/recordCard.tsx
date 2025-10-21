@@ -32,6 +32,10 @@ interface ResponseInterface {
   fn: CustomFunction[];
 }
 
+interface TableSetting {
+  tablesettings: Record<string, { type: string; value: string }>;
+}
+
 const WIDTH_WINDOW_MOBILE = 1280; // XL breakpoint
 
 export default function RecordCard({
@@ -80,6 +84,23 @@ export default function RecordCard({
       setResponseData(response);
     }
   }, [response, responseData]);
+
+  const payloadSettings = useMemo(() => {
+    if (isDev) return null;
+    return {
+      apiRoute: 'settings_table_settings',
+      tableid,
+    };
+  }, [tableid]);
+
+  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
+
+  useEffect(() => {
+    if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
+      console.log('RecordCard: fetched table settings', responseSettings);
+      setIsMaximized(responseSettings.tablesettings?.card_default_size?.value === 'max' ? true : false);
+    }
+  }, [responseSettings]);
 
   // dimension / responsive detection
   useEffect(() => {
