@@ -120,6 +120,7 @@ export async function POST(request: Request) {
     case 'get_table_records': djangoUrl = '/commonapp/get_table_records/'; break;
     case 'get_calendar_records': djangoUrl = '/commonapp/get_calendar_records/'; break;
     case 'get_records_matrixcalendar': djangoUrl = '/commonapp/get_records_matrixcalendar/'; break;
+    case 'matrixcalendar_save_record': djangoUrl = '/commonapp/matrixcalendar_save_record/'; break;
     case 'set_column_order': djangoUrl = '/commonapp/set_column_order/'; break;
     case 'getPitservicePivotLavanderie': djangoUrl = '/commonapp/get_pitservice_pivot_lavanderia/'; break;
     case 'save_record_fields': djangoUrl = '/commonapp/save_record_fields/'; break;

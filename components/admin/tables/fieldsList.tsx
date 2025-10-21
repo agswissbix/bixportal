@@ -46,6 +46,7 @@ const fieldTypeOptions = [
   { value: "lookup", label: "Lookup", icon: Search },
   { value: "Utente", label: "Utente", icon: User },
   { value: "Memo", label: "Memo", icon: FileText },
+  { value: "html", label: "HTML", icon: FileText },
 ]
 
 const typePreferenceOptions = [
