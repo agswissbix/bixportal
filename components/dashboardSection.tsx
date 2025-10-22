@@ -14,6 +14,7 @@ interface PropsInterface {
   initialTab?: string;
   initialYears?: string[];
   filters?: any;
+  dashboardCategory?: string;
 }
 
 interface SociOspitiData {
@@ -86,7 +87,7 @@ interface ResponseInterface {
   dashboards?: Dashboards[];
 }
 
-function DashboardSection({ initialTab, initialYears, filters }: PropsInterface) {
+function DashboardSection({ initialTab, initialYears, filters, dashboardCategory }: PropsInterface) {
   // DATI PROPS PER LO SVILUPPO
 
   // DATI RESPONSE DI DEFAULT
@@ -116,6 +117,7 @@ function DashboardSection({ initialTab, initialYears, filters }: PropsInterface)
     if (isDev) return null;
     return {
       apiRoute: "get_dashboard_data", // riferimento api per il backend
+      dashboardCategory: dashboardCategory || "",
     };
   }, []);
 

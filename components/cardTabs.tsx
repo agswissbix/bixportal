@@ -10,6 +10,7 @@ import RecordAttachmentsDemo from './recordAttachmentsDemo';
 import { set } from 'lodash';
 import DynamicTableBridge from './customCardFields/dynamicCardFieldsBridge';
 import CardSteps from './customCardFields/cardSteps';
+import ChartConfigForm from './customCardFields/chartFields';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -162,13 +163,21 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                             masterrecordid={masterrecordid}
                           />
                       ) : (
-                        <CardFields
-                          tableid={tableid}
-                          recordid={recordid}
-                          mastertableid={mastertableid}
-                          masterrecordid={masterrecordid}
-                          showSaveButton={true}
-                        />
+                        tableid === 'chart' ? (
+                            <ChartConfigForm
+                              tableid={tableid}
+                              recordid={recordid}
+                              mastertableid={mastertableid}
+                              masterrecordid={masterrecordid}
+                            />
+                          ) : (
+                            <CardFields
+                              tableid={tableid}
+                              recordid={recordid}
+                              mastertableid={mastertableid}
+                              masterrecordid={masterrecordid}
+                            />
+                          )
                       )
                     ) : (
                       <>
@@ -181,12 +190,21 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                           />
                         )}
                         {activeTab === 'Campi' && (
-                          <CardFields
-                            tableid={tableid}
-                            recordid={recordid}
-                            mastertableid={mastertableid}
-                            masterrecordid={masterrecordid}
-                          />
+                          tableid === 'chart' ? (
+                            <ChartConfigForm
+                              tableid={tableid}
+                              recordid={recordid}
+                              mastertableid={mastertableid}
+                              masterrecordid={masterrecordid}
+                            />
+                          ) : (
+                            <CardFields
+                              tableid={tableid}
+                              recordid={recordid}
+                              mastertableid={mastertableid}
+                              masterrecordid={masterrecordid}
+                            />
+                          )
                         )}
                         {activeTab === 'Collegati' && (
                           <CardLinked tableid={tableid} recordid={recordid} />
