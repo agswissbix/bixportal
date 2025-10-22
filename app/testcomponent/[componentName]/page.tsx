@@ -46,6 +46,8 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
     widgetTime: dynamic(() => import('@/components/widgets/widgetTime')),
     widgetActivityTimer: dynamic(() => import('@/components/widgets/widgetActivityTimer')),
     widgetTaskTimer: dynamic(() => import('@/components/widgets/widgetTaskTimer')),
+    widgetTaskTracker: dynamic(() => import('@/components/widgets/widgetTaskTracker')),
+    widgetNew: dynamic(() => import('@/components/widgets/widgetNew')),
 
     // Winteler
     pageWinteler: dynamic(() => import('@/components/winteler/pageWinteler')),
