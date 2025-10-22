@@ -323,8 +323,6 @@ export default function NuovaProvaAuto({ onChangeView }) {
                 );
             }
         } catch (error) {
-            console.error("Errore nella ricerca scheda:", error);
-
             if (error.response) {
                 const status = error.response.status;
                 const errorMessage =
@@ -333,7 +331,7 @@ export default function NuovaProvaAuto({ onChangeView }) {
                 if (status === 400) {
                     setSearchError(`Errore di input: ${errorMessage}`);
                 } else if (status === 404) {
-                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                    setSearchError(`Dati auto non trovati`);
                 } else {
                     setSearchError(
                         "Si è verificato un errore del server. Riprova più tardi."
@@ -390,8 +388,6 @@ export default function NuovaProvaAuto({ onChangeView }) {
                 );
             }
         } catch (error) {
-            console.error("Errore nella ricerca scheda:", error);
-
             if (error.response) {
                 const status = error.response.status;
                 const errorMessage =
@@ -400,7 +396,7 @@ export default function NuovaProvaAuto({ onChangeView }) {
                 if (status === 400) {
                     setSearchError(`Errore di input: ${errorMessage}`);
                 } else if (status === 404) {
-                    setSearchError(`Risultato non trovato: ${errorMessage}`);
+                    setSearchError(`Dati auto non trovati`);
                 } else {
                     setSearchError(
                         "Si è verificato un errore del server. Riprova più tardi."
