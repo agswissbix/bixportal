@@ -6,6 +6,7 @@ import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toLocalISOString, getEventUniqueId } from "@/components/calendar/calendarHelpers"
 import { UnplannedEventsSidebar } from "./unplannedEventSidebar"
+import { useRecordsStore } from "../records/recordsStore"
 
 export interface CalendarEvent {
   recordid: string
@@ -72,6 +73,7 @@ export interface CalendarChildProps {
   ) => void
   saveEvent: (eventid: string, startdate: Date, enddate: Date, resourceid?: string) => Promise<void>
   unscheduleEvent: (eventid: string) => Promise<void>
+  tableid: string
 }
 
 export function CalendarBase({
@@ -81,23 +83,21 @@ export function CalendarBase({
   viewType,
   children,
 }: CalendarBaseProps) {
-  const isDev = process.env.NODE_ENV === "development"
+  const isDev = false
 
-  // Fetch data
-  const { response, loading, error } = useApi<CalendarResponseInterface>({
-    apiRoute,
-    tableid,
-  })
-
+  const { refreshTable } = useRecordsStore();
+  
   // API payload
-  const payload = useMemo(
-    () => ({
-      apiRoute,
-      tableid,
-    }),
-    [apiRoute, tableid],
-  )
-
+  const payload = useMemo(() => {
+    if (isDev) return null;
+		return { 
+			apiRoute,
+			tableid,
+      _refreshTick: refreshTable
+		};
+  }, [apiRoute, tableid, refreshTable])
+  
+	const { response, loading, error } = !isDev && payload ? useApi<CalendarResponseInterface>(payload) : { response: null, loading: false, error: null };
   // State management
   const [responseData, setResponseData] = useState<CalendarResponseInterface>({
     events: [],
@@ -361,6 +361,7 @@ export function CalendarBase({
     handleResizeStart,
     saveEvent,
     unscheduleEvent,
+    tableid,
   }
 
   return (

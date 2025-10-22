@@ -101,17 +101,17 @@ export default function RecordTabs({ tableid }: PropsInterface) {
               <RecordsKanban tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Calendario' && (
-              // <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={true} >
-              //   {(calendarProps : CalendarChildProps) => (
-              //     <RecordsView 
-              //       {...calendarProps}
-              //     />
-              //   )}
-              // </CalendarBase>
-              <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
+              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={true} >
+                {(calendarProps : CalendarChildProps) => (
+                  <RecordsView 
+                    {...calendarProps}
+                  />
+                )}
+              </CalendarBase>
+              // <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'MatrixCalendar' && (
-              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={true} >
+              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={false} >
                 {(calendarProps : CalendarChildProps) => (
                   <MatrixView 
                     {...calendarProps}
@@ -121,7 +121,14 @@ export default function RecordTabs({ tableid }: PropsInterface) {
               // <RecordsPlanner tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} showUnplannedEvents={false} />
             )}
             {activeTab === 'Planner' && (
-              <RecordsPlanner tableid={tableid} view={tableView} searchTerm={searchTerm} showUnplannedEvents={true}/>
+              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={true} >
+                {(calendarProps : CalendarChildProps) => (
+                  <MatrixView 
+                    {...calendarProps}
+                  />
+                )}
+              </CalendarBase>
+              // <RecordsPlanner tableid={tableid} view={tableView} searchTerm={searchTerm} showUnplannedEvents={true}/>
             )}
             {activeTab === 'Gallery' && (
               <GalleryView tableid={tableid} />
