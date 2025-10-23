@@ -462,8 +462,8 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
   return (
     <GenericComponent
       response={responseData}
-      loading={false}
-      error={null}
+      loading={loading}
+      error={error}
       data-oid="rv89u1z"
     >
       {(response: ResponseInterface) => (

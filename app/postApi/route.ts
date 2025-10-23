@@ -195,6 +195,9 @@ export async function POST(request: Request) {
     case 'get_chart_data': djangoUrl = '/commonapp/get_chart_data/'; break;
     case 'get_calendar_data': djangoUrl = '/commonapp/get_calendar_data/'; break;
     case 'save_calendar_event': djangoUrl = '/commonapp/save_calendar_event/'; break;
+    case 'fieldsupdate': djangoUrl = '/commonapp/fieldsupdate/'; break;
+    case 'get_fields_swissbix_deal': djangoUrl = '/customapp_swissbix/get_fields_swissbix_deal/'; break;
+    
     case 'settings_table_usertables': djangoUrl = '/commonapp/settings_table_usertables/'; break;
     case 'settings_table_fields': djangoUrl = '/commonapp/settings_table_fields/'; break;
     case 'settings_table_settings': djangoUrl = '/commonapp/settings_table_settings/'; break;
@@ -205,15 +208,14 @@ export async function POST(request: Request) {
     case 'settings_table_fields_new_field': djangoUrl = '/commonapp/settings_table_fields_new_field/'; break;
     case 'settings_table_fields_settings_fields_save': djangoUrl = '/commonapp/settings_table_fields_settings_fields_save/'; break;
     case 'settings_table_linkedtables': djangoUrl = '/commonapp/settings_table_linkedtables/'; break;
-    case 'fieldsupdate': djangoUrl = '/commonapp/fieldsupdate/'; break;
-    case 'get_fields_swissbix_deal': djangoUrl = '/customapp_swissbix/get_fields_swissbix_deal/'; break;
-    
     case 'settings_table_linkedtables_save': djangoUrl = '/commonapp/settings_table_linkedtables_save/'; break;
     case 'save_new_table': djangoUrl = '/commonapp/save_new_table/'; break;
     case 'get_master_linked_tables': djangoUrl = '/commonapp/get_master_linked_tables/'; break;
     case 'settings_table_steps': djangoUrl = '/commonapp/settings_table_steps/'; break;
     case 'settings_table_newstep': djangoUrl = '/commonapp/settings_table_newstep/'; break;
     case 'settings_table_steps_save': djangoUrl = '/commonapp/settings_table_steps_save/'; break;
+    case 'settings_get_dashboards_user': djangoUrl = '/commonapp/settings_get_dashboards_user/'; break;
+    case 'save_user_dashboard_setting': djangoUrl = '/commonapp/save_user_dashboard_setting/'; break;
     
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
     case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;
