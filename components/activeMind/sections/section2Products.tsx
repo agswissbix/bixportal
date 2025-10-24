@@ -45,6 +45,7 @@ interface ProductSelectionProps {
       billingType?: "monthly" | "yearly"
     }
   }
+  trattativaid?: string
   onUpdate: (data: any) => void
 }
 
@@ -129,7 +130,7 @@ const categoryLabels: { [key: string]: string } = {
   firewall: "Firewall",
 }
 
-export default function ProductSelection({ data, onUpdate }: ProductSelectionProps) {
+export default function ProductSelection({ data, onUpdate, trattativaid }: ProductSelectionProps) {
     const [responseData, setResponseData] = useState<ResponseInterface>(
         isDev ? responseDataDEV : responseDataDEFAULT
     );
@@ -138,8 +139,9 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
         if (isDev) return null;
         return {
             apiRoute: 'get_products_activemind',
+            trattativaid
         };
-    }, []);
+    }, [trattativaid]);
 
     const { response, loading, error } = !isDev && payload
         ? useApi<ResponseInterface>(payload)

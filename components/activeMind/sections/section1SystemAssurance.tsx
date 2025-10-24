@@ -1,22 +1,19 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, Monitor, Server, Shield, FileText } from "lucide-react"
+import { CheckCircle2, Monitor, Server, Shield, FileText, LucideIcon } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { useApi } from "@/utils/useApi"
+import GenericComponent from "@/components/genericComponent"
 
 interface Section1Props {
   data: {
     selectedTier: string
     price: number
   }
+  recordIdTrattativa?: string
   onUpdate: (data: any) => void
 }
-
-const tiers = [
-  { id: "tier1", label: "Fino a 5 PC + server", price: 490, icon: Monitor },
-  { id: "tier2", label: "Fino a 10 PC + server", price: 690, icon: Monitor },
-  { id: "tier3", label: "Fino a 15 PC + server", price: 890, icon: Monitor },
-  { id: "tier4", label: "Fino a 20 PC + server", price: 1190, icon: Server },
-]
 
 const features = [
   "Installazione agent RMM (1 mese)",
@@ -29,8 +26,73 @@ const features = [
   "Reportistica sull'infrastruttura informatica",
 ]
 
-export default function Section1SystemAssurance({ data, onUpdate }: Section1Props) {
-  const handleTierSelect = (tier: (typeof tiers)[0]) => {
+const isDev = false
+
+interface ResponseInterface {
+  tiers: {
+    id: string
+    label: string
+    price: number
+    icon?: LucideIcon
+    selected?: boolean
+  }[]
+}
+
+const responseDataDEFAULT: ResponseInterface = {
+  tiers: []
+}
+
+const responseDataDEV: ResponseInterface = {
+  tiers: [
+    { id: "tier1", label: "Fino a 5 PC + server", price: 490, icon: Monitor },
+    { id: "tier2", label: "Fino a 10 PC + server", price: 690, icon: Monitor },
+    { id: "tier3", label: "Fino a 15 PC + server", price: 890, icon: Monitor },
+    { id: "tier4", label: "Fino a 20 PC + server", price: 1190, icon: Server },
+  ]
+}
+
+export default function Section1SystemAssurance({ data, onUpdate, recordIdTrattativa }: Section1Props) {
+
+  const [responseData, setResponseData] = useState<ResponseInterface>(
+      isDev ? responseDataDEV : responseDataDEFAULT
+  );
+
+  const payload = useMemo(() => {
+      if (isDev) return null;
+      return {
+          apiRoute: 'get_system_assurance_activemind',
+          trattativaid: recordIdTrattativa,
+      };
+  }, [recordIdTrattativa]);
+
+  const { response, loading, error } = !isDev && payload
+      ? useApi<ResponseInterface>(payload)
+      : { response: null, loading: false, error: null };
+
+  useEffect(() => {
+      if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+          setResponseData(response);
+
+          for (const tier of response.tiers) {
+            if (tier.selected) {
+              onUpdate({
+                selectedTier: tier.id,
+                price: tier.price,
+              });
+            }
+            setResponseData((prevData) => ({
+              ...prevData,
+              tiers: prevData.tiers.map((t) => {
+                t.icon = Monitor
+                return t
+              }),
+            }));
+          }
+      }
+  }, [response]);
+
+
+  const handleTierSelect = (tier: (typeof responseData.tiers)[0]) => {
     if (data.selectedTier === tier.id) {
       onUpdate({
         selectedTier: null,
@@ -45,6 +107,8 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
   }
 
   return (
+    <GenericComponent response={responseData} loading={loading} error={error}>
+      {(response: ResponseInterface) => (
     <div className="space-y-6">
       {/* Description */}
       <Card className="bg-blue-50 border-blue-200">
@@ -90,7 +154,7 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {tiers.map((tier) => {
+            {response.tiers.map((tier) => {
               const Icon = tier.icon
               const isSelected = data.selectedTier === tier.id
 
@@ -120,7 +184,7 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-green-900">Piano selezionato</h4>
-                  <p className="text-sm text-green-700">{tiers.find((t) => t.id === data.selectedTier)?.label}</p>
+                  <p className="text-sm text-green-700">{response.tiers.find((t) => t.id === data.selectedTier)?.label}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-900">CHF {data.price.toLocaleString("it-CH")}.-</div>
@@ -132,5 +196,7 @@ export default function Section1SystemAssurance({ data, onUpdate }: Section1Prop
         </CardContent>
       </Card>
     </div>
+      )}
+    </GenericComponent>
   )
 }

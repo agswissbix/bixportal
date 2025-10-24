@@ -221,11 +221,11 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       switch (currentStep) {
         case 1:
           return (
-            <Section1SystemAssurance data={serviceData.section1} onUpdate={(data) => updateServiceData("section1", data)} />
+            <Section1SystemAssurance data={serviceData.section1} recordIdTrattativa={recordIdTrattativa} onUpdate={(data) => updateServiceData("section1", data)} />
           )
         case 2:
           return (
-            <ProductSelection data={serviceData.section2Products} onUpdate={(data) => updateServiceData("section2Products", data)} />
+            <ProductSelection data={serviceData.section2Products} trattativaid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Products", data)} />
           )
         case 3:
           return (
