@@ -10,6 +10,7 @@ import GenericComponent from "@/components/genericComponent"
 import SelectStandard from "@/components/selectStandard"
 import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
+import { useRecordsStore } from "../records/recordsStore"
 
 interface ChartConfig {
   nomeInterno: string
@@ -72,6 +73,8 @@ const STEPS = [
 
 export default function ChartConfigForm({ tableid, recordid, mastertableid, masterrecordid }: ChartConfigFormProps) {
   const isDev = false
+
+  const { setRefreshTable, resetCardsList } = useRecordsStore()
 
   const [backendFields, setBackendFields] = useState<FieldInterface[]>([])
   const [lookupData, setLookupData] = useState<{
@@ -167,11 +170,19 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     if (tabellaField && formData.tabella && isNewRecord) {
       // Reset campi, raggruppamento, and views when table changes
       const campiField = backendFields.find((f) => f.fieldid === "campi")
+      const campi2Field = backendFields.find((f) => f.fieldid === "campi2")
+      const pivotTotalField = backendFields.find((f) => f.fieldid === "pivot_total_field")
       const raggruppamentoField = backendFields.find((f) => f.fieldid === "raggruppamento")
       const viewsField = backendFields.find((f) => f.fieldid === "views")
 
       if (campiField) {
         setFormData((prev) => ({ ...prev, campi: [] }))
+      }
+      if (campi2Field) {
+        setFormData((prev) => ({ ...prev, campi2: [] }))
+      }
+      if (pivotTotalField) {
+        setFormData((prev) => ({ ...prev, pivot_total_field: [] }))
       }
       if (raggruppamentoField) {
         setFormData((prev) => ({ ...prev, raggruppamento: [] }))
@@ -202,7 +213,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
     // Special handling for "campi", "raggruppamento", and "views" fields
     if (
-      (field.fieldid === "campi" || field.fieldid === "raggruppamento" || field.fieldid === "views") &&
+      (field.fieldid === "campi" || field.fieldid === "campi2" || field.fieldid === "raggruppamento" || field.fieldid === "pivot_total_field" || field.fieldid === "views") &&
       formData.tabella &&
       lookupData
     ) {
@@ -347,7 +358,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     const step1Fields = backendFields.filter((f) => ["name", "title", "descrizione"].includes(f.fieldid))
     const step2Fields = backendFields.filter((f) => ["type", "tabella", "dashboards"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) =>
-      ["campi", "operation", "raggruppamento", "views"].includes(f.fieldid),
+      ["campi", "campi2", "operation", "operation2", "raggruppamento", "dynamicfield1","pivot_total_field", "tiporaggruppamento", "views"].includes(f.fieldid),
     )
 
     return {
@@ -413,6 +424,8 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       toast.error("Errore durante il salvataggio della configurazione")
     } finally {
       setIsSaving(false)
+      resetCardsList()
+      setRefreshTable((prev) => prev + 1)
     }
   }
 

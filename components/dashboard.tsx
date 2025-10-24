@@ -264,7 +264,8 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
             userid: user,
             dashboardid: dashboardId,
             selectedYears: selectedYears,
-            filters: filters
+            filters: filters,
+            _refreshTick: refreshDashboard
           };
     }, [user, selectedYears, filters, refreshDashboard]);
 
