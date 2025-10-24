@@ -74,6 +74,44 @@ export function useFrontendFunctions() {
       toast.error('Errore durante la stampa del bollettino');
     }
   },
+  swissbixPrintTimesheet: async ({ recordid }: { recordid: string }) => {
+    try {
+      //download a file from the response
+      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "print_timesheet",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'timesheet.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('Timesheet stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del timesheet', error);
+      toast.error('Errore durante la stampa del timesheet');
+    }
+  },
   downloadOfferta: async ({ recordid }: { recordid: string }) => {
     try {
       const response = await axiosInstanceClient.post(
@@ -366,7 +404,7 @@ export function useFrontendFunctions() {
           },
         },
       )
-      toast.success("Task chiuso")
+      toast.success("Aggiornato")
       return response.data
     } catch (error) {
       console.error("Errore durante il salvataggio", error)

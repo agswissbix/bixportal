@@ -199,7 +199,9 @@ export async function POST(request: Request) {
     case 'get_conditions_activemind': djangoUrl = '/customapp_swissbix/get_conditions_activemind/'; break;
     case 'get_products_activemind': djangoUrl = '/customapp_swissbix/get_products_activemind/'; break;
     case 'get_system_assurance_activemind': djangoUrl = '/customapp_swissbix/get_system_assurance_activemind/'; break;
+    case "print_timesheet": djangoUrl = "/customapp_swissbix/print_timesheet/"; break;
     
+
     case 'settings_table_usertables': djangoUrl = '/commonapp/settings_table_usertables/'; break;
     case 'settings_table_fields': djangoUrl = '/commonapp/settings_table_fields/'; break;
     case 'settings_table_settings': djangoUrl = '/commonapp/settings_table_settings/'; break;
@@ -230,6 +232,11 @@ export async function POST(request: Request) {
     case "get_prove_auto": djangoUrl = "/customapp_winteler/get_prove_auto/"; break;
     case "get_venditori": djangoUrl = "/customapp_winteler/get_venditori/"; break;
     case "get_scheda_auto": djangoUrl = "/customapp_winteler/get_scheda_auto/"; break;
+
+
+    
+  
+    
     
     default:
       return NextResponse.json(
