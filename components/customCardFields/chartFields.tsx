@@ -67,14 +67,18 @@ interface FieldInterface {
 
 const STEPS = [
   { id: 1, title: "Informazioni Base", description: "Nome, titolo e descrizione del grafico" },
-  { id: 2, title: "Tipo e Sorgente", description: "Seleziona il tipo di grafico e la tabella dati" },
-  { id: 3, title: "Campi e Operazioni", description: "Configura i campi da visualizzare e le operazioni" },
+  { id: 2, title: "Configurazione Grafico", description: "Tipo di grafico e dashboard di destinazione" },
+  { id: 3, title: "Sorgente Dati Principale", description: "Tabella, viste e campi del dataset principale" },
+  {
+    id: 4,
+    title: "Dataset Secondario",
+    description: "Campi e operazioni per grafici complessi (es. multibarlinechart)",
+  },
+  { id: 5, title: "Raggruppamento e Pivot", description: "Configurazione raggruppamento e tabelle pivot" },
 ]
 
 export default function ChartConfigForm({ tableid, recordid, mastertableid, masterrecordid }: ChartConfigFormProps) {
   const isDev = false
-
-  const { setRefreshTable, resetCardsList } = useRecordsStore()
 
   const [backendFields, setBackendFields] = useState<FieldInterface[]>([])
   const [lookupData, setLookupData] = useState<{
@@ -88,6 +92,8 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const [currentStep, setCurrentStep] = useState(1)
   const [isSaving, setIsSaving] = useState(false)
+
+  const { setRefreshTable, resetCardsList } = useRecordsStore()
 
   const payload = useMemo(() => {
     if (isDev) return null
@@ -168,7 +174,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   useEffect(() => {
     const tabellaField = backendFields.find((f) => f.fieldid === "tabella")
     if (tabellaField && formData.tabella && isNewRecord) {
-      // Reset campi, raggruppamento, and views when table changes
       const campiField = backendFields.find((f) => f.fieldid === "campi")
       const campi2Field = backendFields.find((f) => f.fieldid === "campi2")
       const pivotTotalField = backendFields.find((f) => f.fieldid === "pivot_total_field")
@@ -197,6 +202,16 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     setFormData((prev) => ({ ...prev, [fieldid]: value }))
   }
 
+  const getFieldDescription = (fieldid: string): string | null => {
+    const descriptions: Record<string, string> = {
+      tiporaggruppamento: "Definisce se il grafico sarà visualizzato come tabella pivot",
+      pivot_total_field: "Campo utilizzato per i totali (considerato solo se il tipo raggruppamento è 'pivot')",
+      campi2: "Secondo dataset necessario per grafici complessi come multibarlinechart",
+      operation2: "Operazione da applicare al secondo dataset",
+    }
+    return descriptions[fieldid] || null
+  }
+
   const renderField = (field: FieldInterface) => {
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
@@ -209,11 +224,16 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     const isRequiredEmpty = isNewRecord && isRequired && isEmpty
     const isRequiredFilled = isNewRecord && isRequired && !isEmpty
 
+    const customDescription = getFieldDescription(field.fieldid)
+
     let lookupItems = field.lookupitems || []
 
-    // Special handling for "campi", "raggruppamento", and "views" fields
     if (
-      (field.fieldid === "campi" || field.fieldid === "campi2" || field.fieldid === "raggruppamento" || field.fieldid === "pivot_total_field" || field.fieldid === "views") &&
+      (field.fieldid === "campi" ||
+        field.fieldid === "campi2" ||
+        field.fieldid === "raggruppamento" ||
+        field.fieldid === "pivot_total_field" ||
+        field.fieldid === "views") &&
       formData.tabella &&
       lookupData
     ) {
@@ -222,22 +242,63 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       } else {
         lookupItems = lookupData.campi[formData.tabella] || []
       }
-    }
-
-    // Special handling for "tabella" field
-    if (field.fieldid === "tabella" && lookupData) {
+    } else if (field.fieldid === "tabella" && lookupData) {
       lookupItems = lookupData.table || []
-    }
-
-    // Special handling for "dashboards" field
-    if (field.fieldid === "dashboards" && lookupData) {
+    } else if (field.fieldid === "dashboards" && lookupData) {
       lookupItems = lookupData.dashboards || []
     }
 
     if (isCalculated) {
       return (
-        <div key={field.fieldid} className="flex items-start space-x-4 w-full group">
-          <div className="w-1/4 pt-2">
+        <div key={field.fieldid} className="flex flex-col space-y-2 w-full group">
+          <div className="flex items-start space-x-4 w-full">
+            <div className="w-1/4 pt-2">
+              <div className="flex items-center gap-1">
+                {isRequired && isNewRecord && (
+                  <div
+                    className={`w-1 h-4 rounded-full mr-1 transition-colors ${
+                      isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
+                    }`}
+                  />
+                )}
+                <div className="flex flex-col gap-0.5">
+                  <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
+                    {field.description}
+                    {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
+                  </p>
+                  {customDescription && (
+                    <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`w-3/4 relative transition-all duration-200 rounded-md ${
+                isRequiredEmpty ? "ring-2 ring-red-600/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
+              }`}
+            >
+              <div className="p-2 bg-muted rounded-md text-muted-foreground">{currentValue}</div>
+
+              {isRequired && isNewRecord && (
+                <div
+                  className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
+                    isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
+                  }`}
+                >
+                  {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div key={field.fieldid} className="flex flex-col space-y-2 w-full group">
+        <div className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full">
+          <div className="w-full lg:w-1/4 pt-2">
             <div className="flex items-center gap-1">
               {isRequired && isNewRecord && (
                 <div
@@ -246,19 +307,66 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                   }`}
                 />
               )}
-              <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
-                {field.description}
-                {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
-              </p>
+              <div className="flex flex-col gap-0.5">
+                <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
+                  {field.description}
+                  {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
+                </p>
+                {customDescription && (
+                  <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
+                )}
+              </div>
             </div>
           </div>
 
           <div
-            className={`w-3/4 relative transition-all duration-200 rounded-md ${
+            className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
               isRequiredEmpty ? "ring-2 ring-red-600/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
             }`}
           >
-            <div className="p-2 bg-muted rounded-md text-muted-foreground">{currentValue}</div>
+            <div
+              className={`${
+                isRequiredEmpty
+                  ? "[&>*]:!border-red-600 [&>*]:focus:!border-red-600 [&>*]:focus:!ring-red-600/20"
+                  : isRequiredFilled
+                    ? "[&>*]:!border-green-500 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
+                    : ""
+              }`}
+            >
+              {field.fieldtype === "Parola" ? (
+                <Input
+                  value={currentValue || ""}
+                  onChange={(e) => handleInputChange(field.fieldid, e.target.value)}
+                  placeholder={`Inserisci ${field.description.toLowerCase()}`}
+                  className="transition-colors"
+                />
+              ) : field.fieldtype === "Memo" ? (
+                <Textarea
+                  value={currentValue || ""}
+                  onChange={(e) => handleInputChange(field.fieldid, e.target.value)}
+                  placeholder={`Inserisci ${field.description.toLowerCase()}`}
+                  className="transition-colors"
+                />
+              ) : (field.fieldtype === "lookup" || field.fieldtype === "Categoria") &&
+                lookupItems &&
+                lookupItems.length > 0 ? (
+                <SelectStandard
+                  lookupItems={lookupItems}
+                  initialValue={currentValue || ""}
+                  onChange={(v) => handleInputChange(field.fieldid, v)}
+                  isMulti={false}
+                />
+              ) : (field.fieldtype === "multiselect" || field.fieldtype === "multiSelect") &&
+                lookupItems &&
+                lookupItems.length > 0 ? (
+                <SelectStandard
+                  lookupItems={lookupItems}
+                  initialValue={currentValue || []}
+                  onChange={(v) => handleInputChange(field.fieldid, v)}
+                  isMulti={true}
+                />
+              ) : null}
+            </div>
 
             {isRequired && isNewRecord && (
               <div
@@ -271,125 +379,90 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
             )}
           </div>
         </div>
-      )
-    }
-
-    return (
-      <div
-        key={field.fieldid}
-        className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group"
-      >
-        <div className="w-full lg:w-1/4 pt-2">
-          <div className="flex items-center gap-1">
-            {isRequired && isNewRecord && (
-              <div
-                className={`w-1 h-4 rounded-full mr-1 transition-colors ${
-                  isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              />
-            )}
-            <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
-              {field.description}
-              {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
-            </p>
-          </div>
-        </div>
-
-        <div
-          className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
-            isRequiredEmpty ? "ring-2 ring-red-600/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
-          }`}
-        >
-          <div
-            className={`${
-              isRequiredEmpty
-                ? "[&>*]:!border-red-600 [&>*]:focus:!border-red-600 [&>*]:focus:!ring-red-600/20"
-                : isRequiredFilled
-                  ? "[&>*]:!border-green-500 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
-                  : ""
-            }`}
-          >
-            {field.fieldtype === "Parola" ? (
-              <Input
-                value={currentValue || ""}
-                onChange={(e) => handleInputChange(field.fieldid, e.target.value)}
-                placeholder={`Inserisci ${field.description.toLowerCase()}`}
-                className="transition-colors"
-              />
-            ) : field.fieldtype === "Memo" ? (
-              <Textarea
-                value={currentValue || ""}
-                onChange={(e) => handleInputChange(field.fieldid, e.target.value)}
-                placeholder={`Inserisci ${field.description.toLowerCase()}`}
-                className="transition-colors"
-              />
-            ) : (field.fieldtype === "lookup" || field.fieldtype === "Categoria") && lookupItems ? (
-              <SelectStandard
-                lookupItems={lookupItems}
-                initialValue={currentValue || ""}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-                isMulti={false}
-              />
-            ) : field.fieldtype === "multiselect" && lookupItems ? (
-              <SelectStandard
-                lookupItems={lookupItems}
-                initialValue={currentValue || []}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-                isMulti={true}
-              />
-            ) : null}
-          </div>
-
-          {isRequired && isNewRecord && (
-            <div
-              className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
-              }`}
-            >
-              {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-            </div>
-          )}
-        </div>
       </div>
     )
   }
 
   const fieldsByStep = useMemo(() => {
     const step1Fields = backendFields.filter((f) => ["name", "title", "descrizione"].includes(f.fieldid))
-    const step2Fields = backendFields.filter((f) => ["type", "tabella", "dashboards"].includes(f.fieldid))
-    const step3Fields = backendFields.filter((f) =>
-      ["campi", "campi2", "operation", "operation2", "raggruppamento", "dynamicfield1","pivot_total_field", "tiporaggruppamento", "views"].includes(f.fieldid),
+    const step2Fields = backendFields.filter((f) => ["type", "dashboards"].includes(f.fieldid))
+    const step3Fields = backendFields.filter((f) => ["tabella", "views", "campi", "operation"].includes(f.fieldid))
+    const step4Fields = backendFields.filter((f) => ["campi2", "operation2"].includes(f.fieldid))
+    const step5Fields = backendFields.filter((f) =>
+      ["raggruppamento", "tiporaggruppamento", "pivot_total_field", "dynamicfield1"].includes(f.fieldid),
     )
 
     return {
       1: step1Fields,
       2: step2Fields,
       3: step3Fields,
+      4: step4Fields,
+      5: step5Fields,
     }
   }, [backendFields])
 
-  const isStepValid = useMemo(() => {
-    const currentFields = fieldsByStep[currentStep as keyof typeof fieldsByStep] || []
+  const visibleSteps = useMemo(() => {
+    const chartType = formData.type
+    const isMultiBarLineChart =
+      chartType === "multibarlinechart" ||
+      (typeof chartType === "object" && chartType?.code === "multibarlinechart") ||
+      (typeof chartType === "object" && chartType?.value === "multibarlinechart")
 
-    return currentFields.every((field) => {
+    // If chart type is not multibarlinechart, filter out step 4
+    if (!isMultiBarLineChart) {
+      return STEPS.filter((step) => step.id !== 4)
+    }
+
+    return STEPS
+  }, [formData.type])
+
+  const currentStepFields = useMemo(() => {
+    const fields = fieldsByStep[currentStep as keyof typeof fieldsByStep] || []
+
+    // Filter out pivot_total_field if tiporaggruppamento is not "pivot"
+    return fields.filter((field) => {
+      if (field.fieldid === "pivot_total_field") {
+        const tipoRaggruppamento = formData.tiporaggruppamento.toString().toLowerCase()
+        const isPivot =
+          tipoRaggruppamento === "pivot" ||
+          (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.code === "pivot") ||
+          (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.value === "pivot")
+
+        return isPivot
+      }
+      return true
+    })
+  }, [currentStep, fieldsByStep, formData.tiporaggruppamento])
+
+  const isStepValid = useMemo(() => {
+    return currentStepFields.every((field) => {
       const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
       if (!isRequired) return true
 
       const value = formData[field.fieldid]
       return value !== null && value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0)
     })
-  }, [currentStep, fieldsByStep, formData])
+  }, [currentStepFields, formData])
 
   const handleNext = () => {
     if (!isStepValid) {
       toast.error("Compila tutti i campi obbligatori prima di procedere")
       return
     }
-    if (currentStep < STEPS.length) setCurrentStep(currentStep + 1)
+
+    const currentVisibleStepIndex = visibleSteps.findIndex((s) => s.id === currentStep)
+    if (currentVisibleStepIndex < visibleSteps.length - 1) {
+      const nextStep = visibleSteps[currentVisibleStepIndex + 1]
+      setCurrentStep(nextStep.id)
+    }
   }
 
   const handlePrevious = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1)
+    const currentVisibleStepIndex = visibleSteps.findIndex((s) => s.id === currentStep)
+    if (currentVisibleStepIndex > 0) {
+      const prevStep = visibleSteps[currentVisibleStepIndex - 1]
+      setCurrentStep(prevStep.id)
+    }
   }
 
   const handleSubmit = async () => {
@@ -429,28 +502,30 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     }
   }
 
-  const progressPercentage = (currentStep / STEPS.length) * 100
+  const progressPercentage = useMemo(() => {
+    const currentVisibleStepIndex = visibleSteps.findIndex((s) => s.id === currentStep)
+    return ((currentVisibleStepIndex + 1) / visibleSteps.length) * 100
+  }, [currentStep, visibleSteps])
 
   return (
     <GenericComponent response={response} loading={loading} error={error}>
       {() => (
         <div className="space-y-6 max-w-5xl mx-auto p-4">
           <div className="relative">
-            {/* Gradient progress bar background */}
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 hidden md:block" style={{ zIndex: 0 }} />
             <div
               className="absolute top-5 left-0 h-0.5 bg-gradient-to-r from-primary to-accent hidden md:block transition-all duration-500"
               style={{
-                width: `${(currentStep / STEPS.length) * 100}%`,
+                width: `${progressPercentage}%`,
                 zIndex: 1,
               }}
             />
 
-            {/* Step indicators */}
             <div className="relative flex items-center justify-around gap-2 md:gap-4" style={{ zIndex: 2 }}>
-              {STEPS.map((step, index) => {
-                const isActive = index + 1 === currentStep
-                const isCompleted = index + 1 < currentStep
+              {visibleSteps.map((step, index) => {
+                const isActive = step.id === currentStep
+                const currentVisibleStepIndex = visibleSteps.findIndex((s) => s.id === currentStep)
+                const isCompleted = index < currentVisibleStepIndex
 
                 return (
                   <button
@@ -470,9 +545,8 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                             : "bg-white text-gray-400 border-gray-300 group-hover:border-gray-400 group-hover:shadow-md"
                       }`}
                     >
-                      {isCompleted ? <Check className="w-5 h-5" /> : <span>{step.id}</span>}
+                      {isCompleted ? <Check className="w-5 h-5" /> : <span>{index + 1}</span>}
 
-                      {/* Animated ping effect for active step */}
                       {isActive && (
                         <span
                           className="absolute inset-0 rounded-full theme-primary animate-ping opacity-75"
@@ -503,7 +577,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                       </span>
                     </div>
 
-                    {/* Tooltip for mobile */}
                     <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap sm:hidden z-10">
                       {step.title}
                     </div>
@@ -515,26 +588,23 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
           <Card className="shadow-md border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50">
             <CardHeader className="border-b-2 border-gray-200 pb-3">
-              {/* Gradient text for title */}
               <CardTitle className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {STEPS[currentStep - 1].title}
+                {visibleSteps.find((s) => s.id === currentStep)?.title}
               </CardTitle>
               <CardDescription className="text-sm text-gray-600 mt-1">
-                {STEPS[currentStep - 1].description}
+                {visibleSteps.find((s) => s.id === currentStep)?.description}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 pt-6">
-              {fieldsByStep[currentStep as keyof typeof fieldsByStep]?.map((field) => renderField(field))}
-            </CardContent>
+            <CardContent className="space-y-6 pt-6">{currentStepFields.map((field) => renderField(field))}</CardContent>
           </Card>
 
           <div className="flex justify-between items-center gap-4 pt-4 border-t-2 border-gray-100">
             <button
               type="button"
               onClick={handlePrevious}
-              disabled={currentStep === 1 || isSaving}
+              disabled={visibleSteps.findIndex((s) => s.id === currentStep) === 0 || isSaving}
               className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
-                currentStep === 1
+                visibleSteps.findIndex((s) => s.id === currentStep) === 0
                   ? "cursor-not-allowed bg-gray-100 text-gray-400"
                   : "bg-white text-gray-700 hover:bg-gray-100 border-2 border-gray-300 hover:border-gray-400 hover:scale-105 active:scale-95 shadow-sm hover:shadow"
               }`}
@@ -544,7 +614,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
             </button>
 
             <div className="flex items-center gap-3 flex-1 justify-end">
-              {currentStep < STEPS.length ? (
+              {visibleSteps.findIndex((s) => s.id === currentStep) < visibleSteps.length - 1 ? (
                 <button
                   type="button"
                   onClick={handleNext}
