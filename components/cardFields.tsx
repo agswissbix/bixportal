@@ -248,6 +248,8 @@ export default function CardFields({
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
 
+
+    console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
 
     const isNewRecord = recordid === undefined || recordid === null || recordid === ""

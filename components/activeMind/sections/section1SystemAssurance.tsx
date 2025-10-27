@@ -11,7 +11,7 @@ interface Section1Props {
     selectedTier: string
     price: number
   }
-  recordIdTrattativa?: string
+  dealid?: string
   onUpdate: (data: any) => void
 }
 
@@ -51,7 +51,7 @@ const responseDataDEV: ResponseInterface = {
   ]
 }
 
-export default function Section1SystemAssurance({ data, onUpdate, recordIdTrattativa }: Section1Props) {
+export default function Section1SystemAssurance({ data, onUpdate, dealid: recordIdTrattativa }: Section1Props) {
 
   const [responseData, setResponseData] = useState<ResponseInterface>(
       isDev ? responseDataDEV : responseDataDEFAULT

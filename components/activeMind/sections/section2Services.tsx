@@ -18,6 +18,7 @@ interface Section2Props {
       features?: string[]
     }
   }
+  dealid: string
   onUpdate: (data: any) => void
 }
 
@@ -27,6 +28,7 @@ interface Service {
   title: string;
   unitPrice: number;
   icon: string;
+  quantity?: number;
   features: string[];
 }
 
@@ -52,7 +54,7 @@ const responseDataDEFAULT: ResponseInterface = {
   services: []
 };
 
-export default function Section2Services({ data, onUpdate }: Section2Props) {
+export default function Section2Services({ data, onUpdate, dealid }: Section2Props) {
   const [responseData, setResponseData] = useState<ResponseInterface>(
           isDev ? responseDataDEV : responseDataDEFAULT
       );
@@ -61,19 +63,36 @@ export default function Section2Services({ data, onUpdate }: Section2Props) {
           if (isDev) return null;
           return {
               apiRoute: 'get_services_activemind',
+              dealid:  dealid
           };
-      }, []);
+      }, [dealid]);
     
       const { response, loading, error } = !isDev && payload
           ? useApi<ResponseInterface>(payload)
           : { response: null, loading: false, error: null };
   
-      useEffect(() => {
-          if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
-              setResponseData(response);
-              
+    useEffect(() => {
+      if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+        setResponseData(response);
+        
+        const initialData: Record<string, any> = {};
+        response.services.forEach((service) => {
+          if (service.quantity && service.quantity > 0) {
+            initialData[service.id] = {
+              title: service.title,
+              quantity: service.quantity,
+              unitPrice: service.unitPrice,
+              total: service.quantity * service.unitPrice,
+              features: service.features || [],
+            };
           }
-      }, [response]);
+        });
+
+        if (Object.keys(initialData).length > 0) {
+          onUpdate(initialData);
+        }
+      }
+    }, [response]);
   
   const [expandedServices, setExpandedServices] = useState<string[]>([])
 
