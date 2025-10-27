@@ -47,6 +47,8 @@ export default function RecordCard({
   index = 0,
   total = 1,
 }: PropsInterface) {
+  const isNewRecord = !recordid;
+
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
   const headerRef = React.useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -359,17 +361,21 @@ export default function RecordCard({
 
               {/* Card content - pass mobileView so child can adapt */}
               <div className="h-fill w-full overflow-auto mt-3 mb-8">
-                {tableid === 'stabile' ? (
-                  <CardBadgeStabile tableid={tableid} recordid={recordid} />
-                ) : tableid === 'company' ? (
-                  <CardBadgeCompany tableid={tableid} recordid={recordid} />
+                {!isNewRecord && (
+                  <>
+                  {tableid === 'stabile' ? (
+                    <CardBadgeStabile tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'company' ? (
+                    <CardBadgeCompany tableid={tableid} recordid={recordid} />
                   ) : tableid === 'deal' ? (
                     <CardBadgeDeal tableid={tableid} recordid={recordid} />
                   ) : tableid === 'project' ? (
                     <CardBadgeProject tableid={tableid} recordid={recordid} />
-                ) : activeServer !== 'belotti' ? (
-                  <CardBadge tableid={tableid} recordid={recordid} />
-                ) : null}
+                  ) : activeServer !== 'belotti' ? (
+                    <CardBadge tableid={tableid} recordid={recordid} />
+                  ) : null}
+                  </>
+                )}
 
                 <div className="mt-3">
                   <CardTabs
@@ -533,17 +539,21 @@ export default function RecordCard({
                   </div>
                 </div>
 
-                  {tableid === 'stabile' ? (
-                    <CardBadgeStabile tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'company' ? (
-                    <CardBadgeCompany tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'deal' ? (
-                    <CardBadgeDeal tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'project' ? (
-                    <CardBadgeProject tableid={tableid} recordid={recordid} />
-                  ) : activeServer !== 'belotti' ? (
-                    <CardBadge tableid={tableid} recordid={recordid} />
-                  ) : null}
+                {!isNewRecord && (
+                  <>
+                    {tableid === 'stabile' ? (
+                      <CardBadgeStabile tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'company' ? (
+                      <CardBadgeCompany tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'deal' ? (
+                      <CardBadgeDeal tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'project' ? (
+                      <CardBadgeProject tableid={tableid} recordid={recordid} />
+                    ) : activeServer !== 'belotti' ? (
+                      <CardBadge tableid={tableid} recordid={recordid} />
+                    ) : null}
+                  </>
+                )}
               </div>
 
                 {/* CardTabs container with dynamic height */}

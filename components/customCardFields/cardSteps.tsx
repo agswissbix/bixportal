@@ -319,21 +319,49 @@ export default function cardSteps({
   }, [loading])
 
   const renderLinkedTableButton = (table: LinkedTable) => {
-    const thereIsRecordId = (recordid === undefined || recordid === null || recordid === "") &&
+    const thereIsNotRecordId = (recordid === undefined || recordid === null || recordid === "") &&
            (newRecordId === undefined || newRecordId === null || newRecordId === "")
     return (
+      <>
       <button
         type="button"
-        disabled={thereIsRecordId}
-        title={thereIsRecordId ? "Salva il record per abilitare" : ""}
+        disabled={thereIsNotRecordId}
+        title={thereIsNotRecordId ? "Salva il record per abilitare" : ""}
         className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]
-        ${thereIsRecordId ? "opacity-50 cursor-not-allowed" : ""}
+          ${thereIsNotRecordId ? "opacity-50 cursor-not-allowed" : ""}
           `}
-        onClick={() => handleRowClick("linked", "", table.tableid, tableid, newRecordId || recordid)}
-      >
+          onClick={() => handleRowClick("linked", "", table.tableid, tableid, newRecordId || recordid)}
+          >
         <SquarePlus className="h-5 w-5" />
         <span>Aggiungi {table.description}</span>
       </button>
+      
+      {!thereIsNotRecordId && (
+        <>
+          {/* Mobile: CardList */}
+          <div className="block xl:hidden w-full">
+              <CardsList 
+              tableid={table.tableid}
+              searchTerm={''}
+              context="linked"
+              masterTableid={tableid}
+              masterRecordid={newRecordId ||recordid}
+              />
+          </div>
+          {/* Desktop: RecordsTable */}
+          <div className="hidden xl:block w-full">
+              <RecordsTable
+                  tableid={table.tableid}
+                  searchTerm={''}
+                  context="linked"
+                  masterTableid={tableid}
+                  masterRecordid={newRecordId || recordid}
+                  limit={10}
+              />
+          </div>
+        </>
+      )}
+      </>
     )
   }
 
@@ -345,7 +373,7 @@ export default function cardSteps({
             <LoadingComp />
           </div>
 
-          <div ref={formRef} className={"max-h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
+          <div ref={formRef} className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
             <Tooltip id="my-tooltip" className="tooltip" />
 
             <div className="flex-shrink-0 mb-6">
@@ -468,27 +496,6 @@ export default function cardSteps({
                           {table.description} - <Badge>{table.rowsCount}</Badge>
                         </h3>
                         {renderLinkedTableButton(table)}
-                        {/* Mobile: CardList */}
-                        <div className="block xl:hidden w-full">
-                            <CardsList 
-                            tableid={table.tableid}
-                            searchTerm={''}
-                            context="linked"
-                            masterTableid={tableid}
-                            masterRecordid={recordid}
-                            />
-                        </div>
-                        {/* Desktop: RecordsTable */}
-                        <div className="hidden xl:block w-full">
-                            <RecordsTable
-                                tableid={table.tableid}
-                                searchTerm={''}
-                                context="linked"
-                                masterTableid={tableid}
-                                masterRecordid={recordid}
-                                limit={10}
-                            />
-                        </div>
                       </div>
                     )
                   })}
