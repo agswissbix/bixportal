@@ -11,6 +11,7 @@ import SelectStandard from "@/components/selectStandard"
 import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useRecordsStore } from "../records/recordsStore"
+import InputFile from "@/components/input/inputFile"
 
 interface ChartConfig {
   nomeInterno: string
@@ -35,7 +36,7 @@ interface BackendResponse {
   recordid: string
   lookup?: {
     table: Array<{ value: string; label: string }>
-    campi: Record<string, Array<{ value: string; label: string }>>
+    campi: Record<string, Array<{ value: string; label: string, fieldtype?: string }>>
     views: Record<string, Array<{ value: string; label: string }>>
     dashboards: Array<{ value: string; label: string }>
   }
@@ -83,7 +84,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   const [backendFields, setBackendFields] = useState<FieldInterface[]>([])
   const [lookupData, setLookupData] = useState<{
     table: Array<{ itemcode: string; itemdesc: string }>
-    campi: Record<string, Array<{ itemcode: string; itemdesc: string }>>
+    campi: Record<string, Array<{ itemcode: string; itemdesc: string, fieldtype?: string }>>
     views: Record<string, Array<{ itemcode: string; itemdesc: string }>>
     dashboards: Array<{ itemcode: string; itemdesc: string }>
   } | null>(null)
@@ -127,10 +128,11 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               acc[key] = response.lookup!.campi[key].map((item) => ({
                 itemcode: item.value,
                 itemdesc: item.label,
+                fieldtype: item.fieldtype,
               }))
               return acc
             },
-            {} as Record<string, Array<{ itemcode: string; itemdesc: string }>>,
+            {} as Record<string, Array<{ itemcode: string; itemdesc: string; fieldtype?: string }>>,
           ),
           views: Object.keys(response.lookup.views).reduce(
             (acc, key) => {
@@ -208,6 +210,10 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       pivot_total_field: "Campo utilizzato per i totali (considerato solo se il tipo raggruppamento è 'pivot')",
       campi2: "Secondo dataset necessario per grafici complessi come multibarlinechart",
       operation2: "Operazione da applicare al secondo dataset",
+      dynamicfield1: "Campo dinamico calcolato per il dataset principale",
+      dynamicfield1_label: "Etichetta per il campo dinamico 1",
+      dynamicfield2: "Campo dinamico calcolato per il dataset secondario",
+      dynamicfield2_label: "Etichetta per il campo dinamico 2",
     }
     return descriptions[fieldid] || null
   }
@@ -239,8 +245,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     ) {
       if (field.fieldid === "views") {
         lookupItems = lookupData.views[formData.tabella] || []
-      } else {
-        lookupItems = lookupData.campi[formData.tabella] || []
+      } 
+      else {
+        const allItems = lookupData.campi[formData.tabella] || []
+        if (field.fieldid === "campi" || field.fieldid === "campi2") {
+          lookupItems = allItems.filter((item: any) => item.fieldtype === "Numero")
+        } else {
+          lookupItems = allItems
+        }
       }
     } else if (field.fieldid === "tabella" && lookupData) {
       lookupItems = lookupData.table || []
@@ -365,6 +377,11 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                   onChange={(v) => handleInputChange(field.fieldid, v)}
                   isMulti={true}
                 />
+              ) : field.fieldtype === "Attachment" ? (
+                <InputFile
+                  initialValue={currentValue ? `/api/media-proxy?url=${currentValue}` : null}
+                  onChange={(v) => handleInputChange(field.fieldid, v)}
+                />
               ) : null}
             </div>
 
@@ -384,12 +401,25 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   }
 
   const fieldsByStep = useMemo(() => {
-    const step1Fields = backendFields.filter((f) => ["name", "title", "descrizione"].includes(f.fieldid))
+    const step1Fields = backendFields.filter((f) => ["name", "title", "descrizione", "icona"].includes(f.fieldid))
     const step2Fields = backendFields.filter((f) => ["type", "dashboards"].includes(f.fieldid))
-    const step3Fields = backendFields.filter((f) => ["tabella", "views", "campi", "operation"].includes(f.fieldid))
-    const step4Fields = backendFields.filter((f) => ["campi2", "operation2"].includes(f.fieldid))
+    const step3Fields = backendFields.filter((f) => [
+    "tabella",
+    "views",
+    "campi",
+    "operation",
+    "dynamicfield1",
+    "dynamicfield1_label",
+  ].includes(f.fieldid))
+  const step4Fields = backendFields.filter((f) => [
+    "campi2",
+    "operation2",
+    "operation2_total",
+    "dynamicfield2",
+    "dynamicfield2_label",
+  ].includes(f.fieldid))
     const step5Fields = backendFields.filter((f) =>
-      ["raggruppamento", "tiporaggruppamento", "pivot_total_field", "dynamicfield1"].includes(f.fieldid),
+      ["raggruppamento", "date_granularity", "tiporaggruppamento", "pivot_total_field"].includes(f.fieldid),
     )
 
     return {
@@ -419,6 +449,25 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   const currentStepFields = useMemo(() => {
     const fields = fieldsByStep[currentStep as keyof typeof fieldsByStep] || []
 
+    const isRaggruppamentoDataType = (() => {
+      const selectedRaggruppamento = formData.raggruppamento
+      if (!selectedRaggruppamento || !lookupData || !formData.tabella) return false
+
+      // Se raggruppamento è multiselect, prendo il primo (o puoi fare un every per tutti)
+      const selectedCodes = Array.isArray(selectedRaggruppamento)
+        ? selectedRaggruppamento
+        : [selectedRaggruppamento]
+
+      const campiLookup = lookupData.campi[formData.tabella] || []
+
+      console.log("Verifica raggruppamento data type per codici:", selectedCodes, campiLookup)
+      // Se almeno uno dei campi selezionati ha fieldtype === "Data"
+      return selectedCodes.some((code) => {
+        const selectedItem = campiLookup.find((item: any) => item.itemcode === code)
+        return selectedItem?.fieldtype === "Data"
+      })
+    })()
+
     // Filter out pivot_total_field if tiporaggruppamento is not "pivot"
     return fields.filter((field) => {
       if (field.fieldid === "pivot_total_field") {
@@ -430,9 +479,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
         return isPivot
       }
+
+      if (field.fieldid === "date_granularity") {
+        return isRaggruppamentoDataType
+      }
+
       return true
     })
-  }, [currentStep, fieldsByStep, formData.tiporaggruppamento])
+  }, [currentStep, fieldsByStep, formData.raggruppamento, formData.tiporaggruppamento, lookupData, backendFields, formData.tabella])
 
   const isStepValid = useMemo(() => {
     return currentStepFields.every((field) => {
