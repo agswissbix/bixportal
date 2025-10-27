@@ -467,7 +467,7 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
       data-oid="rv89u1z"
     >
       {(response: ResponseInterface) => (
-<div className="flex flex-col opacity-100 transition-opacity duration-400 ease-out h-full p-4 sm:p-6 lg:p-8 bg-gray-50" data-oid="t6b1_3p" >
+<div className="flex flex-col opacity-100 transition-opacity duration-400 ease-out h-screen overflow-hidden p-4 sm:p-6 lg:p-8 bg-gray-50" data-oid="t6b1_3p" >
           <Popup
             isOpen={showPopup}
             onClose={() => setShowPopup(false)}
@@ -548,11 +548,11 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
           
 
           {/* Tab Content */}
-<div className="flex-grow min-h-0">
+<div className="flex-grow min-h-0 overflow-y-auto">
             {responseData.dashboards
               ?.filter(dashboard => dashboard.id === activeTab) // <-- AGGIUNTA CHIAVE: Filtra per la tab attiva
               .map(dashboard => ( // Ora .map() itera solo sull'unico elemento filtrato
-                <div className="w-full h-full" data-oid="qkqmynz" key={`${dashboard.id}-${dashboardKey}`}>
+                <div className="w-full" data-oid="qkqmynz" key={`${dashboard.id}-${dashboardKey}`}>
                   <div className="w-full min-h-full" data-oid="fvz15n4">
                     <Dashboard 
                       onOpenPopup={() => { 
