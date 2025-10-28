@@ -79,6 +79,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
         response.services.forEach((service) => {
           if (service.quantity && service.quantity > 0) {
             initialData[service.id] = {
+              id: service.id,
               title: service.title,
               quantity: service.quantity,
               unitPrice: service.unitPrice,
