@@ -23,9 +23,10 @@ import BelottiFormulari from '@/components/belottiFormulari';
 import UserSettings from '@/components/userSettings';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import RecordCard from '@/components/recordCard';
 
 export default function Home() {
-  const {selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme} = useRecordsStore();
+  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme} = useRecordsStore();
   const router = useRouter();
 
 useEffect(() => {
@@ -65,7 +66,7 @@ useEffect(() => {
       <Toaster richColors position="bottom-right" />
       
       {/* Sidebar occupa tutta l'altezza */}
-      <Sidebar className="h-screen  bg-gray-800 text-white" />
+      <Sidebar />
 
       {/* Contenitore principale con Navbar e contenuto */}
       <div className=" flex flex-col w-full xl:w-10/12 2xl:w-10/12 3xl:w-11/12 h-full">
@@ -79,7 +80,20 @@ useEffect(() => {
           recordid={popupRecordId}
           />
 
+        {cardsList.map((card, index) => (
+          <RecordCard
+          key={`${card.tableid}-${card.recordid}`}
+          tableid={card.tableid}
+          recordid={card.recordid}
+          mastertableid={card.mastertableid}
+          masterrecordid={card.masterrecordid}
+          index={index}
+          total={cardsList.length}
+          type={card.type}
+          />
+        ))}
         <div className="flex-1 bg-gray-100 p-4 h-5/6">
+
           {selectedMenu === 'TelAmicoCalendario' ? (
             <ScheduleCalendar />
           ) : selectedMenu === 'TelAmicoAgenda' ? (

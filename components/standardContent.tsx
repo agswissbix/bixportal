@@ -249,7 +249,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
             </div>
           </div>
 
-          {cardsList.map((card, index) => (
+          {/* {cardsList.map((card, index) => (
             <RecordCard
               key={`${card.tableid}-${card.recordid}`}
               tableid={card.tableid}
@@ -260,7 +260,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
               total={cardsList.length}
               type={card.type}
             />
-          ))}
+          ))} */}
 
           <div className="w-full xl:h-11/12 h-10/12 flex flex-col lg:flex-row gap-4 sm:gap-6 mb-4">
             {isFiltersOpen && (

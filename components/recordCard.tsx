@@ -260,6 +260,7 @@ export default function RecordCard({
   // Pass mobileView to CardTabs to allow child to adapt (if implemented)
   const containerStyleDesktop: React.CSSProperties = {
     right: `${getOffset() + 10}px`,
+    top: `${8}vh`,
     marginTop: `${getOffset()}px`,
     zIndex: 40 + index,
   };
