@@ -4,6 +4,7 @@ import ValueChart from "./charts/valueChart";
 import GenericApexChart from "./charts/genericApexChart";
 import "./blockChart.css";
 import OverlayBarChart from "./charts/multiBarChart";
+import TableChart from "./charts/tableChart";
 
 interface Props {
   id: number;
@@ -22,6 +23,8 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
     switch (chartType.toLowerCase()) {
       case 'value':
         return <ValueChart chartType={chartType} chartData={chartData} view="chart" />;
+      case 'table':
+        return <TableChart chartType={chartType} chartData={chartData} view="chart" />;
       case 'multibarchart':
         return <OverlayBarChart chartData={JSON.parse(chartData)} />;
       default:

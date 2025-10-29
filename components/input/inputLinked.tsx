@@ -7,6 +7,7 @@ import _ from "lodash"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useRecordsStore } from "../records/recordsStore"
 import { Plus, ExternalLink } from "lucide-react"
+import { toast } from "sonner"
 
 interface PropsInterface {
   initialValue?: string
@@ -175,10 +176,10 @@ export default function inputLinked({
           <button
             type="button"
             onClick={() => {
-              if (linkedmaster_recordid && linkedmaster_tableid) {
+              if (linkedmaster_tableid) {
                 handleRowClick("linked", linkedmaster_recordid, linkedmaster_tableid)
               } else {
-                console.error("Missing required parameters for handleRowClick")
+                toast.error("Nessun dato collegato selezionato.")
               }
             }}
             className="p-2 text-muted-foreground hover:text-accent-foreground hover:bg-accent rounded-md transition-all duration-200 hover:scale-110"
@@ -190,10 +191,10 @@ export default function inputLinked({
           <button
             type="button"
             onClick={() => {
-              if (linkedmaster_recordid && linkedmaster_tableid) {
-                handleRowClick("", "", linkedmaster_tableid)
+              if (linkedmaster_tableid) {
+                handleRowClick("linked", "", linkedmaster_tableid)
               } else {
-                console.error("Missing required parameters for handleRowClick")
+                console.error("Missing required parameters for handleRowClick", linkedmaster_recordid, linkedmaster_tableid)
               }
             }}
             className="p-2 mr-1 text-muted-foreground hover:text-accent-foreground hover:bg-accent rounded-md transition-all duration-200 hover:scale-110"

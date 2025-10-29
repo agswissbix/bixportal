@@ -44,6 +44,7 @@ interface SummarySectionProps {
     section3: {
       selectedFrequency: string
       exponentPrice?: number
+      price?: number
       operationsPerYear?: number
     }
   }
@@ -92,7 +93,12 @@ const serviceLabels: { [key: string]: string } = {
 }
 
 export default function SummarySection({ serviceData, onUpdate, onSignatureChange }: SummarySectionProps) {
-  const servicesTotal = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
+  const servicesTotal = serviceData.section2Services['clientPC'] 
+    ? (() => {
+      const clientPC = serviceData.section2Services['clientPC'];
+      const total = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
+      return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
+    })() : 0
   const productsTotal = Object.values(serviceData.section2Products).reduce((sum, product) => sum + product.total, 0)
   const annualTotal = Object.values(serviceData.section2Products)
     .reduce((sum, product: any) => 
@@ -277,7 +283,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           {monthlyTotal > 0 && (
                             <>
                               <h3 className="text-2xl font-bold text-gray-900">
-                                    <div className="text-2xl font-bold text-indigo-900">CHF {monthlyTotal.toFixed(2)}.-</div>
+                                    <div className="text-2xl font-bold text-indigo-900">CHF {monthlyTotal.toFixed(0)}.-</div>
                               </h3>
                         <p className="text-sm text-gray-600">totale mensile</p>
                             </>
@@ -288,7 +294,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                             <>
                         <h3 className="text-xl font-semibold text-amber-700">
                           
-                              <div className="text-2xl font-bold text-indigo-900">CHF {annualTotal.toFixed(2)}.-</div>
+                              <div className="text-2xl font-bold text-indigo-900">CHF {annualTotal.toFixed(0)}.-</div>
                         </h3>
                         <p className="text-sm text-gray-600">totale annuo</p>
                             </>
@@ -385,7 +391,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                 <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
                   <div className="text-right">
                     <h3 className="text-2xl font-bold text-gray-900">
-                      CHF {(servicesTotal * (serviceData.section3.exponentPrice || 1)).toFixed(2)} .-
+                      CHF {(servicesTotal + (serviceData.section3.price || 1)).toFixed(0)} .-
                     </h3>
                     <p className="text-sm text-gray-600">per uscita</p>
                   </div>
@@ -393,10 +399,10 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                     <h3 className="text-xl font-semibold text-amber-700">
                       CHF{" "}
                       {(
-                        servicesTotal *
-                        (serviceData.section3.exponentPrice || 1) *
+                        (servicesTotal +
+                        (serviceData.section3.price || 1)) *
                         (serviceData.section3.operationsPerYear || 12)
-                      ).toFixed(2)}{" "}
+                      ).toFixed(0)}{" "}
                       .-
                     </h3>
                     <p className="text-sm text-gray-600">totale annuo</p>

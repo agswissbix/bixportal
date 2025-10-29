@@ -44,6 +44,7 @@ const fieldTypeOptions = [
   { value: "Ora", label: "Ora", icon: Clock },
   { value: "Numero", label: "Numero", icon: Hash },
   { value: "lookup", label: "Lookup", icon: Search },
+  { value: "multiselect", label: "Multiselect", icon: Search },
   { value: "Utente", label: "Utente", icon: User },
   { value: "Memo", label: "Memo", icon: FileText },
   { value: "html", label: "HTML", icon: FileText },

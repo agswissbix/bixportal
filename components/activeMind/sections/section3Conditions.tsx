@@ -19,16 +19,19 @@ interface Section3Props {
     section3: {
       selectedFrequency: string,
       exponentPrice?: number
+      price?: number
+      operationsPerYear?: number
     }
   }
+  dealid?: string
   onUpdate: (data: any) => void
 }
 
 export const frequencyColors: Record<string, string> = {
-  monthly: "bg-blue-50 border-blue-200 text-blue-900",
-  quarterly: "bg-green-50 border-green-200 text-green-900",
-  biannual: "bg-orange-50 border-orange-200 text-orange-900",
-  annual: "bg-purple-50 border-purple-200 text-purple-900",
+  Mensile: "bg-blue-50 border-blue-200 text-blue-900",
+  Trimestrale: "bg-green-50 border-green-200 text-green-900",
+  Semestrale: "bg-orange-50 border-orange-200 text-orange-900",
+  Annuale: "bg-purple-50 border-purple-200 text-purple-900",
 };
 
 
@@ -64,6 +67,8 @@ interface ResponseInterface {
     description: string;
     icon: string;
     exponentPrice: number;
+    price?: number;
+    selected?: boolean;
     operationsInOneYear: number;
   }>;
 }
@@ -85,7 +90,7 @@ const responseDataDEFAULT: ResponseInterface = {
   frequencies: []
 };
 
-export default function Section3Conditions({ data, onUpdate }: Section3Props) {
+export default function Section3Conditions({ data, onUpdate, dealid }: Section3Props) {
   const [responseData, setResponseData] = useState<ResponseInterface>(
             isDev ? responseDataDEV : responseDataDEFAULT
         );
@@ -94,8 +99,9 @@ export default function Section3Conditions({ data, onUpdate }: Section3Props) {
             if (isDev) return null;
             return {
                 apiRoute: 'get_conditions_activemind',
+                dealid: dealid
             };
-        }, []);
+        }, [dealid]);
       
         const { response, loading, error } = !isDev && payload
             ? useApi<ResponseInterface>(payload)
@@ -105,16 +111,31 @@ export default function Section3Conditions({ data, onUpdate }: Section3Props) {
             if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
                 setResponseData(response);
                 
+                const selectedFreq = response.frequencies.find((freq) => freq.selected);
+                if (selectedFreq) {
+                  onUpdate({
+                    selectedFrequency: selectedFreq.id,
+                    exponentPrice: selectedFreq.exponentPrice,
+                    price: selectedFreq.price,
+                    operationsPerYear: selectedFreq.operationsInOneYear,
+                  });
+                }
             }
         }, [response]);
 
 
-  const section3Total = Object.values(data.section2).reduce((sum, service) => sum + service.total, 0)
+  const section3Total = data.section2['clientPC'] 
+    ? (() => {
+      const clientPC = data.section2['clientPC'];
+      const total = Object.values(data.section2).reduce((sum, service) => sum + service.total, 0)
+      return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
+    })() : 0
   const handleFrequencySelect = (frequencyId: string, exponentPrice: number) => {
     if (data.section3.selectedFrequency === frequencyId) {
       onUpdate({
         selectedFrequency: null,
         exponentPrice: null,
+        price: null,
         operationsPerYear: null
       })
       return
@@ -122,6 +143,7 @@ export default function Section3Conditions({ data, onUpdate }: Section3Props) {
     onUpdate({
       selectedFrequency: frequencyId,
       exponentPrice: exponentPrice,
+      price: responseData.frequencies.find(freq => freq.id === frequencyId)?.price || 0,
       operationsPerYear: responseData.frequencies.find(freq => freq.id === frequencyId)?.operationsInOneYear || 0
     })
   }
@@ -218,7 +240,7 @@ export default function Section3Conditions({ data, onUpdate }: Section3Props) {
                   className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                     isSelected ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200" : "hover:border-gray-300"
                   }`}
-                  onClick={() => handleFrequencySelect(frequency.id, frequency.exponentPrice)}
+                  onClick={() => handleFrequencySelect(frequency.id, frequency.price)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start space-x-3">
@@ -230,13 +252,13 @@ export default function Section3Conditions({ data, onUpdate }: Section3Props) {
                         <div className="flex flex-wrap items-center">
                           <h3 className="font-semibold text-lg text-gray-900 mb-1 mr-5">
                             <span>
-                              CHF { (section3Total * frequency.exponentPrice) }.-
+                              CHF { (section3Total + frequency.price).toFixed(0) }.-
                             </span>
                             <span className="text-sm font-normal text-gray-600"> / uscita</span>
                           </h3>
                           <h3 className="font-normal text-md text-gray-900 mb-1">
                             <span>
-                              { (section3Total * frequency.exponentPrice * frequency.operationsInOneYear) }.-
+                              { ((section3Total + frequency.price) * frequency.operationsInOneYear).toFixed(0) }.-
                             </span>
                             <span className="font-normal text-sm text-gray-600"> / anno</span>
                           </h3>

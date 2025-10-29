@@ -248,13 +248,15 @@ export default function CardFields({
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
 
+
+    console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
 
     const isNewRecord = recordid === undefined || recordid === null || recordid === ""
     const currentValue = currentValues[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
-    const isRequiredEmpty = isNewRecord && isRequired && isEmpty
-    const isRequiredFilled = isNewRecord && isRequired && !isEmpty
+    const isRequiredEmpty = isRequired && isEmpty
+    const isRequiredFilled = isRequired && !isEmpty
     const hasDependencies = field.hasDependencies
 
     const user = field.lookupitemsuser?.find((u) => u.userid.toString() === value.toString())
@@ -264,7 +266,7 @@ export default function CardFields({
         <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
             <div className="w-1/4 pt-2">
             <div className="flex items-center gap-1">
-              {isRequired && isNewRecord && (
+              {isRequired && (
               <div
                 className={`w-1 h-4 rounded-full mr-1 ${
                 isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
@@ -278,7 +280,6 @@ export default function CardFields({
               className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
               >
               {field.description}
-              {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
               </p>
             </div>
             </div>
@@ -314,16 +315,6 @@ export default function CardFields({
                 <>{value}</>
               )}
             </div>
-
-            {isRequired && (
-              <div
-                className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs ${
-                  isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              >
-                {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-              </div>
-            )}
           </div>
         </div>
       )
@@ -337,7 +328,7 @@ export default function CardFields({
       >
         <div className="w-full lg:w-1/4 pt-2">
           <div className="flex items-center gap-1">
-            {isRequired && isNewRecord && (
+            {isRequired && (
               <div
                 className={`w-1 h-4 rounded-full mr-1 ${
                   isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
@@ -351,7 +342,6 @@ export default function CardFields({
               className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
             >
               {field.description}
-              {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
             </p>
           </div>
         </div>
@@ -423,16 +413,6 @@ export default function CardFields({
               />
             ) : null}
           </div>
-
-          {isRequired && (
-            <div
-              className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs ${
-                isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-              }`}
-            >
-              {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-            </div>
-          )}
         </div>
       </div>
     )
@@ -527,7 +507,7 @@ export default function CardFields({
             <LoadingComp />
           </div>
         )}
-        <div className={"max-h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
+        <div className={"h-[83%] flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
           <Tooltip id="my-tooltip" className="tooltip" />
           <div className="flex-grow overflow-y-auto max-h-[83%] space-y-3 pr-2">
             <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
@@ -595,9 +575,9 @@ export default function CardFields({
               <LoadingComp />
             </div>
           )}
-          <div className={"max-h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
+          <div className={"h-[83%] flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
             <Tooltip id="my-tooltip" className="tooltip" />
-            <div className="flex-grow overflow-y-auto max-h-[83%] space-y-3 pr-2">
+            <div className="flex-grow overflow-y-auto space-y-3 pr-2">
               <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
 
               {groupedFields["Dati"] && (

@@ -45,6 +45,7 @@ interface ProductSelectionProps {
       billingType?: "monthly" | "yearly"
     }
   }
+  dealid?: string
   onUpdate: (data: any) => void
 }
 
@@ -129,7 +130,7 @@ const categoryLabels: { [key: string]: string } = {
   firewall: "Firewall",
 }
 
-export default function ProductSelection({ data, onUpdate }: ProductSelectionProps) {
+export default function ProductSelection({ data, onUpdate, dealid }: ProductSelectionProps) {
     const [responseData, setResponseData] = useState<ResponseInterface>(
         isDev ? responseDataDEV : responseDataDEFAULT
     );
@@ -138,8 +139,9 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
         if (isDev) return null;
         return {
             apiRoute: 'get_products_activemind',
+            trattativaid: dealid
         };
-    }, []);
+    }, [dealid]);
 
     const { response, loading, error } = !isDev && payload
         ? useApi<ResponseInterface>(payload)
@@ -153,6 +155,37 @@ export default function ProductSelection({ data, onUpdate }: ProductSelectionPro
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
             setActiveCategory(response.servicesCategory[0].id)
+
+            const initialData: Record<string, any> = {};
+
+            response.servicesCategory.forEach((category) => {
+              category.services.forEach((service) => {
+                if (service as any && (service as any).quantity && (service as any).quantity > 0) {
+                  const billingType = (service as any).billingType || "monthly";
+                  const pricePerUnit =
+                    billingType === "yearly" && service.yearlyPrice
+                      ? service.yearlyPrice
+                      : service.monthlyPrice || service.unitPrice;
+
+                  initialData[service.id] = {
+                    title: service.title,
+                    quantity: (service as any).quantity,
+                    unitPrice: pricePerUnit,
+                    total: (service as any).quantity * pricePerUnit,
+                    features: service.features || [],
+                    category: service.category,
+                    monthlyPrice: service.monthlyPrice,
+                    yearlyPrice: service.yearlyPrice,
+                    description: service.description,
+                    billingType,
+                  };
+                }
+              });
+            });
+
+            if (Object.keys(initialData).length > 0) {
+              onUpdate(initialData);
+            }
         }
     }, [response]);
 

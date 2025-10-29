@@ -54,9 +54,10 @@ export default function SelectStandard({ lookupItems, initialValue = "", onChang
 
   const getInitialValue = () => {
     if (isMulti) {
+      console.log("DEBUG: initialValue in getInitialValue (multi):", initialValue)
       const initialValues = Array.isArray(initialValue)
         ? initialValue.map((val) => String(val))
-        : [String(initialValue)].filter(Boolean)
+        : [String(initialValue).split(',').map((val) => val.trim())].flat()
       return options.filter((option) => initialValues.includes(option.value))
     } else {
       return options.find((option) => option.value === String(initialValue)) || null

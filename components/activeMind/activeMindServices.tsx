@@ -54,6 +54,7 @@ interface ServiceData {
   section3: {
     selectedFrequency: string
     exponentPrice?: number
+    price?: number
     operationsPerYear?: number
   }
 }
@@ -83,7 +84,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     section1: { selectedTier: "", price: 0 },
     section2Products: {},
     section2Services: {},
-    section3: { selectedFrequency: "monthly", exponentPrice: 1, operationsPerYear: 12 },
+    section3: { selectedFrequency: "Mensile", exponentPrice: 1, price: 300, operationsPerYear: 12 },
   })
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
 
@@ -221,18 +222,18 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       switch (currentStep) {
         case 1:
           return (
-            <Section1SystemAssurance data={serviceData.section1} onUpdate={(data) => updateServiceData("section1", data)} />
+            <Section1SystemAssurance data={serviceData.section1} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section1", data)} />
           )
         case 2:
           return (
-            <ProductSelection data={serviceData.section2Products} onUpdate={(data) => updateServiceData("section2Products", data)} />
+            <ProductSelection data={serviceData.section2Products} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Products", data)} />
           )
         case 3:
           return (
-            <Section2Services data={serviceData.section2Services} onUpdate={(data) => updateServiceData("section2Services", data)} />
+            <Section2Services data={serviceData.section2Services} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Services", data)} />
           )
         case 4:
-          return <Section3Conditions data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
+          return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
         case 5:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
         default:
@@ -242,10 +243,10 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       switch (currentStep) {
         case 1:
           return (
-            <Section2Services data={serviceData.section2Services} onUpdate={(data) => updateServiceData("section2Services", data)} />
+            <Section2Services data={serviceData.section2Services} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Services", data)} />
           )
         case 2:
-          return <Section3Conditions data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
+          return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
         case 3:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
         default:
