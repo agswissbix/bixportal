@@ -227,8 +227,8 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
     const currentValue = formData[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
-    const isRequiredEmpty = isNewRecord && isRequired && isEmpty
-    const isRequiredFilled = isNewRecord && isRequired && !isEmpty
+    const isRequiredEmpty = isRequired && isEmpty
+    const isRequiredFilled = isRequired && !isEmpty
 
     const customDescription = getFieldDescription(field.fieldid)
 
@@ -266,7 +266,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
           <div className="flex items-start space-x-4 w-full">
             <div className="w-1/4 pt-2">
               <div className="flex items-center gap-1">
-                {isRequired && isNewRecord && (
+                {isRequired && (
                   <div
                     className={`w-1 h-4 rounded-full mr-1 transition-colors ${
                       isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
@@ -276,7 +276,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 <div className="flex flex-col gap-0.5">
                   <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                     {field.description}
-                    {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
                   </p>
                   {customDescription && (
                     <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -291,16 +290,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               }`}
             >
               <div className="p-2 bg-muted rounded-md text-muted-foreground">{currentValue}</div>
-
-              {isRequired && isNewRecord && (
-                <div
-                  className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                    isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
-                  }`}
-                >
-                  {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -312,7 +301,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
         <div className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full">
           <div className="w-full lg:w-1/4 pt-2">
             <div className="flex items-center gap-1">
-              {isRequired && isNewRecord && (
+              {isRequired && (
                 <div
                   className={`w-1 h-4 rounded-full mr-1 transition-colors ${
                     isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
@@ -322,7 +311,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               <div className="flex flex-col gap-0.5">
                 <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                   {field.description}
-                  {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
                 </p>
                 {customDescription && (
                   <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -384,16 +372,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 />
               ) : null}
             </div>
-
-            {isRequired && isNewRecord && (
-              <div
-                className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                  isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              >
-                {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -585,7 +563,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                   <button
                     key={step.id}
                     type="button"
-                    onClick={() => setCurrentStep(step.id)}
+                    onClick={() => {!isStepValid || isSaving ? null : setCurrentStep(currentStep + 1)}}
                     className={`flex flex-col items-center gap-2 transition-all duration-300 group relative ${
                       isActive ? "scale-110" : "scale-100 hover:scale-105"
                     } flex-1 md:flex-initial`}
