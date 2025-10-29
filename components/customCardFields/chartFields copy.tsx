@@ -78,13 +78,6 @@ const STEPS = [
   { id: 5, title: "Raggruppamento e Pivot", description: "Configurazione raggruppamento e tabelle pivot" },
 ]
 
-const lookupDefault = {
-  table: [],
-  campi: {},
-  views: {},
-  dashboards: [],
-}
-
 export default function ChartConfigForm({ tableid, recordid, mastertableid, masterrecordid }: ChartConfigFormProps) {
   const isDev = false
 
@@ -94,7 +87,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     campi: Record<string, Array<{ itemcode: string; itemdesc: string, fieldtype?: string }>>
     views: Record<string, Array<{ itemcode: string; itemdesc: string }>>
     dashboards: Array<{ itemcode: string; itemdesc: string }>
-  }>(lookupDefault)
+  } | null>(null)
 
   const [formData, setFormData] = useState<Record<string, any>>({})
 
@@ -114,14 +107,16 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     }
   }, [recordid, tableid, mastertableid, masterrecordid])
 
-	const { response, loading, error } = !isDev && payload ? useApi<BackendResponse>(payload) : { response: null, loading: false, error: null };
+  const { response, loading, error } = useApi<BackendResponse>(payload)
 
   const isNewRecord = !recordid || recordid === ""
 
   useEffect(() => {
     if (!isDev && response) {
       setBackendFields(response.fields)
-      
+
+      console.log("Backend fields:", response.fields)
+
       if (response.lookup) {
         setLookupData({
           table: response.lookup.table.map((item) => ({
@@ -165,43 +160,45 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
         // Apply default value if exists, otherwise use backend value
         if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
           initialFormData[field.fieldid] = defaultValue
-        } else if (value !== undefined && value !== null && value !== "") {
+        } else if (value !== undefined && value !== null) {
           initialFormData[field.fieldid] = value
         } else {
-          initialFormData[field.fieldid] = field.fieldtype === "multiselect" ? [] : ""
+          initialFormData[field.fieldid] = field.fieldtype === "multiSelect" ? [] : ""
         }
       })
 
+      console.log("Initial form data:", initialFormData)
+
       setFormData(initialFormData)
     }
-  }, [response])
+  }, [response, isDev])
 
   useEffect(() => {
-    const tabellaField = backendFields.find((f) => f.fieldid === "table_name")
-    if (tabellaField && formData.table_name && isNewRecord) {
-      const campiField = backendFields.find((f) => f.fieldid === "fields")
-      const campi2Field = backendFields.find((f) => f.fieldid === "fields_2")
+    const tabellaField = backendFields.find((f) => f.fieldid === "tabella")
+    if (tabellaField && formData.tabella && isNewRecord) {
+      const campiField = backendFields.find((f) => f.fieldid === "campi")
+      const campi2Field = backendFields.find((f) => f.fieldid === "campi2")
       const pivotTotalField = backendFields.find((f) => f.fieldid === "pivot_total_field")
-      const raggruppamentoField = backendFields.find((f) => f.fieldid === "grouping")
+      const raggruppamentoField = backendFields.find((f) => f.fieldid === "raggruppamento")
       const viewsField = backendFields.find((f) => f.fieldid === "views")
 
       if (campiField) {
-        setFormData((prev) => ({ ...prev, fields: [] }))
+        setFormData((prev) => ({ ...prev, campi: [] }))
       }
       if (campi2Field) {
-        setFormData((prev) => ({ ...prev, fields_2: [] }))
+        setFormData((prev) => ({ ...prev, campi2: [] }))
       }
       if (pivotTotalField) {
         setFormData((prev) => ({ ...prev, pivot_total_field: [] }))
       }
       if (raggruppamentoField) {
-        setFormData((prev) => ({ ...prev, grouping: [] }))
+        setFormData((prev) => ({ ...prev, raggruppamento: [] }))
       }
       if (viewsField) {
         setFormData((prev) => ({ ...prev, views: [] }))
       }
     }
-  }, [formData.table_name, backendFields])
+  }, [formData.tabella, backendFields])
 
   const handleInputChange = (fieldid: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldid]: value }))
@@ -209,16 +206,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const getFieldDescription = (fieldid: string): string | null => {
     const descriptions: Record<string, string> = {
-      grouping_type: "Definisce se il grafico sarà visualizzato come tabella pivot",
+      tiporaggruppamento: "Definisce se il grafico sarà visualizzato come tabella pivot",
       pivot_total_field: "Campo utilizzato per i totali (considerato solo se il tipo raggruppamento è 'pivot')",
-      fields_2: "Secondo dataset necessario per grafici complessi come multibarlinechart",
+      campi2: "Secondo dataset necessario per grafici complessi come multibarlinechart",
       operation2: "Operazione da applicare al secondo dataset",
-      dynamic_field_1: "Campo dinamico calcolato per il dataset principale",
-      dynamic_field_1_label: "Etichetta per il campo dinamico 1",
-      dynamic_field_2: "Campo dinamico calcolato per il dataset secondario",
-      dynamic_field_2_label: "Etichetta per il campo dinamico 2",
-      name: "Nome interno del grafico (non visibile agli utenti)",
-      title: "Titolo pubblico del grafico",
+      dynamicfield1: "Campo dinamico calcolato per il dataset principale",
+      dynamicfield1_label: "Etichetta per il campo dinamico 1",
+      dynamicfield2: "Campo dinamico calcolato per il dataset secondario",
+      dynamicfield2_label: "Etichetta per il campo dinamico 2",
     }
     return descriptions[fieldid] || null
   }
@@ -232,35 +227,34 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
     const currentValue = formData[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
-    const isRequiredEmpty = isNewRecord && isRequired && isEmpty
-    const isRequiredFilled = isNewRecord && isRequired && !isEmpty
+    const isRequiredEmpty = isRequired && isEmpty
+    const isRequiredFilled = isRequired && !isEmpty
 
     const customDescription = getFieldDescription(field.fieldid)
 
     let lookupItems = field.lookupitems || []
 
     if (
-      (field.fieldid === "fields" ||
-        field.fieldid === "fields_2" ||
-        field.fieldid === "grouping" ||
+      (field.fieldid === "campi" ||
+        field.fieldid === "campi2" ||
+        field.fieldid === "raggruppamento" ||
         field.fieldid === "pivot_total_field" ||
         field.fieldid === "views") &&
-      formData.table_name &&
+      formData.tabella &&
       lookupData
     ) {
       if (field.fieldid === "views") {
-        lookupItems = lookupData.views[formData.table_name] || []
+        lookupItems = lookupData.views[formData.tabella] || []
       } 
       else {
-        const allItems = lookupData.campi[formData.table_name] || []
-        console.log(`Lookup items for field ${field.fieldid} and table ${formData.table_name}:`, allItems)
-        if (field.fieldid === "fields" || field.fieldid === "fields_2") {
+        const allItems = lookupData.campi[formData.tabella] || []
+        if (field.fieldid === "campi" || field.fieldid === "campi2") {
           lookupItems = allItems.filter((item: any) => item.fieldtype === "Numero")
         } else {
           lookupItems = allItems
         }
       }
-    } else if (field.fieldid === "table_name" && lookupData) {
+    } else if (field.fieldid === "tabella" && lookupData) {
       lookupItems = lookupData.table || []
     } else if (field.fieldid === "dashboards" && lookupData) {
       lookupItems = lookupData.dashboards || []
@@ -272,7 +266,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
           <div className="flex items-start space-x-4 w-full">
             <div className="w-1/4 pt-2">
               <div className="flex items-center gap-1">
-                {isRequired && isNewRecord && (
+                {isRequired && (
                   <div
                     className={`w-1 h-4 rounded-full mr-1 transition-colors ${
                       isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
@@ -282,7 +276,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 <div className="flex flex-col gap-0.5">
                   <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                     {field.description}
-                    {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
                   </p>
                   {customDescription && (
                     <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -297,16 +290,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               }`}
             >
               <div className="p-2 bg-muted rounded-md text-muted-foreground">{currentValue}</div>
-
-              {isRequired && isNewRecord && (
-                <div
-                  className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                    isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
-                  }`}
-                >
-                  {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -318,7 +301,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
         <div className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full">
           <div className="w-full lg:w-1/4 pt-2">
             <div className="flex items-center gap-1">
-              {isRequired && isNewRecord && (
+              {isRequired && (
                 <div
                   className={`w-1 h-4 rounded-full mr-1 transition-colors ${
                     isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
@@ -328,7 +311,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               <div className="flex flex-col gap-0.5">
                 <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                   {field.description}
-                  {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
                 </p>
                 {customDescription && (
                   <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -390,16 +372,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 />
               ) : null}
             </div>
-
-            {isRequired && isNewRecord && (
-              <div
-                className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                  isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              >
-                {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -407,25 +379,25 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   }
 
   const fieldsByStep = useMemo(() => {
-    const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon"].includes(f.fieldid))
+    const step1Fields = backendFields.filter((f) => ["name", "title", "descrizione", "icona"].includes(f.fieldid))
     const step2Fields = backendFields.filter((f) => ["type", "dashboards"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) => [
-    "table_name",
+    "tabella",
     "views",
-    "fields",
+    "campi",
     "operation",
     "dynamicfield1",
     "dynamicfield1_label",
   ].includes(f.fieldid))
   const step4Fields = backendFields.filter((f) => [
-    "fields_2",
+    "campi2",
     "operation2",
     "operation2_total",
     "dynamicfield2",
     "dynamicfield2_label",
   ].includes(f.fieldid))
     const step5Fields = backendFields.filter((f) =>
-      ["grouping", "date_granularity", "grouping_type", "pivot_total_field"].includes(f.fieldid),
+      ["raggruppamento", "date_granularity", "tiporaggruppamento", "pivot_total_field"].includes(f.fieldid),
     )
 
     return {
@@ -456,15 +428,15 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     const fields = fieldsByStep[currentStep as keyof typeof fieldsByStep] || []
 
     const isRaggruppamentoDataType = (() => {
-      const selectedRaggruppamento = formData.grouping
-      if (!selectedRaggruppamento || !lookupData || !formData.table_name) return false
+      const selectedRaggruppamento = formData.raggruppamento
+      if (!selectedRaggruppamento || !lookupData || !formData.tabella) return false
 
       // Se raggruppamento è multiselect, prendo il primo (o puoi fare un every per tutti)
       const selectedCodes = Array.isArray(selectedRaggruppamento)
         ? selectedRaggruppamento
         : [selectedRaggruppamento]
 
-      const campiLookup = lookupData.campi[formData.table_name] || []
+      const campiLookup = lookupData.campi[formData.tabella] || []
 
       console.log("Verifica raggruppamento data type per codici:", selectedCodes, campiLookup)
       // Se almeno uno dei campi selezionati ha fieldtype === "Data"
@@ -477,7 +449,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     // Filter out pivot_total_field if tiporaggruppamento is not "pivot"
     return fields.filter((field) => {
       if (field.fieldid === "pivot_total_field") {
-        const tipoRaggruppamento = formData.grouping_type?.toString().toLowerCase()
+        const tipoRaggruppamento = formData.tiporaggruppamento.toString().toLowerCase()
         const isPivot =
           tipoRaggruppamento === "pivot" ||
           (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.code === "pivot") ||
@@ -492,7 +464,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
       return true
     })
-  }, [currentStep, fieldsByStep, formData.grouping, formData.grouping_type, lookupData, backendFields, formData.table_name])
+  }, [currentStep, fieldsByStep, formData.raggruppamento, formData.tiporaggruppamento, lookupData, backendFields, formData.tabella])
 
   const isStepValid = useMemo(() => {
     return currentStepFields.every((field) => {
@@ -591,7 +563,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                   <button
                     key={step.id}
                     type="button"
-                    onClick={() => setCurrentStep(step.id)}
+                    onClick={() => {!isStepValid || isSaving ? null : setCurrentStep(currentStep + 1)}}
                     className={`flex flex-col items-center gap-2 transition-all duration-300 group relative ${
                       isActive ? "scale-110" : "scale-100 hover:scale-105"
                     } flex-1 md:flex-initial`}
