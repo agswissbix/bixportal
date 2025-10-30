@@ -51,7 +51,7 @@ export default function DynamicMenuItem({
   return (
     <li
       className={
-        `px-4 py-2 text-sm text-foreground hover:bg-gray-100 cursor-pointer ${fn.css || ''}`
+        `px-4 py-2 text-sm text-foreground hover:bg-gray-100 border-b border-gray-400 cursor-pointer ${fn.css || ''}`
       }
       onClick={!isLoading ? handleClick : undefined}
     >

@@ -4,7 +4,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, setPopupRecordId, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
+  const {removeCard, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -405,6 +405,7 @@ export function useFrontendFunctions() {
         },
       )
       toast.success("Aggiornato")
+      setRefreshTable((v) => v + 1)
       return response.data
     } catch (error) {
       console.error("Errore durante il salvataggio", error)

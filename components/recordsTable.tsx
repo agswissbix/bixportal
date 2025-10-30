@@ -3,7 +3,7 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
 import { useRecordsStore } from "./records/recordsStore";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Image } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { set } from "lodash";
@@ -242,6 +242,8 @@ export default function RecordsTable({
 
   const [rowOpen, setRowOpen] = useState<string | null>(null);
 
+  const [errorFile, setErrorFile] = useState<Record<string, boolean>>({});
+
   // ✅ un selector per chiave
 
   const {
@@ -440,6 +442,8 @@ export default function RecordsTable({
                     {row.fields.map((field, index) => {
                       const column = response.columns[index];
                       const isNumberField = column?.fieldtypeid === "Numero";
+                      const isFileField = column?.fieldtypeid === "file";
+                      console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid });
                       return (
                         <td
                           key={`${row.recordid}-${field.fieldid}`}
@@ -479,15 +483,28 @@ export default function RecordsTable({
                                 }}
                               />
                             )}
-                            {isNumberField ? (
-                                <span className="block truncate w-full text-right">
+                            {isFileField ? (
+                                errorFile[field.recordid] ? (
+                                <>
+                                  <Image className="w-8 h-8 flex items-center justify-center text-gray-400" />
+                                </>
+                              ) : (
+                                <img
+                                  src={`/api/media-proxy?url=${field.value}`}
+                                  alt="File field"
+                                  className="w-8 h-8 rounded flex-shrink-0"
+                                  onError={(e) => {setErrorFile((prev) => ({ ...prev, [field.recordid]: true }));}}
+                                />
+                              )
+                            ) : isNumberField ? (
+                                <span className="block truncate w-full max-h-[40px] text-right">
                                 {field.value && !isNaN(Number(field.value))
                                   ? Number(field.value).toLocaleString("de-CH")
                                   : field.value}
                                 </span>
                             ) : (
                               <span
-                                className={`block truncate w-full`}
+                                className={`block truncate w-full max-h-[40px]`}
                                 dangerouslySetInnerHTML={{ __html: field.value }}
                               />
                             )}
