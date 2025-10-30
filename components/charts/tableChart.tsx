@@ -29,13 +29,15 @@ export default function TableChart({ chartData, view }: Props) {
   let parsed: ChartDataInterface | null = null;
   try {
     parsed = JSON.parse(chartData);
-    console.log("Parsed chart data:", parsed?.datasets[0]);
   } catch (e) {
     console.error("Errore parsing dati:", e);
     return <div className="p-4 text-red-500">Dati non validi</div>;
   }
 
-    const firstDataset = parsed?.datasets[0];
+  if (!parsed || !parsed.datasets || parsed.datasets.length === 0) {
+    return <div className="p-4 text-gray-500">Nessun dato disponibile</div>;
+  }
+  const firstDataset = parsed?.datasets[0];
 
   // Vista "chart" minimalista - solo valore e immagine
   return (
