@@ -450,7 +450,7 @@ export default function RecordCard({
                           </button>
 
                           {showDropdown && (
-                            <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded shadow-lg z-30">
+                            <div className="absolute right-0 mt-10 w-1/2 bg-white border border-gray-200 rounded-md shadow-lg z-30">
                               <ul className="py-1">
                                 {response.fn.map((originalFn) => {
                                   if (originalFn.context !== 'cards') return null;

@@ -3,7 +3,7 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
 import { useRecordsStore } from "./records/recordsStore";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { set } from "lodash";
@@ -242,6 +242,8 @@ export default function RecordsTable({
 
   const [rowOpen, setRowOpen] = useState<string | null>(null);
 
+  const [errorFile, setErrorFile] = useState<Record<string, boolean>>({});
+
   // ✅ un selector per chiave
 
   const {
@@ -251,6 +253,7 @@ export default function RecordsTable({
     setRefreshTable,
     handleRowClick,
     cardsList,
+    addCard,
   } = useRecordsStore();
 
   // Quando la tabella cambia (es. tableid), resetta la pagina a 1
@@ -440,6 +443,9 @@ export default function RecordsTable({
                     {row.fields.map((field, index) => {
                       const column = response.columns[index];
                       const isNumberField = column?.fieldtypeid === "Numero";
+                      const isFileField = column?.fieldtypeid === "file";
+                      const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid;
+                      console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid });
                       return (
                         <td
                           key={`${row.recordid}-${field.fieldid}`}
@@ -447,9 +453,14 @@ export default function RecordsTable({
                   px-4 py-3 align-middle
                   ${field.css}
                   ${
-                    column?.fieldtypeid === "Numero"
+                    isNumberField
                       ? "min-w-[60px] max-w-[80px] text-right"
                       : "min-w-[80px] max-w-[300px] text-left"
+                  }
+                  ${
+                    isLinked
+                      ? "font-bold"
+                      : ""
                   }
                   ${
                   field.css && field.css.includes("bg-")
@@ -479,17 +490,47 @@ export default function RecordsTable({
                                 }}
                               />
                             )}
-                            {isNumberField ? (
-                                <span className="block truncate w-full text-right">
+                            {isFileField ? (
+                                errorFile[field.recordid] ? (
+                                <>
+                                  <Image className="w-8 h-8 flex items-center justify-center text-gray-400" />
+                                </>
+                              ) : (
+                                <img
+                                  src={`/api/media-proxy?url=${field.value}`}
+                                  alt="File field"
+                                  className="w-8 h-8 rounded flex-shrink-0"
+                                  onError={(e) => {setErrorFile((prev) => ({ ...prev, [field.recordid]: true }));}}
+                                />
+                              )
+                            ) : isNumberField ? (
+                                <span className="block truncate w-full max-h-[40px] text-right">
                                 {field.value && !isNaN(Number(field.value))
                                   ? Number(field.value).toLocaleString("de-CH")
                                   : field.value}
                                 </span>
                             ) : (
                               <span
-                                className={`block truncate w-full`}
+                                className={`block truncate w-full max-h-[40px]`}
                                 dangerouslySetInnerHTML={{ __html: field.value }}
                               />
+                            )}
+                            {isLinked && (
+                              <button
+                                type="button"
+                                className="z-50 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addCard &&
+                                    addCard(
+                                      field.linkedmaster_tableid!,
+                                      field.linkedmaster_recordid!,
+                                      "card"
+                                    );
+                                }}
+                              >
+                                <SquareArrowOutUpRight className="w-4 h-4" />
+                              </button>
                             )}
                           </div>
                         </td>
