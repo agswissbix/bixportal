@@ -5,7 +5,7 @@ import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 
 // Styling & Icons
-import { MoonIcon, SparklesIcon, SunIcon } from '@heroicons/react/24/solid';
+import {  } from '@heroicons/react/24/solid';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO

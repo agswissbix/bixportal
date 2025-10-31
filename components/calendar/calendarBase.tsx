@@ -1,12 +1,15 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useEffect, useMemo } from "react"
+import { useState, useCallback, useEffect, useMemo, useContext } from "react"
 import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toLocalISOString, getEventUniqueId } from "@/components/calendar/calendarHelpers"
 import { UnplannedEventsSidebar } from "./unplannedEventSidebar"
 import { useRecordsStore } from "../records/recordsStore"
+import { AppContext } from "@/context/appContext"
+import { toast } from "sonner"
+import { RefreshCw } from "lucide-react"
 
 export interface CalendarEvent {
   recordid: string
@@ -86,7 +89,8 @@ export function CalendarBase({
   const isDev = false
 
   const { refreshTable } = useRecordsStore();
-  
+  const { user } = useContext(AppContext);
+  const [isSyncing, setIsSyncing] = useState(false);
   // API payload
   const payload = useMemo(() => {
     if (isDev) return null;
@@ -112,8 +116,11 @@ export function CalendarBase({
 
   // Update responseData when API response changes
   useEffect(() => {
-    if (response) {
+    if (!isDev && response) {
       setResponseData(response)
+
+      console.log("res:", responseData)
+
     }
   }, [response])
 
@@ -348,6 +355,31 @@ export function CalendarBase({
     [responseData.events, tableid],
   )
 
+  const handleSync = async () => {
+    setIsSyncing(true);
+    toast.info("Sincronizzazione con il calendario di Outlook in corso...");
+    try {
+      var response = await axiosInstanceClient.post("/postApi", {
+          apiRoute: "sync_graph_calendar",
+          user: user,
+      });
+      if (response.status === 200) {
+        toast.success("Sincronizzazione completata con successo!");
+      } else {
+        console.error(
+            "Errore durante la sincronizzazione del calendario",
+            error
+        );
+      }
+    } catch (error) {
+      console.error("Errore durante la sincronizzazione del calendario", error);
+      toast.error("Errore durante la sincronizzazione del calendario.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+
   const childProps: CalendarChildProps = {
     data: responseData,
     loading,
@@ -366,7 +398,20 @@ export function CalendarBase({
 
   return (
     <div className="flex h-full">
-      <div className="flex-1">{children(childProps)}</div>
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <button
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border border-primary/20 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>Sincronizza Calendario</span>
+            </button>
+        </div>
+
+        <div className="flex-1 overflow-auto">{children(childProps)}</div>
+      </div>
       {showUnplannedEvents && (
         <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} />
       )}
