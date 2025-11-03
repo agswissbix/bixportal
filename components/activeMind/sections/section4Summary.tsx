@@ -343,7 +343,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
                       <div className="text-right">
                         <div className="font-bold text-gray-900">
-                          CHF {service.total * (serviceData.section3.exponentPrice || 1)}.-
+                          CHF {service.id == "clientPC" ? service.total * (1 - (service.quantity - 1) / 100) : service.total} .-
                         </div>
                       </div>
                     </div>

@@ -39,6 +39,7 @@ interface BackendResponse {
     campi: Record<string, Array<{ value: string; label: string, fieldtype?: string }>>
     views: Record<string, Array<{ value: string; label: string }>>
     dashboards: Array<{ value: string; label: string }>
+    functions?: Array<{ value: string; label: string }>
   }
 }
 
@@ -83,6 +84,7 @@ const lookupDefault = {
   campi: {},
   views: {},
   dashboards: [],
+  functions: [],
 }
 
 export default function ChartConfigForm({ tableid, recordid, mastertableid, masterrecordid }: ChartConfigFormProps) {
@@ -94,6 +96,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     campi: Record<string, Array<{ itemcode: string; itemdesc: string, fieldtype?: string }>>
     views: Record<string, Array<{ itemcode: string; itemdesc: string }>>
     dashboards: Array<{ itemcode: string; itemdesc: string }>
+    functions: Array<{ itemcode: string; itemdesc: string }> 
   }>(lookupDefault)
 
   const [formData, setFormData] = useState<Record<string, any>>({})
@@ -153,6 +156,12 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
             itemcode: item.value,
             itemdesc: item.label,
           })),
+          functions: response.lookup.functions
+            ? response.lookup.functions.map((item) => ({
+                itemcode: item.value,
+                itemdesc: item.label,
+              }))
+            : [],
         })
       }
 
@@ -184,6 +193,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       const pivotTotalField = backendFields.find((f) => f.fieldid === "pivot_total_field")
       const raggruppamentoField = backendFields.find((f) => f.fieldid === "grouping")
       const viewsField = backendFields.find((f) => f.fieldid === "views")
+      const functionsField = backendFields.find((f) => f.fieldid === "functions")
 
       if (campiField) {
         setFormData((prev) => ({ ...prev, fields: [] }))
@@ -199,6 +209,9 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       }
       if (viewsField) {
         setFormData((prev) => ({ ...prev, views: [] }))
+      }
+      if (functionsField) {
+        setFormData((prev) => ({ ...prev, function_button: "" }))
       }
     }
   }, [formData.table_name, backendFields])
@@ -264,6 +277,8 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       lookupItems = lookupData.table || []
     } else if (field.fieldid === "dashboards" && lookupData) {
       lookupItems = lookupData.dashboards || []
+    } else if (field.fieldid === "function_button" && lookupData) {
+      lookupItems = lookupData.functions || []
     }
 
     if (isCalculated) {
@@ -408,7 +423,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const fieldsByStep = useMemo(() => {
     const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon"].includes(f.fieldid))
-    const step2Fields = backendFields.filter((f) => ["type", "dashboards"].includes(f.fieldid))
+    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "function_button"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) => [
     "table_name",
     "views",

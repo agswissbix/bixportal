@@ -4,7 +4,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
+  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -412,5 +412,9 @@ export function useFrontendFunctions() {
       toast.error("Errore durante il salvataggio")
     }
   },
+
+  openNewRecordCard: ({tableid} : {tableid: string}) => {
+    handleRowClick('linked', '', tableid)
+  }
 }
 }

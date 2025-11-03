@@ -3,6 +3,8 @@
 import React from 'react';
 import RecordsTable from '../recordsTable';
 import { TooltipProvider } from '../ui/tooltip';
+import { useRecordsStore } from '../records/recordsStore';
+import { SquareArrowDownRight, SquareArrowOutUpRight, SquareArrowUpRight, SquarePlus } from 'lucide-react';
 
 interface Dataset {
   label: string;
@@ -26,6 +28,9 @@ interface Props {
 }
 
 export default function TableChart({ chartData, view }: Props) {
+  const { handleRowClick, selectedMenu, setSelectedMenu } = useRecordsStore();
+
+
   let parsed: ChartDataInterface | null = null;
   try {
     parsed = JSON.parse(chartData);
@@ -45,6 +50,22 @@ export default function TableChart({ chartData, view }: Props) {
         {firstDataset && (
             <>
             <TooltipProvider>
+
+            <div className='flex justify-between items-center'>
+              <button 
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]`}
+                onClick={() => handleRowClick('linked', '', firstDataset.tableid)}>
+                  <SquarePlus className="h-5 w-5" />
+                  <span>Aggiungi {firstDataset.tableid}</span>
+              </button>
+
+              <button 
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-accent text-gray-700 hover:text-accent font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]`}
+                onClick={() => setSelectedMenu(firstDataset?.tableid)}>
+                  <SquareArrowOutUpRight className="h-5 w-5" />
+                  <span>Vai nella pagina {firstDataset.tableid}</span>
+              </button>
+            </div>
 
             <RecordsTable
                 tableid={firstDataset.tableid}
