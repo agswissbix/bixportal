@@ -1,7 +1,10 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from "react"
-import { Plus, Save, X, Search, User, FileText, Pencil, Table, LayoutGrid, BadgeCheck, Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare } from "lucide-react"
+import {
+  Plus, Save, X, Search, User, FileText, Pencil, Table, LayoutGrid, BadgeCheck,
+  Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare, SquareArrowDownRightIcon
+} from "lucide-react"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,6 +15,7 @@ import { DraggableList } from "@/components/admin/tables/draggableList"
 import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import GenericComponent from "@/components/genericComponent"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const isDev = false
 
@@ -48,6 +52,7 @@ const fieldTypeOptions = [
   { value: "Utente", label: "Utente", icon: User },
   { value: "Memo", label: "Memo", icon: FileText },
   { value: "html", label: "HTML", icon: FileText },
+  { value: "Linked", label: "Linked", icon: SquareArrowDownRightIcon },
 ]
 
 const typePreferenceOptions = [
@@ -72,11 +77,20 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
   const [fields, setFields] = useState<Field[]>(isDev ? FieldsResponseDev.fields : [])
   const [isSaved, setIsSaved] = useState<boolean>(true)
   const [showAddField, setShowAddField] = useState(false)
-  const [newField, setNewField] = useState({ fieldid: "", description: "", fieldtype: "string" })
+  const [newField, setNewField] = useState({
+    fieldid: "",
+    description: "",
+    fieldtype: "string",
+    isLinked: false,
+    linkedtable: "",
+    linkedtablefields: [] as string[],
+  })
   const [typePreference, setTypePreference] = useState<string>("view_fields")
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [masterTableId, setMasterTableId] = useState<string>("")
-  const [linkedTables, setLinkedTables] = useState<{tableid_id: string}[]>([])
+  const [linkedTables, setLinkedTables] = useState<{ tableid_id: string }[]>([])
+  const [availableLinkedTables, setAvailableLinkedTables] = useState<{ tablelinkid: string, description: string }[]>([])
+  const [availableLinkedFields, setAvailableLinkedFields] = useState<{ id: string, description: string }[]>([])
 
   const payload = useMemo(() => {
     if (isDev) return null
@@ -89,7 +103,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     }
   }, [tableId, userId, typePreference, masterTableId])
 
-	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+  const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null }
 
   useEffect(() => {
     if (!isDev && response) {
@@ -99,23 +113,43 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
 
   useEffect(() => {
     if (typePreference === "linked_columns") {
-      axiosInstanceClient.post("/postApi", {
-        apiRoute: "get_master_linked_tables", tableid: tableId
-      })
-      .then(res => {
-        setLinkedTables(res.data.linked_tables || [])
-        if (res.data.linked_tables?.length) setMasterTableId(res.data.linked_tables[0].tableid_id)
-          console.log(res.data.linked_tables)
-      })
-      .catch((e) => console.error("Errore nel caricamento delle tabelle collegate", e))
-    } else {
-      setMasterTableId("") // reset quando cambio tipo
+      axiosInstanceClient.post("/postApi", { apiRoute: "get_master_linked_tables", tableid: tableId })
+        .then(res => {
+          setLinkedTables(res.data.linked_tables || [])
+          if (res.data.linked_tables?.length) setMasterTableId(res.data.linked_tables[0].tableid_id)
+          })
+        .catch(e => console.error("Errore nel caricamento delle tabelle collegate", e))
+      } else {
+        setMasterTableId("")
+      }
+    }, [typePreference, tableId])
+    
+    // Carica le tabelle disponibili per un nuovo campo Linked
+    useEffect(() => {
+      if (newField.isLinked) {
+        axiosInstanceClient.post("/postApi", { apiRoute: "settings_table_linkedtables", tableid: tableId, userid: userId })
+        .then(res => {
+          setAvailableLinkedTables(res.data.linked_tables || [])
+          console.log("Tabelle collegate caricate:", availableLinkedTables)
+        })
+        .catch(() => toast.error("Errore nel caricamento delle tabelle collegate"))
     }
-  }, [typePreference, tableId])
+  }, [newField.isLinked, tableId])
+
+  // Carica i campi della tabella selezionata per un Linked
+  useEffect(() => {
+    if (newField.isLinked && newField.linkedtable) {
+      axiosInstanceClient.post("/postApi", { apiRoute: "settings_table_fields", tableid: newField.linkedtable, userid: userId, typepreference: "insert_fields" })
+        .then(res => {
+          setAvailableLinkedFields(res.data.fields || [])
+        })
+        .catch(() => toast.error("Errore nel caricamento dei campi della tabella selezionata"))
+    }
+  }, [newField.isLinked, newField.linkedtable])
 
   const handleFieldsReorder = async (reorderedFields: Field[]) => {
     if (isDev) {
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      await new Promise(resolve => setTimeout(resolve, 300))
       toast.success("Ordine campi salvato")
       return
     }
@@ -124,9 +158,13 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
   const handleSave = async () => {
     if (isDev) return
     try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        { apiRoute: "settings_table_tablefields_save", userid: userId, tableid: tableId, fields, typepreference: typePreference },
+      const response = await axiosInstanceClient.post("/postApi",
+        { apiRoute: "settings_table_tablefields_save", 
+          userid: userId, 
+          tableid: tableId, 
+          fields, 
+          typepreference: typePreference
+        },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       )
       if (response.status === 200) {
@@ -140,14 +178,22 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
 
   const handleAddField = async () => {
     try {
-      const response = await axiosInstanceClient.post("/postApi", {
+      const payload: any = {
         apiRoute: "settings_table_fields_new_field",
         tableid: tableId,
         userid: userId,
         fieldid: newField.fieldid,
         fielddescription: newField.description,
         fieldtype: newField.fieldtype,
-      })
+      }
+
+      if (newField.isLinked) {
+        payload.islinked = newField.isLinked
+        payload.linkedtable = newField.linkedtable
+        payload.linkedtablefields = newField.linkedtablefields
+      }
+
+      const response = await axiosInstanceClient.post("/postApi", payload)
 
       if (response.data.success) {
         toast.success("Campo aggiunto con successo")
@@ -173,9 +219,10 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     if (!searchTerm.trim()) return fields
     const lower = searchTerm.toLowerCase()
     return fields.filter(
-      f => f.description.toLowerCase().includes(lower) ||
-           String(f.id).toLowerCase().includes(lower) ||
-           (f.label && f.label.toLowerCase().includes(lower))
+      f =>
+        f.description.toLowerCase().includes(lower) ||
+        String(f.id).toLowerCase().includes(lower) ||
+        (f.label && f.label.toLowerCase().includes(lower))
     )
   }, [fields, searchTerm])
 
@@ -213,7 +260,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     handleFieldsReorder(updatedFilteredFields)
   }
 
-  const selectedFieldType = fieldTypeOptions.find(opt => opt.value === newField.fieldtype);
+  const selectedFieldType = fieldTypeOptions.find(opt => opt.value === newField.fieldtype)
 
   return (
     <GenericComponent response={fields} loading={loading} error={error}>
@@ -246,62 +293,94 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
 
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor="fieldid" className="text-sm font-medium text-slate-700">ID Campo</Label>
-                    <Input id="fieldid" type="text" placeholder="es. campaign_name" value={newField.fieldid} onChange={e => setNewField({ ...newField, fieldid: e.target.value })} className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"/>
+                    <Label htmlFor="fieldid">ID Campo</Label>
+                    <Input id="fieldid" value={newField.fieldid} onChange={e => setNewField({ ...newField, fieldid: e.target.value })} placeholder="es. campaign_name" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm font-medium text-slate-700">Descrizione</Label>
-                    <Input id="description" type="text" placeholder="Descrizione del campo" value={newField.description} onChange={e => setNewField({ ...newField, description: e.target.value })} className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"/>
+                    <Label htmlFor="description">Descrizione</Label>
+                    <Input id="description" value={newField.description} onChange={e => setNewField({ ...newField, description: e.target.value })} placeholder="Descrizione del campo" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="fieldtype" className="text-sm font-medium text-slate-700">Tipo Campo</Label>
+                    <Label htmlFor="fieldtype">Tipo Campo</Label>
                     <Select value={newField.fieldtype} onValueChange={value => setNewField({ ...newField, fieldtype: value })}>
-                      <SelectTrigger className="border-slate-300 focus:border-blue-500 focus:ring-blue-500">
-                        {selectedFieldType && (
-                          <div className="flex items-center gap-2">
-                            {React.createElement(selectedFieldType.icon, { className: "h-4 w-4 text-blue-600" })}
-                            <span className="truncate">{selectedFieldType.label}</span>
-                          </div>
-                        )}
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona tipo" />
                       </SelectTrigger>
                       <SelectContent>
                         {fieldTypeOptions.map(option => (
                           <SelectItem key={option.value} value={option.value}>
                             <div className="flex items-center gap-2">
                               {React.createElement(option.icon, { className: "h-4 w-4 text-blue-600" })}
-                              <span className="truncate">{option.label}</span>
+                              <span>{option.label}</span>
                             </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Checkbox per Linked */}
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox id="isLinked" checked={newField.isLinked} onCheckedChange={checked => setNewField({ ...newField, isLinked: !!checked })} />
+                    <Label htmlFor="isLinked">È un campo Linked</Label>
+                  </div>
+
+                  {/* Se è Linked mostro le tabelle */}
+                  {newField.isLinked && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Tabella collegata</Label>
+                        <Select value={newField.linkedtable} onValueChange={val => setNewField({ ...newField, linkedtable: val, linkedtablefields: [] })}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona tabella" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableLinkedTables.map(t => (
+                              <SelectItem key={t.tablelinkid} value={t.tablelinkid}>{t.description}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {newField.linkedtable && (
+                        <div className="space-y-2">
+                          <Label>Campi collegati</Label>
+                          <Select
+                            value={newField.linkedtablefields[0] || ""}
+                            onValueChange={val => setNewField({ ...newField, linkedtablefields: [val] })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleziona campo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableLinkedFields.map(f => (
+                                <SelectItem key={f.id} value={f.id}>{f.description}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="outline" onClick={() => setShowAddField(false)} className="border-slate-300 hover:bg-slate-100">Annulla</Button>
-                  <Button onClick={handleAddField} className="bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+                  <Button variant="outline" onClick={() => setShowAddField(false)}>Annulla</Button>
+                  <Button onClick={handleAddField} className="bg-blue-600 text-white">
                     <Save className="h-4 w-4 mr-2" /> Salva Campo
                   </Button>
                 </div>
               </div>
             )}
 
+            {/* Preferenze e ricerca restano invariati */}
             <div className="w-full mt-4">
-              <Label className="text-sm font-medium text-slate-700">Tipo Preferenza</Label>
+              <Label>Tipo Preferenza</Label>
               <Select value={typePreference} onValueChange={setTypePreference}>
-                <SelectTrigger className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 mt-1">
-                  {(() => {
-                    const selected = typePreferenceOptions.find(opt => opt.value === typePreference)
-                    return selected ? (
-                      <div className="flex items-center gap-2">
-                        {React.createElement(selected.icon, { className: "h-4 w-4 text-blue-600" })}
-                        <span>{selected.label}</span>
-                      </div>
-                    ) : <SelectValue placeholder="Seleziona un tipo" />
-                  })()}
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Seleziona un tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   {typePreferenceOptions.map(option => (
@@ -318,12 +397,10 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
 
             {typePreference === "linked_columns" && (
               <div className="w-full mt-4">
-                <Label className="text-sm font-medium text-slate-700">Tabella Master</Label>
+                <Label>Tabella Master</Label>
                 <Select value={masterTableId} onValueChange={setMasterTableId}>
-                  <SelectTrigger className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 mt-1">
-                    {masterTableId 
-                      ? linkedTables.find(t => t.tableid_id === masterTableId)?.tableid_id 
-                      : "Seleziona tabella"}
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Seleziona tabella" />
                   </SelectTrigger>
                   <SelectContent>
                     {linkedTables.map(table => (

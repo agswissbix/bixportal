@@ -518,7 +518,7 @@ export default function RecordsTable({
                             {isLinked && (
                               <button
                                 type="button"
-                                className="z-50 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
+                                className="z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   addCard &&
