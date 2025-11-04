@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ChevronLeft, ChevronRight, Save, Printer, Check, Home, Section } from "lucide-react"
+import { ChevronLeft, ChevronRight, Save, Printer, Check, Home, Section, Loader2 } from "lucide-react"
 import InitialChoice from "./sections/section0Choice"
 import ProductSelection from "./sections/section2Products"
 import { toast } from "sonner"
@@ -78,6 +78,9 @@ interface ActiveMindServicesProps {
 }
 
 export default function ActiveMindServices({ recordIdTrattativa = "default" }: ActiveMindServicesProps) {
+  const [isSaving, setIsSaving] = useState(false)
+  const [isPrinting, setIsPrinting] = useState(false)
+
   const [chosenPath, setChosenPath] = useState<"system_assurance" | "services" | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [serviceData, setServiceData] = useState<ServiceData>({
@@ -132,6 +135,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
 
   const handleSave = async () => {
     try {
+      setIsSaving(true)
       const dataToSave = {
         ...serviceData,
         digitalSignature,
@@ -158,11 +162,22 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     } catch (error) {
       console.error("Errore durante il salvataggio dei dati:", error)
       toast.error("Errore durante il salvataggio")
+    } finally {
+      setIsSaving(false)
     }
   }
 
   const handlePrint = async () => {
     try {
+      setIsPrinting(true)
+
+      toast.info("💾 Salvataggio in corso prima della stampa...")
+
+      // 🔹 1. Prima salva i dati
+      await handleSave()
+
+      toast.success("✅ Dati salvati! Generazione PDF in corso...")
+
       const dataToPrint = {
         ...serviceData,
         clientInfo: {
@@ -208,12 +223,16 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           a.click()
           document.body.removeChild(a)
           URL.revokeObjectURL(url)
+
+          toast.success("PDF generato correttamente!")
         } else {
           throw new Error("Errore nella generazione del PDF")
         }
     } catch (error) {
       console.error("Errore durante la stampa:", error)
       toast.error("Errore durante la generazione del PDF")
+    } finally {
+      setIsPrinting(false)
     }
   }
 
@@ -430,19 +449,35 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
             <div className="flex justify-center space-x-4">
               <Button
                 onClick={handleSave}
+                disabled={isSaving || isPrinting}
                 variant="outline"
-                className="bg-green-50 hover:bg-green-200 text-green-900 w-1/2 h-12 text-base font-medium"
+                className="bg-green-50 hover:bg-green-200 text-green-900 w-1/2 h-12 text-base font-medium flex items-center justify-center"
               >
-                <Save className="w-5 h-5 mr-2" />
-                Salva
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Salvataggio...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 mr-2" /> Salva
+                  </>
+                )}
               </Button>
               <Button
                 onClick={handlePrint}
+                disabled={isPrinting || isSaving}
                 variant="outline"
-                className="text-gray-700 hover:bg-gray-50 bg-transparent w-1/2 h-12 text-base font-medium"
+                className="text-gray-700 hover:bg-gray-50 bg-transparent w-1/2 h-12 text-base font-medium flex items-center justify-center"
               >
-                <Printer className="w-5 h-5 mr-2" />
-                Stampa PDF
+                {isPrinting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Generazione...
+                  </>
+                ) : (
+                  <>
+                    <Printer className="w-5 h-5 mr-2" /> Stampa PDF
+                  </>
+                )}
               </Button>
             </div>
           )}
@@ -465,22 +500,38 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           <div className="flex items-center space-x-4">
             {currentStep === steps.length && (
               <div className="flex items-center space-x-2 flex-shrink-0">
+              <Button
+                onClick={handlePrint}
+                disabled={isPrinting || isSaving}
+                variant="outline"
+                className="text-gray-700 hover:bg-gray-50 bg-transparent w-1/2 h-12 text-base font-medium flex items-center justify-center"
+              >
+                {isPrinting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Generazione...
+                  </>
+                ) : (
+                  <>
+                    <Printer className="w-5 h-5" /> Stampa PDF
+                  </>
+                )}
+              </Button>
                 <Button
-                  onClick={handlePrint}
-                  variant="outline"
-                  className="text-gray-700 hover:bg-gray-50 bg-transparent"
-                >
-                  <Printer className="w-4 h-4 mr-2" />
-                  Stampa PDF
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  variant="outline"
-                  className="bg-green-50 hover:bg-green-200 text-green-900"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Salva
-                </Button>
+                onClick={handleSave}
+                disabled={isSaving || isPrinting}
+                variant="outline"
+                className="bg-green-50 hover:bg-green-200 text-green-900 w-1/2 h-12 text-base font-medium flex items-center justify-center"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Salvataggio...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 mr-2" /> Salva
+                  </>
+                )}
+              </Button>
               </div>
             )}
             { (currentStep === 1 || currentStep === 2) && (

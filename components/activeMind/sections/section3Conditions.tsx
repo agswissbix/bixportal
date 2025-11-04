@@ -119,6 +119,7 @@ export default function Section3Conditions({ data, onUpdate, dealid }: Section3P
                     price: selectedFreq.price,
                     operationsPerYear: selectedFreq.operationsInOneYear,
                   });
+                  console.log("Selected frequency from response:", selectedFreq);
                 }
             }
         }, [response]);

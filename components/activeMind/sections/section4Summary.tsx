@@ -60,10 +60,10 @@ const tierLabels: { [key: string]: string } = {
 }
 
 const frequencyLabels: { [key: string]: string } = {
-  monthly: "Mensile (1 uscita al mese)",
-  quarterly: "Trimestrale (1 uscita ogni 3 mesi)",
-  biannual: "Semestrale (1 uscita ogni 6 mesi)",
-  annual: "Annuale (1 uscita ogni 12 mesi)",
+  Mensile: "Mensile (1 uscita al mese)",
+  Trimestrale: "Trimestrale (1 uscita ogni 3 mesi)",
+  Semestrale: "Semestrale (1 uscita ogni 6 mesi)",
+  Annuale: "Annuale (1 uscita ogni 12 mesi)",
 }
 
 const categoryLabels: { [key: string]: string } = {
