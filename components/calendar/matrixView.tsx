@@ -13,6 +13,10 @@ import {
 import GenericComponent from "../genericComponent"
 import { useRecordsStore } from "../records/recordsStore"
 
+
+const WORK_HOUR_START = 8
+const WORK_HOUR_END = 17
+
 export default function MatrixView({
   data,
   loading,
@@ -322,10 +326,68 @@ const startOfWeek = new Date(currentDate)
                 const slotEnd = new Date(currentDate)
                 slotEnd.setHours(hour + 1, 0, 0, 0)
 
-                const slotEvents = dayEvents.filter((event) => {
+                const slotEvents = dayEvents
+                  .filter((event) => event.resourceId === resource.id)
+                  .map((event) => {
                   const eventStart = new Date(event.start)
                   const eventEnd = new Date(event.end)
-                  return event.resourceId === resource.id && eventStart < slotEnd && eventEnd > slotStart
+                  const eventStartDate = eventStart.toDateString()
+                  const eventEndDate = eventEnd.toDateString()
+                  const currentDateString = currentDate.toDateString()
+                  const isMultiDay = isMultiDayEvent(event)
+
+                  let segmentStartHour: number
+                  let segmentStartMinute: number
+                  let segmentEndHour: number
+                  let segmentEndMinute: number
+
+                  if (isMultiDay) {
+                    // Multi-day event: calculate segment for current day
+                    if (currentDateString === eventStartDate) {
+                      // First day: from actual start time to 17:00
+                      segmentStartHour = eventStart.getHours()
+                      segmentStartMinute = eventStart.getMinutes()
+                      segmentEndHour = 17
+                      segmentEndMinute = 0
+                    } else if (currentDateString === eventEndDate) {
+                      // Last day: from 8:00 to actual end time
+                      segmentStartHour = 8
+                      segmentStartMinute = 0
+                      segmentEndHour = eventEnd.getHours()
+                      segmentEndMinute = eventEnd.getMinutes()
+                    } else {
+                      // Intermediate day: from 8:00 to 17:00
+                      segmentStartHour = 8
+                      segmentStartMinute = 0
+                      segmentEndHour = 17
+                      segmentEndMinute = 0
+                    }
+                  } else {
+                    // Single day event: use actual times
+                    segmentStartHour = eventStart.getHours()
+                    segmentStartMinute = eventStart.getMinutes()
+                    segmentEndHour = eventEnd.getHours()
+                    segmentEndMinute = eventEnd.getMinutes()
+                  }
+
+                  const segmentStart = new Date(currentDate)
+                  segmentStart.setHours(segmentStartHour, segmentStartMinute, 0, 0)
+                  const segmentEnd = new Date(currentDate)
+                  segmentEnd.setHours(segmentEndHour, segmentEndMinute, 0, 0)
+
+                  return {
+                    ...event,
+                    segmentStart,
+                    segmentEnd,
+                    segmentStartHour,
+                    segmentStartMinute,
+                    segmentEndHour,
+                    segmentEndMinute,
+                  }
+                })
+                .filter((event) => {
+                  // Only show events that overlap with this hour slot
+                  return event.segmentStart < slotEnd && event.segmentEnd > slotStart
                 })
 
                 return (
@@ -346,16 +408,13 @@ const startOfWeek = new Date(currentDate)
                     }}
                   >
                     {slotEvents.map((event) => {
-                      const eventStart = new Date(event.start)
-                      const eventEnd = new Date(event.end)
+                      if (event.segmentStartHour !== hour) return null
 
-                      if (eventStart.getHours() !== hour) return null
-
-                      const durationMinutes = (eventEnd.getTime() - eventStart.getTime()) / (1000 * 60)
+                      const durationMinutes = (event.segmentEnd.getTime() - event.segmentStart.getTime()) / (1000 * 60)
                       const pixelsPerMinute = 1
                       const eventHeight = durationMinutes * pixelsPerMinute
-
-                      const minutesFromSlotStart = (eventStart.getTime() - slotStart.getTime()) / (1000 * 60)
+                      
+                      const minutesFromSlotStart = (event.segmentStart.getTime() - slotStart.getTime()) / (1000 * 60)
                       const topPosition = minutesFromSlotStart * pixelsPerMinute
 
                       return (
@@ -385,7 +444,10 @@ const startOfWeek = new Date(currentDate)
 
                           <div className="font-bold text-sm truncate leading-tight">{event.title}</div>
                           <div className="text-xs mt-1 opacity-95">
-                            {formatEventTime(event.start)} - {formatEventTime(event.end)}
+                            {event.segmentStartHour.toString().padStart(2, "0")}:
+                            {event.segmentStartMinute.toString().padStart(2, "0")} -{" "}
+                            {event.segmentEndHour.toString().padStart(2, "0")}:
+                            {event.segmentEndMinute.toString().padStart(2, "0")}
                           </div>
 
                           <div
@@ -408,7 +470,7 @@ const startOfWeek = new Date(currentDate)
   return (
     <GenericComponent response={data} loading={loading} error={error}>
       {(data) => (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
       <header className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-x-2">
           <button

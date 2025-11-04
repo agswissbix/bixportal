@@ -136,7 +136,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
             {activeTab === 'Pivot' && (
               <Pivot tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm}  />
             )}
-            {['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot'].indexOf(activeTab) === -1 && (
+            {['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot', 'Planner'].indexOf(activeTab) === -1 && (
               <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
             )}
           </div>

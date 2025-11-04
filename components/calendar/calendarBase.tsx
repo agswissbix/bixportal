@@ -398,7 +398,7 @@ export function CalendarBase({
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-5/6">
         <div className="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <button
                 onClick={handleSync}
@@ -410,7 +410,7 @@ export function CalendarBase({
             </button>
         </div>
 
-        <div className="flex-1 overflow-auto">{children(childProps)}</div>
+        <div className="flex-1 overflow-hidden">{children(childProps)}</div>
       </div>
       {showUnplannedEvents && (
         <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} />

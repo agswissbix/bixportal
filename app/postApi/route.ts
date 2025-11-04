@@ -171,6 +171,7 @@ export async function POST(request: Request) {
     case 'get_record_badge_swissbix_company': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_company/'; break;
     case 'get_record_badge_swissbix_deals': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_deals/'; break;
     case 'get_record_badge_swissbix_project': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_project/'; break;
+    case 'get_record_badge_swissbix_timesheet': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_timesheet/'; break;
     case 'schedule_list': djangoUrl = '/scheduler/get/'; break;
     case 'schedule_add': djangoUrl = '/scheduler/add/'; break;
     case 'schedule_save': djangoUrl = '/scheduler/save/'; break; 

@@ -15,6 +15,7 @@ import { sign } from 'crypto';
 import CardBadgeCompany from './customBadges/cardBadgeCompany';
 import CardBadgeDeal from './customBadges/cardBadgeDeal';
 import CardBadgeProject from './customBadges/cardBadgeProject';
+import CardBadgeTimesheet from './customBadges/cardBadgeTimesheet';
 
 const isDev = false;
 
@@ -550,6 +551,8 @@ export default function RecordCard({
                       <CardBadgeDeal tableid={tableid} recordid={recordid} />
                     ) : tableid === 'project' ? (
                       <CardBadgeProject tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'timesheet' ? (
+                      <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
                     ) : activeServer !== 'belotti' ? (
                       <CardBadge tableid={tableid} recordid={recordid} />
                     ) : null}
