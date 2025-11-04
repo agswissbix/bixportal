@@ -13,7 +13,8 @@ import {
   FolderKanban,
   CheckCircle2,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from "lucide-react"
 import { useRecordsStore } from "../records/recordsStore"
 
@@ -38,6 +39,7 @@ interface ResponseInterface {
     user_photo: string
     company_id: string,
     project_id: string,
+    invoice_status?: string
   }
 }
 
@@ -224,8 +226,8 @@ export default function CardBadgeTimesheet({ tableid, recordid }: PropsInterface
                 </div>
               </div>
 
-              {/* Project and Company */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* Project, Company and Invoice Status */}
+              <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="flex items-start gap-2">
                   <FolderKanban className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
@@ -269,6 +271,15 @@ export default function CardBadgeTimesheet({ tableid, recordid }: PropsInterface
                           <ExternalLink className="w-3.5 h-3.5 text-gray-500 hover:text-primary" />
                         </button>
                       )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <FileText className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-gray-500 mb-0.5">Stato Fattura</div>
+                    <div className="text-sm font-medium text-gray-800 truncate">
+                      {response.badgeItems.invoice_status || "N/A"}
                     </div>
                   </div>
                 </div>
