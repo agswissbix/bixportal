@@ -89,7 +89,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [masterTableId, setMasterTableId] = useState<string>("")
   const [linkedTables, setLinkedTables] = useState<{ tableid_id: string }[]>([])
-  const [availableLinkedTables, setAvailableLinkedTables] = useState<{ tablelinkid: string, description: string }[]>([])
+  const [availableLinkedTables, setAvailableLinkedTables] = useState<{ id: string, description: string }[]>([])
   const [availableLinkedFields, setAvailableLinkedFields] = useState<{ id: string, description: string }[]>([])
 
   const payload = useMemo(() => {
@@ -127,9 +127,9 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     // Carica le tabelle disponibili per un nuovo campo Linked
     useEffect(() => {
       if (newField.isLinked) {
-        axiosInstanceClient.post("/postApi", { apiRoute: "settings_table_linkedtables", tableid: tableId, userid: userId })
+        axiosInstanceClient.post("/postApi", { apiRoute: "get_all_tables"})
         .then(res => {
-          setAvailableLinkedTables(res.data.linked_tables || [])
+          setAvailableLinkedTables(res.data.tables || [])
           console.log("Tabelle collegate caricate:", availableLinkedTables)
         })
         .catch(() => toast.error("Errore nel caricamento delle tabelle collegate"))
@@ -338,7 +338,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
                           </SelectTrigger>
                           <SelectContent>
                             {availableLinkedTables.map(t => (
-                              <SelectItem key={t.tablelinkid} value={t.tablelinkid}>{t.description}</SelectItem>
+                              <SelectItem key={t.id} value={t.id}>{t.description}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

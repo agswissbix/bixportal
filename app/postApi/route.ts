@@ -222,6 +222,7 @@ export async function POST(request: Request) {
     case 'settings_table_steps_save': djangoUrl = '/commonapp/settings_table_steps_save/'; break;
     case 'settings_get_dashboards_user': djangoUrl = '/commonapp/settings_get_dashboards_user/'; break;
     case 'save_user_dashboard_setting': djangoUrl = '/commonapp/save_user_dashboard_setting/'; break;
+    case 'get_all_tables': djangoUrl = '/commonapp/get_all_tables/'; break;
     
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
     case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;
