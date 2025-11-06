@@ -187,33 +187,39 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   useEffect(() => {
     const tabellaField = backendFields.find((f) => f.fieldid === "table_name")
-    if (tabellaField && formData.table_name && isNewRecord) {
-      const campiField = backendFields.find((f) => f.fieldid === "fields")
-      const campi2Field = backendFields.find((f) => f.fieldid === "fields_2")
-      const pivotTotalField = backendFields.find((f) => f.fieldid === "pivot_total_field")
-      const raggruppamentoField = backendFields.find((f) => f.fieldid === "grouping")
-      const viewsField = backendFields.find((f) => f.fieldid === "views")
-      const functionsField = backendFields.find((f) => f.fieldid === "functions")
+    if (!tabellaField) return
 
-      if (campiField) {
-        setFormData((prev) => ({ ...prev, fields: [] }))
+    const campiField = backendFields.find((f) => f.fieldid === "fields")
+    const campi2Field = backendFields.find((f) => f.fieldid === "fields_2")
+    const pivotTotalField = backendFields.find((f) => f.fieldid === "pivot_total_field")
+    const raggruppamentoField = backendFields.find((f) => f.fieldid === "grouping")
+    const viewsField = backendFields.find((f) => f.fieldid === "views")
+    const functionsField = backendFields.find((f) => f.fieldid === "function_button")
+
+    setFormData((prev) => {
+      const updated = { ...prev }
+
+      if (campiField && (!prev.fields || prev.fields.length === 0)) {
+        updated.fields = []
       }
-      if (campi2Field) {
-        setFormData((prev) => ({ ...prev, fields_2: [] }))
+      if (campi2Field && (!prev.fields_2 || prev.fields_2.length === 0)) {
+        updated.fields_2 = []
       }
-      if (pivotTotalField) {
-        setFormData((prev) => ({ ...prev, pivot_total_field: [] }))
+      if (pivotTotalField && (!prev.pivot_total_field || prev.pivot_total_field.length === 0)) {
+        updated.pivot_total_field = []
       }
-      if (raggruppamentoField) {
-        setFormData((prev) => ({ ...prev, grouping: [] }))
+      if (raggruppamentoField && (!prev.grouping || prev.grouping.length === 0)) {
+        updated.grouping = []
       }
-      if (viewsField) {
-        setFormData((prev) => ({ ...prev, views: [] }))
+      if (viewsField && (!prev.views || prev.views.length === 0)) {
+        updated.views = []
       }
-      if (functionsField) {
-        setFormData((prev) => ({ ...prev, function_button: "" }))
+      if (functionsField && (prev.function_button == null || prev.function_button === '')) {
+        updated.function_button = null
       }
-    }
+
+      return updated
+    })
   }, [formData.table_name, backendFields])
 
   const handleInputChange = (fieldid: string, value: any) => {
