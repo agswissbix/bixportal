@@ -16,6 +16,7 @@ import {
   Star,
   SquareArrowOutUpRight,
 } from "lucide-react"
+import * as Icons from "lucide-react"
 import { useRecordsStore } from "./records/recordsStore"
 import { AppContext } from "@/context/appContext"
 import { Menu as HMenu, MenuButton, MenuItems, MenuItem } from "@headlessui/react"
@@ -302,7 +303,7 @@ export default function Sidebar({}: PropsInterface) {
                   .filter(([, item]) => item.order !== null)
                   .sort(([, a], [, b]) => a.order - b.order)
                   .map(([key, item]) => {
-                  const Icon = iconMap[item.icon] || HelpCircle
+                  const Icon = (Icons as any)[item.icon] || Home
                   const isActive = item.subItems?.find((subitem) => subitem.id === selectedMenu && openDropdown !== item.id)
                   
                   return (
