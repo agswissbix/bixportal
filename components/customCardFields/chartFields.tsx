@@ -166,24 +166,69 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       }
 
       const initialFormData: Record<string, any> = {}
+      
       response.fields.forEach((field) => {
-        const value = typeof field.value === "object" ? field.value.code : field.value
+        // --- INIZIO BLOCCO MODIFICATO ---
+
+        const isMulti = field.fieldtype === "multiselect" || field.fieldtype === "multiSelect"
+        
+        // 1. Logica di estrazione valore migliorata
+        let extractedValue: any;
+        
+        if (isMulti) {
+            if (Array.isArray(field.value)) {
+                // Estrae i 'code' se è un array di oggetti, altrimenti usa l'array (es. di stringhe)
+                extractedValue = field.value.map(item => 
+                    (typeof item === "object" && item !== null && item.code !== undefined) ? item.code : item
+                );
+            } else if (field.value) {
+                // Fallback se il backend manda un singolo valore per un multiselect (improbabile, ma sicuro)
+                extractedValue = [ (typeof field.value === "object" && field.value !== null && field.value.code !== undefined) ? field.value.code : field.value ];
+            } else {
+                extractedValue = []; // Default per multiselect vuoto
+            }
+        } else {
+            // Logica originale per non-multiselect (lookup singolo o testo)
+            extractedValue = (typeof field.value === "object" && field.value !== null && field.value.code !== undefined) 
+                ? field.value.code 
+                : field.value;
+        }
+
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
 
-        // Apply default value if exists, otherwise use backend value
-        if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
-          initialFormData[field.fieldid] = defaultValue
-        } else if (value !== undefined && value !== null && value !== "") {
-          initialFormData[field.fieldid] = value
-        } else {
-          initialFormData[field.fieldid] = field.fieldtype === "multiselect" ? [] : ""
+        // 2. Logica di assegnazione valore migliorata
+        
+        // Se è un NUOVO record E c'è un default, usa il default
+        if (isNewRecord && defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
+          if (isMulti) {
+                // Assicura che il default per multiselect sia un array
+                initialFormData[field.fieldid] = Array.isArray(defaultValue) ? defaultValue : [defaultValue];
+            } else {
+                initialFormData[field.fieldid] = defaultValue;
+            }
+        } 
+        // Altrimenti (record ESISTENTE O nuovo senza default), usa il valore estratto
+        else if (extractedValue !== undefined && extractedValue !== null && (extractedValue !== "" || (isMulti && Array.isArray(extractedValue)))) {
+            // Per i multiselect, accetta anche un array vuoto [] come valore valido
+            if(isMulti && !Array.isArray(extractedValue)) {
+                // Ulteriore controllo: se è multi ma il valore non è un array, incapsulalo
+                initialFormData[field.fieldid] = extractedValue ? [extractedValue] : []
+            } else {
+                initialFormData[field.fieldid] = extractedValue
+            }
+        } 
+        // Fallback finale per campi completamente vuoti
+        else {
+          initialFormData[field.fieldid] = isMulti ? [] : ""
         }
+        
+        // --- FINE BLOCCO MODIFICATO ---
       })
 
       setFormData(initialFormData)
     }
-  }, [response])
+  }, [response, isNewRecord]) // <-- Aggiungi 'isNewRecord' alle dipendenze
 
   useEffect(() => {
     const tabellaField = backendFields.find((f) => f.fieldid === "table_name")
@@ -241,6 +286,16 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
     const isHidden = typeof field.settings === "object" && field.settings.nascosto === "true"
 
+    // --- AGGIUNGI QUESTO BLOCCO PER DEBUG ---
+    if (field.fieldid === "dynamic_field_1") {
+      console.log("DEBUG DYNAMIC_FIELD_1:", {
+        field: field,
+        settings: field.settings,
+        isCalculated: isCalculated,
+      })
+    }
+    // --- FINE BLOCCO DEBUG ---
+    
     if (isHidden) return null
 
     const currentValue = formData[field.fieldid]
@@ -429,15 +484,15 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     "views",
     "fields",
     "operation",
-    "dynamicfield1",
-    "dynamicfield1_label",
+    "dynamic_field_1",
+    "dynamic_field_1_label",
   ].includes(f.fieldid))
   const step4Fields = backendFields.filter((f) => [
     "fields_2",
     "operation2",
     "operation2_total",
-    "dynamicfield2",
-    "dynamicfield2_label",
+    "dynamic_field_2",
+    "dynamic_field_2_label",
   ].includes(f.fieldid))
     const step5Fields = backendFields.filter((f) =>
       ["grouping", "date_granularity", "grouping_type", "pivot_total_field"].includes(f.fieldid),
