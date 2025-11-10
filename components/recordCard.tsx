@@ -145,7 +145,7 @@ export default function RecordCard({
     setDigitalSignature(signature)
   }, [])
 
-  const handlePrintTimesheet = async () => {
+  const handlePrintTimesheet = async (recordidAttachment: string) => {
     if (!digitalSignature) {
       toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
       return;
@@ -156,8 +156,7 @@ export default function RecordCard({
             '/postApi',
             {
                 apiRoute: "sign_timesheet",
-                recordid: recordid,
-                image: digitalSignature,
+                recordid: recordidAttachment
             },
             {
                 headers: {
@@ -176,6 +175,42 @@ export default function RecordCard({
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Errore durante il salvataggio o il download:', error);
+        toast.error('Errore durante il salvataggio o il download');
+    }
+  }
+
+  const handleSaveSignature = async () => {
+    if (!digitalSignature) {
+      toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
+      return;
+    }
+
+    try {
+        const response = await axiosInstanceClient.post(
+            '/postApi',
+            {
+                apiRoute: "save_signature",
+                recordid: recordid,
+                image: digitalSignature,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (response.data.error) {
+            toast.error('Errore durante il salvataggio della firma: ' + response.data.error);
+            return;
+        }
+        toast.success('Firma salvata con successo.');
+        console.log('Risposta dal server dopo il salvataggio della firma:', response, response.data.attachment_recordid);
+        return response.data.attachment_recordid;
 
     } catch (error) {
         console.error('Errore durante il salvataggio o il download:', error);
@@ -373,6 +408,8 @@ export default function RecordCard({
                     <CardBadgeDeal tableid={tableid} recordid={recordid} />
                   ) : tableid === 'project' ? (
                     <CardBadgeProject tableid={tableid} recordid={recordid} />
+                  ) : tableid === 'timesheet' ? (
+                    <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
                   ) : activeServer !== 'belotti' ? (
                     <CardBadge tableid={tableid} recordid={recordid} />
                   ) : null}
@@ -581,8 +618,9 @@ export default function RecordCard({
           <SignatureDialog 
             isOpen={openSignatureDialog} 
             onOpenChange={setOpenSignatureDialog} 
-            onSaveSignature={handlePrintTimesheet}
-            onSignatureChange={handleSignatureChange} />
+            onSaveSignature={handleSaveSignature}
+            onSignatureChange={handleSignatureChange}
+            onDownload={(savedSignature) => handlePrintTimesheet(savedSignature)} />
           <Toaster richColors />
         </>
       )}

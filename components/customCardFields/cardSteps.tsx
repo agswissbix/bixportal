@@ -13,6 +13,7 @@ import { ChevronRightIcon, ChevronLeftIcon, SquarePlus } from "lucide-react"
 import RecordsTable from "@/components/recordsTable"
 import { Badge } from "../ui/badge"
 import CardsList from "@/components/mobile/cardList"
+import RecordAttachments from "../recordAttachments"
 
 const isDev = false
 
@@ -55,13 +56,22 @@ interface LinkedTable {
   fieldorder?: number
 }
 
+interface Attachments {
+  recordid: string;
+  file: string;
+  type?: string;
+  note?: string;
+  filename?: string;
+}
+
 interface Step {
   id: number
   name: string
-  type: "campi" | "collegate"
+  type: "campi" | "collegate" | "allegati"
   order: number
   fields?: Array<FieldInterface>
   linked_tables?: Array<LinkedTable>
+  attachments?: Array<Attachments>
 }
 
 interface ResponseInterface {
@@ -149,6 +159,18 @@ export default function cardSteps({
             fields: [],
             linkedTables,
             type: "linked" as const,
+          }
+        } else if (step.type === "allegati") {
+          const attachments = (step.attachments || []).sort()
+
+          return {
+            id: `step_${step.id}`,
+            title: step.name,
+            description: `Aggiungi e visualizza gli allegati.`,
+            fields: [],
+            linkedTables: [],
+            attachments,
+            type: "attachments" as const,
           }
         }
 
@@ -482,6 +504,11 @@ export default function cardSteps({
                   onSave={handleSaveFromCardFields}
                   onFieldChange={handleFieldChange}
                   showSaveButton={false}
+                />
+              ) : stepsData[currentStep]?.type === "attachments" ? (
+                <RecordAttachments
+                  recordid={newRecordId || recordid}
+                  tableid={tableid}
                 />
               ) : (
                 <div className="space-y-6">

@@ -71,6 +71,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
             setResponseData(response);
             setActiveTab(response.activeTab);
+            // for the first place
             if (response.cardTabs.includes('Custom')) {
                 setResponseData({
                 ...responseData,
