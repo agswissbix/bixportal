@@ -1,7 +1,9 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
-import Select, { type SingleValue, type MultiValue, type ActionMeta } from "react-select"
+import Select, { type SingleValue, type MultiValue, type ActionMeta, components } from "react-select"
 
 // INTERFACCIA PROPS
 interface PropsInterface {
@@ -10,11 +12,15 @@ interface PropsInterface {
   onChange?: (value: string | string[]) => void // Es: "123;456"
 
   isMulti?: boolean
+  renderOption?: (item: { itemcode: string; itemdesc: string }) => React.ReactNode
+  renderSelected?: (item: { itemcode: string; itemdesc: string }) => React.ReactNode
 }
 
 interface OptionType {
   value: string
   label: string
+  itemcode: string
+  itemdesc: string
 }
 
 const customStyles = {
@@ -36,29 +42,47 @@ const customStyles = {
   singleValue: () => "text-sm text-foreground",
   multiValue: () => "bg-primary bg-blue-100 border border-primary rounded-md m-1",
   multiValueLabel: () => "px-2 py-1 text-sm text-primary-foreground text-blue-700",
-  multiValueRemove: () => "px-2 py-1 hover:bg-primary-hover text-primary-foreground hover:border-primary-foreground rounded-r-md transition-colors",
+  multiValueRemove: () =>
+    "px-2 py-1 hover:bg-primary-hover text-primary-foreground hover:border-primary-foreground rounded-r-md transition-colors",
   placeholder: () => "text-sm text-muted-foreground",
   input: () => "text-sm text-foreground",
 }
 
-export default function SelectStandard({ lookupItems, initialValue = "", onChange, isMulti = false }: PropsInterface) {
+export default function SelectStandard({
+  lookupItems,
+  initialValue = "",
+  onChange,
+  isMulti = false,
+  renderOption,
+  renderSelected,
+}: PropsInterface) {
   // Calcola le opzioni a partire da lookupItems
   const options: OptionType[] = useMemo(
     () =>
       lookupItems.map((item) => ({
         value: String(item.itemcode),
         label: `${item.itemdesc}`,
+        itemcode: item.itemcode,
+        itemdesc: item.itemdesc,
       })),
     [lookupItems],
   )
 
   const getInitialValue = () => {
     if (isMulti) {
-      console.log("DEBUG: initialValue in getInitialValue (multi):", initialValue)
+      console.log("DEBUG: initialValue for multi:", initialValue)
+      if (!initialValue) return []
       const initialValues = Array.isArray(initialValue)
-        ? initialValue.map((val) => String(val))
-        : [String(initialValue).split(',').map((val) => val.trim())].flat()
-      return options.filter((option) => initialValues.includes(option.value))
+        ? initialValue
+        .flatMap((val) => String(val).split(/[;,]/))
+        .map((v) => v.trim())
+        .filter(Boolean)
+        : String(initialValue)
+        .split(/[;,]/)
+        .map((v) => v.trim())
+        .filter(Boolean)
+      const set = new Set(initialValues)
+      return options.filter((option) => set.has(option.value))
     } else {
       return options.find((option) => option.value === String(initialValue)) || null
     }
@@ -118,6 +142,33 @@ export default function SelectStandard({ lookupItems, initialValue = "", onChang
     }
   }, [initialValue])
 
+  const CustomOption = (props: any) => {
+    const { data } = props
+    return (
+      <components.Option {...props}>
+        {renderOption ? renderOption({ itemcode: data.itemcode, itemdesc: data.itemdesc }) : data.label}
+      </components.Option>
+    )
+  }
+
+  const CustomSingleValue = (props: any) => {
+    const { data } = props
+    return (
+      <components.SingleValue {...props}>
+        {renderSelected ? renderSelected({ itemcode: data.itemcode, itemdesc: data.itemdesc }) : data.label}
+      </components.SingleValue>
+    )
+  }
+
+  const CustomMultiValueLabel = (props: any) => {
+    const { data } = props
+    return (
+      <components.MultiValueLabel {...props}>
+        {renderSelected ? renderSelected({ itemcode: data.itemcode, itemdesc: data.itemdesc }) : data.label}
+      </components.MultiValueLabel>
+    )
+  }
+
   return (
     <div className="relative">
       <Select
@@ -132,6 +183,15 @@ export default function SelectStandard({ lookupItems, initialValue = "", onChang
         menuPlacement="auto"
         getOptionValue={(option: OptionType) => option.value}
         getOptionLabel={(option: OptionType) => option.label}
+        components={
+          renderOption || renderSelected
+            ? {
+                Option: CustomOption,
+                SingleValue: renderSelected ? CustomSingleValue : components.SingleValue,
+                MultiValueLabel: renderSelected ? CustomMultiValueLabel : components.MultiValueLabel,
+              }
+            : undefined
+        }
         classNames={{
           container: () => "relative",
           control: () => customStyles.control(),

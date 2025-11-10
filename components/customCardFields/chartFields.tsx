@@ -36,10 +36,12 @@ interface BackendResponse {
   recordid: string
   lookup?: {
     table: Array<{ value: string; label: string }>
-    campi: Record<string, Array<{ value: string; label: string, fieldtype?: string }>>
+    campi: Record<string, Array<{ value: string; label: string; fieldtype?: string }>>
     views: Record<string, Array<{ value: string; label: string }>>
     dashboards: Array<{ value: string; label: string }>
-    functions?: Array<{ value: string; label: string }>
+    functions: Array<{ value: string; label: string }>
+    colors: Array<{ value: string; label: string }>
+    categories_dashboard: Array<{ value: string; label: string }>
   }
 }
 
@@ -85,6 +87,8 @@ const lookupDefault = {
   views: {},
   dashboards: [],
   functions: [],
+  colors: [],
+  categories_dashboard: [],
 }
 
 export default function ChartConfigForm({ tableid, recordid, mastertableid, masterrecordid }: ChartConfigFormProps) {
@@ -93,10 +97,12 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   const [backendFields, setBackendFields] = useState<FieldInterface[]>([])
   const [lookupData, setLookupData] = useState<{
     table: Array<{ itemcode: string; itemdesc: string }>
-    campi: Record<string, Array<{ itemcode: string; itemdesc: string, fieldtype?: string }>>
+    campi: Record<string, Array<{ itemcode: string; itemdesc: string; fieldtype?: string }>>
     views: Record<string, Array<{ itemcode: string; itemdesc: string }>>
     dashboards: Array<{ itemcode: string; itemdesc: string }>
-    functions: Array<{ itemcode: string; itemdesc: string }> 
+    functions: Array<{ itemcode: string; itemdesc: string }>
+    colors: Array<{ itemcode: string; itemdesc: string }>
+    categories_dashboard: Array<{ itemcode: string; itemdesc: string }>
   }>(lookupDefault)
 
   const [formData, setFormData] = useState<Record<string, any>>({})
@@ -117,14 +123,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     }
   }, [recordid, tableid, mastertableid, masterrecordid])
 
-	const { response, loading, error } = !isDev && payload ? useApi<BackendResponse>(payload) : { response: null, loading: false, error: null };
+  const { response, loading, error } = useApi<BackendResponse>(payload)
 
   const isNewRecord = !recordid || recordid === ""
 
   useEffect(() => {
     if (!isDev && response) {
       setBackendFields(response.fields)
-      
+
       if (response.lookup) {
         setLookupData({
           table: response.lookup.table.map((item) => ({
@@ -162,73 +168,76 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 itemdesc: item.label,
               }))
             : [],
+          colors: response.lookup.colors
+            ? response.lookup.colors.map((item) => ({
+                itemcode: item.value,
+                itemdesc: item.label,
+              }))
+            : [],
+          categories_dashboard: response.lookup.categories_dashboard
+            ? response.lookup.categories_dashboard.map((item) => ({
+                itemcode: item.value,
+                itemdesc: item.label,
+              }))
+            : [],
         })
       }
 
       const initialFormData: Record<string, any> = {}
-      
-      response.fields.forEach((field) => {
-        // --- INIZIO BLOCCO MODIFICATO ---
 
+      response.fields.forEach((field) => {
         const isMulti = field.fieldtype === "multiselect" || field.fieldtype === "multiSelect"
-        
-        // 1. Logica di estrazione valore migliorata
-        let extractedValue: any;
-        
+
+        let extractedValue: any
+
         if (isMulti) {
-            if (Array.isArray(field.value)) {
-                // Estrae i 'code' se è un array di oggetti, altrimenti usa l'array (es. di stringhe)
-                extractedValue = field.value.map(item => 
-                    (typeof item === "object" && item !== null && item.code !== undefined) ? item.code : item
-                );
-            } else if (field.value) {
-                // Fallback se il backend manda un singolo valore per un multiselect (improbabile, ma sicuro)
-                extractedValue = [ (typeof field.value === "object" && field.value !== null && field.value.code !== undefined) ? field.value.code : field.value ];
-            } else {
-                extractedValue = []; // Default per multiselect vuoto
-            }
+          if (Array.isArray(field.value)) {
+            extractedValue = field.value.map((item) =>
+              typeof item === "object" && item !== null && item.code !== undefined ? item.code : item,
+            )
+          } else if (field.value) {
+            extractedValue = [
+              typeof field.value === "object" && field.value !== null && field.value.code !== undefined
+                ? field.value.code
+                : field.value,
+            ]
+          } else {
+            extractedValue = []
+          }
         } else {
-            // Logica originale per non-multiselect (lookup singolo o testo)
-            extractedValue = (typeof field.value === "object" && field.value !== null && field.value.code !== undefined) 
-                ? field.value.code 
-                : field.value;
+          extractedValue =
+            typeof field.value === "object" && field.value !== null && field.value.code !== undefined
+              ? field.value.code
+              : field.value
         }
 
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
 
-        // 2. Logica di assegnazione valore migliorata
-        
-        // Se è un NUOVO record E c'è un default, usa il default
         if (isNewRecord && defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
           if (isMulti) {
-                // Assicura che il default per multiselect sia un array
-                initialFormData[field.fieldid] = Array.isArray(defaultValue) ? defaultValue : [defaultValue];
-            } else {
-                initialFormData[field.fieldid] = defaultValue;
-            }
-        } 
-        // Altrimenti (record ESISTENTE O nuovo senza default), usa il valore estratto
-        else if (extractedValue !== undefined && extractedValue !== null && (extractedValue !== "" || (isMulti && Array.isArray(extractedValue)))) {
-            // Per i multiselect, accetta anche un array vuoto [] come valore valido
-            if(isMulti && !Array.isArray(extractedValue)) {
-                // Ulteriore controllo: se è multi ma il valore non è un array, incapsulalo
-                initialFormData[field.fieldid] = extractedValue ? [extractedValue] : []
-            } else {
-                initialFormData[field.fieldid] = extractedValue
-            }
-        } 
-        // Fallback finale per campi completamente vuoti
-        else {
+            initialFormData[field.fieldid] = Array.isArray(defaultValue) ? defaultValue : [defaultValue]
+          } else {
+            initialFormData[field.fieldid] = defaultValue
+          }
+        } else if (
+          extractedValue !== undefined &&
+          extractedValue !== null &&
+          (extractedValue !== "" || (isMulti && Array.isArray(extractedValue)))
+        ) {
+          if (isMulti && !Array.isArray(extractedValue)) {
+            initialFormData[field.fieldid] = extractedValue ? [extractedValue] : []
+          } else {
+            initialFormData[field.fieldid] = extractedValue
+          }
+        } else {
           initialFormData[field.fieldid] = isMulti ? [] : ""
         }
-        
-        // --- FINE BLOCCO MODIFICATO ---
       })
 
       setFormData(initialFormData)
     }
-  }, [response, isNewRecord]) // <-- Aggiungi 'isNewRecord' alle dipendenze
+  }, [response, isNewRecord])
 
   useEffect(() => {
     const tabellaField = backendFields.find((f) => f.fieldid === "table_name")
@@ -259,7 +268,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       if (viewsField && (!prev.views || prev.views.length === 0)) {
         updated.views = []
       }
-      if (functionsField && (prev.function_button == null || prev.function_button === '')) {
+      if (functionsField && (prev.function_button == null || prev.function_button === "")) {
         updated.function_button = null
       }
 
@@ -268,7 +277,9 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   }, [formData.table_name, backendFields])
 
   const handleInputChange = (fieldid: string, value: any) => {
+    console.log(`Field ${fieldid} changed to:`, value)
     setFormData((prev) => ({ ...prev, [fieldid]: value }))
+    console.log("Updated formData:", { ...formData, [fieldid]: value })
   }
 
   const getFieldDescription = (fieldid: string): string | null => {
@@ -292,7 +303,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
     const isHidden = typeof field.settings === "object" && field.settings.nascosto === "true"
 
-    // --- AGGIUNGI QUESTO BLOCCO PER DEBUG ---
     if (field.fieldid === "dynamic_field_1") {
       console.log("DEBUG DYNAMIC_FIELD_1:", {
         field: field,
@@ -300,8 +310,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
         isCalculated: isCalculated,
       })
     }
-    // --- FINE BLOCCO DEBUG ---
-    
+
     if (isHidden) return null
 
     const currentValue = formData[field.fieldid]
@@ -324,8 +333,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     ) {
       if (field.fieldid === "views") {
         lookupItems = lookupData.views[formData.table_name] || []
-      } 
-      else {
+      } else {
         const allItems = lookupData.campi[formData.table_name] || []
         console.log(`Lookup items for field ${field.fieldid} and table ${formData.table_name}:`, allItems)
         if (field.fieldid === "fields" || field.fieldid === "fields_2") {
@@ -340,6 +348,10 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       lookupItems = lookupData.dashboards || []
     } else if (field.fieldid === "function_button" && lookupData) {
       lookupItems = lookupData.functions || []
+    } else if (field.fieldid === "colors" && lookupData) {
+      lookupItems = lookupData.colors || []
+    } else if (field.fieldid === "category_dashboard" && lookupData) {
+      lookupItems = lookupData.categories_dashboard || []
     }
 
     if (isCalculated) {
@@ -351,14 +363,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 {isRequired && isNewRecord && (
                   <div
                     className={`w-1 h-4 rounded-full mr-1 transition-colors ${
-                      isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
+                      isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
                     }`}
                   />
                 )}
                 <div className="flex flex-col gap-0.5">
                   <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                     {field.description}
-                    {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
+                    {isRequired && <span className="text-destructive ml-1 text-base">*</span>}
                   </p>
                   {customDescription && (
                     <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -369,7 +381,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
             <div
               className={`w-3/4 relative transition-all duration-200 rounded-md ${
-                isRequiredEmpty ? "ring-2 ring-red-600/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
+                isRequiredEmpty ? "ring-2 ring-destructive/20" : isRequiredFilled ? "ring-2 ring-chart-4/20" : ""
               }`}
             >
               <div className="p-2 bg-muted rounded-md text-muted-foreground">{currentValue}</div>
@@ -377,7 +389,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               {isRequired && isNewRecord && (
                 <div
                   className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                    isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
+                    isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
                   }`}
                 >
                   {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
@@ -397,14 +409,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               {isRequired && isNewRecord && (
                 <div
                   className={`w-1 h-4 rounded-full mr-1 transition-colors ${
-                    isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
+                    isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
                   }`}
                 />
               )}
               <div className="flex flex-col gap-0.5">
                 <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                   {field.description}
-                  {isRequired && <span className="text-red-600 ml-1 text-base">*</span>}
+                  {isRequired && <span className="text-destructive ml-1 text-base">*</span>}
                 </p>
                 {customDescription && (
                   <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -415,15 +427,15 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
           <div
             className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
-              isRequiredEmpty ? "ring-2 ring-red-600/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
+              isRequiredEmpty ? "ring-2 ring-destructive/20" : isRequiredFilled ? "ring-2 ring-chart-4/20" : ""
             }`}
           >
             <div
               className={`${
                 isRequiredEmpty
-                  ? "[&>*]:!border-red-600 [&>*]:focus:!border-red-600 [&>*]:focus:!ring-red-600/20"
+                  ? "[&>*]:!border-destructive [&>*]:focus:!border-destructive [&>*]:focus:!ring-destructive/20"
                   : isRequiredFilled
-                    ? "[&>*]:!border-green-500 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
+                    ? "[&>*]:!border-chart-4 [&>*]:focus:!border-chart-4 [&>*]:focus:!ring-chart-4/20"
                     : ""
               }`}
             >
@@ -444,21 +456,75 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               ) : (field.fieldtype === "lookup" || field.fieldtype === "Categoria") &&
                 lookupItems &&
                 lookupItems.length > 0 ? (
-                <SelectStandard
-                  lookupItems={lookupItems}
-                  initialValue={currentValue || ""}
-                  onChange={(v) => handleInputChange(field.fieldid, v)}
-                  isMulti={false}
-                />
+                field.fieldid === "colors" ? (
+                  <SelectStandard
+                    lookupItems={lookupItems}
+                    initialValue={currentValue || []}
+                    onChange={(v) => handleInputChange(field.fieldid, v)}
+                    isMulti={true}
+                    renderOption={(item) => (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-5 h-5 rounded border border-gray-300 shadow-sm"
+                          style={{ backgroundColor: item.itemcode }}
+                        />
+                        <span>{item.itemdesc}</span>
+                      </div>
+                    )}
+                    renderSelected={(item) => (
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-3 h-3 rounded border border-gray-300"
+                          style={{ backgroundColor: item.itemcode }}
+                        />
+                        <span className="text-sm">{item.itemdesc}</span>
+                      </div>
+                    )}
+                  />
+                ) : (
+                  <SelectStandard
+                    lookupItems={lookupItems}
+                    initialValue={currentValue || ""}
+                    onChange={(v) => handleInputChange(field.fieldid, v)}
+                    isMulti={false}
+                  />
+                )
               ) : (field.fieldtype === "multiselect" || field.fieldtype === "multiSelect") &&
                 lookupItems &&
                 lookupItems.length > 0 ? (
-                <SelectStandard
-                  lookupItems={lookupItems}
-                  initialValue={currentValue || []}
-                  onChange={(v) => handleInputChange(field.fieldid, v)}
-                  isMulti={true}
-                />
+                field.fieldid === "colors" ? (
+                  <SelectStandard
+                    lookupItems={lookupItems}
+                    initialValue={currentValue || []}
+                    onChange={(v) => handleInputChange(field.fieldid, v)}
+                    isMulti={true}
+                    renderOption={(item) => (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-5 h-5 rounded border border-gray-300 shadow-sm"
+                          style={{ backgroundColor: item.itemcode }}
+                        />
+                        <span>{item.itemdesc}</span>
+                      </div>
+                    )}
+                    renderSelected={(item) => (
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-3 h-3 rounded border border-gray-300"
+                          style={{ backgroundColor: item.itemcode }}
+                        />
+                        <span className="text-sm">{item.itemdesc}</span>
+                      </div>
+                    )}
+                  />
+                ) : (
+                  <SelectStandard
+                    lookupItems={lookupItems}
+                    initialValue={currentValue || []}
+                    onChange={(v) => handleInputChange(field.fieldid, v)}
+                    isMulti={true}
+                  />
+                )
               ) : field.fieldtype === "Attachment" ? (
                 <InputFile
                   initialValue={currentValue ? `/api/media-proxy?url=${currentValue}` : null}
@@ -470,7 +536,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
             {isRequired && isNewRecord && (
               <div
                 className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                  isRequiredEmpty ? "bg-red-600" : isRequiredFilled ? "bg-green-500" : ""
+                  isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
                 }`}
               >
                 {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
@@ -484,22 +550,13 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const fieldsByStep = useMemo(() => {
     const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon"].includes(f.fieldid))
-    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "function_button"].includes(f.fieldid))
-    const step3Fields = backendFields.filter((f) => [
-    "table_name",
-    "views",
-    "fields",
-    "operation",
-    "dynamic_field_1",
-    "dynamic_field_1_label",
-  ].includes(f.fieldid))
-  const step4Fields = backendFields.filter((f) => [
-    "fields_2",
-    "operation2",
-    "operation2_total",
-    "dynamic_field_2",
-    "dynamic_field_2_label",
-  ].includes(f.fieldid))
+    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "category_dashboard", "function_button"].includes(f.fieldid))
+    const step3Fields = backendFields.filter((f) =>
+      ["table_name", "views", "fields", "colors", "operation", "dynamic_field_1", "dynamic_field_1_label"].includes(f.fieldid),
+    )
+    const step4Fields = backendFields.filter((f) =>
+      ["fields_2", "operation2", "operation2_total", "dynamic_field_2", "dynamic_field_2_label"].includes(f.fieldid),
+    )
     const step5Fields = backendFields.filter((f) =>
       ["grouping", "date_granularity", "grouping_type", "pivot_total_field"].includes(f.fieldid),
     )
@@ -520,7 +577,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       (typeof chartType === "object" && chartType?.code === "multibarlinechart") ||
       (typeof chartType === "object" && chartType?.value === "multibarlinechart")
 
-    // If chart type is not multibarlinechart, filter out step 4
     if (!isMultiBarLineChart) {
       return STEPS.filter((step) => step.id !== 4)
     }
@@ -535,25 +591,21 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       const selectedRaggruppamento = formData.grouping
       if (!selectedRaggruppamento || !lookupData || !formData.table_name) return false
 
-      // Se raggruppamento è multiselect, prendo il primo (o puoi fare un every per tutti)
-      const selectedCodes = Array.isArray(selectedRaggruppamento)
-        ? selectedRaggruppamento
-        : [selectedRaggruppamento]
+      const selectedCodes = Array.isArray(selectedRaggruppamento) ? selectedRaggruppamento : [selectedRaggruppamento]
 
       const campiLookup = lookupData.campi[formData.table_name] || []
 
-      console.log("Verifica raggruppamento data type per codici:", selectedCodes, campiLookup)
-      // Se almeno uno dei campi selezionati ha fieldtype === "Data"
+      console.log("[v0] Checking grouping data type for codes:", selectedCodes, campiLookup)
+
       return selectedCodes.some((code) => {
         const selectedItem = campiLookup.find((item: any) => item.itemcode === code)
         return selectedItem?.fieldtype === "Data"
       })
     })()
 
-    // Filter out pivot_total_field if tiporaggruppamento is not "pivot"
     return fields.filter((field) => {
       if (field.fieldid === "pivot_total_field") {
-        const tipoRaggruppamento = formData.grouping_type?.toString().toLowerCase()
+        const tipoRaggruppamento = formData.grouping_type
         const isPivot =
           tipoRaggruppamento === "pivot" ||
           (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.code === "pivot") ||
@@ -568,7 +620,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
       return true
     })
-  }, [currentStep, fieldsByStep, formData.grouping, formData.grouping_type, lookupData, backendFields, formData.table_name])
+  }, [currentStep, fieldsByStep, formData.grouping, formData.grouping_type, lookupData, formData.table_name])
 
   const isStepValid = useMemo(() => {
     return currentStepFields.every((field) => {
@@ -609,15 +661,28 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
     setIsSaving(true)
     try {
-      const savePayload = {
-        apiRoute: "save_record_fields",
-        tableid,
-        recordid,
-        fields: formData,
-      }
-      const res = await axiosInstanceClient.post("/postApi", savePayload, {
+      const fd = new FormData()
+      fd.append("apiRoute", "save_record_fields")
+      fd.append("tableid", tableid)
+      if (recordid) fd.append("recordid", recordid)
+
+      const normalFields: Record<string, any> = {}
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value instanceof File) {
+          fd.append(key, value)
+        } else if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
+          value.forEach((file, idx) => fd.append(`files[${key}_${idx}]`, file))
+        } else {
+          normalFields[key] = value
+        }
+      })
+
+      fd.append("fields", JSON.stringify(normalFields))
+      const res = await axiosInstanceClient.post("/postApi", fd, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
         },
       })
       if (!res.data.success) {
