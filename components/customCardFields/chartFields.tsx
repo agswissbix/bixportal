@@ -315,8 +315,8 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
     const currentValue = formData[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
-    const isRequiredEmpty = isNewRecord && isRequired && isEmpty
-    const isRequiredFilled = isNewRecord && isRequired && !isEmpty
+    const isRequiredEmpty = isRequired && isEmpty
+    const isRequiredFilled = isRequired && !isEmpty
 
     const customDescription = getFieldDescription(field.fieldid)
 
@@ -363,14 +363,14 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 {isRequired && isNewRecord && (
                   <div
                     className={`w-1 h-4 rounded-full mr-1 transition-colors ${
-                      isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
+                      isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
                     }`}
                   />
                 )}
                 <div className="flex flex-col gap-0.5">
                   <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
                     {field.description}
-                    {isRequired && <span className="text-destructive ml-1 text-base">*</span>}
+                    {isRequired && <span className="text-red-500 ml-1 text-base">*</span>}
                   </p>
                   {customDescription && (
                     <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
@@ -381,7 +381,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
             <div
               className={`w-3/4 relative transition-all duration-200 rounded-md ${
-                isRequiredEmpty ? "ring-2 ring-destructive/20" : isRequiredFilled ? "ring-2 ring-chart-4/20" : ""
+                isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
               }`}
             >
               <div className="p-2 bg-muted rounded-md text-muted-foreground">{currentValue}</div>
@@ -389,7 +389,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
               {isRequired && isNewRecord && (
                 <div
                   className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                    isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
+                    isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
                   }`}
                 >
                   {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
@@ -406,36 +406,35 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
         <div className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full">
           <div className="w-full lg:w-1/4 pt-2">
             <div className="flex items-center gap-1">
-              {isRequired && isNewRecord && (
+              {isRequired && (
                 <div
-                  className={`w-1 h-4 rounded-full mr-1 transition-colors ${
-                    isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
+                  className={`w-1 h-4 rounded-full mr-1 ${
+                    isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
                   }`}
                 />
               )}
               <div className="flex flex-col gap-0.5">
-                <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
-                  {field.description}
-                  {isRequired && <span className="text-destructive ml-1 text-base">*</span>}
-                </p>
-                {customDescription && (
-                  <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
-                )}
-              </div>
+                  <p className={`text-sm font-medium ${isRequired ? "text-foreground" : "text-muted-foreground"}`}>
+                    {field.description}
+                  </p>
+                  {customDescription && (
+                    <p className="text-xs text-muted-foreground/70 leading-tight">{customDescription}</p>
+                  )}
+                </div>
             </div>
           </div>
 
           <div
             className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
-              isRequiredEmpty ? "ring-2 ring-destructive/20" : isRequiredFilled ? "ring-2 ring-chart-4/20" : ""
+            isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
             }`}
           >
             <div
               className={`${
                 isRequiredEmpty
-                  ? "[&>*]:!border-destructive [&>*]:focus:!border-destructive [&>*]:focus:!ring-destructive/20"
+                  ? "[&>*]:!border-red-500 [&>*]:focus:!border-red-500 [&>*]:focus:!ring-red-500/20"
                   : isRequiredFilled
-                    ? "[&>*]:!border-chart-4 [&>*]:focus:!border-chart-4 [&>*]:focus:!ring-chart-4/20"
+                    ? "[&>*]:!border-green-500 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
                     : ""
               }`}
             >
@@ -532,16 +531,6 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 />
               ) : null}
             </div>
-
-            {isRequired && isNewRecord && (
-              <div
-                className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow-sm transition-colors ${
-                  isRequiredEmpty ? "bg-destructive" : isRequiredFilled ? "bg-chart-4" : ""
-                }`}
-              >
-                {isRequiredEmpty ? "!" : isRequiredFilled ? "✓" : "*"}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -550,7 +539,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const fieldsByStep = useMemo(() => {
     const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon"].includes(f.fieldid))
-    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "category_dashboard", "function_button"].includes(f.fieldid))
+    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "function_button"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) =>
       ["table_name", "views", "fields", "colors", "operation", "dynamic_field_1", "dynamic_field_1_label"].includes(f.fieldid),
     )
@@ -607,9 +596,9 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       if (field.fieldid === "pivot_total_field") {
         const tipoRaggruppamento = formData.grouping_type
         const isPivot =
-          tipoRaggruppamento === "pivot" ||
-          (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.code === "pivot") ||
-          (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.value === "pivot")
+          tipoRaggruppamento.toLowerCase() === "pivot" ||
+          (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.code.toLowerCase() === "pivot") ||
+          (typeof tipoRaggruppamento === "object" && tipoRaggruppamento?.value.toLowerCase() === "pivot")
 
         return isPivot
       }
