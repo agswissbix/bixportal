@@ -701,6 +701,12 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     <GenericComponent response={response} loading={loading} error={error}>
       {() => (
         <div className="space-y-6 max-w-5xl mx-auto p-4">
+          {/* Titolo grafico visibile in tutti gli step */}
+          {formData.title && (
+            <div className="text-center text-lg font-semibold text-primary mb-4">
+              {formData.title}
+            </div>
+          )}
           <div className="relative">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 hidden md:block" style={{ zIndex: 0 }} />
             <div
