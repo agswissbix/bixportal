@@ -3,11 +3,13 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
 import { useRecordsStore } from "./records/recordsStore";
-import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight } from "lucide-react";
+import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight, Copy, Trash2 } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { set } from "lodash";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { motion, AnimatePresence } from "framer-motion";
+import axiosInstanceClient from "@/utils/axiosInstanceClient";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -244,6 +246,12 @@ export default function RecordsTable({
 
   const [errorFile, setErrorFile] = useState<Record<string, boolean>>({});
 
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    recordid: string | null;
+  } | null>(null);
+
   // ✅ un selector per chiave
 
   const {
@@ -260,6 +268,13 @@ export default function RecordsTable({
     useEffect(() => {
         setCurrentPage(1);
     }, [tableid]);
+
+
+    useEffect(() => {
+      const handleClickOutside = () => setContextMenu(null);
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
 
   useEffect(() => {
     const openCard = cardsList.find(
@@ -339,6 +354,66 @@ export default function RecordsTable({
       direction,
     });
     // NON è più necessario chiamare setColumnOrder da zustand
+  };
+
+  const duplicateRecord = async (recordid: string) => {
+    try {
+      const response = await axiosInstanceClient.post(
+        '/postApi',
+        {
+          apiRoute: 'duplicate_record',
+          tableid,
+          recordid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      if (response.data.success == true) {
+        toast.success('Record duplicato con successo');
+        // handleRowClick('standard', response.data.new_recordid, tableid);
+      }
+    } catch (err) {
+      console.error('Errore durante la duplicazione del record', err);
+      toast.error('Errore durante la duplicazione del record');
+    } finally {
+      setRefreshTable((v) => v + 1)
+    }
+  };
+
+  const deleteRecord = async (recordid: string) => {
+    try {
+      await axiosInstanceClient.post(
+        '/postApi',
+        {
+          apiRoute: 'delete_record',
+          tableid,
+          recordid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      toast.success('Record eliminato con successo');
+    } catch (err) {
+      console.error('Errore durante l\'eliminazione del record', err);
+      toast.error('Errore durante l\'eliminazione del record');
+    } finally {
+      setRefreshTable((v) => v + 1)
+    }
+  };
+
+  const handleTrashClick = (recordid: string) => {
+    toast.warning('Sei sicuro di voler eliminare questo record?', {
+      action: {
+        label: 'Conferma',
+        onClick: async () => {await deleteRecord(recordid)},
+      },
+    });
   };
 
 
@@ -439,6 +514,21 @@ export default function RecordsTable({
                       ) &&
                       setRowOpen(String(row.recordid))
                     }
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      const container = e.currentTarget.closest(".overflow-auto"); // trova contenitore scrollabile
+                      const rect = container?.getBoundingClientRect();
+
+                      const x = e.clientX - (rect?.left || 0);
+                      const y = e.clientY - (rect?.top || 0);
+
+                      setContextMenu({
+                        x,
+                        y,
+                        recordid: row.recordid,
+                      });
+                      setRowOpen(String(row.recordid))
+                    }}
                   >
                     {row.fields.map((field, index) => {
                       const column = response.columns[index];
@@ -563,6 +653,56 @@ export default function RecordsTable({
                 </tr>
               </tfoot>
             </table>
+              <AnimatePresence>
+              {contextMenu && (
+                <motion.div
+                  key="context-menu"
+                  initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97, y: -4 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 250,
+                    damping: 25,
+                    mass: 0.8,
+                  }}
+                  className="
+                    absolute p-1 z-50
+                    bg-white dark:bg-gray-800
+                    border border-gray-200 dark:border-gray-600
+                    rounded-lg shadow-xl
+                    flex flex-col
+                    min-w-[160px] overflow-hidden
+                  "
+                  style={{
+                    top: contextMenu.y,
+                    left: contextMenu.x,
+                    transformOrigin: "top left",
+                  }}
+                >
+                <button
+                  onClick={() => {
+                    duplicateRecord(contextMenu.recordid);
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                  Duplica
+                </button>
+                <button
+                  onClick={() => {
+                    handleTrashClick(contextMenu.recordid);
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Elimina
+                </button>
+                </motion.div>
+            )}
+            </AnimatePresence>
           </div>
 
           
