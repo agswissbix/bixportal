@@ -466,7 +466,7 @@ useEffect(() => {
             if (addedWidget) {
                 const contentElement = addedWidget.querySelector('.grid-stack-item-content');
                 if (contentElement) {
-                    contentElement.className = 'grid-stack-item-content bg-white rounded-lg shadow-md flex flex-col h-full overflow-hidden border border-gray-200';
+                    contentElement.className = 'grid-stack-item-content';
                     const root = createRoot(contentElement);
 
                     requestAnimationFrame(() => {
@@ -474,29 +474,34 @@ useEffect(() => {
                             // Rimosso il controllo dei tipi. Ora deleghiamo tutto a BlockChart
                             if (block.type === 'text' || block.type === 'widget') {
                                 // Blocco generico (testo, widget)
-                                root.render(
-                                    <div className="p-4 w-full h-full">
-                                        <h4 className="text-lg font-semibold mb-2 text-gray-700">{block.name}</h4>
-                                        <div className="text-gray-600">
-                                            {block.content ? (
-                                                <div dangerouslySetInnerHTML={{ __html: block.content }} />
-                                            ) : (
-                                                <p>Block type: {block.type}</p>
-                                            )}
-                                        </div>
+                                <div className='bg-white rounded-lg shadow-md flex flex-col h-full overflow-hidden border border-gray-200'>
+                                    root.render(
+                                      <div className="p-4 w-full h-full">
+                                          <h4 className="text-lg font-semibold mb-2 text-gray-700">{block.name}</h4>
+                                          <div className="text-gray-600">
+                                              {block.content ? (
+                                                  <div dangerouslySetInnerHTML={{ __html: block.content }} />
+                                              ) : (
+                                                  <p>Block type: {block.type}</p>
+                                              )}
+                                          </div>
                                     </div>
                                 );
+                                </div>
                             } else {
                                 // Tutti i tipi di grafici gestiti da BlockChart
                                 root.render(
-                                    <BlockChart
-                                        id={block.id}
-                                        name={block.name}
-                                        type={block.type}
-                                        chart_data={block.chart_data || ""}
-                                        onDelete={deleteBlock}
-                                        onExport={handleExcelExport}
-                                    />
+                                    <div className='bg-white rounded-lg shadow-md flex flex-col h-full overflow-hidden border border-gray-200'>
+                                        <BlockChart
+                                          id={block.id}
+                                          name={block.name}
+                                          type={block.type}
+                                          chart_data={block.chart_data || ""}
+                                          onDelete={deleteBlock}
+                                          onExport={handleExcelExport}
+                                      />
+                                    </div>
+                                    
                                 );
                             }
                         }, 200);
