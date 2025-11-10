@@ -125,6 +125,7 @@ export async function POST(request: Request) {
     case 'set_column_order': djangoUrl = '/commonapp/set_column_order/'; break;
     case 'getPitservicePivotLavanderie': djangoUrl = '/commonapp/get_pitservice_pivot_lavanderia/'; break;
     case 'save_record_fields': djangoUrl = '/commonapp/save_record_fields/'; break;
+    case 'duplicate_record': djangoUrl = '/commonapp/duplicate_record/'; break;
     case 'get_table_views': djangoUrl = '/commonapp/get_table_views/'; break;
     case 'get_record_badge': djangoUrl = '/commonapp/get_record_badge/'; break;
     case 'get_record_card_fields': djangoUrl = '/commonapp/get_record_card_fields/'; break;

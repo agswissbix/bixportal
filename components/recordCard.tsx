@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext, useCallback, useLayoutEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
-import { CircleX, Maximize2, Info, Trash2 } from 'lucide-react';
+import { CircleX, Maximize2, Info, Trash2, Copy } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardBadgeStabile from './customBadges/cardBadgeStabile';
 import CardTabs from './cardTabs';
@@ -55,7 +55,7 @@ export default function RecordCard({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
-  const { removeCard, setOpenSignatureDialog, openSignatureDialog, setRefreshTable } = useRecordsStore();
+  const { removeCard, setOpenSignatureDialog, openSignatureDialog, setRefreshTable, handleRowClick } = useRecordsStore();
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
@@ -218,6 +218,33 @@ export default function RecordCard({
     }
   }
   
+  const duplicateRecord = async () => {
+    try {
+      const response = await axiosInstanceClient.post(
+        '/postApi',
+        {
+          apiRoute: 'duplicate_record',
+          tableid,
+          recordid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      if (response.data.success == true) {
+        toast.success('Record duplicato con successo');
+        handleRowClick('standard', response.data.new_recordid, tableid);
+      }
+    } catch (err) {
+      console.error('Errore durante la duplicazione del record', err);
+      toast.error('Errore durante la duplicazione del record');
+    } finally {
+      setRefreshTable((v) => v + 1)
+    }
+  };
+
   const deleteRecord = async () => {
     try {
       await axiosInstanceClient.post(
@@ -233,11 +260,13 @@ export default function RecordCard({
           },
         }
       );
-      handleRemoveCard();
       toast.success('Record eliminato con successo');
     } catch (err) {
       console.error('Errore durante l\'eliminazione del record', err);
       toast.error('Errore durante l\'eliminazione del record');
+    } finally {
+      handleRemoveCard();
+      setRefreshTable((v) => v + 1)
     }
   };
 
@@ -245,7 +274,7 @@ export default function RecordCard({
     toast.warning('Sei sicuro di voler eliminare questo record?', {
       action: {
         label: 'Conferma',
-        onClick: async () => {await deleteRecord(); setRefreshTable((v) => v + 1)},
+        onClick: async () => {await deleteRecord()},
       },
     });
   };
@@ -373,6 +402,13 @@ export default function RecordCard({
                       title="Elimina"
                     >
                       <Trash2 className="w-5 h-5 text-red-500 hover:text-red-700" />
+                    </button>
+                    <button
+                      className="p-1.5 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-100 ease-in-out"
+                      onClick={duplicateRecord}
+                      title="Duplica"
+                    >
+                      <Copy className="w-5 h-5 text-gray-500 hover:text-gray-700" />
                     </button>
                   </div>
                 </div>
@@ -530,6 +566,13 @@ export default function RecordCard({
                           title="Elimina"
                         >
                           <Trash2 className="w-6 h-6 text-red-500 hover:text-red-700" />
+                        </button>
+                        <button
+                          className="p-1.5 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-100 ease-in-out"
+                          onClick={duplicateRecord}
+                          title="Duplica"
+                        >
+                          <Copy className="w-5 h-5 text-gray-500 hover:text-gray-700" />
                         </button>
                       </>
                     )}
