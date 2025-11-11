@@ -538,7 +538,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   }
 
   const fieldsByStep = useMemo(() => {
-    const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon"].includes(f.fieldid))
+    const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon", "status"].includes(f.fieldid))
     const step2Fields = backendFields.filter((f) => ["type", "dashboards", "function_button"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) =>
       ["table_name", "views", "fields", "colors", "operation", "dynamic_field_1", "dynamic_field_1_label"].includes(f.fieldid),
