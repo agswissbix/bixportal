@@ -190,30 +190,53 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
         let extractedValue: any
 
+        
         if (isMulti) {
-          if (Array.isArray(field.value)) {
-            extractedValue = field.value.map((item) =>
-              typeof item === "object" && item !== null && item.code !== undefined ? item.code : item,
-            )
-          } else if (field.value) {
-            extractedValue = [
-              typeof field.value === "object" && field.value !== null && field.value.code !== undefined
-                ? field.value.code
-                : field.value,
-            ]
+          const rawValue = field.value
+
+          if (Array.isArray(rawValue)) {
+            // Caso corretto: già array
+            extractedValue = rawValue
+              .map((item) =>
+                typeof item === "object" && item !== null && item.code !== undefined ? item.code : item
+              )
+              .filter((v) => v !== null && v !== undefined && v !== "None" && v !== "")
+          } else if (
+            rawValue &&
+            typeof rawValue === "object" &&
+            ("code" in rawValue || "value" in rawValue)
+          ) {
+            // Caso: singolo oggetto tipo { code: null, value: null }
+            const code = (rawValue as any).code
+            if (code !== null && code !== undefined && code !== "None" && code !== "") {
+              extractedValue = [code]
+            } else {
+              extractedValue = []
+            }
+          } else if (rawValue) {
+            // Caso: singolo valore semplice
+            extractedValue = [rawValue]
           } else {
             extractedValue = []
           }
         } else {
+          // Campo singolo
+          const rawValue = field.value
           extractedValue =
-            typeof field.value === "object" && field.value !== null && field.value.code !== undefined
-              ? field.value.code
-              : field.value
-        }
+            typeof rawValue === "object" && rawValue !== null && rawValue.code !== undefined
+              ? rawValue.code
+              : rawValue
 
+          // Se il backend manda {code: null, value: null}
+          if (rawValue && typeof rawValue === "object" && rawValue.code == null && rawValue.value == null) {
+            extractedValue = ""
+          }
+        }
+        console.log("field: ", field, extractedValue)
+        
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
-
+        
         if (isNewRecord && defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
           if (isMulti) {
             initialFormData[field.fieldid] = Array.isArray(defaultValue) ? defaultValue : [defaultValue]
@@ -249,9 +272,11 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     const raggruppamentoField = backendFields.find((f) => f.fieldid === "grouping")
     const viewsField = backendFields.find((f) => f.fieldid === "views")
     const functionsField = backendFields.find((f) => f.fieldid === "function_button")
+    const colorsField = backendFields.find((f) => f.fieldid === "colors")
 
     setFormData((prev) => {
       const updated = { ...prev }
+      console.log("prima: ", updated)
 
       if (campiField && (!prev.fields || prev.fields.length === 0)) {
         updated.fields = []
@@ -271,6 +296,10 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       if (functionsField && (prev.function_button == null || prev.function_button === "")) {
         updated.function_button = null
       }
+      if (colorsField && (!prev.colors || prev.colors.length === 0)) {
+        updated.colors = []
+      }
+      console.log("dopo: ", updated)
 
       return updated
     })
@@ -539,7 +568,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const fieldsByStep = useMemo(() => {
     const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon", "status"].includes(f.fieldid))
-    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "function_button"].includes(f.fieldid))
+    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "category_dashboard", "function_button"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) =>
       ["table_name", "views", "fields", "colors", "operation", "dynamic_field_1", "dynamic_field_1_label"].includes(f.fieldid),
     )
