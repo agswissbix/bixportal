@@ -351,7 +351,11 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                 <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-800 truncate">{item.description}</div>
-                  <div className="text-xs text-gray-500">{item.id}</div>
+                  <div className="text-xs text-gray-500">
+                    {item.id}
+                    {item.fieldtypeid && " | " + item.fieldtypeid}
+                    {item.label && " | " + item.label}
+                  </div>
                 </div>
                 {(() => {
                   const originalOrder = initialOrders.current[groupName]?.[item.id] ?? null
