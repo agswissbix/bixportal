@@ -3,7 +3,7 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
 import { useRecordsStore } from "./records/recordsStore";
-import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight, Copy, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight, Copy, Trash2, Rss } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { set } from "lodash";
@@ -268,6 +268,25 @@ export default function RecordsTable({
     useEffect(() => {
         setCurrentPage(1);
     }, [tableid]);
+    const [showContextMenuTip, setShowContextMenuTip] = useState(true);
+
+    // ------------------------------ RIMUOVERE --------------------------------
+  // LOGICA PER NASCONDERE IL TIP: DOPO 10 SECONDI O ALLA CHIUSURA
+  useEffect(() => {
+    if (showContextMenuTip) {
+      const timer = setTimeout(() => {
+        setShowContextMenuTip(false);
+      }, 10000); // Nascondi dopo 10 secondi
+
+      return () => clearTimeout(timer); // Cleanup al dismount o se cambia lo stato
+    }
+  }, [showContextMenuTip]);
+
+  // Funzione di utilità per chiudere il tip immediatamente
+  const closeContextMenuTip = () => {
+    setShowContextMenuTip(false);
+  };
+  // ------------------------------ RIMUOVERE --------------------------------
 
 
     useEffect(() => {
@@ -441,6 +460,41 @@ export default function RecordsTable({
     >
       {(response: ResponseInterface) => (
         <div className="h-full w-full flex flex-col">
+
+              {/* // ------------------------------ RIMUOVERE -------------------------------- */}
+          <AnimatePresence>
+            {showContextMenuTip && (
+              <motion.div
+                key="context-menu-tip"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 p-4 bg-gray-50 border border-primary text-primary rounded-lg shadow-md flex items-start justify-between"
+              >
+                <div className="flex items-center">
+                  <Rss className="w-5 h-5 mr-3 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-base font-semibold">Nuova Funzionalità: Menu Contestuale!</h3>
+                    <p className="text-sm">
+                      Ora puoi <b className="text-accent">cliccare con il tasto destro</b> su qualsiasi riga della tabella per accedere a una scorciatoia rapida per <b>Duplicare</b> o <b>Eliminare</b> il record. Provalo!
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeContextMenuTip}
+                  className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-100 ml-4 p-1 rounded-full hover:bg-blue-200/50 dark:hover:bg-blue-800/50 transition-colors flex-shrink-0"
+                  aria-label="Chiudi notifica"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+              {/* // ------------------------------ RIMUOVERE -------------------------------- */}
+
            <div className="w-full h-full relative rounded-lg overflow-auto">
             <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
               <thead className="sticky top-0 z-20 text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
@@ -704,7 +758,6 @@ export default function RecordsTable({
             )}
             </AnimatePresence>
           </div>
-
           
           {/* SEZIONE PAGINAZIONE AGGIORNATA */}
           <nav
