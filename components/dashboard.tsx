@@ -14,6 +14,9 @@ import { toast } from 'sonner';
 import * as XLSX from "sheetjs-style"; // Usiamo sheetjs-style per la formattazione
 import { Dispatch, SetStateAction } from 'react';
 import BlockChart from './blockChart';
+import { useReactToPrint } from 'react-to-print';
+import { PrinterIcon } from 'lucide-react';
+import DashboardFilters from './dashboardFilters';
 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -30,7 +33,15 @@ const isDev = false;
           selectedYears?: string[]; // Anni selezionati, opzionale per test
           refreshDashboard?: number; // Stato per forzare il refresh della dashboard
           setRefreshDashboard?: Dispatch<SetStateAction<number>>; // Funzione opzionale per
-          filters?: any;
+          showFilters?: showFiltersTypes;
+        }
+
+        interface showFiltersTypes {
+          years?: boolean;
+          average?: boolean;
+          numericFilters?: boolean;
+          demographicFilters?: boolean | { [key: string]: boolean };
+          clubs?: boolean;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -62,7 +73,7 @@ const isDev = false;
         }
 
 
-function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, setRefreshDashboard, filters }: PropsInterface) {
+function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, setRefreshDashboard, showFilters={ years: false, average: false, numericFilters: false, clubs: false } }: PropsInterface) {
     //DATI
             // DATI PROPS PER LO SVILUPPO
 
@@ -252,6 +263,8 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
     const gridRef = useRef<HTMLDivElement>(null);
     const gridInstanceRef = useRef<GridStack | null>(null);
 
+    const { dashboardFilters: filters, setDashboardFilters: setFilters } = useRecordsStore()
+
     const [selectedBlock, setSelectedBlock] = useState<string>(''); // Stato per il blocco selezionato
 
     const isMobile = useMemo(() => window.innerWidth < 768, []);
@@ -280,6 +293,64 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
         }
     }, [response, responseData]);
 
+    const handlePrint = useReactToPrint({
+        documentTitle: "Dashboard",
+        
+        onBeforePrint: async () => {
+            if (gridRef.current && gridInstanceRef.current) {
+                gridRef.current.style.width = '1200px'; 
+                gridInstanceRef.current.onResize(); 
+                void gridRef.current.offsetHeight;
+
+                await new Promise(resolve => setTimeout(resolve, 500)); 
+            }
+        },
+        onAfterPrint: () => {
+            if (gridRef.current && gridInstanceRef.current) {
+                gridRef.current.style.width = '100%'; 
+                gridInstanceRef.current.onResize(); 
+            }
+        },
+        pageStyle: `
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+            @media print {
+                body, html {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                    width: 1200px !important;
+                }
+                    
+                body {
+                    transform: scale(0.85);
+                    transform-origin: top left;
+                }
+
+                .grid-stack {
+                    position: relative !important; 
+                    width: 1200px !important;
+                }
+                
+                .flipper.is-flipped .front {
+                    display: none !important;
+                }
+
+                .flipper:not(.is-flipped) .back {
+                    display: none !important;
+                }
+                
+                .not-print-header {
+                    display: none !important;
+                }
+            }
+        `
+    });
+
+    const printDashboard = async () => {
+        await handlePrint(() => gridRef.current);
+    }
 
     const saveDashboardDisposition = async () => {
       const value_list: { gsX: string | null; gsY: string | null; gsW: string | null; gsH: string | null; id: string | null; size: string; }[] = [];
@@ -522,48 +593,58 @@ useEffect(() => {
     console.log('[DEBUG] Rendering Dashboard', { responseData });
       
     return (
+        <>
+          <div className="sticky top-0 z-20 flex flex-wrap gap-3 items-center justify-start px-4 py-4 bg-[#f9fafb]">
+            <button 
+              className='hidden md:flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
+              onClick={onOpenPopup}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              {"Aggiungi grafico"}
+            </button>
+
+            <button 
+              className='hidden md:flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
+              onClick={saveDashboardDisposition}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              {"Salva disposizione"}
+            </button>
+
+            <button 
+                className='hidden md:flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
+              onClick={printDashboard} 
+            >
+                <PrinterIcon className="h-5 w-5 mr-2" />
+                {"Stampa Dashboard"}
+            </button>
+
+          {Object.values(showFilters).some(value => value) && (
+              <DashboardFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                visibleFilters={showFilters}
+              />
+          )}
+        </div>
         <GenericComponent response={responseData} loading={loading} error={error}> 
             {(response: ResponseInterface) => (
               <div>
-                {/* 👇 ELEMENTO AGGIUNTO PER IL DEBUG 👇 */}
-          
-          {/* 👆 FINE ELEMENTO DI DEBUG 👆 */}
-                      
-                
-                <div className="flex mb-4 ml-4">
-        <button 
-            className="flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5" 
-            onClick={onOpenPopup}
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Aggiungi grafico
-        </button>
-
-        <button 
-            className="flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm ml-4 px-5 py-2.5" 
-            
-            onClick={saveDashboardDisposition}
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-            Salva disposizione
-        </button>
-
-        
-    </div>
               <div 
                 className="grid-stack" 
                 ref={gridRef}
                 style={{ minHeight: '100%', width: '100%' }}
-              >
+                >
               </div>
               </div>
               
             )}
         </GenericComponent>
+      </>
     );
 };
 

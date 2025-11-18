@@ -1,6 +1,7 @@
 // src/components/ValueChart.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Image } from 'lucide-react'; // icona di fallback
 
 interface Dataset {
   label: string;
@@ -8,46 +9,58 @@ interface Dataset {
   image?: string;
 }
 
-interface ChartDataInterface {
+export interface ChartDataInterface {
   id: number;
   name: string;
   layout: string;
   labels: string[];
   datasets: Dataset[];
+  numeric_format?: string
 }
 
 interface Props {
   chartType: string;
-  chartData: string;
-  view: "chart" | "table";
+  chartData: ChartDataInterface;
+  view?: "chart" | "table";
+  hideData?: boolean; // nuovo parametro per nascondere i dati
 }
 
-export default function ValueChart({ chartData, view }: Props) {
-  let parsed: ChartDataInterface | null = null;
-  try {
-    parsed = JSON.parse(chartData);
-  } catch (e) {
-    console.error("Errore parsing dati:", e);
-    return <div className="p-4 text-red-500">Dati non validi</div>;
-  }
+export default function ValueChart({ chartData, view = "chart", hideData = false }: Props) {
+  const [errorImage, setErrorImage] = useState<Record<number, boolean>>({});
 
-  // Prende l'ultimo indice disponibile
-  const lastIndex = parsed?.labels.length! - 1;
+  const lastIndex = chartData?.labels.length! - 1;
 
-  // Vista "chart" minimalista - solo valore e immagine
+  const fmt = (v: number) =>
+        new Intl.NumberFormat(chartData.numeric_format || "it-CH", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }).format(v);
+
   return (
     <div className="flex flex-col justify-center h-full w-full p-6 font-sans">
       <div className="w-full space-y-8">
-        {parsed?.datasets.map((dataset, pointIndex) => (
+        {chartData?.datasets.map((dataset, pointIndex) => (
           <div key={pointIndex} className="flex flex-row space-x-2 items-center text-center">
-            {dataset.image && (
-              <img
-                src={`/api/media-proxy?url=${dataset.image}`}
-                alt={`${dataset.label} icon`}
-                className=" h-16"
-              />
+            {dataset.image ? (
+              errorImage[pointIndex] ? (
+                <Image className="h-16 w-16 text-gray-400" />
+              ) : (
+                <img
+                  src={`/api/media-proxy?url=${dataset.image}`}
+                  alt={`Icona per ${dataset.label}`}
+                  className="h-16 w-16 object-contain"
+                  onError={() => setErrorImage((prev) => ({ ...prev, [pointIndex]: true }))}
+                />
+              )
+            ) : (
+              <Image className="h-16 w-16 text-gray-300" />
             )}
-            <span className="text-6xl font-bold text-gray-800">{dataset.data[lastIndex].toLocaleString()}</span>
+
+            {!hideData && (
+              <span className="text-6xl font-bold text-gray-800">
+                {fmt(dataset.data[lastIndex])}
+              </span>
+            )}
           </div>
         ))}
       </div>

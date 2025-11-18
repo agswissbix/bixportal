@@ -22,7 +22,7 @@ interface Dataset {
   tableid?: string
 }
 
-interface ChartDataInterface {
+export interface ChartDataInterface {
   id: number;
   name: string;
   layout: string;
@@ -32,24 +32,17 @@ interface ChartDataInterface {
 
 interface Props {
   chartType: string;
-  chartData: string;
+  chartData: ChartDataInterface;
   view: "chart" | "table";
 }
 
 export default function ButtonChart({ chartData, view }: Props) {
-  let parsed: ChartDataInterface | null = null;
-  try {
-    parsed = JSON.parse(chartData);
-  } catch (e) {
-    console.error("Errore parsing dati:", e);
-    return <div className="p-4 text-red-500">Dati non validi</div>;
-  }
 
   // Prende l'ultimo indice disponibile
-  if (!parsed || !parsed.datasets || parsed.datasets.length === 0) {
+  if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
     return <div className="p-4 text-gray-500">Nessun dato disponibile</div>;
   }
-  const firstDataset = parsed?.datasets[0];
+  const firstDataset = chartData?.datasets[0];
   firstDataset.fn.title += " " + firstDataset.tableid
   // Vista "chart" minimalista - solo valore e immagine
   return (

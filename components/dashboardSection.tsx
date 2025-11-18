@@ -5,8 +5,9 @@ import { AppContext } from "@/context/appContext";
 import ChartsList from "@/components/chartsList";
 import Dashboard from "@/components/dashboard";
 import DashboardForm from "@/components/newDashboardForm";
-import { useRecordsStore } from "./records/recordsStore";
-import RecordCard from "@/components/recordCard";
+import { Pen, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import axiosInstanceClient from "@/utils/axiosInstanceClient";
 
 const isDev = false;
 
@@ -14,8 +15,16 @@ const isDev = false;
 interface PropsInterface {
   initialTab?: string;
   initialYears?: string[];
-  filters?: any;
   dashboardCategory?: string;
+  showFilters?: showFiltersTypes;
+}
+
+interface showFiltersTypes {
+  years?: boolean;
+  average?: boolean;
+  numericFilters?: boolean;
+  demographicFilters?: boolean | { [key: string]: boolean };
+  clubs?: boolean;
 }
 
 interface Dashboards {
@@ -27,7 +36,7 @@ interface ResponseInterface {
   dashboards?: Dashboards[];
 }
 
-function DashboardSection({ initialTab, initialYears, filters, dashboardCategory }: PropsInterface) {
+function DashboardSection({ initialTab, initialYears, dashboardCategory, showFilters={ years: false, average: false, numericFilters: false, demographicFilters: false, clubs: false } }: PropsInterface) {
   // DATI PROPS PER LO SVILUPPO
 
   // DATI RESPONSE DI DEFAULT
@@ -44,8 +53,6 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
   };
 
   const devInitialTab = responseDataDEFAULT.dashboards?.[0]?.id || "panoramica"; // Prende il primo dashboard come tab iniziale
-
-  const { cardsList } = useRecordsStore();
 
   const [responseData, setResponseData] = useState<ResponseInterface>(
     isDev ? responseDataDEV : responseDataDEFAULT,
@@ -75,7 +82,8 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
     ) {
       setResponseData(response);
     }
-  }, [response, responseData]);
+  }, [response]);
+
 
   const [activeTab, setActiveTab] = useState(devInitialTab);
   const [refreshDashboard, setRefreshDashboard] = useState(0);
@@ -104,6 +112,7 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
     }
   }, [responseData.dashboards, activeTab]); // Dipendenze dell'effetto
 
+
   const handleYearToggle = (year: string) => {
     setSelectedYears((prev) => {
       const newSelection = prev.includes(year)
@@ -118,7 +127,7 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
   const [showPopup, setShowPopup] = useState(false);
   const [popupContent, setPopupContent] = useState<React.ReactNode>(null);
 
-  const Popup = ({ isOpen, onClose, children, title }) => {
+  const Popup = ({ isOpen, onClose, children, title }: { isOpen: boolean; onClose: () => void; children: React.ReactNode; title: string }) => {
     if (!isOpen) return null;
 
     return (
@@ -153,19 +162,132 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
     );
   };
 
-  const TabButton = ({ id, title }) => (
-  <button
-    onClick={() => setActiveTab(id)}
-    // Rimuoviamo classi generiche e gestiamo tutto con la logica ternaria
-    className={`px-3 py-2 text-lg font-semibold transition-colors duration-200 focus:outline-none ${
-      activeTab === id
-        ? " border-b-2 border-green-600" // Stile ATTIVO: testo verde, bordo inferiore verde
-        : "text-gray-500 border-b-2 border-transparent" // Stile INATTIVO: testo grigio, bordo trasparente (per evitare salti di layout)
-    }`}
-  >
-    {title}
-  </button>
-);
+  const TabButton = ({ id, title }: { id: string; title: string }) => {
+    const isActive = activeTab === id;
+
+    const renameTab = async (id: string) => {
+      const newName = prompt("Nuovo nome:");
+      if (!newName) return;
+
+      try {
+        const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+              apiRoute: "update_dashboard",
+              dashboard_name: newName,
+              dashboardid: id
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
+          )
+        
+          if (response.data.success) {
+            setResponseData(prev => ({
+              ...prev,
+              dashboards: prev.dashboards!.map(d =>
+                d.id === id ? { ...d, name: newName } : d
+              )
+            }));
+            toast.success("Dashboard rinominata con successo.")
+          }
+      } catch (error) {
+        toast.error("Errore durante la rinominazione della dashboard")
+      }
+
+    };
+
+    const deleteTab = async (id: string) => {
+      toast.warning("Vuoi davvero eliminare questa dashboard?", {
+        action: {
+          label: "Elimina",
+          onClick: async () => {
+            try {
+              const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                  apiRoute: "update_dashboard",
+                  dashboardid: id
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                },
+              );
+
+              // La tua API restituisce: { message: "...", dashboardid: ... }
+              if (response.data.message === "Dashboard deleted successfully") {
+
+                toast.success("Dashboard eliminata con successo.");
+
+                setResponseData(prev => {
+                  const updated = {
+                    ...prev,
+                    dashboards: prev.dashboards!.filter(d => d.id !== id),
+                  };
+
+                  // Aggiorna tab attivo se necessario
+                  if (activeTab === id) {
+                    const remaining = updated.dashboards;
+                    setActiveTab(remaining.length ? remaining[0].id : "");
+                  }
+
+                  return updated;
+                });
+              }
+
+            } catch (error) {
+              toast.error("Errore durante l'eliminazione della dashboard");
+            }
+          },
+        },
+      });
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setActiveTab(id)}
+          className={`flex items-center gap-2 px-4 py-2 text-base font-semibold transition-all duration-200 focus:outline-none ${
+            isActive
+              ? "border-b-2 border-green-600 text-gray-800"
+              : "text-gray-500 border-b-2 border-transparent hover:text-gray-700"
+          }`}
+        >
+          {title}
+          
+          {isActive && (
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  renameTab(id);
+                }}
+                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200"
+                title="Rinomina"
+              >
+                <Pen className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTab(id);
+                }}
+                className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-all duration-200"
+                title="Elimina"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </button>
+      </div>
+    );
+}
 
   return (
     <GenericComponent
@@ -179,7 +301,7 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
           <Popup
             isOpen={showPopup}
             onClose={() => setShowPopup(false)}
-            title="Dettagli del Grafico"
+            title={"Dettagli del Grafico"}
             data-oid="67mp5as"
           >
             {popupContent}
@@ -187,7 +309,7 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
 
 
           {/* Contenitore unificato per Controlli e Tabs */}
-    <div className="flex justify-between items-start pl-4 pr-4">
+    <div className="flex justify-between items-start px-4 mb-4">
 
 
 
@@ -202,10 +324,10 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
           ))}
           <button
               className="bg-green-600 hover:bg-green-700 text-white rounded-full p-2 shadow-lg transition-colors duration-200"
-              title="Crea Dashboard"
+              title={"Crea Dashboard"}
               onClick={() => {
                   setShowPopup(true);
-                  setPopupContent(<DashboardForm/>);
+                  setPopupContent(<DashboardForm category={dashboardCategory}/>);
               }}
           >
               <svg
@@ -221,35 +343,7 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
       </div>
 
       {/* Controls Panel (posizionato a sinistra) */}
-    <div
-        className="w-fit bg-white rounded-xl shadow-sm border border-gray-200 p-4"
-        data-oid="w9b7-qc"
-    >
-        <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Anni di riferimento
-            </label>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {availableYears.map((year) => (
-                    <div key={year} className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id={`compare-${year}`}
-                            checked={selectedYears.includes(year)}
-                            onChange={() => handleYearToggle(year)}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <label
-                            htmlFor={`compare-${year}`}
-                            className="ml-2 text-sm text-gray-700"
-                        >
-                            {year}
-                        </label>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </div>
+    
 
   </div>
 
@@ -270,26 +364,14 @@ function DashboardSection({ initialTab, initialYears, filters, dashboardCategory
                       dashboardId={dashboard.id} 
                       selectedYears={selectedYears} 
                       refreshDashboard={refreshDashboard} 
-                      setRefreshDashboard={setRefreshDashboard} 
-                      filters={filters}
+                      setRefreshDashboard={setRefreshDashboard}
+                      showFilters={showFilters} 
                       data-oid="r-lbass" 
                     />
                   </div>
                 </div>
               ))
             }
-            {/* {cardsList.map((card, index) => (
-              <RecordCard
-                key={`${card.tableid}-${card.recordid}`}
-                tableid={card.tableid}
-                recordid={card.recordid}
-                mastertableid={card.mastertableid}
-                masterrecordid={card.masterrecordid}
-                index={index}
-                total={cardsList.length}
-                type={card.type}
-              />
-            ))} */}
           </div>
         </div>
       )}

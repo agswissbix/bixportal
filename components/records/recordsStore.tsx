@@ -77,6 +77,28 @@ interface RecordsStore {
 
     openSignatureDialog: boolean;
     setOpenSignatureDialog: (open: boolean) => void;
+
+    dashboardFilters: {
+    selectedYears: string[]
+    showTotalAverage: boolean
+    averageExcludeNoSharing: boolean
+    numericFilters: Array<{
+      field: string
+      label: string
+      operator: ">=" | "<="
+      value: number
+    }>
+    demographicFilters: Array<{
+        field: string
+        label: string
+        type: "number" | "select" | "toggle" | "distance"
+        operator?: ">=" | "<=" // Solo per number e distance
+        value: string | number | boolean
+        options?: string[] // Solo per select
+    }>
+    selectedClubs: string[]
+  }
+  setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) => void;
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -188,4 +210,15 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     timestamp: Date.now(),
     setTimestamp: (timestamp: number) => set({ timestamp }),
+
+    dashboardFilters: {
+    selectedYears: ["2022", "2023", "2024"],
+    showTotalAverage: true,
+    averageExcludeNoSharing: false,
+    numericFilters: [],
+    demographicFilters: [],
+    selectedClubs: [],
+  },
+  setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) =>
+    set({ dashboardFilters }),
 }));
