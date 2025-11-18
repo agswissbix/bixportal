@@ -249,7 +249,14 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
 
     return (
       <div className="flex items-center gap-2">
-        <button
+        <div
+          role="button" 
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setActiveTab(id);
+            }
+          }}
           onClick={() => setActiveTab(id)}
           className={`flex items-center gap-2 px-4 py-2 text-base font-semibold transition-all duration-200 focus:outline-none ${
             isActive
@@ -284,7 +291,7 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
               </button>
             </div>
           )}
-        </button>
+        </div>
       </div>
     );
 }
