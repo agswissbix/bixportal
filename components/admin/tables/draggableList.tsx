@@ -259,7 +259,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleGroupCollapse(key)}
-                        className="hover:bg-white"
+                        className=""
                       >
                         {group.groupCollapsed ? (
                           <ChevronRight className="h-4 w-4" />
@@ -355,6 +355,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                     {item.id}
                     {item.fieldtypeid && " | " + item.fieldtypeid}
                     {item.label && " | " + item.label}
+                    {item.fieldid && " | " + item.fieldid}
                   </div>
                 </div>
                 {(() => {

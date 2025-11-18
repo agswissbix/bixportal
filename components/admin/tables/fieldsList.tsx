@@ -270,7 +270,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
             <CardTitle className="flex flex-wrap justify-between items-center w-full">
               <span className="text-slate-800">Gestione Campi</span>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setShowAddField(true)} className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors">
+                <Button variant="outline" onClick={() => setShowAddField(true)} className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 hover:border-2 transition-colors">
                   <Plus className="h-4 w-4 mr-2" /> Aggiungi Campo
                 </Button>
                 <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors">
