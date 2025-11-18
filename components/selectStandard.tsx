@@ -72,17 +72,16 @@ export default function SelectStandard({
     if (isMulti) {
       console.log("DEBUG: initialValue for multi:", initialValue)
       if (!initialValue) return []
+
       const initialValues = Array.isArray(initialValue)
-        ? initialValue
-        .flatMap((val) => String(val).split(/[;,]/))
-        .map((v) => v.trim())
-        .filter(Boolean)
-        : String(initialValue)
-        .split(/[;,]/)
-        .map((v) => v.trim())
-        .filter(Boolean)
-      const set = new Set(initialValues)
-      return options.filter((option) => set.has(option.value))
+        ? initialValue.flatMap(val => String(val).split(/[;,]/))
+        : String(initialValue).split(/[;,]/)
+
+      const cleaned = initialValues.map(v => v.trim()).filter(Boolean)
+
+      return cleaned
+        .map(code => options.find(opt => opt.value === code))
+        .filter((opt): opt is OptionType => Boolean(opt))
     } else {
       return options.find((option) => option.value === String(initialValue)) || null
     }
