@@ -129,7 +129,7 @@ export default function InputDate({ initialValue, onChange }: PropsInterface) {
               month={month}
               onMonthChange={setMonth}
               locale={itCH}
-              initialFocus
+              endMonth={new Date(2100, 11,31)}
             />
           </PopoverContent>
         </Popover>
