@@ -152,8 +152,8 @@ export default function TableFilters({ tableid }: PropsInterface) {
         const filters = responseData.filters.map(filter => {
             const valuesArray = filterValues[filter.fieldid] || [];
             const conditionsArray = valuesArray.map((_, idx) =>
-                filterConditions[`${filter.fieldid}_${idx}`] || "Valore esatto"
-            );
+                filterConditions[`${filter.fieldid}_${idx}`] 
+            )|| "Valore esatto"
             
             let combinedValue;
             if (filter.type === "Numero" || filter.type === "Data") {

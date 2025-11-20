@@ -5,7 +5,7 @@ import { AppContext } from "@/context/appContext";
 import ChartsList from "@/components/chartsList";
 import Dashboard from "@/components/dashboard";
 import DashboardForm from "@/components/newDashboardForm";
-import { Pen, Trash2 } from "lucide-react";
+import { Copy, Pen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 
@@ -30,6 +30,7 @@ interface showFiltersTypes {
 interface Dashboards {
     id: string;
     name: string;
+    isOwner?: boolean
 }
 
 interface ResponseInterface {
@@ -58,14 +59,17 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
     isDev ? responseDataDEV : responseDataDEFAULT,
   );
 
+  const [refreshBe, setRefreshBe] = useState(0);
+
   // PAYLOAD (solo se non in sviluppo)
   const payloadApi = useMemo(() => {
     if (isDev) return null;
     return {
       apiRoute: "get_dashboard_data", // riferimento api per il backend
       dashboardCategory: dashboardCategory || "",
+      _refreshBe: refreshBe,
     };
-  }, []);
+  }, [refreshBe, dashboardCategory]);
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error } =
@@ -124,6 +128,135 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
     setDashboardKey(prevKey => prevKey + 1);
   };
 
+  const renameTab = async (id: string) => {
+      const newName = prompt("Nuovo nome:");
+      if (!newName) return;
+
+      const loadingToast = toast.loading("Rinominazione dashboard in corso...");
+
+      try {
+        const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+              apiRoute: "update_dashboard",
+              dashboard_name: newName,
+              dashboardid: id
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
+          )
+        
+          if (response.data.success) {
+            setResponseData(prev => ({
+              ...prev,
+              dashboards: prev.dashboards!.map(d =>
+                d.id === id ? { ...d, name: newName } : d
+              )
+            }));
+            toast.success("Dashboard rinominata con successo.", { id: loadingToast });
+          }
+      } catch (error) {
+        toast.error("Errore durante la rinominazione della dashboard", { id: loadingToast });
+      } finally {
+        setRefreshBe((v) => v + 1)
+      }
+
+    };
+
+    const duplicateTab = async (id: string) => {
+      const newName = prompt("Nuovo nome:", responseData.dashboards?.find(d => d.id === id)?.name + " Copy");
+      if (!newName) return;
+
+      const loadingToast = toast.loading("Duplicazione dashboard in corso...");
+
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "new_dashboard",
+            dashboard_name: newName,
+            category: dashboardCategory,
+            duplicate_from_id: id
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        )
+
+        if (response.data.success) {
+            setResponseData(prev => ({
+              ...prev,
+              dashboards: prev.dashboards!.map(d =>
+                d.id === id ? { ...d, name: newName } : d
+              )
+            }));
+            toast.success("Dashboard duplicata con successo.", { id: loadingToast } );
+          }
+      } catch (error) {
+        toast.error("Errore durante la duplicatazione della dashboard", { id: loadingToast } );
+      } finally {
+        setRefreshBe((v) => v + 1)
+      }
+
+    };
+
+    const deleteTab = async (id: string) => {
+      toast.warning("Vuoi davvero eliminare questa dashboard?", {
+        action: {
+          label: "Elimina",
+          onClick: async () => {
+
+            const loadingToast = toast.loading("Eliminazione dashboard in corso...");
+            try {
+              const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                  apiRoute: "update_dashboard",
+                  dashboardid: id
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                },
+              );
+
+              // La tua API restituisce: { message: "...", dashboardid: ... }
+              if (response.data.message === "Dashboard deleted successfully") {
+
+                toast.success("Dashboard eliminata con successo.", { id: loadingToast } );
+
+                setResponseData(prev => {
+                  const updated = {
+                    ...prev,
+                    dashboards: prev.dashboards!.filter(d => d.id !== id),
+                  };
+
+                  // Aggiorna tab attivo se necessario
+                  if (activeTab === id) {
+                    const remaining = updated.dashboards;
+                    setActiveTab(remaining.length ? remaining[0].id : "");
+                  }
+
+                  return updated;
+                });
+              }
+
+            } catch (error) {
+              toast.error("Errore durante l'eliminazione della dashboard", { id: loadingToast });
+            } finally {
+              setRefreshBe((v) => v + 1)
+            }
+          },
+        },
+      });
+    };
+
   const [showPopup, setShowPopup] = useState(false);
   const [popupContent, setPopupContent] = useState<React.ReactNode>(null);
 
@@ -162,90 +295,8 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
     );
   };
 
-  const TabButton = ({ id, title }: { id: string; title: string }) => {
+  const TabButton = ({ id, title, isOwner }: { id: string; title: string, isOwner?: boolean }) => {
     const isActive = activeTab === id;
-
-    const renameTab = async (id: string) => {
-      const newName = prompt("Nuovo nome:");
-      if (!newName) return;
-
-      try {
-        const response = await axiosInstanceClient.post(
-            "/postApi",
-            {
-              apiRoute: "update_dashboard",
-              dashboard_name: newName,
-              dashboardid: id
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            },
-          )
-        
-          if (response.data.success) {
-            setResponseData(prev => ({
-              ...prev,
-              dashboards: prev.dashboards!.map(d =>
-                d.id === id ? { ...d, name: newName } : d
-              )
-            }));
-            toast.success("Dashboard rinominata con successo.")
-          }
-      } catch (error) {
-        toast.error("Errore durante la rinominazione della dashboard")
-      }
-
-    };
-
-    const deleteTab = async (id: string) => {
-      toast.warning("Vuoi davvero eliminare questa dashboard?", {
-        action: {
-          label: "Elimina",
-          onClick: async () => {
-            try {
-              const response = await axiosInstanceClient.post(
-                "/postApi",
-                {
-                  apiRoute: "update_dashboard",
-                  dashboardid: id
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                  },
-                },
-              );
-
-              // La tua API restituisce: { message: "...", dashboardid: ... }
-              if (response.data.message === "Dashboard deleted successfully") {
-
-                toast.success("Dashboard eliminata con successo.");
-
-                setResponseData(prev => {
-                  const updated = {
-                    ...prev,
-                    dashboards: prev.dashboards!.filter(d => d.id !== id),
-                  };
-
-                  // Aggiorna tab attivo se necessario
-                  if (activeTab === id) {
-                    const remaining = updated.dashboards;
-                    setActiveTab(remaining.length ? remaining[0].id : "");
-                  }
-
-                  return updated;
-                });
-              }
-
-            } catch (error) {
-              toast.error("Errore durante l'eliminazione della dashboard");
-            }
-          },
-        },
-      });
-    };
 
     return (
       <div className="flex items-center gap-2">
@@ -258,22 +309,22 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
             }
           }}
           onClick={() => setActiveTab(id)}
-          className={`flex items-center gap-2 px-4 py-2 text-base font-semibold transition-all duration-200 focus:outline-none ${
+          className={`flex items-center gap-2 px-4 py-2 text-base font-semibold transition-all duration-200 focus:outline-none cursor-pointer ${
             isActive
               ? "border-b-2 border-green-600 text-gray-800"
               : "text-gray-500 border-b-2 border-transparent hover:text-gray-700"
           }`}
         >
-          {title}
-          
-          {isActive && (
+          <span>{title}</span>
+
+          {isActive && isOwner && (
             <div className="flex items-center gap-1 ml-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   renameTab(id);
                 }}
-                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200"
+                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 title="Rinomina"
               >
                 <Pen className="w-4 h-4" />
@@ -282,9 +333,20 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  duplicateTab(id);
+                }}
+                className="p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                title="Duplica"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   deleteTab(id);
                 }}
-                className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-all duration-200"
+                className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200"
                 title="Elimina"
               >
                 <Trash2 className="w-4 h-4" />
@@ -308,7 +370,7 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
           <Popup
             isOpen={showPopup}
             onClose={() => setShowPopup(false)}
-            title={"Dettagli del Grafico"}
+            title="Dettagli del Grafico"
             data-oid="67mp5as"
           >
             {popupContent}
@@ -326,6 +388,7 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
               <TabButton
                   id={dashboard.id}
                   title={dashboard.name}
+                  isOwner={dashboard.isOwner}
                   key={index}
               />
           ))}

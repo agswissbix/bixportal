@@ -248,6 +248,17 @@ export default function Sidebar({}: PropsInterface) {
                       </span>
                     </li>
                   </>
+                ) : activeServer === 'wegolf' ? (
+                  <li>
+                    <Link
+                      href="/bixadmin/utenti"
+                      target="_blank"
+                      className="flex items-center gap-3 cursor-pointer block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                    >
+                      <SquareArrowOutUpRight className="w-5 h-5"/>
+                      Users Settings
+                    </Link>
+                  </li>
                 ) : null}
 
                 {role === "admin" && (
