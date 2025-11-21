@@ -8,10 +8,12 @@ import '../globals.css';
 import { loginUserApi, getActiveServer } from '@/utils/auth';
 import LoadingComp from '@/components/loading';
 import { useRecordsStore } from '@/components/records/recordsStore';
+import { Eye, EyeClosed } from 'lucide-react';
 
 export default function Login() {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [show, setShow] = useState(false);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -121,9 +123,9 @@ export default function Login() {
                   </div>
                   */}
                 </div>
-                <div className="mt-2">
+                <div className="relative mt-2">
                   <input
-                    type="password"
+                    type={show ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -131,6 +133,14 @@ export default function Login() {
                     autoComplete="on"
                     className="block w-full rounded-md py-3 px-4 text-primary bg-transparent border shadow-sm ring-1 ring-inset ring-border placeholder:text-badge focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 transition-all duration-200"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShow(!show)}
+                    title={show ? "Nascondi password" : "Mostra password"}
+                    className="absolute inset-y-0 right-3 flex items-center text-primary hover:text-primary-hover transition-colors duration-200"
+                    >
+                    {show ? <EyeClosed size={20} /> : <Eye size={20} />}
+                  </button>
                 </div>
               </div>
 
