@@ -293,7 +293,7 @@ const startOfWeek = new Date(currentDate)
       return (
         eventStart.toDateString() === currentDate.toDateString() ||
         eventEnd.toDateString() === currentDate.toDateString() ||
-        (eventStart < currentDate && eventEnd > currentDate)
+        (eventStart <= currentDate && eventEnd >= currentDate)
       )
     })
 
@@ -387,7 +387,7 @@ const startOfWeek = new Date(currentDate)
                 })
                 .filter((event) => {
                   // Only show events that overlap with this hour slot
-                  return event.segmentStart < slotEnd && event.segmentEnd > slotStart
+                  return event.segmentStart <= slotEnd && event.segmentEnd >= slotStart
                 })
 
                 return (

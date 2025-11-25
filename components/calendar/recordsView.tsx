@@ -175,7 +175,7 @@ export default function RecordsView({
                     ...positionStyles,
                     backgroundColor: event.color || "#3b82f6",
                     opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1,
-                    cursor: resizingEvent ? ((resizingEvent as any).handle === "right" ? "ew-resize" : "ns-resize") : "pointer",
+                    cursor: resizingEvent ? (resizingEvent.handle === "right" ? "ew-resize" : "ns-resize") : "pointer",
                   }}
                 >
                   {(position === "first" || position === "single") && (
@@ -311,19 +311,19 @@ export default function RecordsView({
             // First day: from event start to 17:00
             startHour = eventStart.getHours()
             startMinute = eventStart.getMinutes()
-            endHour = WORK_HOUR_END
+            endHour = 17
             endMinute = 0
           } else if (isLastDay) {
             // Last day: from 8:00 to event end
-            startHour = WORK_HOUR_START
+            startHour = 8
             startMinute = 0
             endHour = eventEnd.getHours()
             endMinute = eventEnd.getMinutes()
           } else {
             // Intermediate day: from 8:00 to 17:00
-            startHour = WORK_HOUR_START
+            startHour = 8
             startMinute = 0
-            endHour = WORK_HOUR_END
+            endHour = 17
             endMinute = 0
           }
 
@@ -427,7 +427,7 @@ export default function RecordsView({
                               backgroundColor: event.color || "#3b82f6",
                               opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1,
                               cursor: resizingEvent
-                                ? (resizingEvent as any).handle === "right"
+                                ? resizingEvent.handle === "right"
                                   ? "ew-resize"
                                   : "ns-resize"
                                 : "pointer",
@@ -481,7 +481,7 @@ export default function RecordsView({
                               backgroundColor: segment.event.color || "#3b82f6",
                               opacity: draggedEvent?.recordid === segment.event.recordid ? 0.5 : 1,
                               cursor: resizingEvent
-                                ? (resizingEvent as any).handle === "right"
+                                ? resizingEvent.handle === "right"
                                   ? "ew-resize"
                                   : "ns-resize"
                                 : "pointer",
@@ -565,6 +565,66 @@ export default function RecordsView({
       return eventStart < currentDayEnd && eventEnd > currentDayStart
     })
 
+    const processedEvents: Array<{
+      event: any
+      segment: {
+        startHour: number
+        endHour: number
+        dayIndex: number
+        isFirst: boolean
+        isLast: boolean
+      }
+    }> = []
+
+    eventsForDay.forEach((event) => {
+      const eventStart = new Date(event.start)
+      const eventEnd = new Date(event.end || event.start)
+      const currentDayStart = new Date(currentDate)
+      currentDayStart.setHours(0, 0, 0, 0)
+      const currentDayEnd = new Date(currentDate)
+      currentDayEnd.setHours(23, 59, 59, 999)
+
+      const isMultiDay =
+        eventEnd.getDate() !== eventStart.getDate() ||
+        eventEnd.getMonth() !== eventStart.getMonth() ||
+        eventEnd.getFullYear() !== eventStart.getFullYear()
+
+      if (isMultiDay) {
+        const startOfDay = new Date(currentDate)
+        startOfDay.setHours(8, 0, 0, 0)
+        const endOfDay = new Date(currentDate)
+        endOfDay.setHours(17, 0, 0, 0)
+
+        const segmentStart = eventStart > currentDayStart ? eventStart : startOfDay
+        const segmentEnd = eventEnd < currentDayEnd ? eventEnd : endOfDay
+
+        const isFirst = eventStart >= currentDayStart && eventStart <= currentDayEnd
+        const isLast = eventEnd >= currentDayStart && eventEnd <= currentDayEnd
+
+        processedEvents.push({
+          event,
+          segment: {
+            startHour: segmentStart.getHours() + segmentStart.getMinutes() / 60,
+            endHour: segmentEnd.getHours() + segmentEnd.getMinutes() / 60,
+            dayIndex: 0,
+            isFirst,
+            isLast,
+          },
+        })
+      } else {
+        processedEvents.push({
+          event,
+          segment: {
+            startHour: eventStart.getHours() + eventStart.getMinutes() / 60,
+            endHour: eventEnd.getHours() + eventEnd.getMinutes() / 60,
+            dayIndex: 0,
+            isFirst: true,
+            isLast: true,
+          },
+        })
+      }
+    })
+
     return (
       <div className="flex h-full overflow-auto">
         <div className="w-20 text-right pr-2 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
@@ -582,51 +642,58 @@ export default function RecordsView({
               style={{ height: `${hourHeight}px` }}
               onDragOver={(e) => {
                 e.preventDefault()
-                e.currentTarget.classList.add("bg-blue-50")
+                e.currentTarget.classList.add("bg-blue-50", "dark:bg-blue-900/20")
               }}
-              onDragLeave={(e) => e.currentTarget.classList.remove("bg-blue-50")}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove("bg-blue-50", "dark:bg-blue-900/20")
+              }}
               onDrop={(e) => {
                 e.preventDefault()
                 handleDrop(currentDate, hour)
-                e.currentTarget.classList.remove("bg-blue-50")
+                e.currentTarget.classList.remove("bg-blue-50", "dark:bg-blue-900/20")
               }}
             ></div>
           ))}
-          <div className="absolute inset-0">
-            {eventsForDay.map((event, index) => {
-              const eventStart = new Date(event.start)
-              const eventEnd = new Date(event.end || event.start)
-              const dayStart = new Date(currentDate)
-              dayStart.setHours(0, 0, 0, 0)
+          <div className="absolute inset-0 pointer-events-none">
+            {processedEvents.map(({ event, segment }) => {
+              const topPosition = segment.startHour * hourHeight
+              const height = Math.max((segment.endHour - segment.startHour) * hourHeight, 40)
 
-              const minutesFromMidnight = (eventStart.getTime() - dayStart.getTime()) / (1000 * 60)
-              const durationMinutes = (eventEnd.getTime() - eventStart.getTime()) / (1000 * 60)
-
-              const topPosition = (minutesFromMidnight / 60) * hourHeight
-              const height = Math.max((durationMinutes / 60) * hourHeight, 40)
+              const borderRadiusStyle = {
+                borderTopLeftRadius: segment.isFirst ? "0.375rem" : "0",
+                borderTopRightRadius: segment.isFirst ? "0.375rem" : "0",
+                borderBottomLeftRadius: segment.isLast ? "0.375rem" : "0",
+                borderBottomRightRadius: segment.isLast ? "0.375rem" : "0",
+              }
 
               return (
                 <div
-                  key={`${event.recordid}-${event.start}-day`}
+                  key={`${event.recordid}-${event.start}-day-${segment.dayIndex}`}
                   draggable={!resizingEvent}
-                  onDragStart={() => !resizingEvent && handleDragStart(event)}
+                  onDragStart={(e) => {
+                    e.currentTarget.style.pointerEvents = "auto"
+                    !resizingEvent && handleDragStart(event)
+                  }}
                   onClick={() => handleRowClick?.("standard", event.recordid, tableid)}
-                  className="absolute group p-2 rounded text-xs cursor-pointer text-white shadow"
+                  className="absolute group p-2 text-xs cursor-pointer text-white shadow pointer-events-auto"
                   style={{
                     backgroundColor: event.color || "#3b82f6",
                     top: `${topPosition}px`,
                     height: `${height}px`,
                     left: "8px",
-                    width: "calc(80% - 8px)", // 80% width for better readability
+                    width: "calc(80% - 8px)",
                     opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1,
                     cursor: resizingEvent ? "ns-resize" : "pointer",
                     zIndex: 10,
+                    ...borderRadiusStyle,
                   }}
                 >
-                  <div
-                    className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t"
-                    onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
-                  />
+                  {segment.isFirst && (
+                    <div
+                      className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t pointer-events-auto"
+                      onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
+                    />
+                  )}
 
                   <p className="font-bold truncate">{event.title}</p>
                   <p className="text-xs">
@@ -636,10 +703,12 @@ export default function RecordsView({
                       : ""}
                   </p>
 
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b"
-                    onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
-                  />
+                  {segment.isLast && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b pointer-events-auto"
+                      onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
+                    />
+                  )}
                 </div>
               )
             })}

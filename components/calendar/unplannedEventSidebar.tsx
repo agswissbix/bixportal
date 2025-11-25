@@ -4,8 +4,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 interface UnplannedEvent {
   recordid: string
   title: string
-  description?: string
+  start: string
+  end: string
   color?: string
+  description?: string
+  resourceId?: string
 }
 
 interface UnplannedEventsSidebarProps {

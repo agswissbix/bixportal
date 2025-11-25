@@ -1,15 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useEffect, useMemo, useContext } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
-import { toLocalISOString, getEventUniqueId } from "@/components/calendar/calendarHelpers"
+import { toLocalISOString, getEventUniqueId } from "./calendarHelpers"
 import { UnplannedEventsSidebar } from "./unplannedEventSidebar"
-import { useRecordsStore } from "../records/recordsStore"
-import { AppContext } from "@/context/appContext"
-import { toast } from "sonner"
-import { RefreshCw } from "lucide-react"
 
 export interface CalendarEvent {
   recordid: string
@@ -24,8 +20,11 @@ export interface CalendarEvent {
 export interface UnplannedEvent {
   recordid: string
   title: string
-  description?: string
+  start: string
+  end: string
   color?: string
+  description?: string
+  resourceId?: string
 }
 
 export interface Resource {
@@ -48,6 +47,7 @@ export interface DraggedEvent extends CalendarEvent {
 export interface ResizingEvent extends CalendarEvent {
   originalStart: Date
   originalEnd: Date
+  handle: "top" | "bottom" | "right"
 }
 
 export interface CalendarBaseProps {
@@ -56,6 +56,7 @@ export interface CalendarBaseProps {
   showUnplannedEvents?: boolean
   viewType: "matrix" | "records"
   children: (props: CalendarChildProps) => React.ReactNode
+  handleRowClick?: (type: string, recordid: string, tableid: string) => void
 }
 
 export interface CalendarChildProps {
@@ -76,6 +77,7 @@ export interface CalendarChildProps {
   ) => void
   saveEvent: (eventid: string, startdate: Date, enddate: Date, resourceid?: string) => Promise<void>
   unscheduleEvent: (eventid: string) => Promise<void>
+  handleRowClick?: (type: string, recordid: string, tableid: string) => void
   tableid: string
 }
 
@@ -85,23 +87,25 @@ export function CalendarBase({
   showUnplannedEvents = false,
   viewType,
   children,
+  handleRowClick,
 }: CalendarBaseProps) {
-  const isDev = false
+  const isDev = process.env.NODE_ENV === "development"
 
-  const { refreshTable } = useRecordsStore();
-  const { user } = useContext(AppContext);
-  const [isSyncing, setIsSyncing] = useState(false);
+  // Fetch data
+  const { response, loading, error } = useApi<CalendarResponseInterface>({
+    apiRoute,
+    tableid,
+  })
+
   // API payload
-  const payload = useMemo(() => {
-    if (isDev) return null;
-		return { 
-			apiRoute,
-			tableid,
-      _refreshTick: refreshTable
-		};
-  }, [apiRoute, tableid, refreshTable])
-  
-	const { response, loading, error } = !isDev && payload ? useApi<CalendarResponseInterface>(payload) : { response: null, loading: false, error: null };
+  const payload = useMemo(
+    () => ({
+      apiRoute,
+      tableid,
+    }),
+    [apiRoute, tableid],
+  )
+
   // State management
   const [responseData, setResponseData] = useState<CalendarResponseInterface>({
     events: [],
@@ -114,15 +118,69 @@ export function CalendarBase({
   const [resizeStartY, setResizeStartY] = useState(0)
   const [resizeStartX, setResizeStartX] = useState(0)
 
-  // Update responseData when API response changes
-  useEffect(() => {
-    if (!isDev && response) {
-      setResponseData(response)
+  // Ref to track the current state of the resizing event
+  const currentResizedEventRef = useRef<{ start: string; end: string } | null>(null)
 
-      console.log("res:", responseData)
+  // Save event to backend
+  const saveEvent = useCallback(
+    async (eventid: string, startdate: Date, enddate: Date, resourceid?: string) => {
+      try {
+        await axiosInstanceClient.post("/postApi", {
+          apiRoute: "matrixcalendar_save_record",
+          tableid,
+          event: {
+            id: eventid,
+            startdate: toLocalISOString(startdate),
+            enddate: toLocalISOString(enddate),
+            ...(resourceid && { resourceid }),
+          },
+        })
+      } catch (error) {
+        console.error("[v0] Error saving event:", error)
+      }
+    },
+    [tableid],
+  )
 
-    }
-  }, [response])
+  // Unschedule event (move back to unplanned)
+  const unscheduleEvent = useCallback(
+    async (eventid: string) => {
+      const event = responseData.events.find((ev) => ev.recordid === eventid)
+      if (!event) return
+
+      try {
+        await axiosInstanceClient.post("/postApi", {
+          apiRoute: "matrixcalendar_save_record",
+          tableid,
+          event: {
+            id: eventid,
+            startdate: null,
+            enddate: null,
+          },
+        })
+
+        setResponseData((prev) => ({
+          ...prev,
+          events: prev.events.filter((ev) => ev.recordid !== eventid),
+          unplannedEvents: [
+            ...(prev.unplannedEvents || []),
+            {
+              recordid: event.recordid,
+              title: event.title,
+              description: event.description,
+              color: event.color,
+              start: event.start,
+              end: event.end,
+              resourceId: event.resourceId,
+            },
+          ],
+        }))
+      } catch (error) {
+        console.error("[v0] Error unscheduling event:", error)
+      }
+    },
+    [responseData.events, tableid],
+  )
 
   // Drag start handler
   const handleDragStart = useCallback((event: CalendarEvent) => {
@@ -140,6 +198,8 @@ export function CalendarBase({
 
       const isAlreadyPlanned = responseData.events.some((ev) => ev.recordid === draggedEvent.recordid)
 
+
+      console.log("handleDrop: ", draggedEvent.originalStart)
       // Calculate new start and end times
       const newStart = new Date(dropDate.getFullYear(), dropDate.getMonth(), dropDate.getDate())
       newStart.setHours(
@@ -198,6 +258,7 @@ export function CalendarBase({
         ...event,
         originalStart: new Date(event.start),
         originalEnd: new Date(event.end),
+        handle,
       })
       setResizeStartY(clientY)
       setResizeStartX(clientX)
@@ -222,24 +283,26 @@ export function CalendarBase({
 
           if (eventId !== resizingId) return event
 
+          let updatedEvent = event
+
           // Handle vertical resize (hours)
           if (Math.abs(deltaY) > 10) {
             const pixelsPerHour = 60
             const hoursDelta = Math.round(deltaY / pixelsPerHour)
 
-            if (resizingEvent.originalStart.getTime() < resizingEvent.originalEnd.getTime()) {
+            if (resizingEvent.handle === "bottom") {
               // Resize bottom (end time)
               const newEnd = new Date(resizingEvent.originalEnd)
               newEnd.setHours(newEnd.getHours() + hoursDelta)
               if (newEnd > new Date(event.start)) {
-                return { ...event, end: toLocalISOString(newEnd) }
+                updatedEvent = { ...event, end: toLocalISOString(newEnd) }
               }
-            } else {
+            } else if (resizingEvent.handle === "top") {
               // Resize top (start time)
               const newStart = new Date(resizingEvent.originalStart)
               newStart.setHours(newStart.getHours() + hoursDelta)
               if (newStart < new Date(event.end)) {
-                return { ...event, start: toLocalISOString(newStart) }
+                updatedEvent = { ...event, start: toLocalISOString(newStart) }
               }
             }
           }
@@ -253,15 +316,22 @@ export function CalendarBase({
             newEnd.setDate(newEnd.getDate() + daysDelta)
 
             const newEndDay = new Date(newEnd.getFullYear(), newEnd.getMonth(), newEnd.getDate())
-            const startDay = new Date(event.start)
+            const startDay = new Date(updatedEvent.start)
             startDay.setHours(0, 0, 0, 0)
 
             if (newEndDay >= startDay) {
-              return { ...event, end: toLocalISOString(newEnd) }
+              updatedEvent = { ...updatedEvent, end: toLocalISOString(newEnd) }
             }
           }
 
-          return event
+          if (updatedEvent !== event) {
+            currentResizedEventRef.current = {
+              start: updatedEvent.start,
+              end: updatedEvent.end,
+            }
+          }
+
+          return updatedEvent
         })
 
         return { ...prev, events: updatedEvents }
@@ -270,17 +340,14 @@ export function CalendarBase({
 
     const handleMouseUp = () => {
       if (resizingEvent) {
-        const updatedEvent = responseData.events.find(
-          (ev) =>
-            getEventUniqueId(ev.recordid, ev.start) === getEventUniqueId(resizingEvent.recordid, resizingEvent.start),
-        )
-        if (updatedEvent) {
+        if (currentResizedEventRef.current) {
           saveEvent(
-            updatedEvent.recordid,
-            new Date(updatedEvent.start),
-            new Date(updatedEvent.end),
-            updatedEvent.resourceId,
+            resizingEvent.recordid,
+            new Date(currentResizedEventRef.current.start),
+            new Date(currentResizedEventRef.current.end),
+            resizingEvent.resourceId,
           )
+          currentResizedEventRef.current = null
         }
       }
       setResizingEvent(null)
@@ -295,90 +362,14 @@ export function CalendarBase({
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseup", handleMouseUp)
     }
-  }, [resizingEvent, resizeStartY, resizeStartX, responseData.events])
+  }, [resizingEvent, resizeStartY, resizeStartX])
 
-  // Save event to backend
-  const saveEvent = useCallback(
-    async (eventid: string, startdate: Date, enddate: Date, resourceid?: string) => {
-      try {
-        await axiosInstanceClient.post("/postApi", {
-          apiRoute: "matrixcalendar_save_record",
-          tableid,
-          event: {
-            id: eventid,
-            startdate: toLocalISOString(startdate),
-            enddate: toLocalISOString(enddate),
-            ...(resourceid && { resourceid }),
-          },
-        })
-      } catch (error) {
-        console.error("[v0] Error saving event:", error)
-      }
-    },
-    [tableid],
-  )
-
-  // Unschedule event (move back to unplanned)
-  const unscheduleEvent = useCallback(
-    async (eventid: string) => {
-      const event = responseData.events.find((ev) => ev.recordid === eventid)
-      if (!event) return
-
-      try {
-        await axiosInstanceClient.post("/postApi", {
-          apiRoute: "matrixcalendar_save_record",
-          tableid,
-          event: {
-            id: eventid,
-            startdate: null,
-            enddate: null,
-          },
-        })
-
-        setResponseData((prev) => ({
-          ...prev,
-          events: prev.events.filter((ev) => ev.recordid !== eventid),
-          unplannedEvents: [
-            ...(prev.unplannedEvents || []),
-            {
-              recordid: event.recordid,
-              title: event.title,
-              description: event.description,
-              color: event.color,
-            },
-          ],
-        }))
-      } catch (error) {
-        console.error("[v0] Error unscheduling event:", error)
-      }
-    },
-    [responseData.events, tableid],
-  )
-
-  const handleSync = async () => {
-    setIsSyncing(true);
-    toast.info("Sincronizzazione con il calendario di Outlook in corso...");
-    try {
-      var response = await axiosInstanceClient.post("/postApi", {
-          apiRoute: "sync_graph_calendar",
-          user: user,
-      });
-      if (response.status === 200) {
-        toast.success("Sincronizzazione completata con successo!");
-      } else {
-        console.error(
-            "Errore durante la sincronizzazione del calendario",
-            error
-        );
-      }
-    } catch (error) {
-      console.error("Errore durante la sincronizzazione del calendario", error);
-      toast.error("Errore durante la sincronizzazione del calendario.");
-    } finally {
-      setIsSyncing(false);
+  // Update responseData when API response changes
+  useEffect(() => {
+    if (response) {
+      setResponseData(response)
     }
-  };
-
+  }, [response])
 
   const childProps: CalendarChildProps = {
     data: responseData,
@@ -393,28 +384,18 @@ export function CalendarBase({
     handleResizeStart,
     saveEvent,
     unscheduleEvent,
+    handleRowClick,
     tableid,
   }
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 flex flex-col w-5/6">
-        <div className="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-            <button
-                onClick={handleSync}
-                disabled={isSyncing}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium border border-primary/20 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>Sincronizza Calendario</span>
-            </button>
-        </div>
-
-        <div className="flex-1 overflow-hidden">{children(childProps)}</div>
-      </div>
+      <div className="flex-1">{children(childProps)}</div>
       {showUnplannedEvents && (
         <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} />
       )}
     </div>
   )
 }
+
+export default CalendarBase
