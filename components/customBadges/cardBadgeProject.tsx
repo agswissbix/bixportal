@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { UserCircle2, ChevronDown, Check, Clock, AlertTriangle } from 'lucide-react'; // Aggiunto Clock per le ore
+import { useRecordsStore } from '../records/recordsStore';
 
 const isDev = false; // Imposta a true per usare i dati di sviluppo
 
@@ -28,7 +29,7 @@ interface ResponseInterface {
 
 export default function CardBadgeProject({ tableid, recordid }: PropsInterface) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user } = useContext(AppContext);
+  const { refreshTable } = useRecordsStore()
 
   // Dati di default
   const responseDataDEFAULT: ResponseInterface = {
@@ -70,8 +71,9 @@ export default function CardBadgeProject({ tableid, recordid }: PropsInterface) 
       apiRoute: 'get_record_badge_swissbix_project',
       tableid: tableid,
       recordid: recordid,
+      _refreshTick: refreshTable
     };
-  }, [tableid, recordid]);
+  }, [tableid, recordid, refreshTable]);
 
   // Chiamata API
   const { response, loading, error } =

@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { UserCircle2, ChevronDown, Check } from 'lucide-react';
+import { useRecordsStore } from '../records/recordsStore';
 
 const isDev = false;
 
@@ -26,7 +27,7 @@ interface ResponseInterface {
 
 export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user } = useContext(AppContext);
+  const { refreshTable } = useRecordsStore()
 
   const responseDataDEFAULT: ResponseInterface = {
     badgeItems: {
@@ -62,8 +63,9 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
       apiRoute: 'get_record_badge_swissbix_deals',
       tableid: tableid,
       recordid: recordid,
+      _refreshTick: refreshTable
     };
-  }, [tableid, recordid]);
+  }, [tableid, recordid, refreshTable]);
 
   const { response, loading, error } =
     !isDev && payload
@@ -152,13 +154,13 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
                 <div>
                   <div className="text-sm text-gray-500">Importo</div>
                   <div className="text-xl font-bold text-gray-800">
-                    € {dealAmount.toLocaleString('it-CH')}
+                    CHF {dealAmount.toLocaleString('it-CH')}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-gray-500">Margine Lordo</div>
                   <div className="text-xl font-bold text-accent">
-                    € {dealMargin.toLocaleString('it-CH')}
+                    CHF {dealMargin.toLocaleString('it-CH')}
                   </div>
                 </div>
               </div>

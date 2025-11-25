@@ -45,7 +45,7 @@ interface ResponseInterface {
 
 export default function CardBadgeTimesheet({ tableid, recordid }: PropsInterface) {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const { handleRowClick } = useRecordsStore()
+  const { handleRowClick, refreshTable } = useRecordsStore()
 
   const responseDataDEFAULT: ResponseInterface = {
     badgeItems: {
@@ -88,8 +88,9 @@ export default function CardBadgeTimesheet({ tableid, recordid }: PropsInterface
       apiRoute: "get_record_badge_swissbix_timesheet",
       tableid: tableid,
       recordid: recordid,
+      _refreshTick: refreshTable
     }
-  }, [tableid, recordid])
+  }, [tableid, recordid, refreshTable])
 
   const { response, loading, error } = useApi<ResponseInterface>(payload)
 

@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { Crown, ShieldX, OctagonAlert, BadgeCheck, BadgeMinus, TrendingUp, Cog, DollarSign, Clock, Target, Phone, Database, Lock, ChevronDown  } from 'lucide-react';
+import { useRecordsStore } from '../records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -32,7 +33,7 @@ interface ResponseInterface {
 
 export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user } = useContext(AppContext);
+  const { refreshTable } = useRecordsStore()
 
   const responseDataDEFAULT: ResponseInterface = {
     badgeItems: {
@@ -78,8 +79,9 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
       apiRoute: 'get_record_badge_swissbix_company',
       tableid: tableid,
       recordid: recordid,
+      _refreshTick: refreshTable
     };
-  }, [tableid, recordid]);
+  }, [tableid, recordid, refreshTable]);
 
   const { response, loading, error } =
     !isDev && payload

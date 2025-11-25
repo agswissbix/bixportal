@@ -3,6 +3,7 @@ import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import ImagePreview from '../imagePreview';
+import { useRecordsStore } from '../records/recordsStore';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -22,7 +23,7 @@ interface ResponseInterface {
 }
 
 export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) {
-  const { user } = useContext(AppContext);
+  const { refreshTable } = useRecordsStore()
 
   const responseDataDEFAULT: ResponseInterface = {
     badgeItems: {},
@@ -46,8 +47,9 @@ export default function CardBadgeStabile({ tableid, recordid }: PropsInterface) 
       apiRoute: 'get_record_badge',
       tableid: tableid,
       recordid: recordid,
+      _refreshTick: refreshTable
     };
-  }, [tableid, recordid]);
+  }, [tableid, recordid, refreshTable]);
 
   const { response, loading, error } =
     !isDev && payload
