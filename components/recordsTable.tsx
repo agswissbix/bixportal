@@ -572,9 +572,11 @@ export default function RecordsTable({
                       e.preventDefault();
                       const container = e.currentTarget.closest(".overflow-auto"); // trova contenitore scrollabile
                       const rect = container?.getBoundingClientRect();
+                      const scrollX = container?.scrollLeft || 0;
+                      const scrollY = container?.scrollTop || 0;
 
-                      const x = e.clientX - (rect?.left || 0);
-                      const y = e.clientY - (rect?.top || 0);
+                      const x = e.clientX - (rect?.left || 0) + scrollX;
+                      const y = e.clientY - (rect?.top || 0) + scrollY;
 
                       setContextMenu({
                         x,
