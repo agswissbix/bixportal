@@ -16,6 +16,7 @@ import CardsList from './mobile/cardList';
 import { CalendarBase, CalendarChildProps } from './calendar/calendarBase';
 import RecordsCalendar from './recordsCalendar';
 import MatrixView from './calendar/matrixView';
+import UnifiedCalendar from './calendar/unifiedCalendar';
 
 const isDev = false;
 
@@ -101,13 +102,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
               <RecordsKanban tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'Calendario' && (
-              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={true} >
-                {(calendarProps : CalendarChildProps) => (
-                  <RecordsView 
-                    {...calendarProps}
-                  />
-                )}
-              </CalendarBase>
+              <UnifiedCalendar tableid={tableid} showUnplannedEvents={true} defaultView="calendar" />
               // <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
             )}
             {activeTab === 'MatrixCalendar' && (

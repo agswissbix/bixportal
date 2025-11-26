@@ -1,6 +1,5 @@
 "use client"
 import { useState } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 import type { CalendarChildProps } from "./calendarBase"
 import {
   getEventDurationHours,
@@ -8,17 +7,16 @@ import {
   isMultiDayEvent,
   getEventPositionInSpan,
   getEventPositionStyles,
-} from "@/components/calendar/calendarHelpers"
+} from "./calendarHelpers"
 import React from "react"
 import { useRecordsStore } from "../records/recordsStore"
+import CalendarHeader from "./calendarHeader"
 import GenericComponent from "../genericComponent"
 
 interface RecordsViewProps extends CalendarChildProps {
-  initialView?: "day" | "week" | "month"
+  calendarType: "planner" | "calendar"
+  onCalendarTypeChange: (type: "planner" | "calendar") => void
 }
-
-const WORK_HOUR_START = 8
-const WORK_HOUR_END = 17
 
 export default function RecordsView({
   data,
@@ -30,11 +28,19 @@ export default function RecordsView({
   handleDrop,
   handleResizeStart,
   tableid,
-  initialView = "month",
+  calendarType,
+  onCalendarTypeChange,
+  requestEventsForTable,
 }: RecordsViewProps) {
-  const [viewMode, setViewMode] = useState<"day" | "week" | "month">(initialView)
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("month")
   const [currentDate, setCurrentDate] = useState(new Date())
   const { handleRowClick } = useRecordsStore()
+  const [selectedExtraTable, setSelectedExtraTable] = useState<string>("")
+
+  const handleExtraTableChange = (tableId: string) => {
+    setSelectedExtraTable(tableId)
+    requestEventsForTable(tableId)
+  }
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -167,19 +173,26 @@ export default function RecordsView({
               return (
                 <div
                   key={`${event.recordid}-${event.start}-${cellDate.toISOString()}`}
-                  draggable={!resizingEvent}
-                  onDragStart={() => !resizingEvent && handleDragStart(event)}
-                  onClick={() => handleRowClick?.("standard", event.recordid, tableid)}
+                  draggable={!resizingEvent && !event.disabled}
+                  onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+                  onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
                   className="relative group p-1.5 text-xs cursor-pointer select-none hover:opacity-80 transition-opacity"
                   style={{
                     height: `${eventHeight}px`,
                     ...positionStyles,
                     backgroundColor: event.color || "#3b82f6",
-                    opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1,
-                    cursor: resizingEvent ? (resizingEvent.handle === "right" ? "ew-resize" : "ns-resize") : "pointer",
+                    opacity: draggedEvent?.recordid === event.recordid ? 0.5 : event.disabled ? 0.8 : 1,
+                    cursor: event.disabled
+                      ? "not-allowed"
+                      : resizingEvent
+                        ? resizingEvent.handle === "right"
+                          ? "ew-resize"
+                          : "ns-resize"
+                        : "pointer",
+                    pointerEvents: event.disabled ? "none" : "auto",
                   }}
                 >
-                  {(position === "first" || position === "single") && (
+                  {!event.disabled && (position === "first" || position === "single") && (
                     <div
                       className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30"
                       style={{
@@ -213,7 +226,7 @@ export default function RecordsView({
                     )}
                   </p>
 
-                  {(position === "last" || position === "single") && (
+                  {!event.disabled && (position === "last" || position === "single") && (
                     <>
                       <div
                         className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30"
@@ -419,26 +432,31 @@ export default function RecordsView({
                         return (
                           <div
                             key={`${event.recordid}-${event.start}-${day.toISOString()}-${hour}`}
-                            draggable={!resizingEvent}
-                            onDragStart={() => !resizingEvent && handleDragStart(event)}
-                            onClick={() => handleRowClick?.("standard", event.recordid, tableid)}
+                            draggable={!resizingEvent && !event.disabled}
+                            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+                            onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
                             className="absolute left-1 right-1 group p-1.5 text-xs cursor-pointer select-none hover:opacity-80 transition-opacity rounded"
                             style={{
                               height: `${eventHeight}px`,
                               backgroundColor: event.color || "#3b82f6",
-                              opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1,
-                              cursor: resizingEvent
-                                ? resizingEvent.handle === "right"
-                                  ? "ew-resize"
-                                  : "ns-resize"
-                                : "pointer",
+                              opacity: draggedEvent?.recordid === event.recordid ? 0.5 : event.disabled ? 0.8 : 1,
+                              cursor: event.disabled
+                                ? "not-allowed"
+                                : resizingEvent
+                                  ? resizingEvent.handle === "right"
+                                    ? "ew-resize"
+                                    : "ns-resize"
+                                  : "pointer",
                               zIndex: 10,
+                              pointerEvents: event.disabled ? "none" : "auto",
                             }}
                           >
-                            <div
-                              className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t"
-                              onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
-                            />
+                            {!event.disabled && (
+                              <div
+                                className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t"
+                                onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
+                              />
+                            )}
 
                             <p className="font-bold truncate text-white">{event.title}</p>
                             <p className="text-xs text-white">
@@ -447,10 +465,12 @@ export default function RecordsView({
                                 ` - ${new Date(event.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
                             </p>
 
-                            <div
-                              className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b"
-                              onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
-                            />
+                            {!event.disabled && (
+                              <div
+                                className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b"
+                                onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
+                              />
+                            )}
                           </div>
                         )
                       })}
@@ -471,25 +491,37 @@ export default function RecordsView({
                         return (
                           <div
                             key={`${segment.event.recordid}-${segment.event.start}-${segment.day.toISOString()}-segment`}
-                            draggable={!resizingEvent}
-                            onDragStart={() => !resizingEvent && handleDragStart(segment.event)}
-                            onClick={() => handleRowClick?.("standard", segment.event.recordid, tableid)}
+                            draggable={!resizingEvent && !segment.event.disabled}
+                            onDragStart={() =>
+                              !resizingEvent && !segment.event.disabled && handleDragStart(segment.event)
+                            }
+                            onClick={() =>
+                              !segment.event.disabled && handleRowClick?.("standard", segment.event.recordid, tableid)
+                            }
                             className="absolute left-1 right-1 group p-1.5 text-xs cursor-pointer select-none hover:opacity-80 transition-opacity"
                             style={{
                               top: `${topPosition}px`,
                               height: `${height}px`,
                               ...positionStyles,
                               backgroundColor: segment.event.color || "#3b82f6",
-                              opacity: draggedEvent?.recordid === segment.event.recordid ? 0.5 : 1,
-                              cursor: resizingEvent
-                                ? resizingEvent.handle === "right"
-                                  ? "ew-resize"
-                                  : "ns-resize"
-                                : "pointer",
+                              opacity:
+                                draggedEvent?.recordid === segment.event.recordid
+                                  ? 0.5
+                                  : segment.event.disabled
+                                    ? 0.8
+                                    : 1,
+                              cursor: segment.event.disabled
+                                ? "not-allowed"
+                                : resizingEvent
+                                  ? resizingEvent.handle === "right"
+                                    ? "ew-resize"
+                                    : "ns-resize"
+                                  : "pointer",
                               zIndex: 10,
+                              pointerEvents: segment.event.disabled ? "none" : "auto",
                             }}
                           >
-                            {(position === "first" || position === "single") && (
+                            {!segment.event.disabled && (position === "first" || position === "single") && (
                               <div
                                 className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30"
                                 style={{
@@ -513,7 +545,7 @@ export default function RecordsView({
                               {segment.endMinute.toString().padStart(2, "0")}
                             </p>
 
-                            {(position === "last" || position === "single") && (
+                            {!segment.event.disabled && (position === "last" || position === "single") && (
                               <>
                                 <div
                                   className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30"
@@ -670,12 +702,14 @@ export default function RecordsView({
               return (
                 <div
                   key={`${event.recordid}-${event.start}-day-${segment.dayIndex}`}
-                  draggable={!resizingEvent}
+                  draggable={!resizingEvent && !event.disabled}
                   onDragStart={(e) => {
-                    e.currentTarget.style.pointerEvents = "auto"
-                    !resizingEvent && handleDragStart(event)
+                    if (!event.disabled) {
+                      e.currentTarget.style.pointerEvents = "auto"
+                      !resizingEvent && handleDragStart(event)
+                    }
                   }}
-                  onClick={() => handleRowClick?.("standard", event.recordid, tableid)}
+                  onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
                   className="absolute group p-2 text-xs cursor-pointer text-white shadow pointer-events-auto"
                   style={{
                     backgroundColor: event.color || "#3b82f6",
@@ -683,13 +717,14 @@ export default function RecordsView({
                     height: `${height}px`,
                     left: "8px",
                     width: "calc(80% - 8px)",
-                    opacity: draggedEvent?.recordid === event.recordid ? 0.5 : 1,
-                    cursor: resizingEvent ? "ns-resize" : "pointer",
+                    opacity: draggedEvent?.recordid === event.recordid ? 0.5 : event.disabled ? 0.8 : 1,
+                    cursor: event.disabled ? "not-allowed" : resizingEvent ? "ns-resize" : "pointer",
                     zIndex: 10,
                     ...borderRadiusStyle,
+                    pointerEvents: event.disabled ? "none" : "auto",
                   }}
                 >
-                  {segment.isFirst && (
+                  {!event.disabled && segment.isFirst && (
                     <div
                       className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t pointer-events-auto"
                       onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
@@ -704,7 +739,7 @@ export default function RecordsView({
                       : ""}
                   </p>
 
-                  {segment.isLast && (
+                  {!event.disabled && segment.isLast && (
                     <div
                       className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b pointer-events-auto"
                       onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
@@ -720,59 +755,33 @@ export default function RecordsView({
   }
 
   return (
-    <GenericComponent response={data} loading={loading} error={error}>
+    <GenericComponent loading={loading} error={error}>
       {(response) => (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-      <header className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-x-2">
-          <button
-            onClick={handleToday}
-            className="px-4 py-1.5 text-sm font-medium border border-primary/20 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Oggi
-          </button>
-          <div className="flex items-center">
-            <button onClick={handlePrev} className="p-1.5 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button onClick={handleNext} className="p-1.5 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors">
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-          <h2 className="text-xl font-semibold ml-2 capitalize">{renderHeaderTitle()}</h2>
-        </div>
-        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-md">
-          <button
-            onClick={() => setViewMode("month")}
-            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground shadow" : "hover:bg-accent hover:text-accent-foreground"}`}
-          >
-            Mese
-          </button>
-          <button
-            onClick={() => setViewMode("week")}
-            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground shadow" : "hover:bg-accent hover:text-accent-foreground"}`}
-          >
-            Settimana
-          </button>
-          <button
-            onClick={() => setViewMode("day")}
-            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "day" ? "bg-primary text-primary-foreground shadow" : "hover:bg-accent hover:text-accent-foreground"}`}
-          >
-            Giorno
-          </button>
-        </div>
-      </header>
+      <div className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+        <CalendarHeader
+          title={renderHeaderTitle()}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onPrevious={handlePrev}
+          onNext={handleNext}
+          onToday={handleToday}
+          calendarType={calendarType}
+          onCalendarTypeChange={onCalendarTypeChange}
+          extraEventTables={data.extraEventTables}
+          selectedExtraTable={selectedExtraTable}
+          onExtraTableChange={handleExtraTableChange}
+        />
 
-      <main className="flex-grow overflow-auto">
-        {viewMode === "month" && renderMonthView()}
-        {viewMode === "week" && renderWeekView()}
-        {viewMode === "day" && renderDayView()}
-      </main>
+        <main className="flex-grow overflow-auto">
+          {viewMode === "month" && renderMonthView()}
+          {viewMode === "week" && renderWeekView()}
+          {viewMode === "day" && renderDayView()}
+        </main>
 
-      <footer className="text-right p-2 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
-        <span className="font-medium">Eventi totali:</span> {data.events.length}
-      </footer>
-    </div>
+        <footer className="text-right p-2 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+          <span className="font-medium">Eventi totali:</span> {data.events.length}
+        </footer>
+      </div>
       )}
     </GenericComponent>
   )

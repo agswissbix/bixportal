@@ -15,6 +15,7 @@ export interface CalendarEvent {
   color?: string
   description?: string
   resourceId?: string
+  disabled?: boolean
 }
 
 export interface UnplannedEvent {
@@ -25,6 +26,7 @@ export interface UnplannedEvent {
   color?: string
   description?: string
   resourceId?: string
+  disabled?: boolean
 }
 
 export interface Resource {
@@ -37,6 +39,7 @@ export interface CalendarResponseInterface {
   events: CalendarEvent[]
   unplannedEvents?: UnplannedEvent[]
   resources?: Resource[]
+  extraEventTables?: Array<{ id: string; name: string }>
 }
 
 export interface DraggedEvent extends CalendarEvent {
@@ -79,6 +82,7 @@ export interface CalendarChildProps {
   unscheduleEvent: (eventid: string) => Promise<void>
   handleRowClick?: (type: string, recordid: string, tableid: string) => void
   tableid: string
+  requestEventsForTable: (tableId: string) => Promise<void>
 }
 
 export function CalendarBase({
@@ -91,21 +95,6 @@ export function CalendarBase({
 }: CalendarBaseProps) {
   const isDev = process.env.NODE_ENV === "development"
 
-  // Fetch data
-  const { response, loading, error } = useApi<CalendarResponseInterface>({
-    apiRoute,
-    tableid,
-  })
-
-  // API payload
-  const payload = useMemo(
-    () => ({
-      apiRoute,
-      tableid,
-    }),
-    [apiRoute, tableid],
-  )
-
   // State management
   const [responseData, setResponseData] = useState<CalendarResponseInterface>({
     events: [],
@@ -117,6 +106,23 @@ export function CalendarBase({
   const [resizingEvent, setResizingEvent] = useState<ResizingEvent | null>(null)
   const [resizeStartY, setResizeStartY] = useState(0)
   const [resizeStartX, setResizeStartX] = useState(0)
+
+  const [selectedExtraTable, setSelectedExtraTable] = useState<string>("")
+
+  const { response, loading, error } = useApi<CalendarResponseInterface>({
+    apiRoute,
+    tableid,
+    ...(selectedExtraTable && { requestEventsForTable: selectedExtraTable }),
+  })
+
+  // API payload
+  const payload = useMemo(
+    () => ({
+      apiRoute,
+      tableid,
+    }),
+    [apiRoute, tableid],
+  )
 
   // Ref to track the current state of the resizing event
   const currentResizedEventRef = useRef<{ start: string; end: string } | null>(null)
@@ -371,6 +377,11 @@ export function CalendarBase({
     }
   }, [response])
 
+  const requestEventsForTable = useCallback(async (tableId: string) => {
+    setSelectedExtraTable(tableId)
+    // The useApi hook will automatically refetch with the new parameter
+  }, [])
+
   const childProps: CalendarChildProps = {
     data: responseData,
     loading,
@@ -386,6 +397,7 @@ export function CalendarBase({
     unscheduleEvent,
     handleRowClick,
     tableid,
+    requestEventsForTable,
   }
 
   return (
