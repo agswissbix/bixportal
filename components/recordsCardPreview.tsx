@@ -1,6 +1,9 @@
 // 📄 RecordsTablePreview.jsx
 import React from 'react';
 import { PlusIcon, RefreshCcw } from 'lucide-react';
+import SelectStandard from './selectStandard';
+import InputWord from './input/inputWord';
+import InputNumber from './input/inputNumber';
 
 const RecordsTablePreview = () => {
   return (
@@ -18,7 +21,7 @@ const RecordsTablePreview = () => {
             </button>
           </div>
           <div className="flex space-x-2">
-            <button className="px-3 py-1 text-sm font-medium text-primary hover:text-primaryHover">
+            <button className="px-3 py-1 text-sm font-medium text-accent hover:text-accent-hover">
               <PlusIcon className="h-4 w-4" />
             </button>
             <button className="px-3 py-1 text-sm font-medium text-gray-700 hover:text-primary">
@@ -81,50 +84,23 @@ const RecordsTablePreview = () => {
           <div className="grid grid-cols-1 gap-4 text-card-text">
             <div>
               <label className="block text-sm font-medium">Estimated hours</label>
-              <input
-                type="text"
-                className="mt-1 block w-full p-2 border border-card-border rounded-md shadow-sm bg-card-input"
-                placeholder="Enter a value"
-              />
+              <InputNumber />
             </div>
 
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium">Company</label>
-              <input
-                type="text"
-                className="mt-1 block w-full p-2 border border-card-border rounded-md shadow-sm bg-card-input"
-                value="SWISSBIX SA"
-                readOnly
-              />
+              <InputWord/>
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium">Status</label>
               <div className="relative mt-1">
-                <input
-                  type="text"
-                  className="block w-full p-2 border border-card-border rounded-md shadow-sm bg-card-input"
-                  value="Project in progress"
-                  readOnly
+                <SelectStandard 
+                  lookupItems={[{itemcode: "In progress", itemdesc: "In progress"}, {itemcode: "Completed", itemdesc: "Completed"}, {itemcode: "On hold", itemdesc: "On hold"}]}
+
                 />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
               </div>
               {/* Pulsante Salva dentro la card */}
-              <button className="mt-4 w-1/4 px-4 py-2 text-sm font-semibold rounded-md bg-secondary text-white hover:bg-secondaryHover">
+              <button className="mt-4 w-1/4 px-4 py-2 text-sm font-semibold rounded-md bg-accent text-accent-foreground hover:bg-accent-hover transition-colors">
                 Salva
               </button>
             </div>
