@@ -11,6 +11,7 @@ import {
 } from "@/components/calendar/calendarHelpers"
 import React from "react"
 import { useRecordsStore } from "../records/recordsStore"
+import GenericComponent from "../genericComponent"
 
 interface RecordsViewProps extends CalendarChildProps {
   initialView?: "day" | "week" | "month"
@@ -718,23 +719,9 @@ export default function RecordsView({
     )
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-lg text-gray-500 dark:text-gray-400">Caricamento...</div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-lg text-red-600 dark:text-red-400">Errore: {error.message}</div>
-      </div>
-    )
-  }
-
   return (
+    <GenericComponent response={data} loading={loading} error={error}>
+      {(response) => (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
       <header className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-x-2">
@@ -745,10 +732,10 @@ export default function RecordsView({
             Oggi
           </button>
           <div className="flex items-center">
-            <button onClick={handlePrev} className="p-1.5 rounded-full hover:bg-primary/10 transition-colors">
+            <button onClick={handlePrev} className="p-1.5 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <button onClick={handleNext} className="p-1.5 rounded-full hover:bg-primary/10 transition-colors">
+            <button onClick={handleNext} className="p-1.5 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors">
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
@@ -757,19 +744,19 @@ export default function RecordsView({
         <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-md">
           <button
             onClick={() => setViewMode("month")}
-            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground shadow" : "hover:bg-primary/10"}`}
+            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground shadow" : "hover:bg-accent hover:text-accent-foreground"}`}
           >
             Mese
           </button>
           <button
             onClick={() => setViewMode("week")}
-            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground shadow" : "hover:bg-primary/10"}`}
+            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground shadow" : "hover:bg-accent hover:text-accent-foreground"}`}
           >
             Settimana
           </button>
           <button
             onClick={() => setViewMode("day")}
-            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "day" ? "bg-primary text-primary-foreground shadow" : "hover:bg-primary/10"}`}
+            className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === "day" ? "bg-primary text-primary-foreground shadow" : "hover:bg-accent hover:text-accent-foreground"}`}
           >
             Giorno
           </button>
@@ -786,5 +773,7 @@ export default function RecordsView({
         <span className="font-medium">Eventi totali:</span> {data.events.length}
       </footer>
     </div>
+      )}
+    </GenericComponent>
   )
 }
