@@ -264,7 +264,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
           <div className="w-full xl:h-11/12 h-10/12 flex flex-col lg:flex-row gap-4 sm:gap-6 mb-4">
             {isFiltersOpen && (
-              <div className="w-full xl:w-1/4 h-64 xl:h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
+              <div className="w-full xl:w-1/4 h-[150rem] xl:h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-4">
                 <TableFilters tableid={tableid}></TableFilters>
               </div>
             )}

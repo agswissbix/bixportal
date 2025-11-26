@@ -269,7 +269,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
     return (
         <GenericComponent response={responseData} loading={loading || usersLoading} error={error || usersError}>
             {(response: ResponseInterface) => (
-                <div className="h- overflow-y-auto p-2 w-full">
+                <div className=" overflow-y-auto p-2 w-full">
                      <form onSubmit={handleFormSubmit}>
                         <div className="space-y-4 relative">
                             {response.filters.map((filter, index) => {
