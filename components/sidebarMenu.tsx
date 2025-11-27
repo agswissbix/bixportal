@@ -211,7 +211,7 @@ export default function Sidebar({}: PropsInterface) {
                       </span>
                     </li>
                   </>
-                ) : activeServer === "swissbix" ? (
+                ) : activeServer === "swissbix" || activeServer === "demo_jerry" ? (
                   <>
                     <li>
                       <span

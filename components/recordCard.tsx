@@ -436,17 +436,21 @@ export default function RecordCard({
               <div className="h-fill w-full overflow-auto mt-3 mb-8">
                 {!isNewRecord && (
                   <>
+                  {activeServer === 'swissbix' ? (
+                    tableid === 'company' ? (
+                      <CardBadgeCompany tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'deal' ? (
+                      <CardBadgeDeal tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'project' ? (
+                      <CardBadgeProject tableid={tableid} recordid={recordid} />
+                    ) : tableid === 'timesheet' ? (
+                      <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
+                    ) : <CardBadge tableid={tableid} recordid={recordid} /> 
+                  )
+                  : null}
                   {tableid === 'stabile' ? (
                     <CardBadgeStabile tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'company' ? (
-                    <CardBadgeCompany tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'deal' ? (
-                    <CardBadgeDeal tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'project' ? (
-                    <CardBadgeProject tableid={tableid} recordid={recordid} />
-                  ) : tableid === 'timesheet' ? (
-                    <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
-                  ) : activeServer !== 'belotti' ? (
+                  ) :  activeServer !== 'belotti' ? (
                     <CardBadge tableid={tableid} recordid={recordid} />
                   ) : null}
                   </>
@@ -623,19 +627,23 @@ export default function RecordCard({
 
                 {!isNewRecord && (
                   <>
-                    {tableid === 'stabile' ? (
-                      <CardBadgeStabile tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'company' ? (
-                      <CardBadgeCompany tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'deal' ? (
-                      <CardBadgeDeal tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'project' ? (
-                      <CardBadgeProject tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'timesheet' ? (
-                      <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
-                    ) : activeServer !== 'belotti' ? (
-                      <CardBadge tableid={tableid} recordid={recordid} />
-                    ) : null}
+                     {activeServer === 'swissbix' ? (
+                        tableid === 'company' ? (
+                          <CardBadgeCompany tableid={tableid} recordid={recordid} />
+                        ) : tableid === 'deal' ? (
+                          <CardBadgeDeal tableid={tableid} recordid={recordid} />
+                        ) : tableid === 'project' ? (
+                          <CardBadgeProject tableid={tableid} recordid={recordid} />
+                        ) : tableid === 'timesheet' ? (
+                          <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
+                        ) : <CardBadge tableid={tableid} recordid={recordid} /> 
+                      )
+                      : null}
+                      {tableid === 'stabile' ? (
+                        <CardBadgeStabile tableid={tableid} recordid={recordid} />
+                      ) :  activeServer !== 'belotti' ? (
+                        <CardBadge tableid={tableid} recordid={recordid} />
+                      ) : null}
                   </>
                 )}
               </div>

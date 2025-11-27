@@ -190,7 +190,7 @@ export const TablesColumn: React.FC<{
     return Object.fromEntries(
       Object.entries(workspaces)
         .map(([key, ws]) => {
-          const filteredTables = ws.tables.filter(
+          const filteredTables = ws.tables?.filter(
             (t) => t.description.toLowerCase().includes(lower) || t.id.toLowerCase().includes(lower),
           )
           return [key, { ...ws, tables: filteredTables }]
@@ -335,7 +335,7 @@ export const TablesColumn: React.FC<{
                 key,
                 {
                   name: (ws as Workspace).name,
-                  items: (ws as Workspace).tables.map((t) => ({
+                  items: (ws as Workspace).tables?.map((t) => ({
                     id: t.id,
                     description: t.description,
                     order: t.order,

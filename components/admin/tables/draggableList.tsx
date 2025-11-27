@@ -49,9 +49,9 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     // Salva l'ordine iniziale solo la prima volta che i groups cambiano
     if (Object.keys(initialOrders.current).length === 0 || isSaved) {
       const snapshot: Record<string, Record<string, number | null>> = {}
-      Object.entries(groups).forEach(([groupName, group]) => {
+      Object.entries(groups)?.forEach(([groupName, group]) => {
         snapshot[groupName] = {}
-        group.items.forEach((item) => {
+        group.items?.forEach((item) => {
           snapshot[groupName][item.id] = item.order ?? null
         })
       })
@@ -73,7 +73,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     // Ottieni solo gli elementi visibili (order !== null)
     const visibleItems = group.items
-      .filter((item) => item.order !== null && item.order !== undefined)
+      ?.filter((item) => item.order !== null && item.order !== undefined)
       .sort((a, b) => (a.order || 0) - (b.order || 0))
 
     if (draggedItem.itemIndex === targetIndex) return
@@ -91,7 +91,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     // Combina con gli elementi nascosti (crea copie)
     const hiddenItems = group.items
-      .filter((item) => item.order === null || item.order === undefined)
+      ?.filter((item) => item.order === null || item.order === undefined)
       .map((item) => ({ ...item }))
 
     const newItems = [...reorderedWithNewOrder, ...hiddenItems]
@@ -121,7 +121,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     // Get visible groups sorted by order
     const visibleGroups = Object.entries(groups)
-      .filter(([_, group]) => !group.groupHidden)
+      ?.filter(([_, group]) => !group.groupHidden)
       .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
 
     const draggedIndex = visibleGroups.findIndex(([key]) => key === draggedGroup)
@@ -136,7 +136,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     // Update group orders
     const updatedGroups = { ...groups }
-    reordered.forEach(([key, group], index) => {
+    reordered?.forEach(([key, group], index) => {
       updatedGroups[key] = { ...group, groupOrder: index }
     })
 
@@ -162,17 +162,17 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
       // Riordina gli altri elementi visibili
       const visibleItems = newItems
-        .filter((i) => i.id !== itemId && i.order !== null && i.order !== undefined)
+        ?.filter((i) => i.id !== itemId && i.order !== null && i.order !== undefined)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
 
-      visibleItems.forEach((i, index) => {
+      visibleItems?.forEach((i, index) => {
         i.order = index
       })
     } else {
       // Mostra: setta order come ultimo
-      const visibleItems = newItems.filter((i) => i.order !== null && i.order !== undefined)
+      const visibleItems = newItems?.filter((i) => i.order !== null && i.order !== undefined)
       const itemToShow = newItems.find((i) => i.id === itemId)
-      if (itemToShow) itemToShow.order = visibleItems.length
+      if (itemToShow) itemToShow.order = visibleItems?.length
     }
 
     onGroupsChange({
@@ -195,15 +195,15 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
       // Reorder remaining visible groups
       const visibleGroups = Object.entries(updatedGroups)
-        .filter(([key, g]) => key !== groupKey && !g.groupHidden)
+        ?.filter(([key, g]) => key !== groupKey && !g.groupHidden)
         .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
 
-      visibleGroups.forEach(([key, g], index) => {
+      visibleGroups?.forEach(([key, g], index) => {
         updatedGroups[key] = { ...g, groupOrder: index }
       })
     } else {
       // Show group - add as last
-      const visibleGroups = Object.entries(updatedGroups).filter(([_, g]) => !g.groupHidden)
+      const visibleGroups = Object.entries(updatedGroups)?.filter(([_, g]) => !g.groupHidden)
       updatedGroups[groupKey] = { ...group, groupHidden: false, groupOrder: visibleGroups.length }
     }
 
@@ -225,19 +225,19 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     if (showGroups) {
       const visibleGroups = Object.entries(groups)
-        .filter(([_, group]) => !group.groupHidden)
+        ?.filter(([_, group]) => !group.groupHidden)
         .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
 
-      const hiddenGroups = Object.entries(groups).filter(([_, group]) => group.groupHidden)
+      const hiddenGroups = Object.entries(groups)?.filter(([_, group]) => group.groupHidden)
 
       return (
         <>
           {/* Visible Groups */}
           {visibleGroups.map(([key, group]) => {
             const visibleItems = group.items
-              .filter((item) => item.order !== null && item.order !== undefined)
+              ?.filter((item) => item.order !== null && item.order !== undefined)
               .sort((a, b) => (a.order || 0) - (b.order || 0))
-            const hiddenItems = group.items.filter((item) => item.order === null || item.order === undefined)
+            const hiddenItems = group.items?.filter((item) => item.order === null || item.order === undefined)
 
             return (
               <Card
@@ -270,7 +270,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                       <span>{group.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{visibleItems.length} visibili</Badge>
+                      <Badge variant="outline">{visibleItems?.length} visibili</Badge>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -319,9 +319,9 @@ export const DraggableList: React.FC<DraggableListProps> = ({
       if (!firstGroup || !firstGroup.items) return null
 
       const visibleItems = firstGroup.items
-        .filter((item) => item.order !== null && item.order !== undefined)
+        ?.filter((item) => item.order !== null && item.order !== undefined)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
-      const hiddenItems = firstGroup.items.filter((item) => item.order === null || item.order === undefined)
+      const hiddenItems = firstGroup.items?.filter((item) => item.order === null || item.order === undefined)
 
       return renderItems(firstGroup.name, visibleItems, hiddenItems)
     }
@@ -332,10 +332,10 @@ export const DraggableList: React.FC<DraggableListProps> = ({
       <>
         <div className="space-y-2 mb-4">
           {title && <h4 className="text-sm font-semibold text-gray-700 mb-2">{title}</h4>}
-          {visibleItems.length === 0 ? (
+          {visibleItems?.length === 0 ? (
             <div className="text-center py-4 text-gray-400 border-2 border-dashed rounded-lg">Nessun elemento</div>
           ) : (
-            visibleItems.map((item, index) => (
+            visibleItems?.map((item, index) => (
               <div
                 key={item.id}
                 draggable
