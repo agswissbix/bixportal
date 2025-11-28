@@ -9,6 +9,7 @@ const themes = [
 export const themesSwissbix = [
   "bixhub",
   'midnight',
+  "alenonvede"
 ]
   
 export const themesPitservice = [
