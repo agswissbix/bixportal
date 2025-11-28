@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { useRecordsStore } from '../records/recordsStore';
 
 interface PropsInterface {
   tableid?: string;
@@ -10,40 +10,21 @@ interface PropsInterface {
 
 export default function PopupContractHours({ tableid, recordid, onClose }: PropsInterface) {
   const [contractHours, setContractHours] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  const { popupResolver, setPopupResolver, setIsPopupOpen } = useRecordsStore();
 
-  const save = async () => {
-    if (!tableid || !recordid) {
-      toast.error('Manca tableid o recordid');
-      return;
-    }
+  const save = () => {
     if (!contractHours) {
       toast.error('Inserisci il valore di contract hours');
       return;
     }
 
-    setLoading(true);
-    try {
-      const params = {
-        tableid,
-        recordid,
-        contracthours: contractHours,
-      };
-
-      await axiosInstanceClient.post(
-        '/postApi',
-        { apiRoute: 'fieldsupdate', params },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-
-      toast.success('Contract hours aggiornate');
-      onClose && onClose();
-    } catch (error) {
-      console.error('Errore aggiornamento contract hours', error);
-      toast.error('Errore durante il salvataggio');
-    } finally {
-      setLoading(false);
+    if (popupResolver) {
+      popupResolver(contractHours);
+      setPopupResolver(null);
+      setIsPopupOpen(false);
     }
+    
+    onClose && onClose();
   };
 
   return (
@@ -62,13 +43,19 @@ export default function PopupContractHours({ tableid, recordid, onClose }: Props
         <button
           className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
           onClick={save}
-          disabled={loading}
         >
           Salva
         </button>
         <button
           className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
-          onClick={() => onClose && onClose()}
+          onClick={() => {
+            if (popupResolver) {
+              popupResolver(null);
+              setPopupResolver(null);
+            }
+            setIsPopupOpen(false);
+            onClose && onClose();
+          }}
         >
           Annulla
         </button>

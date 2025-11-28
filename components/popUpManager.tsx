@@ -32,7 +32,7 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid }
                 {type === 'emailLavanderia' && <PopupEmail tableid={tableid} recordid={recordid} onClose={onClose} type='emailLavanderia' />}
                 {type === 'emailGasolio' && <PopupEmail tableid={tableid} recordid={recordid} onClose={onClose} type='emailGasolio' />}
                 {type === 'reportGasolio' && <PopupReportGasolio tableid={tableid} recordid={recordid} />}
-                {type === 'contractHours' && <PopupContractHours tableid={tableid} recordid={recordid} onClose={onClose} />}
+                {type === 'contracthours' && <PopupContractHours tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'startDate' && <PopupStartDate tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'invoiceno' && <PopupInvoiceNo tableid={tableid} recordid={recordid} onClose={onClose} />}
 

@@ -500,7 +500,7 @@ export function useFrontendFunctions() {
         return;
       }
 
-      const contracthours = await openPopup('contractHours', recordid);
+      const contracthours = await openPopup('contracthours', recordid);
       if (contracthours == null) {
         toast.error('Operazione annullata');
         return;
@@ -518,7 +518,7 @@ export function useFrontendFunctions() {
           apiRoute: "renew_servicecontract",
           recordid: recordid,
           invoiceno: invoiceno,
-          contracthours: parseFloat(contracthours),
+          contracthours: contracthours,
           startdate: startdate
         },
         {

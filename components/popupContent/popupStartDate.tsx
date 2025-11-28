@@ -14,45 +14,19 @@ export default function PopupStartDate({ tableid, recordid, onClose }: PropsInte
   const [loading, setLoading] = useState(false);
   const { popupResolver, setPopupResolver, setIsPopupOpen } = useRecordsStore();
 
-  const save = async () => {
-    if (popupResolver) {
-      popupResolver(startDate);
-      setPopupResolver(null);
-      setIsPopupOpen(false);
-      return;
-    }
-
-    if (!tableid || !recordid) {
-      toast.error('Manca tableid o recordid');
-      return;
-    }
+  const save = () => {
     if (!startDate) {
       toast.error('Seleziona una data');
       return;
     }
 
-    setLoading(true);
-    try {
-      const params = {
-        tableid,
-        recordid,
-        startdate: startDate,
-      };
-
-      await axiosInstanceClient.post(
-        '/postApi',
-        { apiRoute: 'fieldsupdate', params },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-
-      toast.success('Start date aggiornata');
-      onClose && onClose();
-    } catch (error) {
-      console.error('Errore aggiornamento start date', error);
-      toast.error('Errore durante il salvataggio');
-    } finally {
-      setLoading(false);
+    if (popupResolver) {
+      popupResolver(startDate);
+      setPopupResolver(null);
+      setIsPopupOpen(false);
     }
+    
+    onClose && onClose();
   };
 
   return (
