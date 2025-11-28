@@ -53,62 +53,6 @@
   --radius: 0.5rem;
 }
 
-
-/* ----------------Midnight ------------------------------- */
-.midnight {
-  /* Primary brand colors - Purple glow */
-  --color-primary: #8b5cf6;
-  --color-primary-hover: #7c3aed;
-  --color-primary-foreground: #ffffff;
-
-  /* Secondary colors - Deep violet */
-  --color-secondary: #4c1d95;
-  --color-secondary-hover: #3730a3;
-  --color-secondary-foreground: #ffffff;
-
-  /* Accent color - Cyan */
-  --color-accent: #06b6d4;
-  --color-accent-hover: #0891b2;
-  --color-accent-foreground: #ffffff;
-
-  /* Neutral backgrounds */
-  --background: #faf7ff;
-  --foreground: #1e1b4b;
-  --card-background: #ffffff;
-  --card-border: #e0e7ff;
-  --records-background: #f1f0ff;
-
-  /* Navigation and sidebar */
-  --navbar-background: #6366f1;
-  --sidebar-background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
-  --sidebar-text: #a5b4fc;
-
-  /* Table styling */
-  --table-background: #ffffff;
-  --table-border: #e0e7ff;
-  --table-header: #f1f0ff;
-
-  /* Badge styling */
-  --badge-background: #8b5cf6;
-  --badge-border: #06b6d4;
-
-  /* shadcn/ui variables */
-  --primary: 259 94% 67%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 259 64% 30%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 250 100% 97%;
-  --muted-foreground: 237 85% 60%;
-  --accent: 187 88% 44%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 237 60% 90%;
-  --input: 237 60% 90%;
-  --ring: 259 94% 67%;
-  --radius: 0.5rem;
-}
-
 .alenonvede {
   /* Primary brand colors - Modern teal palette */
   --color-primary: #1a697b;
@@ -163,6 +107,59 @@
   --radius: 0.5rem;
 }
 
+.royal-blue {
+  /* Primary brand colors - Deep blue palette */
+  --color-primary: #1e40af;
+  --color-primary-hover: #2563eb;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors - Neutral slate */
+  --color-secondary: #64748b;
+  --color-secondary-hover: #475569;
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent color - Vibrant cyan for energy */
+  --color-accent: #06b6d4;
+  --color-accent-hover: #0891b2;
+  --color-accent-foreground: #ffffff;
+
+  /* Neutral backgrounds */
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card-background: #ffffff;
+  --card-border: #e2e8f0;
+  --records-background: #f8fafc;
+
+  /* Navigation and sidebar */
+  --navbar-background: #ffffff;
+  --sidebar-background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
+  --sidebar-text: #ffffff;
+
+  /* Table styling */
+  --table-background: #ffffff;
+  --table-border: #e2e8f0;
+  --table-header: #eff6ff;
+
+  /* Badge styling */
+  --badge-background: #3b82f6;
+  --badge-border: #2563eb;
+
+  /* shadcn/ui variables */
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 20% 65%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 189 94% 43%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221 83% 53%;
+  --radius: 0.5rem;
+}
 
 /* ----------------Pitservice ------------------------------- */
 .pittheme {
