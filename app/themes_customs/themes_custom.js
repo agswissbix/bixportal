@@ -4,11 +4,13 @@ const themes = [
   'oceanic',
   'sunset',
   'forest',
+  'midnight',
 ]
 
 export const themesSwissbix = [
   "bixhub",
-  'midnight',
+  "royal-blue",
+  "alenonvede",
 ]
   
 export const themesPitservice = [

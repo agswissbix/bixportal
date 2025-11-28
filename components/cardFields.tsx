@@ -94,7 +94,7 @@ export default function CardFields({
 
   const [isCalculating, setIsCalculating] = useState(false)
 
-  const { removeCard, setRefreshTable } = useRecordsStore()
+  const { removeCard, setRefreshTable, theme } = useRecordsStore()
 
   const payload = useMemo(() => {
     if (isDev || externalFields) return null
@@ -286,7 +286,8 @@ export default function CardFields({
 
             <div
             className={`w-3/4 relative transition-all duration-200 rounded-md ${
-              isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
+              theme !== 'oceanic' ? 
+              (isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : "") : ""
             }`}
             >
             <div className="p-2 bg-gray-100 rounded-md">
@@ -348,8 +349,9 @@ export default function CardFields({
 
         <div
           className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
-            isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : ""
-          }`}
+            theme !== 'alenonvede' ? 
+              (isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : "") : ""
+            }`}
         >
           <div
             className={`${

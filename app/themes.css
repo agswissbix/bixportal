@@ -54,56 +54,56 @@
 }
 
 .forest {
-  /* Primary brand colors - Natural green palette */
-  --color-primary: #16a34a;
-  --color-primary-hover: #15803d;
+  /* Primary brand colors - Forest green palette */
+  --color-primary: #059669;
+  --color-primary-hover: #10b981;
   --color-primary-foreground: #ffffff;
 
-  /* Secondary colors - Deep forest green */
-  --color-secondary: #14532d;
-  --color-secondary-hover: #166534;
+  /* Secondary colors - Warm brown */
+  --color-secondary: #78716c;
+  --color-secondary-hover: #57534e;
   --color-secondary-foreground: #ffffff;
 
-  /* Accent color - Warm amber */
-  --color-accent: #d97706;
-  --color-accent-hover: #b45309;
+  /* Accent color - Amber for warmth */
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
   --color-accent-foreground: #ffffff;
 
-  /* Neutral backgrounds with green tint */
-  --background: #f0fdf4;
-  --foreground: #14532d;
+  /* Neutral backgrounds */
+  --background: #fefefe;
+  --foreground: #1c1917;
   --card-background: #ffffff;
-  --card-border: #dcfce7;
-  --records-background: #f7fee7;
+  --card-border: #e7e5e4;
+  --records-background: #fafaf9;
 
   /* Navigation and sidebar */
   --navbar-background: #ffffff;
-  --sidebar-background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  --sidebar-background: linear-gradient(180deg, #059669 0%, #047857 100%);
   --sidebar-text: #ffffff;
 
   /* Table styling */
   --table-background: #ffffff;
-  --table-border: #dcfce7;
-  --table-header: #f0fdf4;
+  --table-border: #e7e5e4;
+  --table-header: #f5f5f4;
 
   /* Badge styling */
-  --badge-background: #16a34a;
-  --badge-border: #15803d;
+  --badge-background: #10b981;
+  --badge-border: #059669;
 
   /* shadcn/ui variables */
-  --primary: 142 76% 36%;
+  --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 138 76% 15%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 120 60% 97%;
-  --muted-foreground: 138 25% 35%;
-  --accent: 32 95% 44%;
+  --secondary: 24 6% 83%;
+  --secondary-foreground: 24 10% 10%;
+  --muted: 60 5% 96%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --accent: 38 92% 50%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 120 45% 88%;
-  --input: 120 45% 88%;
-  --ring: 142 76% 36%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --ring: 160 84% 39%;
   --radius: 0.5rem;
 }
 
@@ -162,6 +162,59 @@
 }
 
 
+
+.midnight {
+  /* Primary brand colors - Deep purple palette */
+  --color-primary: #7c3aed;
+  --color-primary-hover: #9333ea;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors - Cool gray */
+  --color-secondary: #64748b;
+  --color-secondary-hover: #475569;
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent color - Vibrant pink for highlights */
+  --color-accent: #06b6d4;
+  --color-accent-hover: #0891b2;
+  --color-accent-foreground: #ffffff;
+
+  /* Neutral backgrounds - Dark mode */
+  --background: #f1f5f9;
+  --foreground: #0f172a;
+  --card-background: #ffffff;
+  --card-border: #e0e7ff;
+  --records-background: #f1f0ff;
+
+  /* Navigation and sidebar */
+  --navbar-background: #6366f1;
+  --sidebar-background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%);
+  --sidebar-text: #a5b4fc;
+  /* Table styling */
+  --table-background: #ffffff;
+  --table-border: #e0e7ff;
+  --table-header: #f1f0ff;
+
+  /* Badge styling */
+  --badge-background: #7c3aed;
+  --badge-border: #06b6d4;
+
+  /* shadcn/ui variables */
+  --primary: 262 83% 58%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 25% 27%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 330 81% 60%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 217 33% 20%;
+  --input: 217 33% 20%;
+  --ring: 262 83% 58%;
+  --radius: 0.5rem;
+}
 
 .sunset {
   /* Primary brand colors - Warm sunset palette */
