@@ -239,6 +239,8 @@ export async function POST(request: Request) {
     case "get_scheda_auto": djangoUrl = "/customapp_winteler/get_scheda_auto/"; break;
 
     case 'print_deal': djangoUrl = '/commonapp/print_deal/'; break;
+    case 'print_servicecontract': djangoUrl = '/customapp_swissbix/print_servicecontract/'; break;
+    case 'renew_servicecontract': djangoUrl = '/customapp_swissbix/renew_servicecontract/'; break;
     
   
     

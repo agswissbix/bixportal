@@ -4,7 +4,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
+  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog, openPopup } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -451,6 +451,88 @@ export function useFrontendFunctions() {
     } catch (error) {
       console.error('Errore durante la stampa del PDF', error);
       toast.error('Errore durante la stampa del PDF');
+    }
+  },
+
+  printServiceContract: async ({ recordid }: { recordid: string }) => {
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "print_servicecontract",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'pdftest.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('PDF stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del PDF', error);
+      toast.error('Errore durante la stampa del PDF');
+    }
+  },
+
+  renewServiceContract: async ({ recordid }: { recordid: string}) => {
+    try {
+
+      const invoiceno = await openPopup('invoiceno', recordid);
+      if (invoiceno == null) {
+        toast.error('Operazione annullata');
+        return;
+      }
+
+      const contracthours = await openPopup('contracthours', recordid);
+      if (contracthours == null) {
+        toast.error('Operazione annullata');
+        return;
+      }
+
+      const startdate = await openPopup('startDate', recordid);
+      if (startdate == null) {
+        toast.error('Operazione annullata');
+        return;
+      }
+
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "renew_servicecontract",
+          recordid: recordid,
+          invoiceno: invoiceno,
+          contracthours: contracthours,
+          startdate: startdate
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      toast.success('Rinnovo contratto eseguito');
+
+    } catch (error) {
+      console.error('Errore durante il rinnovo del contratto', error);
+      toast.error('Errore durante il rinnovo del contratto');
     }
   },
 }
