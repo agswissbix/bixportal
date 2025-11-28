@@ -167,7 +167,6 @@ export async function POST(request: Request) {
     case 'print_pdf_activemind': djangoUrl = '/customapp_swissbix/print_pdf_activemind/'; break;
     case 'get_user_id': djangoUrl = '/commonapp/get_user_id/'; break;
     case 'get_custom_functions': djangoUrl = '/commonapp/get_custom_functions/'; break;
-    case 'sign_timesheet': djangoUrl = '/commonapp/sign_timesheet/'; break;
     case 'get_table_records_kanban': djangoUrl = '/commonapp/get_table_records_kanban/'; break;
     case 'get_record_badge_swissbix_company': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_company/'; break;
     case 'get_record_badge_swissbix_deals': djangoUrl = '/customapp_swissbix/get_record_badge_swissbix_deals/'; break;
@@ -203,6 +202,7 @@ export async function POST(request: Request) {
     case 'get_products_activemind': djangoUrl = '/customapp_swissbix/get_products_activemind/'; break;
     case 'get_system_assurance_activemind': djangoUrl = '/customapp_swissbix/get_system_assurance_activemind/'; break;
     case "print_timesheet": djangoUrl = "/customapp_swissbix/print_timesheet/"; break;
+    case "save_email_timesheet": djangoUrl = "/customapp_swissbix/save_email_timesheet/"; break;
     
 
     case 'settings_table_usertables': djangoUrl = '/commonapp/settings_table_usertables/'; break;
@@ -224,7 +224,7 @@ export async function POST(request: Request) {
     case 'settings_get_dashboards_user': djangoUrl = '/commonapp/settings_get_dashboards_user/'; break;
     case 'save_user_dashboard_setting': djangoUrl = '/commonapp/save_user_dashboard_setting/'; break;
     case 'get_all_tables': djangoUrl = '/commonapp/get_all_tables/'; break;
-    case 'save_signature': djangoUrl = '/commonapp/save_signature/'; break;
+    case 'save_signature': djangoUrl = '/customapp_swissbix/save_signature/'; break;
     
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
     case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;

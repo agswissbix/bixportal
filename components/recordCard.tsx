@@ -155,7 +155,7 @@ export default function RecordCard({
         const response = await axiosInstanceClient.post(
             '/postApi',
             {
-                apiRoute: "sign_timesheet",
+                apiRoute: "print_timesheet",
                 recordid: recordidAttachment
             },
             {
@@ -175,6 +175,42 @@ export default function RecordCard({
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Errore durante il salvataggio o il download:', error);
+        toast.error('Errore durante il salvataggio o il download');
+    }
+  }
+
+  const handleSendEmailTimesheet = async (recordidAttachment: string) => {
+    if (!digitalSignature) {
+      toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
+      return;
+    }
+
+    try {
+        const response = await axiosInstanceClient.post(
+            '/postApi',
+            {
+                apiRoute: "save_email_timesheet",
+                recordid: recordid,
+                recordidAttachment
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
+                responseType: 'blob',
+            }
+        );
+
+        if (!response.data.success) {
+          toast.error("Errore durante l'invio dell'email.");
+          return
+        }
+
+        toast.success('Email inviata con successo.')
 
     } catch (error) {
         console.error('Errore durante il salvataggio o il download:', error);
@@ -671,7 +707,9 @@ export default function RecordCard({
             onOpenChange={setOpenSignatureDialog} 
             onSaveSignature={handleSaveSignature}
             onSignatureChange={handleSignatureChange}
-            onDownload={(savedSignature) => handlePrintTimesheet(savedSignature)} />
+            onDownload={(savedSignature) => handlePrintTimesheet(savedSignature)}
+            onSendEmail={(savedSignature) => handleSendEmailTimesheet(savedSignature) }   
+          />
           <Toaster richColors />
         </>
       )}
