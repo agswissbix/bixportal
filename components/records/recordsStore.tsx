@@ -78,6 +78,11 @@ interface RecordsStore {
     openSignatureDialog: boolean;
     setOpenSignatureDialog: (open: boolean) => void;
 
+    popupResolver: ((data: any) => void) | null;
+    setPopupResolver: (resolver: ((data: any) => void) | null) => void;
+
+    openPopup: (type: string, recordid?: string) => Promise<any>;
+
     dashboardFilters: {
     selectedYears: string[]
     showTotalAverage: boolean
@@ -104,6 +109,13 @@ interface RecordsStore {
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
     openSignatureDialog: false,
     setOpenSignatureDialog: (open: boolean) => set({ openSignatureDialog: open }),
+    popupResolver: null,
+    setPopupResolver: (resolver: ((data: any) => void) | null) => set({ popupResolver: resolver }),
+    openPopup: (type: string, recordid?: string) => {
+        return new Promise((resolve) => {
+            set({ popupResolver: resolve, popupRecordId: recordid ?? '', popUpType: type, isPopupOpen: true });
+        });
+    },
     
     refreshTable: 0,
     setRefreshTable: (updater) =>

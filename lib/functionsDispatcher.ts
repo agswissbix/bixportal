@@ -4,7 +4,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog } = useRecordsStore()
+  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog, openPopup } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -491,13 +491,35 @@ export function useFrontendFunctions() {
     }
   },
 
-  renewServiceContract: async ({ recordid }: { recordid: string }) => {
+  renewServiceContract: async ({ recordid }: { recordid: string}) => {
     try {
+
+      const invoiceno = await openPopup('invoiceno', recordid);
+      if (invoiceno == null) {
+        toast.error('Operazione annullata');
+        return;
+      }
+
+      const contracthours = await openPopup('contractHours', recordid);
+      if (contracthours == null) {
+        toast.error('Operazione annullata');
+        return;
+      }
+
+      const startdate = await openPopup('startDate', recordid);
+      if (startdate == null) {
+        toast.error('Operazione annullata');
+        return;
+      }
+
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "renew_servicecontract",
           recordid: recordid,
+          invoiceno: invoiceno,
+          contracthours: parseFloat(contracthours),
+          startdate: startdate
         },
         {
           headers: {
@@ -505,6 +527,8 @@ export function useFrontendFunctions() {
           },
         }
       );
+
+      toast.success('Rinnovo contratto eseguito');
 
     } catch (error) {
       console.error('Errore durante il rinnovo del contratto', error);
