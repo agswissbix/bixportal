@@ -413,6 +413,7 @@ export default function Sidebar({}: PropsInterface) {
                   </MenuItem>
                   <MenuItem>
                     <a
+                      onClick={() => router.push('/change-password')}
                       href="#"
                       className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-lg mx-1 my-0.5"
                     >

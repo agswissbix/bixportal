@@ -3,140 +3,154 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import axiosInstance from '@/utils/axiosInstance';
-import { toast, Toaster } from 'sonner';
 import axios from 'axios';
+import { toast, Toaster } from 'sonner';
 import { useRouter } from 'next/navigation';
 import LoadingComp from '@/components/loading';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
-
+import { AlertTriangle, Lock } from 'lucide-react';
 
 const ChangePasswordForm = () => {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    setError('');
-    setSuccess(false);
-    
-    // Validazione lato client
+    setIsLoading(true);
+
     if (newPassword !== confirmPassword) {
-      toast.error('Le password non coincidono');
+      toast.error('Le nuove password non coincidono. Riprova.');
+      setIsLoading(false);
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error('La nuova password deve essere lunga almeno 8 caratteri');
+      toast.error('La nuova password deve essere lunga almeno 8 caratteri.');
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    changePassword();
-
+    await changePassword();
+    setIsLoading(false);
   };
 
   const changePassword = async () => {
     try {
       console.info('Cambio password in corso...');
-      
-        const response = await axiosInstanceClient.post("/postApi", {
-          apiRoute: "changePassword",
-          old_password: oldPassword,
-          new_password: newPassword,
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-  
-        } 
-      );
-    
-      toast.success(response.data.message);
+
+      const response = await axiosInstanceClient.post("/postApi", {
+        apiRoute: "changePassword",
+        old_password: oldPassword,
+        new_password: newPassword,
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+
+      toast.success(response.data.message || 'Password aggiornata con successo. Verrai reindirizzato al login.');
+
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
       setTimeout(() => {
         router.push('/login');
-      }, 450);
+      }, 1500);
+
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast.error("Errore nel cambio della password: " + error.response?.data?.message);
+        const errorMessage = error.response?.data?.message || "Non è stato possibile cambiare la password. Riprova più tardi.";
+        toast.error("Errore nel cambio della password: " + errorMessage);
       } else {
-        toast.error("Errore nella verifica della password");
+        toast.error("Si è verificato un errore inatteso. Controlla la tua connessione.");
       }
     }
-  };
-
-  // Utility per ottenere il CSRF token dai cookie
-  const getCookie = (name: String) => {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
   };
 
   return (
-<div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <Toaster position='top-center' richColors/>
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Cambia Password</CardTitle>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
+      <Toaster position="top-center" richColors />
+      <Card className="w-full max-w-md shadow-2xl transition-all duration-300 hover:shadow-primary/30">
+        <CardHeader className="border-b">
+          <CardTitle className="text-2xl font-bold flex items-center gap-2">
+            <Lock className="h-6 w-6 text-primary" /> Cambia Password
+          </CardTitle>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Per la tua sicurezza, inserisci la password attuale e la nuova.
+          </p>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="pt-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">Password Attuale</label>
-              <Input  
+              <label htmlFor="old-password" className="text-sm font-medium">Password Attuale</label>
+              <Input
+                id="old-password"
                 type="password"
+                placeholder="Inserisci la tua password attuale"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
                 required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nuova Password</label>
-              <Input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Conferma Nuova Password</label>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                disabled={isLoading}
+                className='placeholder:text-gray-400'
               />
             </div>
 
-            <Button 
+            <div className="space-y-2">
+              <label htmlFor="new-password" className="text-sm font-medium">Nuova Password</label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="Minimo 8 caratteri"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                minLength={8}
+                className='placeholder:text-gray-400' 
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirm-password" className="text-sm font-medium">Conferma Nuova Password</label>
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="Conferma la nuova password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                className='placeholder:text-gray-400'
+              />
+            </div>
+
+            {newPassword && confirmPassword && newPassword !== confirmPassword && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertTriangle className="h-4 w-4" /> Le password non corrispondono.
+              </p>
+            )}
+
+            <Button
               type="submit"
-              className="w-full text-white bg-bixcolor-default hover:bg-bixcolor-light"
+              className="w-full"
+              disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}
             >
-              Cambia Password
+              {isLoading ? (
+                <>
+                  <LoadingComp />
+                </>
+              ) : (
+                'Cambia Password'
+              )}
             </Button>
+
           </form>
         </CardContent>
       </Card>
-      <div className="mt-6">
-        {isLoading && <LoadingComp />}
-      </div>
     </div>
   );
 };
 
-export default ChangePasswordForm;  
-
+export default ChangePasswordForm;
