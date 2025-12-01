@@ -16,11 +16,12 @@ interface ChartDataInterface {
     id: number;
     name: string;
     layout: string;
-    labels: string[];
-    datasets: Dataset[];
+    labels?: string[];
+    datasets?: Dataset[];
     datasets2?: Dataset[] | Dataset;
     colors?: string[];
     numeric_format?: string
+    error?: string
 }
 
 interface Props {
@@ -52,7 +53,10 @@ const getRandomColorFromPalette = () => {
  * Unifica il parsing e il rendering di diversi tipi di grafici.
  */
 export default function GenericChart({ chartType, chartData, view, showDataLabels, hideMeta = false }: Props) {
-    if (!chartData || !chartData.datasets || !chartData.labels) {
+    if (chartData?.error == "$empty$") {
+        return <div className="p-4 text-gray-400"><i>Nessun dato disponibile.</i></div>;
+    }
+    if (!chartData || !chartData.labels) {
         return <div className="p-4 text-red-500">Dati del grafico non validi</div>;
     }
 
