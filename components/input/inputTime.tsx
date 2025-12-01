@@ -26,21 +26,26 @@ function formatDisplayTime(hours: number, minutes: number): string {
 }
 
 // ✅ Parsing flessibile dell'input
-function parseInputTime(value: string): { hours: number; minutes: number } | undefined {
+function parseInputTime(value: string): { hours: number; minutes: number; seconds?: number } | undefined {
   if (!value) return undefined
 
   const trimmed = value.trim()
 
-  // Supporta formati: HH:mm, H:mm, HHmm, Hmm
-  const timeRegex = /^(\d{1,2}):?(\d{2})$/
+  // Supporta formati con opzionali secondi: HH:mm[:ss]
+  const timeRegex = /^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/
   const match = trimmed.match(timeRegex)
 
   if (match) {
     const hours = Number.parseInt(match[1], 10)
     const minutes = Number.parseInt(match[2], 10)
+    const seconds = match[3] ? Number.parseInt(match[3], 10) : undefined
 
-    if (hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60) {
-      return { hours, minutes }
+    if (
+      hours >= 0 && hours < 24 &&
+      minutes >= 0 && minutes < 60 &&
+      (seconds === undefined || (seconds >= 0 && seconds < 60))
+    ) {
+      return { hours, minutes, seconds }
     }
   }
 

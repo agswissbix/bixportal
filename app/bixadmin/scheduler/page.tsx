@@ -27,6 +27,7 @@ interface Schedule {
   display_next_run: string | null;
   output?: string;
   send_to_endpoint?: boolean;
+  save_monitoring?: boolean
 }
 
 type AvailableTask = [string, string, string?];
@@ -521,6 +522,7 @@ export default function SchedulerPage() {
                         <th className="text-center p-3 font-semibold text-slate-700 min-w-[80px]">Stato</th>
                         <th className="text-left p-3 font-semibold text-slate-700 min-w-[150px]">Output</th>
                         <th className="text-left p-3 font-semibold text-slate-700 min-w-[150px]">Send to Endpoint</th>
+                        <th className="text-left p-3 font-semibold text-slate-700 min-w-[150px]">Save Monitoring</th>
                         <th className="text-center p-3 font-semibold text-slate-700 min-w-[200px] sticky right-0 bg-slate-100 border-l">Azioni</th>
                       </tr>
                     </thead>
@@ -710,6 +712,19 @@ export default function SchedulerPage() {
                                   className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
                                 />
                                 <span className="text-slate-700">Invia all'endpoint</span>
+                              </label>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex justify-start">
+                                <label className="flex items-center space-x-2 text-sm font-medium cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={!!s.save_monitoring}
+                                  onChange={(e) => handleFieldChange(s.id, "save_monitoring", e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
+                                />
+                                <span className="text-slate-700">Salva monitoring</span>
                               </label>
                             </div>
                           </td>
