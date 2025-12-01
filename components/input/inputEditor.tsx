@@ -19,14 +19,19 @@ export default function InputEditor({ initialValue = '', onChange }: PropsInterf
 
       editorRef.current = new Editor({
         el: containerRef.current,
-        height: '300px',
-        width: '100%',
+        height: '400px',
+        // width: '100%',
         initialEditType: 'wysiwyg',
         previewStyle: 'vertical',
         initialValue: '',
         autofocus: false,
         customHTMLSanitizer: (html: string): string => html,
       } as EditorOptions);
+
+      const editorElement = containerRef.current?.querySelector('.toastui-editor-defaultUI') as HTMLElement | null;
+      if (editorElement) {
+        editorElement.style.width = '100%';
+      }
 
       if (initialValue) {
         editorRef.current.setHTML(initialValue);
@@ -77,7 +82,7 @@ export default function InputEditor({ initialValue = '', onChange }: PropsInterf
       <div>
         <div
           ref={containerRef}
-          className="flex items-center rounded-md bg-white p-3 shadow-sm focus-within:outline-none focus-within:ring-1 focus-within:ring-gray-200 focus-within:ring-offset-2 transition-all duration-300 w-full"
+          className="flex items-center rounded-md bg-white p-3 shadow-sm focus-within:outline-none focus-within:ring-1 focus-within:ring-gray-200 focus-within:ring-offset-2 transition-all duration-300 w-full !important"
           onFocus={e => e.currentTarget.blur()} // Previeni focus sul container
         ></div>
         {/* Dummy element per gestire il blur quando non c'è nessun input */}

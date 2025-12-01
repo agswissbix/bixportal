@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext, useCallback, useLayoutEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
-import { CircleX, Maximize2, Info, Trash2, Copy } from 'lucide-react';
+import { CircleX, Maximize2, Info, Trash2, Copy, Minimize2 } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardBadgeStabile from './customBadges/cardBadgeStabile';
 import CardTabs from './cardTabs';
@@ -540,10 +540,15 @@ export default function RecordCard({
                     </button>
                     <button
                       onClick={() => setIsMaximized(!isMaximized)}
-                      title="Ingrandisci"
+                      title={isMaximized ? "Riduci" : "Ingrandisci"}
                       className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
                     >
-                      <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700 rotate-90" />
+                      {isMaximized ? (
+                        <Minimize2 className="w-6 h-6 text-gray-500 hover:text-gray-700 rotate-90" />
+                      ) : (
+                        <Maximize2 className="w-6 h-6 text-gray-500 hover:text-gray-700 rotate-90" />
+                      )
+                      }
                     </button>
                   </div>
 

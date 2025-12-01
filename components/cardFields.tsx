@@ -509,7 +509,7 @@ export default function CardFields({
             <LoadingComp />
           </div>
         )}
-        <div className={"h-[83%] flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
+        <div className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
           <Tooltip id="my-tooltip" className="tooltip" />
           <div className="flex-grow overflow-y-auto max-h-[83%] space-y-3 pr-2">
             <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
@@ -577,7 +577,7 @@ export default function CardFields({
               <LoadingComp />
             </div>
           )}
-          <div className={"h-[83%] flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
+          <div className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
             <Tooltip id="my-tooltip" className="tooltip" />
             <div className="flex-grow overflow-y-auto space-y-3 pr-2">
               <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />

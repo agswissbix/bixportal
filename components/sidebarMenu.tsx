@@ -102,10 +102,11 @@ export default function Sidebar({}: PropsInterface) {
   const [openDropdown, setOpenDropdown] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  const { selectedMenu, setSelectedMenu, setUserid, userid, timestamp, theme } = useRecordsStore()
+  const { selectedMenu, setSelectedMenu, setUserid, userid, timestamp, theme, resetCardsList } = useRecordsStore()
   const { user, activeServer, role } = useContext(AppContext)
 
   const handleMenuClick = (item: string) => {
+    resetCardsList()
     setSelectedMenu(item)
     setIsSidebarOpen(false)
   }
