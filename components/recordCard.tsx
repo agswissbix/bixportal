@@ -205,7 +205,9 @@ export default function RecordCard({
             }
         );
 
-        if (!response.data.success) {
+        console.log(response)
+
+        if (response.status != 200) {
           toast.error("Errore durante l'invio dell'email.");
           return
         }
