@@ -49,8 +49,7 @@ export function TaskCard({task, isDragging} : TaskCardProps) {
 		setIsAddTaskOpen(true)
 	}
 
-  const handleRowClick  = useRecordsStore(s => s.handleRowClick);
-  const { tableid } = useRecordsStore();
+  const { selectedMenu: tableid, handleRowClick } = useRecordsStore();
 
   const handleCardClick = (recordid: string) => {
     if (handleRowClick && tableid) {
