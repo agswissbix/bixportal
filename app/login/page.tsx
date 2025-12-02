@@ -62,7 +62,9 @@ export default function Login() {
 
     } else {
       setIsLoading(false);
-      toast.error(result.detail || 'Errore durante il login');
+      console.log(result)
+      setError("Username e/o passowrd incorretti.")
+      // toast.error(result.detail || 'Errore durante il login');
   }
   };
 
@@ -145,7 +147,8 @@ export default function Login() {
               </div>
 
               {error && (
-                <div className="text-destructive-foreground bg-destructive/10 text-sm p-3 rounded-md border border-destructive/20">
+                // <div className="text-accent-foreground bg-accent text-sm p-3 rounded-md border border-accent">
+                <div className="text-red-700 bg-red-100 text-sm p-3 rounded-md border border-red-700">
                   {error}
                 </div>
               )}

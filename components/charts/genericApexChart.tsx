@@ -681,7 +681,7 @@ export default function GenericChart({ chartType, chartData, view, showDataLabel
                 options={finalOptions}
                 series={finalSeries}
                 type={finalType}
-                height="400"
+                height="100%"
             />
         );
     }
