@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeHtml } from '@/utils/htmlPurify';
 
 // L'interfaccia per le props rimane invariata
 interface RecordPreviewCardProps {
@@ -41,7 +42,7 @@ export default function RecordPreviewCard({ recordid, css, fields, onClick }: Re
             <span className="font-medium text-gray-500 dark:text-gray-400">{label}: </span>
             <span 
               className="text-gray-800 dark:text-gray-200" 
-              dangerouslySetInnerHTML={{ __html: value }} 
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }} 
             />
           </div>
         ))}

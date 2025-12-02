@@ -17,6 +17,7 @@ import BlockChart from './blockChart';
 import { useReactToPrint } from 'react-to-print';
 import { PrinterIcon } from 'lucide-react';
 import DashboardFilters from './dashboardFilters';
+import { sanitizeHtml } from '@/utils/htmlPurify';
 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -551,7 +552,7 @@ useEffect(() => {
                                           <h4 className="text-lg font-semibold mb-2 text-gray-700">{block.name}</h4>
                                           <div className="text-gray-600">
                                               {block.content ? (
-                                                  <div dangerouslySetInnerHTML={{ __html: block.content }} />
+                                                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }} />
                                               ) : (
                                                   <p>Block type: {block.type}</p>
                                               )}
