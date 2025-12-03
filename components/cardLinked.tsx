@@ -177,18 +177,28 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                 </div>
                             </div>
                             <div
-                                className={`w-full h-min rounded-md p-3 transition-all duration-300 flex items-start justify-between 
+                                className={`w-full h-min rounded-md p-3 pb-0 pt-6 transition-all duration-300 flex items-start justify-between 
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2 hover:scale-110 transition-all duration-100" 
-                                onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}>
-                                    <SquarePlus name="Plus" className="mr-2" /> 
-                                    Aggiungi    
+                                <button 
+                                    className="font-semibold flex items-center bg-transparent text-accent border border-gray-200 px-4 py-2 rounded-lg 
+                                                hover:border-accent transition-all duration-300 transform 
+                                                hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
+                                    onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}
+                                >
+                                    <SquarePlus name="Plus" className="mr-2 h-5 w-5" /> 
+                                    Aggiungi
                                 </button>
-                                <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2 hover:scale-110 transition-all duration-100" onClick={() => exportExcel(table.tableid)}>
-                                    <Download name="Export"  className="mr-2" /> 
-                                    Esporta    
+
+                                <button 
+                                    className="font-semibold flex items-center bg-transparent text-secondary border border-gray-200 px-4 py-2 rounded-lg 
+                                                hover:border-secondary transition-all duration-300 transform 
+                                                hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                                    onClick={() => exportExcel(table.tableid)}
+                                >
+                                    <Download name="Export" className="mr-2 h-5 w-5" /> 
+                                    Esporta
                                 </button>
                             </div>
                             {/* Usa le classi Tailwind responsive per mostrare CardList su mobile e RecordsTable su desktop */}
