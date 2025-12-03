@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
-import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2 } from "lucide-react"
+import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2, MoreVertical } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface DraggableItem {
   id: string
@@ -404,14 +405,22 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                   <Eye className="h-4 w-4 text-green-600" />
                 </Button>
                 {onItemDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteClick(item.id, groupName, item.description)}
-                    className="hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                        <MoreVertical className="h-4 w-4 text-gray-600" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="shadow-lg">
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteClick(item.id, groupName, item.description)}
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Elimina
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             ))
@@ -439,14 +448,22 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                   <EyeOff className="h-4 w-4 text-gray-400" />
                 </Button>
                 {onItemDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteClick(item.id, groupName, item.description)}
-                    className="hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4 text-red-400" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="hover:bg-gray-200">
+                        <MoreVertical className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteClick(item.id, groupName, item.description)}
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Elimina
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             ))}

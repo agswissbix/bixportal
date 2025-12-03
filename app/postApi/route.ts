@@ -225,6 +225,7 @@ export async function POST(request: Request) {
     case 'settings_get_dashboards_user': djangoUrl = '/commonapp/settings_get_dashboards_user/'; break;
     case 'save_user_dashboard_setting': djangoUrl = '/commonapp/save_user_dashboard_setting/'; break;
     case 'get_all_tables': djangoUrl = '/commonapp/get_all_tables/'; break;
+    case 'delete_table': djangoUrl = '/commonapp/delete_table/'; break;
     case 'settings_table_fields_delete_field': djangoUrl = '/commonapp/settings_table_fields_delete_field/'; break;
     
     case 'save_signature': djangoUrl = '/customapp_swissbix/save_signature/'; break;
