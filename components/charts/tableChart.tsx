@@ -5,6 +5,7 @@ import RecordsTable from '../recordsTable';
 import { TooltipProvider } from '../ui/tooltip';
 import { useRecordsStore } from '../records/recordsStore';
 import { SquareArrowDownRight, SquareArrowOutUpRight, SquareArrowUpRight, SquarePlus } from 'lucide-react';
+import QuickFilters from '../quickFilters';
 
 interface Dataset {
   label: string;
@@ -28,7 +29,7 @@ interface Props {
 }
 
 export default function TableChart({ chartData, view }: Props) {
-  const { handleRowClick, selectedMenu, setSelectedMenu } = useRecordsStore();
+  const { handleRowClick, selectedMenu, setSelectedMenu, searchTerm } = useRecordsStore();
 
 
   if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
@@ -59,9 +60,14 @@ export default function TableChart({ chartData, view }: Props) {
               </button>
             </div>
 
+            <div className='mt-4'>
+              <QuickFilters tableid={firstDataset.tableid}/>
+            </div>
+
             <RecordsTable
                 tableid={firstDataset.tableid}
                 context="linked"
+                searchTerm={searchTerm}
                 view={firstDataset.view?.toString()}
                 limit={10}
                 />

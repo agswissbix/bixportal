@@ -14,7 +14,7 @@ const isDev = false
 // INTERFACCE
 // INTERFACCIA PROPS
 interface PropsInterface {
-  propExampleValue?: string
+  tableid?: string
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
@@ -26,10 +26,8 @@ interface ResponseInterface {
   defaultViewId?: number
 }
 
-export default function QuickFilters({ propExampleValue }: PropsInterface) {
+export default function QuickFilters({ tableid }: PropsInterface) {
   //DATI
-  // DATI PROPS PER LO SVILUPPO
-  const devPropExampleValue = isDev ? "Example prop" : propExampleValue
 
   // DATI RESPONSE DI DEFAULT
   const responseDataDEFAULT: ResponseInterface = {
@@ -93,9 +91,9 @@ export default function QuickFilters({ propExampleValue }: PropsInterface) {
     if (isDev) return null
     return {
       apiRoute: "get_table_views", // riferimento api per il backend
-      tableid: selectedMenu,
+      tableid: tableid ?? selectedMenu,
     }
-  }, [selectedMenu])
+  }, [selectedMenu, tableid])
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error } = useApi<ResponseInterface>(payload)
