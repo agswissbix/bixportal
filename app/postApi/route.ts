@@ -244,6 +244,9 @@ export async function POST(request: Request) {
     case 'print_servicecontract': djangoUrl = '/customapp_swissbix/print_servicecontract/'; break;
     case 'renew_servicecontract': djangoUrl = '/customapp_swissbix/renew_servicecontract/'; break;
     
+    //   -----------------   TEMPORARY -----------------
+    case 'get_job_status': djangoUrl = '/commonapp/get_job_status/'; break;
+    case 'get_monitoring': djangoUrl = '/customapp_swissbix/get_monitoring/'; break;
   
     
     

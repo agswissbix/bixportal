@@ -3,7 +3,7 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { AppContext } from "@/context/appContext";
 import { useRecordsStore } from "./records/recordsStore";
-import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight, Copy, Trash2, Rss } from "lucide-react";
+import { ArrowUp, ArrowDown, Image, SquareArrowOutUpRight, Copy, Trash2, Rss, ArrowLeft, ArrowRight } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { set } from "lodash";
@@ -434,6 +434,29 @@ export default function RecordsTable({
   useEffect(() => {
     console.log("[DEBUG] RecordsTable rendered");
   });
+
+  const syncJob = async () => {
+    try {
+      await axiosInstanceClient.post(
+        '/postApi',
+        {
+          apiRoute: `get_${tableid}`,
+          tableid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      toast.success('Records aggiornata con successo');
+    } catch (err) {
+      console.error('Errore durante l\'eliminazione del record', err);
+      toast.error('Errore durante l\'eliminazione del record');
+    } finally {
+      setRefreshTable((v) => v + 1)
+    }
+  }
   return (
     <GenericComponent
       response={responseData}
@@ -444,6 +467,12 @@ export default function RecordsTable({
     >
       {(response: ResponseInterface) => (
         <div className="h-full w-full flex flex-col">
+          {tableid == 'job_status' || tableid == 'monitoring' && (
+          <button 
+            className="bg-accent text-accent-foreground rounded-md p-2 hover:bg-accent-hover"
+            onClick={syncJob}
+          >Sincronizza</button>
+          )}
 
            <div className="w-full h-full relative rounded-lg overflow-auto">
             <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
@@ -733,6 +762,7 @@ export default function RecordsTable({
                 onClick={() =>
                   setTablePage(response.pagination.currentPage - 1)
                 }
+                title="Previous"
                 disabled={response.pagination.currentPage === 1}
                 className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                   response.pagination.currentPage === 1
@@ -740,8 +770,7 @@ export default function RecordsTable({
                     : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
                 }`}
               >
-                <ArrowUp className="w-4 h-4 mr-1 rotate-[-90deg]" />
-                Previous
+                <ArrowLeft className="w-4 h-4 mr-1" />
               </button>
 
               {/* Page Numbers */}
@@ -807,6 +836,7 @@ export default function RecordsTable({
                   response.pagination.currentPage ===
                   response.pagination.totalPages
                 }
+                title="Next"
                 className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                   response.pagination.currentPage ===
                   response.pagination.totalPages
@@ -814,8 +844,7 @@ export default function RecordsTable({
                     : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
                 }`}
               >
-                Next
-                <ArrowUp className="w-4 h-4 ml-1 rotate-90" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </button>
             </div>
 
