@@ -215,6 +215,28 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     }
   }
 
+  const handleDeleteField = async (fieldid: string) => {
+    try {
+      const payload: any = {
+        apiRoute: "settings_table_fields_delete_field",
+        tableid: tableId,
+        userid: userId,
+        fieldid: fieldid
+      }
+
+      const response = await axiosInstanceClient.post("/postApi", payload)
+
+      if (response.data.success) {
+        toast.success("Campo eliminato con successo")
+        setFields(prev => prev.filter(f => f.fieldid !== fieldid))
+      } else {
+        toast.error(response.data.error || "Errore nell'eliminazione del campo")
+      }
+    } catch {
+      toast.error("Errore durante l'eliminazione del campo")
+    }
+  }
+
   const filteredFields = useMemo(() => {
     if (!searchTerm.trim()) return fields
     const lower = searchTerm.toLowerCase()
@@ -425,6 +447,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
               showGroups={false}
               isSaved={isSaved}
               setIsSaved={setIsSaved}
+              onItemDelete={handleDeleteField}
             />
           </CardContent>
         </Card>

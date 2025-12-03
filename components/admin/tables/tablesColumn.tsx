@@ -160,6 +160,30 @@ export const TablesColumn: React.FC<{
     }
   }
 
+  const handleDeleteTable = async (tableId: string) => {
+    try {
+      const payload: any = {
+        apiRoute: "delete_table",
+        tableid: tableId,
+      }
+
+      const response = await axiosInstanceClient.post("/postApi", payload)
+
+      if (response.status === 200) {
+        toast.success("Tabella eliminata con successo")
+        setWorkspaces((prev) => {
+          const updated = { ...prev }
+          Object.keys(updated).forEach((workspace) => {
+            updated[workspace].tables = updated[workspace].tables.filter((t) => t.id !== tableId)
+          })
+          return updated
+        })
+      }
+    } catch {
+      toast.error("Errore durante l'eliminazione del campo")
+    }
+  }
+
   const handleGroupsChange = (groups: any) => {
     const updatedWorkspaces: Record<string, Workspace> = Object.fromEntries(
       Object.entries(groups).map(([key, group]: any) => [
@@ -352,6 +376,7 @@ export const TablesColumn: React.FC<{
             showGroups={true}
             isSaved={isSaved}
             setIsSaved={setIsSaved}
+            onItemDelete={handleDeleteTable}
           />
         </div>
       )}
