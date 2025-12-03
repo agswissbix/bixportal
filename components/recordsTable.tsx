@@ -262,6 +262,7 @@ export default function RecordsTable({
     handleRowClick,
     cardsList,
     addCard,
+    activeServer
   } = useRecordsStore();
 
   // Quando la tabella cambia (es. tableid), resetta la pagina a 1
@@ -467,7 +468,7 @@ export default function RecordsTable({
     >
       {(response: ResponseInterface) => (
         <div className="h-full w-full flex flex-col">
-          {tableid == 'job_status' || tableid == 'monitoring' && (
+          {((tableid == 'job_status' && activeServer != 'swissbix') || (tableid == 'monitoring' && activeServer == 'swissbix')) && (
           <button 
             className="bg-accent text-accent-foreground rounded-md p-2 hover:bg-accent-hover"
             onClick={syncJob}
