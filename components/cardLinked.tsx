@@ -8,6 +8,7 @@ import { useRecordsStore } from './records/recordsStore';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
 import CardsList from './mobile/cardList';
+import { Button } from './ui/button';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
 const isDev = false;
@@ -181,25 +182,25 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <button 
+                                <Button variant="outline" size="sm"
                                     className="font-semibold flex items-center bg-transparent text-accent border border-gray-200 px-4 py-2 rounded-lg 
-                                                hover:border-accent transition-all duration-300 transform 
+                                                hover:border-accent hover:bg-transparent hover:text-accent transition-all duration-300 transform 
                                                 hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
                                     onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}
                                 >
                                     <SquarePlus name="Plus" className="mr-2 h-5 w-5" /> 
                                     Aggiungi
-                                </button>
+                                </Button>
 
-                                <button 
+                                <Button variant="outline" size="sm"
                                     className="font-semibold flex items-center bg-transparent text-secondary border border-gray-200 px-4 py-2 rounded-lg 
-                                                hover:border-secondary transition-all duration-300 transform 
+                                                hover:border-secondary hover:bg-transparent hover:text-secondary transition-all duration-300 transform 
                                                 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
                                     onClick={() => exportExcel(table.tableid)}
                                 >
                                     <Download name="Export" className="mr-2 h-5 w-5" /> 
                                     Esporta
-                                </button>
+                                </Button>
                             </div>
                             {/* Usa le classi Tailwind responsive per mostrare CardList su mobile e RecordsTable su desktop */}
                             <div className={`w-full rounded-md p-3 transition-all duration-300 ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'} ${!openCards[index] && 'hidden'}`}>

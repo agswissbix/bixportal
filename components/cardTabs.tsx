@@ -11,6 +11,7 @@ import { set } from 'lodash';
 import DynamicTableBridge from './customCardFields/dynamicCardFieldsBridge';
 import CardSteps from './customCardFields/cardSteps';
 import ChartConfigForm from './customCardFields/chartFields';
+import { ChecklistView } from './customCardFields/checklistView';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -213,10 +214,18 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                         {activeTab === 'Allegati' && (
                           <RecordAttachments tableid={tableid} recordid={recordid} />
                         )}
+                        {activeTab === 'Checklist' && (
+                          <ChecklistView 
+                            tableid={'checklist'}
+                            masterTableid={tableid}
+                            masterRecordid={recordid}
+                            limit={8}
+                          />
+                        )}
                         {activeTab === 'AttachmentsDemo' && (
                           <RecordAttachmentsDemo tableid={tableid} recordid={recordid} />
                         )}
-                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Custom'].indexOf(activeTab) === -1 && (
+                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Custom', "Checklist"].indexOf(activeTab) === -1 && (
                           <div className="text-gray-400 italic">Nessun contenuto da mostrare {activeTab}</div>
                         )}
                       </>
