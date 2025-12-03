@@ -205,6 +205,7 @@ export async function POST(request: Request) {
     case "save_email_timesheet": djangoUrl = "/customapp_swissbix/save_email_timesheet/"; break;
     
 
+    // -------------------------------- SETTINGS --------------------------------------------
     case 'settings_table_usertables': djangoUrl = '/commonapp/settings_table_usertables/'; break;
     case 'settings_table_fields': djangoUrl = '/commonapp/settings_table_fields/'; break;
     case 'settings_table_settings': djangoUrl = '/commonapp/settings_table_settings/'; break;
@@ -224,8 +225,9 @@ export async function POST(request: Request) {
     case 'settings_get_dashboards_user': djangoUrl = '/commonapp/settings_get_dashboards_user/'; break;
     case 'save_user_dashboard_setting': djangoUrl = '/commonapp/save_user_dashboard_setting/'; break;
     case 'get_all_tables': djangoUrl = '/commonapp/get_all_tables/'; break;
-    case 'save_signature': djangoUrl = '/customapp_swissbix/save_signature/'; break;
+    case 'settings_table_fields_delete_field': djangoUrl = '/commonapp/settings_table_fields_delete_field/'; break;
     
+    case 'save_signature': djangoUrl = '/customapp_swissbix/save_signature/'; break;
     case 'save_service_man': djangoUrl = '/customapp_winteler/save_service_man/'; break;
     case 'get_service_man': djangoUrl = '/customapp_winteler/get_service_man/'; break;
     case 'save_checklist': djangoUrl = "/customapp_winteler/save_checklist/"; break;

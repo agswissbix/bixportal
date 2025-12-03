@@ -2,10 +2,20 @@
 
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
-import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight } from "lucide-react"
+import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface DraggableItem {
   id: string
@@ -26,6 +36,7 @@ interface DraggableListProps {
   groups: Record<string, DraggableGroup>
   onGroupsChange: (groups: Record<string, DraggableGroup>) => void
   onItemSettings: (itemId: string) => void
+  onItemDelete?: (itemId: string) => void
   title?: string
   showGroups?: boolean
   isSaved?: boolean
@@ -36,6 +47,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   groups,
   onGroupsChange,
   onItemSettings,
+  onItemDelete,
   title,
   showGroups = true,
   isSaved = true,
@@ -44,14 +56,24 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   const [draggedItem, setDraggedItem] = useState<{ groupName: string; itemIndex: number } | null>(null)
   const [draggedGroup, setDraggedGroup] = useState<string | null>(null)
   const initialOrders = useRef<Record<string, Record<string, number | null>>>({})
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    itemId: string
+    groupName: string
+    itemDescription: string
+  }>({
+    open: false,
+    itemId: "",
+    groupName: "",
+    itemDescription: "",
+  })
 
   useEffect(() => {
-    // Salva l'ordine iniziale solo la prima volta che i groups cambiano
     if (Object.keys(initialOrders.current).length === 0 || isSaved) {
       const snapshot: Record<string, Record<string, number | null>> = {}
-      Object.entries(groups)?.forEach(([groupName, group]) => {
+      Object.entries(groups).forEach(([groupName, group]) => {
         snapshot[groupName] = {}
-        group.items?.forEach((item) => {
+        group.items.forEach((item) => {
           snapshot[groupName][item.id] = item.order ?? null
         })
       })
@@ -71,27 +93,23 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     const group = groups[groupName]
     if (!group || !group.items) return
 
-    // Ottieni solo gli elementi visibili (order !== null)
     const visibleItems = group.items
-      ?.filter((item) => item.order !== null && item.order !== undefined)
+      .filter((item) => item.order !== null && item.order !== undefined)
       .sort((a, b) => (a.order || 0) - (b.order || 0))
 
     if (draggedItem.itemIndex === targetIndex) return
 
-    // Riordina gli elementi visibili
     const reorderedVisible = [...visibleItems]
     const [movedItem] = reorderedVisible.splice(draggedItem.itemIndex, 1)
     reorderedVisible.splice(targetIndex, 0, movedItem)
 
-    // Crea nuovi oggetti con order aggiornato
     const reorderedWithNewOrder = reorderedVisible.map((item, index) => ({
       ...item,
       order: index,
     }))
 
-    // Combina con gli elementi nascosti (crea copie)
     const hiddenItems = group.items
-      ?.filter((item) => item.order === null || item.order === undefined)
+      .filter((item) => item.order === null || item.order === undefined)
       .map((item) => ({ ...item }))
 
     const newItems = [...reorderedWithNewOrder, ...hiddenItems]
@@ -119,9 +137,8 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     if (!draggedGroup || draggedGroup === targetGroupKey) return
 
-    // Get visible groups sorted by order
     const visibleGroups = Object.entries(groups)
-      ?.filter(([_, group]) => !group.groupHidden)
+      .filter(([_, group]) => !group.groupHidden)
       .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
 
     const draggedIndex = visibleGroups.findIndex(([key]) => key === draggedGroup)
@@ -129,14 +146,12 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return
 
-    // Reorder visible groups
     const reordered = [...visibleGroups]
     const [movedGroup] = reordered.splice(draggedIndex, 1)
     reordered.splice(targetIndex, 0, movedGroup)
 
-    // Update group orders
     const updatedGroups = { ...groups }
-    reordered?.forEach(([key, group], index) => {
+    reordered.forEach(([key, group], index) => {
       updatedGroups[key] = { ...group, groupOrder: index }
     })
 
@@ -152,27 +167,23 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
     const isCurrentlyVisible = item.order !== null && item.order !== undefined
 
-    // Crea una copia di tutti gli items
     const newItems = group.items.map((i) => ({ ...i }))
 
     if (isCurrentlyVisible) {
-      // Nascondi: setta order a null
       const itemToHide = newItems.find((i) => i.id === itemId)
       if (itemToHide) itemToHide.order = null
 
-      // Riordina gli altri elementi visibili
       const visibleItems = newItems
-        ?.filter((i) => i.id !== itemId && i.order !== null && i.order !== undefined)
+        .filter((i) => i.id !== itemId && i.order !== null && i.order !== undefined)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
 
-      visibleItems?.forEach((i, index) => {
+      visibleItems.forEach((i, index) => {
         i.order = index
       })
     } else {
-      // Mostra: setta order come ultimo
-      const visibleItems = newItems?.filter((i) => i.order !== null && i.order !== undefined)
+      const visibleItems = newItems.filter((i) => i.order !== null && i.order !== undefined)
       const itemToShow = newItems.find((i) => i.id === itemId)
-      if (itemToShow) itemToShow.order = visibleItems?.length
+      if (itemToShow) itemToShow.order = visibleItems.length
     }
 
     onGroupsChange({
@@ -190,20 +201,17 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     const updatedGroups = { ...groups }
 
     if (isCurrentlyVisible) {
-      // Hide group
       updatedGroups[groupKey] = { ...group, groupHidden: true, groupOrder: null }
 
-      // Reorder remaining visible groups
       const visibleGroups = Object.entries(updatedGroups)
-        ?.filter(([key, g]) => key !== groupKey && !g.groupHidden)
+        .filter(([key, g]) => key !== groupKey && !g.groupHidden)
         .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
 
-      visibleGroups?.forEach(([key, g], index) => {
+      visibleGroups.forEach(([key, g], index) => {
         updatedGroups[key] = { ...g, groupOrder: index }
       })
     } else {
-      // Show group - add as last
-      const visibleGroups = Object.entries(updatedGroups)?.filter(([_, g]) => !g.groupHidden)
+      const visibleGroups = Object.entries(updatedGroups).filter(([_, g]) => !g.groupHidden)
       updatedGroups[groupKey] = { ...group, groupHidden: false, groupOrder: visibleGroups.length }
     }
 
@@ -220,24 +228,39 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     })
   }
 
+  const handleDeleteClick = (itemId: string, groupName: string, itemDescription: string) => {
+    setDeleteDialog({
+      open: true,
+      itemId,
+      groupName,
+      itemDescription,
+    })
+  }
+
+  const handleDeleteConfirm = () => {
+    if (onItemDelete) {
+      onItemDelete(deleteDialog.itemId)
+    }
+    setDeleteDialog({ open: false, itemId: "", groupName: "", itemDescription: "" })
+  }
+
   const renderContent = () => {
     if (!groups || Object.keys(groups).length === 0) return null
 
     if (showGroups) {
       const visibleGroups = Object.entries(groups)
-        ?.filter(([_, group]) => !group.groupHidden)
+        .filter(([_, group]) => !group.groupHidden)
         .sort((a, b) => (a[1].groupOrder ?? 0) - (b[1].groupOrder ?? 0))
 
-      const hiddenGroups = Object.entries(groups)?.filter(([_, group]) => group.groupHidden)
+      const hiddenGroups = Object.entries(groups).filter(([_, group]) => group.groupHidden)
 
       return (
         <>
-          {/* Visible Groups */}
           {visibleGroups.map(([key, group]) => {
             const visibleItems = group.items
-              ?.filter((item) => item.order !== null && item.order !== undefined)
+              .filter((item) => item.order !== null && item.order !== undefined)
               .sort((a, b) => (a.order || 0) - (b.order || 0))
-            const hiddenItems = group.items?.filter((item) => item.order === null || item.order === undefined)
+            const hiddenItems = group.items.filter((item) => item.order === null || item.order === undefined)
 
             return (
               <Card
@@ -259,7 +282,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleGroupCollapse(key)}
-                        className=""
+                        className="h-6 w-6 p-0 hover:bg-white/50"
                       >
                         {group.groupCollapsed ? (
                           <ChevronRight className="h-4 w-4" />
@@ -270,12 +293,12 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                       <span>{group.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{visibleItems?.length} visibili</Badge>
+                      <Badge variant="outline">{visibleItems.length} visibili</Badge>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleGroupVisibility(key)}
-                        className="hover:bg-green-50"
+                        className="hover:bg-white/50"
                       >
                         <Eye className="h-4 w-4 text-green-600" />
                       </Button>
@@ -314,14 +337,13 @@ export const DraggableList: React.FC<DraggableListProps> = ({
         </>
       )
     } else {
-      // Single group mode (no card wrapper)
       const firstGroup = Object.values(groups)[0]
       if (!firstGroup || !firstGroup.items) return null
 
       const visibleItems = firstGroup.items
-        ?.filter((item) => item.order !== null && item.order !== undefined)
+        .filter((item) => item.order !== null && item.order !== undefined)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
-      const hiddenItems = firstGroup.items?.filter((item) => item.order === null || item.order === undefined)
+      const hiddenItems = firstGroup.items.filter((item) => item.order === null || item.order === undefined)
 
       return renderItems(firstGroup.name, visibleItems, hiddenItems)
     }
@@ -332,10 +354,10 @@ export const DraggableList: React.FC<DraggableListProps> = ({
       <>
         <div className="space-y-2 mb-4">
           {title && <h4 className="text-sm font-semibold text-gray-700 mb-2">{title}</h4>}
-          {visibleItems?.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <div className="text-center py-4 text-gray-400 border-2 border-dashed rounded-lg">Nessun elemento</div>
           ) : (
-            visibleItems?.map((item, index) => (
+            visibleItems.map((item, index) => (
               <div
                 key={item.id}
                 draggable
@@ -351,12 +373,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                 <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-800 truncate">{item.description}</div>
-                  <div className="text-xs text-gray-500">
-                    {item.id}
-                    {item.fieldtypeid && " | " + item.fieldtypeid}
-                    {item.label && " | " + item.label}
-                    {item.fieldid && " | " + item.fieldid}
-                  </div>
+                  <div className="text-xs text-gray-500">{item.id}</div>
                 </div>
                 {(() => {
                   const originalOrder = initialOrders.current[groupName]?.[item.id] ?? null
@@ -386,6 +403,16 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                 >
                   <Eye className="h-4 w-4 text-green-600" />
                 </Button>
+                {onItemDelete && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteClick(item.id, groupName, item.description)}
+                    className="hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-600" />
+                  </Button>
+                )}
               </div>
             ))
           )}
@@ -411,6 +438,16 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                 >
                   <EyeOff className="h-4 w-4 text-gray-400" />
                 </Button>
+                {onItemDelete && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteClick(item.id, groupName, item.description)}
+                    className="hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-400" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
@@ -419,7 +456,27 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     )
   }
 
-  return <div className="space-y-4">{renderContent()}</div>
+  return (
+    <>
+      <div className="space-y-4">{renderContent()}</div>
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare "{deleteDialog.itemDescription}"? Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700 focus:ring-red-600">
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }
 
 export default DraggableList
