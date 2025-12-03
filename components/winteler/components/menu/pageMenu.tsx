@@ -1,9 +1,10 @@
 import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import { AppContext } from '@/context/appContext';
-import Image from 'next/image';
 import GenericComponent from '@/components/genericComponent';
 import GeneralButton from '../generalButton';
+import { toast } from 'sonner';
+import { checkAuth, logoutUser } from '@/utils/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -76,8 +77,19 @@ export default function Menu({onChangeView}) {
         { text: 'CHECK LIST', route: 'check-list' },
     ]
 
-    const logout = () => {
-        onChangeView('login');
+    const logout = async () => {
+        try {
+            const status = await logoutUser();
+            if (!status.success) {
+                toast.error("Errore durante il logout: " + (status.detail || ""));
+                return;
+            }
+            onChangeView('login');
+            toast.success("Logout effettuato con successo");
+        } catch (error) {
+            console.error("Errore durante il logout", error);
+            toast.error("Errore durante il logout");
+        }
     }
 
     return (

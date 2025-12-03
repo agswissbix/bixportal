@@ -2,9 +2,10 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from "../../../genericComponent";
 import { AppContext } from '@/context/appContext';
-import { memoWithDebug } from '@/lib/memoWithDebug';
 import GeneralButton from '../generalButton';
-import Image from 'next/image';
+import { checkAuth, getActiveServer, loginUserApi } from '@/utils/auth';
+import LoadingComp from '@/components/loading';
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -69,6 +70,17 @@ export default function Login({ onChangeView }) {
         setResponseData({ ...responseDataDEV });
     }, []);
 
+    const [activeServer, setActiveServer] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchActiveServer = async () => {
+            const server = await getActiveServer();
+            setActiveServer(server.activeServer);
+        };
+        fetchActiveServer();
+    },[]);
+
     const [isUsernameValid, setIsUsernameValid] = useState(false);
     const [isPasswordValid, setIsPasswordValid] = useState(false);
 
@@ -106,10 +118,23 @@ export default function Login({ onChangeView }) {
         }
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
 
-        onChangeView('menu');
+        if (!isUsernameValid || !isPasswordValid) {
+            setIsLoading(false);
+            alert("Per favore, inserisci un nome utente e una password validi.");
+            return;
+        }
+
+        const result = await loginUserApi(responseData.user.name, responseData.user.password);
+        if (result.success) {
+            onChangeView('menu');
+        } else {
+            setIsLoading(false);
+            alert("Login fallito: Credenziali non valide.");
+        }
     };
 
     return (
@@ -149,10 +174,16 @@ export default function Login({ onChangeView }) {
                                 />
                         </div>
 
-                        <GeneralButton
-                            type="submit"
-                            text='login'
-                        />
+                        <div className="mb-8">
+                            {isLoading && <LoadingComp/>}
+                        </div>
+
+                        {!isLoading && (    
+                            <GeneralButton
+                                type="submit"
+                                text='login'
+                            />
+                        )}
                     </form>
                 </div>
             )}

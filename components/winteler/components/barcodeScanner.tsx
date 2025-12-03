@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from 'html5-qrcode';
+import GeneralButton from "./generalButton";
 
 export default function BarcodeScanner({ onScanSuccess, onScanError }) {
     // --- Refs ---
@@ -147,13 +148,11 @@ export default function BarcodeScanner({ onScanSuccess, onScanError }) {
                     className="hidden"
                 />
 
-                <button
-                    type="button"
-                    onClick={() => fileInputRef.current.click()}
+                <GeneralButton
+                    text="Carica immagine con Barcode"
+                    action={() => fileInputRef.current.click()}
                     disabled={!isScannerReady}
-                    className="w-1/2 px-4 py-2 bg-black hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed ">
-                    Carica immagine con Barcode
-                </button>
+                />
             </div>
         </div>
     );
