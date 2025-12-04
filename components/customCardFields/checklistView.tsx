@@ -186,18 +186,20 @@ export function ChecklistView({
 
 
   return (
+    <>
+    {/* Filters and search */}
+    <ChecklistFilters
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      statusFilter={statusFilter}
+      onStatusFilterChange={setStatusFilter}
+      totalRecords={totalRecords}
+      checkedCount={checkedCount}
+    />
+    <div className="flex flex-col gap-6">
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
-    <div className="flex flex-col gap-6">
-      {/* Filters and search */}
-      <ChecklistFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        totalRecords={totalRecords}
-        checkedCount={checkedCount}
-      />
+      <>
 
       {/* Action buttons section with Add button */}
       <div className="w-full flex items-start justify-between">
@@ -347,8 +349,10 @@ export function ChecklistView({
             )}
           </nav>
       )}
-    </div>
-  )}
+      </>
+    )}
   </GenericComponent>
+  </div>
+  </>
   )
 }
