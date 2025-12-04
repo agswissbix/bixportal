@@ -249,7 +249,8 @@ export async function POST(request: Request) {
     case 'get_job_status': djangoUrl = '/commonapp/get_job_status/'; break;
     case 'get_monitoring': djangoUrl = '/customapp_swissbix/get_monitoring/'; break;
   
-    
+    case 'get_timesheets_to_invoice': djangoUrl = '/customapp_swissbix/get_timesheets_to_invoice/'; break;
+    case 'upload_timesheet_in_bexio': djangoUrl = '/customapp_swissbix/upload_timesheet_in_bexio/'; break;
     
     default:
       return NextResponse.json(

@@ -51,6 +51,9 @@ const componentsMap: Record<string, React.ComponentType<any>> = {
 
     // Winteler
     pageWinteler: dynamic(() => import('@/components/winteler/pageWinteler')),
+
+    // Timesheets to Invoice
+    timesheetsToInvoice: dynamic(() => import('@/components/timesheetsToInvoice')),
 };
 
 export default function DynamicComponentPage({ params }: { params: Promise<{ componentName: string }> }) {
