@@ -60,9 +60,10 @@ export default function TableChart({ chartData, view }: Props) {
               </button>
             </div>
 
-            <div className='mt-4'>
-              <QuickFilters tableid={firstDataset.tableid}/>
-            </div>
+            {/* <div className='mt-4'> */}
+              {/* TODO preview chart si bugga */}
+              {/* <QuickFilters tableid={firstDataset.tableid}/>
+            </div> */}
 
             <RecordsTable
                 tableid={firstDataset.tableid}
