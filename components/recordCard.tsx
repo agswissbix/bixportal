@@ -10,8 +10,6 @@ import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
-import {SignatureDialog} from './signatureDialog';
-import { sign } from 'crypto';
 import CardBadgeCompany from './customBadges/cardBadgeCompany';
 import CardBadgeDeal from './customBadges/cardBadgeDeal';
 import CardBadgeProject from './customBadges/cardBadgeProject';
@@ -50,12 +48,11 @@ export default function RecordCard({
 }: PropsInterface) {
   const isNewRecord = !recordid;
 
-  const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
   const headerRef = React.useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
-  const { removeCard, setOpenSignatureDialog, openSignatureDialog, setRefreshTable, handleRowClick } = useRecordsStore();
+  const { removeCard, setRefreshTable, handleRowClick } = useRecordsStore();
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
@@ -140,121 +137,6 @@ export default function RecordCard({
       setTimeout(() => removeCard(tableid, recordid), 300);
     }
   };
-
-  const handleSignatureChange = useCallback((signature: string | null) => {
-    setDigitalSignature(signature)
-  }, [])
-
-  const handlePrintTimesheet = async (recordidAttachment: string) => {
-    if (!digitalSignature) {
-      toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
-      return;
-    }
-
-    try {
-        const response = await axiosInstanceClient.post(
-            '/postApi',
-            {
-                apiRoute: "print_timesheet",
-                recordid: recordidAttachment
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-                responseType: 'blob',
-            }
-        );
-
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'timesheet_' + recordid + '.pdf');
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-
-    } catch (error) {
-        console.error('Errore durante il salvataggio o il download:', error);
-        toast.error('Errore durante il salvataggio o il download');
-    }
-  }
-
-  const handleSendEmailTimesheet = async (recordidAttachment: string) => {
-    if (!digitalSignature) {
-      toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
-      return;
-    }
-
-    try {
-        const response = await axiosInstanceClient.post(
-            '/postApi',
-            {
-                apiRoute: "save_email_timesheet",
-                recordid: recordid,
-                recordidAttachment
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-                responseType: 'blob',
-            }
-        );
-
-        console.log(response)
-
-        if (response.status != 200) {
-          toast.error("Errore durante l'invio dell'email.");
-          return
-        }
-
-        toast.success('Email inviata con successo.')
-
-    } catch (error) {
-        console.error('Errore durante il salvataggio o il download:', error);
-        toast.error('Errore durante il salvataggio o il download');
-    }
-  }
-
-  const handleSaveSignature = async () => {
-    if (!digitalSignature) {
-      toast.error('Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.');
-      return;
-    }
-
-    try {
-        const response = await axiosInstanceClient.post(
-            '/postApi',
-            {
-                apiRoute: "save_signature",
-                recordid: recordid,
-                image: digitalSignature,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-
-        if (response.data.error) {
-            toast.error('Errore durante il salvataggio della firma: ' + response.data.error);
-            return;
-        }
-        toast.success('Firma salvata con successo.');
-        console.log('Risposta dal server dopo il salvataggio della firma:', response, response.data.attachment_recordid);
-        return response.data.attachment_recordid;
-
-    } catch (error) {
-        console.error('Errore durante il salvataggio o il download:', error);
-        toast.error('Errore durante il salvataggio o il download');
-    }
-  }
   
   const duplicateRecord = async () => {
     try {
@@ -708,15 +590,6 @@ export default function RecordCard({
                 </div>
             </div>
           )}
-          {/* Signature dialog - reuse component */}
-          <SignatureDialog 
-            isOpen={openSignatureDialog} 
-            onOpenChange={setOpenSignatureDialog} 
-            onSaveSignature={handleSaveSignature}
-            onSignatureChange={handleSignatureChange}
-            onDownload={(savedSignature) => handlePrintTimesheet(savedSignature)}
-            onSendEmail={(savedSignature) => handleSendEmailTimesheet(savedSignature) }   
-          />
           <Toaster richColors />
         </>
       )}

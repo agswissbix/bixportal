@@ -195,14 +195,16 @@ export async function POST(request: Request) {
     case 'get_calendar_data': djangoUrl = '/commonapp/get_calendar_data/'; break;
     case 'save_calendar_event': djangoUrl = '/commonapp/save_calendar_event/'; break;
     case 'fieldsupdate': djangoUrl = '/commonapp/fieldsupdate/'; break;
-    case 'get_fields_swissbix_deal': djangoUrl = '/customapp_swissbix/get_fields_swissbix_deal/'; break;
     
+    case 'get_fields_swissbix_deal': djangoUrl = '/customapp_swissbix/get_fields_swissbix_deal/'; break;
     case 'get_services_activemind': djangoUrl = '/customapp_swissbix/get_services_activemind/'; break;
     case 'get_conditions_activemind': djangoUrl = '/customapp_swissbix/get_conditions_activemind/'; break;
     case 'get_products_activemind': djangoUrl = '/customapp_swissbix/get_products_activemind/'; break;
     case 'get_system_assurance_activemind': djangoUrl = '/customapp_swissbix/get_system_assurance_activemind/'; break;
     case "print_timesheet": djangoUrl = "/customapp_swissbix/print_timesheet/"; break;
     case "save_email_timesheet": djangoUrl = "/customapp_swissbix/save_email_timesheet/"; break;
+    case "get_project_templates": djangoUrl = "/customapp_swissbix/get_project_templates/"; break;
+    case "save_project_as_template": djangoUrl = "/customapp_swissbix/save_project_as_template/"; break;
     
 
     // -------------------------------- SETTINGS --------------------------------------------

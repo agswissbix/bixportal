@@ -75,9 +75,6 @@ interface RecordsStore {
     timestamp: number;
     setTimestamp: (timestamp: number) => void;
 
-    openSignatureDialog: boolean;
-    setOpenSignatureDialog: (open: boolean) => void;
-
     popupResolver: ((data: any) => void) | null;
     setPopupResolver: (resolver: ((data: any) => void) | null) => void;
 
@@ -107,8 +104,6 @@ interface RecordsStore {
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
-    openSignatureDialog: false,
-    setOpenSignatureDialog: (open: boolean) => set({ openSignatureDialog: open }),
     popupResolver: null,
     setPopupResolver: (resolver: ((data: any) => void) | null) => set({ popupResolver: resolver }),
     openPopup: (type: string, recordid?: string) => {

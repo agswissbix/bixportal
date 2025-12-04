@@ -4,7 +4,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, setIsPopupOpen, setPopUpType, setOpenSignatureDialog, openPopup } = useRecordsStore()
+  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, isPopupOpen, setIsPopupOpen, setPopUpType, openPopup } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -30,11 +30,23 @@ export function useFrontendFunctions() {
     }
   },
   // ----------------------- recordCards functions ------------------------
+
+  // -----------------------------------------------------------------------
+  //                                 SWISSBIX
+  // -----------------------------------------------------------------------
+  applyProjectTemplate: async ({ recordid }: { recordid: string }) => {
+    setPopUpType('templateProject')
+    setPopupRecordId(recordid)
+    setIsPopupOpen(true)
+  },
+  
   compilaActiveMind: async ({ recordid }: { recordid: string }) => {
     window.open(`/activeMind/${recordid}`, "_blank");
   },
-  handleSignTimesheet: async () => {
-    setOpenSignatureDialog(true);
+  handleSignTimesheet: async ({ recordid }: { recordid: string }) => {
+    setPopUpType('signatureTimesheet')
+    setPopupRecordId(recordid)
+    setIsPopupOpen(true)
   },
   stampaBollettino: async ({ recordid }: { recordid: string }) => {
     try {
