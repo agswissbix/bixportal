@@ -113,7 +113,11 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
     <GenericComponent response={responseData} loading={loading} error={error}> 
       {(response: ResponseInterface) => (
         <div className="p-4 h-full w-full overflow-y-auto bg-gray-50">
-          <button className="font-semibold flex items-center text-bixcolor-default px-4 py-2 rounded hover:-rotate-2  hover:scale-110 transition-all duration-100" onClick={() => handleRowClick('linked', '', 'attachment', tableid, recordid)}>
+          <button 
+              className="font-semibold flex items-center bg-accent-foreground text-accent border border-gray-200 mb-4 px-4 py-2 rounded-lg 
+                        hover:border-accent hover:bg-transparent hover:text-accent transition-all duration-300 transform 
+                        hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
+                  onClick={() => handleRowClick('linked', '', 'attachment', tableid, recordid)}>
               <SquarePlus name="Plus" className="mr-2" /> 
               Aggiungi    
           </button>
