@@ -5,6 +5,7 @@ import { AppContext } from '@/context/appContext';
 import { Check, Calendar, ChevronDown } from 'lucide-react'; 
 import { toast, Toaster } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import { useRecordsStore } from './records/recordsStore';
 
 const isDev = false;
 
@@ -173,6 +174,7 @@ export default function TimeSheetsToInvoice() {
     
     const { user } = useContext(AppContext);
 
+    const { handleRowClick } = useRecordsStore();
     const [triggerReload, setTriggerReload] = useState<boolean>(false);
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
     const [dateFilter, setDateFilter] = useState<Date>(new Date());
@@ -260,6 +262,12 @@ export default function TimeSheetsToInvoice() {
         if (selectedIds.length === 0) {
             console.log("Nessun timesheet selezionato per l'invio.");
             toast.error("Nessun timesheet selezionato per l'invio.");
+            return;
+        }
+
+        if (formattedDateForInput === "") {
+            console.log("Seleziona una data valida per la fattura.");
+            toast.error("Seleziona una data valida per la fattura.");
             return;
         }
 
@@ -393,6 +401,7 @@ export default function TimeSheetsToInvoice() {
                                                                     <th className="px-6 py-3 w-[10%] text-right">Quantità</th>
                                                                     <th className="px-6 py-3 w-[12%] text-right">Prezzo</th>
                                                                     <th className="px-6 py-3 w-[13%] text-right">Totale</th>
+                                                                    <th className="px-6 py-3 w-[13%] text-right"></th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="text-sm">
@@ -419,6 +428,16 @@ export default function TimeSheetsToInvoice() {
                                                                             <td className="px-6 py-4 align-top text-right text-slate-900 font-bold">
                                                                                 {formatCurrency(ts.workprice)}
                                                                             </td>
+                                                                            <td className="px-6 py-4 align-top text-right">
+                                                                                <button
+                                                                                    className="bg-[#164e63] text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-[#113a4b] transition-colors shadow-sm whitespace-nowrap active:scale-95 transform duration-150"
+                                                                                    onClick={() => {
+                                                                                        handleRowClick("linked", ts.id, "timesheet")
+                                                                                    }}
+                                                                                >
+                                                                                    Apri
+                                                                                </button>
+                                                                            </td>
                                                                         </tr>
 
                                                                         {ts.travelprice && ts.travelprice > 0 ? (
@@ -432,6 +451,8 @@ export default function TimeSheetsToInvoice() {
                                                                                 </td>
                                                                                 <td className="px-6 py-3 align-top text-right text-slate-900 font-bold">
                                                                                     {formatCurrency(ts.travelprice)}
+                                                                                </td>
+                                                                                <td className="px-6 py-4 align-top text-right">
                                                                                 </td>
                                                                             </tr>
                                                                         ) : null}
