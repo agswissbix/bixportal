@@ -12,8 +12,9 @@ const isDev = false;
 // --- INTERFACCE ---
 interface Timesheet {
     id: string;
-    conto: string;
-    contoTravel?: string;
+    count: string;
+    countTravel?: string;
+    company_id:string;
     company: string;
     description: string;
     date: Date;
@@ -23,6 +24,12 @@ interface Timesheet {
     hourprice: number;
     travelprice?: number;
     total_price: number;
+}
+
+interface Invoice {
+    invoiceDate: string;
+    company: string;
+    timesheets: Timesheet[];
 }
 
 interface ResponseInterface {
@@ -37,7 +44,8 @@ export default function TimeSheetsToInvoice() {
             // --- AZIENDA ALPHA ---
             {
                 id: "1",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Azienda Alpha S.r.l.",
                 description: "Sviluppo backend per il modulo di login e gestione permessi utente.",
                 date: new Date("2025-06-01"),
@@ -50,7 +58,8 @@ export default function TimeSheetsToInvoice() {
             },
             {
                 id: "2",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Azienda Alpha S.r.l.",
                 description: "Meeting di avanzamento lavori con il team interno e revisione roadmap.",
                 date: new Date("2025-06-01"),
@@ -63,7 +72,8 @@ export default function TimeSheetsToInvoice() {
             },
             {
                 id: "3",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Azienda Alpha S.r.l.",
                 description: "Deploy in ambiente di staging e smoke test.",
                 date: new Date("2025-06-01"),
@@ -77,7 +87,8 @@ export default function TimeSheetsToInvoice() {
             // --- BETA SOLUTIONS ---
             {
                 id: "4",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Beta Solutions Ltd",
                 description: "Consulenza sistemistica per migrazione infrastruttura VMWare. Analisi colli di bottiglia e ottimizzazione storage.",
                 date: new Date("2025-06-02"),
@@ -91,7 +102,8 @@ export default function TimeSheetsToInvoice() {
             // --- GAMMA SERVICES ---
             {
                 id: "5",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Gamma Services",
                 description: "Reset password utente amministrazione.",
                 date: new Date("2025-06-04"),
@@ -104,7 +116,8 @@ export default function TimeSheetsToInvoice() {
             },
             {
                 id: "6",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Gamma Services",
                 description: "Configurazione VPN su portatile nuovo dipendente.",
                 date: new Date("2025-06-04"),
@@ -117,7 +130,8 @@ export default function TimeSheetsToInvoice() {
             },
             {
                 id: "7",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Gamma Services",
                 description: "Verifica backup notturni falliti (errore disco pieno).",
                 date: new Date("2025-06-04"),
@@ -131,7 +145,8 @@ export default function TimeSheetsToInvoice() {
             // --- DELTA GROUP ---
             {
                 id: "8",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Delta Group SpA",
                 description: "Intervento on-site per guasto bloccante server principale. Sostituzione controller RAID, ricostruzione array dischi, ripristino configurazione BIOS e verifica integrità dati post-avvio. Aggiornamento firmware di sicurezza d'urgenza.",
                 date: new Date("2025-06-05"),
@@ -145,7 +160,8 @@ export default function TimeSheetsToInvoice() {
             // --- OMEGA & PARTNERS ---
             {
                 id: "9",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Omega & Partners",
                 description: "Call conference su Teams.",
                 date: new Date("2025-06-06"),
@@ -158,7 +174,8 @@ export default function TimeSheetsToInvoice() {
             },
             {
                 id: "10",
-                conto: "3400",
+                count: "3400",
+                company_id: '1',
                 company: "Omega & Partners",
                 description: "Redazione documentazione tecnica finale.",
                 date: new Date("2025-06-06"),
@@ -237,6 +254,7 @@ export default function TimeSheetsToInvoice() {
             const companyName = ts.company || "Senza Azienda";
             if (!groups[companyName]) groups[companyName] = [];
             groups[companyName].push(ts);
+            toggleCollapse(companyName);
         });
         
         return groups;
@@ -271,21 +289,41 @@ export default function TimeSheetsToInvoice() {
             return;
         }
 
+        const selectedTimesheets = responseData.timesheets.filter(ts => selectedIds.includes(ts.id));
+
+        const groupedByCompany = selectedTimesheets.reduce((acc, ts) => {
+            const companyName = ts.company || "Senza Azienda";
+            
+            if (!acc[companyName]) {
+                acc[companyName] = [];
+            }
+            acc[companyName].push(ts);
+            
+            return acc;
+        }, {} as Record<string, Timesheet[]>);
+
+        const invoices: Invoice[] = Object.entries(groupedByCompany).map(([companyName, timesheets]) => ({
+            invoiceDate: formattedDateForInput,
+            company_id: timesheets[0].company_id,
+            company: companyName,
+            timesheets: timesheets
+        }));
+
         const payloadToSend = {
             invoiceDate: formattedDateForInput,
-            selectedTimesheetIds: selectedIds
+            invoices: invoices
         };
 
         await sentToBexio(payloadToSend);
     };
 
-    async function sentToBexio(payloadToSend: { invoiceDate: string; selectedTimesheetIds: string[]; }) {
+    async function sentToBexio(payloadToSend: { invoiceDate: string; invoices: Invoice[]; }) {
         try {
             const response = await axiosInstanceClient.post("/postApi",
                 { 
                     apiRoute: "upload_timesheet_in_bexio",
                     invoiceDate: payloadToSend.invoiceDate,
-                    selectedTimesheets: payloadToSend.selectedTimesheetIds
+                    invoices: payloadToSend.invoices
                   }, {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` 
                   },
@@ -308,178 +346,174 @@ export default function TimeSheetsToInvoice() {
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
             {(response: ResponseInterface) => (
-                <>
-                    <Toaster position="top-right" richColors />
-                    <section className="bg-gray-50 h-screen flex flex-col font-sans text-slate-700 overflow-hidden">
-                        <div className="flex-none bg-gray-50 pt-8 pb-6 shadow-sm z-20 border-b border-gray-200">
-                            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div>
-                                        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Timesheet da Fatturare</h1>
-                                        <p className="text-gray-500 text-sm mt-1 flex items-center gap-2">
-                                            <Check className="w-4 h-4 text-green-500" />
-                                            Segna come fatturato in Bixdata
-                                        </p>
-                                    </div>
+                <section className="bg-gray-50 h-screen flex flex-col font-sans text-slate-700 overflow-hidden">
+                    <div className="flex-none bg-gray-50 pt-8 pb-6 shadow-sm z-20 border-b border-gray-200">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Timesheet da Fatturare</h1>
+                                    <p className="text-gray-500 text-sm mt-1 flex items-center gap-2">
+                                        <Check className="w-4 h-4 text-green-500" />
+                                        Segna come fatturato in Bixdata
+                                    </p>
+                                </div>
 
-                                    <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center w-full md:w-auto">
-                                        <div className="flex items-center gap-3">
-                                            <label htmlFor="invoice-date" className="text-sm font-semibold text-gray-700 whitespace-nowrap">
-                                                Data Fattura:
-                                            </label>
-                                            <div className="bg-white p-1.5 rounded-md shadow-sm border border-gray-300 flex items-center gap-2 hover:border-teal-500 transition-colors">
-                                                <div className="pl-2 text-gray-400">
-                                                    <Calendar className="w-4 h-4" />
-                                                </div>
-                                                <input
-                                                    id="invoice-date"
-                                                    type="date"
-                                                    value={formattedDateForInput}
-                                                    onChange={handleDateChange}
-                                                    className="block w-full text-sm text-gray-700 border-none focus:ring-0 bg-transparent p-1 outline-none cursor-pointer"
-                                                />
+                                <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center w-full md:w-auto">
+                                    <div className="flex items-center gap-3">
+                                        <label htmlFor="invoice-date" className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+                                            Data Fattura:
+                                        </label>
+                                        <div className="bg-white p-1.5 rounded-md shadow-sm border border-gray-300 flex items-center gap-2 hover:border-teal-500 transition-colors">
+                                            <div className="pl-2 text-gray-400">
+                                                <Calendar className="w-4 h-4" />
                                             </div>
+                                            <input
+                                                id="invoice-date"
+                                                type="date"
+                                                value={formattedDateForInput}
+                                                onChange={handleDateChange}
+                                                className="block w-full text-sm text-gray-700 border-none focus:ring-0 bg-transparent p-1 outline-none cursor-pointer"
+                                            />
                                         </div>
-                                        
-                                        <button 
-                                            onClick={handleSendToBexio}
-                                            className="bg-[#164e63] text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-[#113a4b] transition-colors shadow-sm whitespace-nowrap active:scale-95 transform duration-150"
-                                        >
-                                            CARICA IN BEXIO
-                                        </button>
                                     </div>
+                                    
+                                    <button 
+                                        onClick={handleSendToBexio}
+                                        className="bg-[#164e63] text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-[#113a4b] transition-colors shadow-sm whitespace-nowrap active:scale-95 transform duration-150"
+                                    >
+                                        CARICA IN BEXIO
+                                    </button>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="flex-1 overflow-y-auto scroll-smooth">
-                            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+                    <div className="flex-1 overflow-y-auto scroll-smooth">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+                            
+                            <div className="bg-white shadow-lg shadow-slate-200/50 rounded-sm overflow-hidden border border-slate-200 flex flex-col">
                                 
-                                <div className="bg-white shadow-lg shadow-slate-200/50 rounded-sm overflow-hidden border border-slate-200 flex flex-col">
+                                {Object.entries(groupedTimesheets).map(([company, sheets]) => {
+                                    const companyTotal = sheets.reduce((acc, curr) => acc + curr.total_price, 0);
+                                    const isCollapsed = collapsedCompanies[company];
                                     
-                                    {Object.entries(groupedTimesheets).map(([company, sheets]) => {
-                                        const companyTotal = sheets.reduce((acc, curr) => acc + curr.total_price, 0);
-                                        const isCollapsed = collapsedCompanies[company];
-                                        
-                                        const allSelected = sheets.length > 0 && sheets.every(s => selectedIds.includes(s.id));
-                                        const someSelected = sheets.some(s => selectedIds.includes(s.id));
+                                    const allSelected = sheets.length > 0 && sheets.every(s => selectedIds.includes(s.id));
+                                    const someSelected = sheets.some(s => selectedIds.includes(s.id));
 
-                                        return (
-                                            <div key={company} className="border-b border-slate-200 last:border-0 transition-all duration-200">
-                                                <div 
-                                                    className="bg-[#164e63] text-white px-6 py-3 flex justify-between items-center cursor-pointer select-none hover:bg-[#113a4b] transition-colors sticky top-0 z-10"
-                                                    onClick={() => toggleCollapse(company)}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div onClick={(e) => e.stopPropagation()} className="flex items-center">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                checked={allSelected}
-                                                                onChange={(e) => handleCompanySelection(e, sheets)}
-                                                                className="w-5 h-5 accent-[#164e63] ring-1 ring-white/50 cursor-pointer rounded-sm" 
-                                                            />
-                                                        </div>
-                                                        <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
-                                                            {company}
-                                                            {someSelected && !allSelected && <span className="text-xs bg-teal-500 text-white px-1.5 rounded-full">Parziale</span>}
-                                                        </h3>
+                                    return (
+                                        <div key={company} className="border-b border-slate-200 last:border-0 transition-all duration-200">
+                                            <div 
+                                                className="bg-[#164e63] text-white px-6 py-3 flex justify-between items-center cursor-pointer select-none hover:bg-[#113a4b] transition-colors sticky top-0 z-10"
+                                                onClick={() => toggleCollapse(company)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={allSelected}
+                                                            onChange={(e) => handleCompanySelection(e, sheets)}
+                                                            className="w-5 h-5 accent-[#164e63] ring-1 ring-white/50 cursor-pointer rounded-sm" 
+                                                        />
                                                     </div>
-                                                    
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-lg font-bold">{formatCurrency(companyTotal)}</span>
-                                                        <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`} />
-                                                    </div>
+                                                    <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
+                                                        {company}
+                                                        {someSelected && !allSelected && <span className="text-xs bg-teal-500 text-white px-1.5 rounded-full">Parziale</span>}
+                                                    </h3>
                                                 </div>
+                                                
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-lg font-bold">{formatCurrency(companyTotal)}</span>
+                                                    <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`} />
+                                                </div>
+                                            </div>
 
-                                                {!isCollapsed && (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-left border-collapse min-w-[600px]">
-                                                            <thead>
-                                                                <tr className="bg-[#f1f5f9] text-slate-700 font-bold text-xs uppercase tracking-wider border-b border-slate-200">
-                                                                    <th className="px-6 py-3 w-[10%]">Conto</th>
-                                                                    <th className="px-6 py-3 w-[55%]">Descrizione</th>
-                                                                    <th className="px-6 py-3 w-[10%] text-right">Quantità</th>
-                                                                    <th className="px-6 py-3 w-[12%] text-right">Prezzo</th>
-                                                                    <th className="px-6 py-3 w-[13%] text-right">Totale</th>
-                                                                    <th className="px-6 py-3 w-[13%] text-right"></th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="text-sm">
-                                                                {sheets.map((ts) => (
-                                                                    <React.Fragment key={ts.id}>
-                                                                        <tr className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors ${selectedIds.includes(ts.id) ? 'bg-blue-50/30' : ''}`}>
-                                                                            <td className="px-6 py-4 align-top text-slate-500 font-mono">{ts.conto}</td>
-                                                                            <td className="px-6 py-4 align-top">
-                                                                                <div className="text-slate-800 mb-1.5 text-base leading-relaxed">
-                                                                                    {ts.description}
-                                                                                </div>
-                                                                                <div className="font-bold text-slate-500 text-xs flex items-center gap-2">
-                                                                                    <span>{formatDate(ts.date)}</span>
-                                                                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                                                                    <span className="uppercase tracking-wide">{ts.user}</span>
-                                                                                </div>
+                                            {!isCollapsed && (
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-left border-collapse min-w-[600px]">
+                                                        <thead>
+                                                            <tr className="bg-[#f1f5f9] text-slate-700 font-bold text-xs uppercase tracking-wider border-b border-slate-200">
+                                                                <th className="px-6 py-3 w-[10%]">Conto</th>
+                                                                <th className="px-6 py-3 w-[55%]">Descrizione</th>
+                                                                <th className="px-6 py-3 w-[10%] text-right">Quantità</th>
+                                                                <th className="px-6 py-3 w-[12%] text-right">Prezzo</th>
+                                                                <th className="px-6 py-3 w-[13%] text-right">Totale</th>
+                                                                <th className="px-6 py-3 w-[13%] text-right"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="text-sm">
+                                                            {sheets.map((ts) => (
+                                                                <React.Fragment key={ts.id}>
+                                                                    <tr className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors ${selectedIds.includes(ts.id) ? 'bg-blue-50/30' : ''}`}>
+                                                                        <td className="px-6 py-4 align-top text-slate-500 font-mono">{ts.count}</td>
+                                                                        <td className="px-6 py-4 align-top">
+                                                                            <div className="text-slate-800 mb-1.5 text-base leading-relaxed">
+                                                                                {ts.description}
+                                                                            </div>
+                                                                            <div className="font-bold text-slate-500 text-xs flex items-center gap-2">
+                                                                                <span>{formatDate(ts.date)}</span>
+                                                                                <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                                                                <span className="uppercase tracking-wide">{ts.user}</span>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 align-top text-right text-slate-600">
+                                                                            {ts.worktime_decimal}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 align-top text-right text-slate-600">
+                                                                            {formatCurrency(ts.hourprice)}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 align-top text-right text-slate-900 font-bold">
+                                                                            {formatCurrency(ts.workprice)}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 align-top text-right">
+                                                                            <button
+                                                                                className="bg-[#164e63] text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-[#113a4b] transition-colors shadow-sm whitespace-nowrap active:scale-95 transform duration-150"
+                                                                                onClick={() => {
+                                                                                    handleRowClick("linked", ts.id, "timesheet")
+                                                                                }}
+                                                                            >
+                                                                                Apri
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+
+                                                                    {ts.travelprice && ts.travelprice > 0 ? (
+                                                                        <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50 bg-slate-50/50">
+                                                                            <td className="px-6 py-3 align-top text-slate-500 font-mono">{ts.countTravel}</td>
+                                                                            <td className="px-6 py-3 align-top text-slate-700 italic">
+                                                                                Trasferta
                                                                             </td>
-                                                                            <td className="px-6 py-4 align-top text-right text-slate-600">
-                                                                                {ts.worktime_decimal}
+                                                                            <td className="px-6 py-3 align-top text-right text-slate-600"></td>
+                                                                            <td className="px-6 py-3 align-top text-right text-slate-600">
                                                                             </td>
-                                                                            <td className="px-6 py-4 align-top text-right text-slate-600">
-                                                                                {formatCurrency(ts.hourprice)}
-                                                                            </td>
-                                                                            <td className="px-6 py-4 align-top text-right text-slate-900 font-bold">
-                                                                                {formatCurrency(ts.workprice)}
+                                                                            <td className="px-6 py-3 align-top text-right text-slate-900 font-bold">
+                                                                                {formatCurrency(ts.travelprice)}
                                                                             </td>
                                                                             <td className="px-6 py-4 align-top text-right">
-                                                                                <button
-                                                                                    className="bg-[#164e63] text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-[#113a4b] transition-colors shadow-sm whitespace-nowrap active:scale-95 transform duration-150"
-                                                                                    onClick={() => {
-                                                                                        handleRowClick("linked", ts.id, "timesheet")
-                                                                                    }}
-                                                                                >
-                                                                                    Apri
-                                                                                </button>
                                                                             </td>
                                                                         </tr>
+                                                                    ) : null}
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
 
-                                                                        {ts.travelprice && ts.travelprice > 0 ? (
-                                                                            <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50 bg-slate-50/50">
-                                                                                <td className="px-6 py-3 align-top text-slate-500 font-mono">{ts.contoTravel}</td>
-                                                                                <td className="px-6 py-3 align-top text-slate-700 italic">
-                                                                                    Trasferta
-                                                                                </td>
-                                                                                <td className="px-6 py-3 align-top text-right text-slate-600"></td>
-                                                                                <td className="px-6 py-3 align-top text-right text-slate-600">
-                                                                                </td>
-                                                                                <td className="px-6 py-3 align-top text-right text-slate-900 font-bold">
-                                                                                    {formatCurrency(ts.travelprice)}
-                                                                                </td>
-                                                                                <td className="px-6 py-4 align-top text-right">
-                                                                                </td>
-                                                                            </tr>
-                                                                        ) : null}
-                                                                    </React.Fragment>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                <div className="bg-slate-100 border-t-2 border-[#164e63] p-6 flex items-center justify-end gap-8 z-20">
+                                    <span className="text-[#164e63] font-bold text-lg uppercase tracking-wide">
+                                        Totale
+                                    </span>
+                                    <span className="text-3xl font-bold text-[#164e63]">{formatCurrency(grandTotal)}</span>
+                                </div>
+                                
+                            </div> 
 
-                                    <div className="bg-slate-100 border-t-2 border-[#164e63] p-6 flex items-center justify-end gap-8 z-20">
-                                        <span className="text-[#164e63] font-bold text-lg uppercase tracking-wide">
-                                            Totale
-                                        </span>
-                                        <span className="text-3xl font-bold text-[#164e63]">{formatCurrency(grandTotal)}</span>
-                                    </div>
-                                    
-                                </div> 
-
-                            </div>
                         </div>
-                    </section>
-                </>
-
+                    </div>
+                </section>
             )}
         </GenericComponent>
     );
