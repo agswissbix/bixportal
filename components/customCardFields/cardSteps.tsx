@@ -549,13 +549,16 @@ export default function cardSteps({
                 {currentStep < stepsData.length - 1 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      handleSave()
+                    disabled={isSaveDisabled}
+                    onClick={async () => {
+                      await handleSave()
                       goToNextStep()
                     }}
-                    className="inline-flex items-center gap-2 rounded-lg theme-primary px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
-                  >
-                    <span>Salva e Avanti</span>
+                    className={`inline-flex items-center gap-2 rounded-lg theme-primary px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 ${
+                        isSaveDisabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                    }`}
+                      >
+                    {isSaving ? "Salvataggio..." : "Salva e Avanti"}
                     <ChevronRightIcon className="h-4 w-4" />
                   </button>
                 )}
@@ -563,8 +566,8 @@ export default function cardSteps({
                 {activeServer !== "belotti" && (
                   <button
                     type="button"
-                    onClick={() => {
-                      handleSave()
+                    onClick={async () => {
+                      await handleSave()
                       removeCard(tableid, recordid)
                     }}
                     disabled={isSaveDisabled}
