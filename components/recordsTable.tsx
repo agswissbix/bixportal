@@ -70,6 +70,9 @@ interface ResponseInterface {
     desc: string;
     fieldid: string;
   }>;
+  totals?: {
+    [fieldid: string]: number | null;
+  };
   pagination: {
     currentPage: number; // La pagina attualmente visualizzata
     totalPages: number;  // Il numero totale di pagine disponibili
@@ -668,24 +671,32 @@ export default function RecordsTable({
 
               <tfoot className="z-20 sticky bottom-0 bg-table-header dark:bg-gray-700">
                 <tr>
-                  {response.columns.map((column, index) => (
-                    <td
-                      key={`total-${column.fieldid}`}
-                      className={`
-                        px-4 py-3 align-middle font-bold text-gray-900 dark:text-white border-t border-table-border
-                        ${
-                          column.fieldtypeid === "Numero"
-                            ? "min-w-[60px] max-w-[80px] text-right"
-                            : "min-w-[80px] max-w-[300px] text-left"
-                        }
-                        ${
-                          index === 0 ? "sticky left-0 bg-table-header rounded-bl-xl" : ""
-                        }
-                      `}
-                    >
-                      {index === 0 && "Totali"}
-                    </td>
-                  ))}
+                  {response.columns.map((column, index) => {
+                    const isNumber = column.fieldtypeid === "Numero";
+                    const totalValue = response.totals?.[column.fieldid] ?? null;
+
+                    return (
+                      <td
+                        key={`total-${column.fieldid}`}
+                        className={`
+                          px-2 py-3 align-right font-bold text-gray-900 dark:text-white border-t border-table-border
+                          ${isNumber ? "min-w-[60px] max-w-[80px] text-right whitespace-nowrap overflow-hidden text-ellipsis font-mono" : "min-w-[80px] max-w-[300px] text-left"}
+                          ${index === 0 ? "sticky left-0 bg-table-header rounded-bl-xl" : ""}
+                        `}
+                        title={isNumber ? String(totalValue) : ""} // Tooltip per vedere il valore intero
+                      >
+                        {index === 0 ? (
+                          "Totali"
+                        ) : isNumber ? (
+                          totalValue !== null
+                            ? Number(totalValue).toLocaleString("de-CH")
+                            : ""
+                        ) : (
+                          ""
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               </tfoot>
             </table>
