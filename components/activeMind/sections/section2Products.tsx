@@ -339,7 +339,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                     >
                       <Calendar className="w-3.5 h-3.5" />
                       <span>Mensile</span>
-                      <span className="font-semibold">CHF {service.monthlyPrice}.-</span>
+                      <span className="font-semibold">CHF {service.monthlyPrice.toFixed(0)}.-</span>
                     </button>
                     <button
                       onClick={(e) => {
@@ -357,7 +357,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                     >
                       <CalendarDays className="w-3.5 h-3.5" />
                       <span>Annuale</span><br />
-                      <span className="text-md font-semibold">CHF {service.yearlyPrice}.-</span>
+                      <span className="text-md font-semibold">CHF {service.yearlyPrice.toFixed(0)}.-</span>
                     </button>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                     </div>
                     
                     <div className={`text-right min-w-[100px] transition-opacity duration-150 ${serviceData.quantity > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                      <div className="text-base font-bold text-blue-700 whitespace-nowrap">CHF {serviceData.total.toFixed(2)}.-</div>
+                      <div className="text-base font-bold text-blue-700 whitespace-nowrap">CHF {serviceData.total.toFixed(0)}.-</div>
                       <div className="text-xs text-gray-600 whitespace-nowrap">
                         {serviceData.billingType === "yearly" ? "Tot. annuale" : "Tot. mensile"}
                       </div>
@@ -453,18 +453,32 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
 
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 h-auto p-1 bg-gray-100">
-          {response.servicesCategory.map((category) => (
+          {response.servicesCategory.map((category) => {
+            const selectedCount = Object.values(data).filter(
+              (service: any) => service.category === category.id && service.quantity > 0
+            ).length;
+            const hasSelected = selectedCount > 0;
+
+                  return (
               <TabsTrigger
               key={category.id}
               value={category.id}
               className="hover:bg-gray-200 text-xs lg:text-sm p-2 lg:p-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
               >
               <div className="text-center">
-                <div className="font-medium">{categoryLabels[category.id]}</div>
+                <div className="font-medium flex items-center justify-center gap-1.5">
+                  {categoryLabels[category.id]}
+                  {hasSelected && (
+                    <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-green-500 rounded-full">
+                      {selectedCount}
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs opacity-80 hidden lg:block">{category.services.length} servizi</div>
               </div>
             </TabsTrigger>
-          ))}
+          )
+          })}
         </TabsList>
 
         {response.servicesCategory.map((category) => (
@@ -478,7 +492,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                   </div>
                   {getTotalForCategory(category.id) > 0 && (
                       <div className="text-right">
-                      <div className="text-xl font-bold text-blue-900">CHF {getTotalForCategory(category.id).toFixed(2)}.-</div>
+                      <div className="text-xl font-bold text-blue-900">CHF {getTotalForCategory(category.id).toFixed(0)}.-</div>
                       <div className="text-sm text-blue-700">Totale categoria</div>
                     </div>
                   )}
@@ -508,7 +522,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                 {getTotalForAllServicesByBillingType("monthly") > 0 && (
                   <div>
                     <div className="text-2xl font-bold text-green-900">
-                      CHF {getTotalForAllServicesByBillingType("monthly").toFixed(2)}.-
+                      CHF {getTotalForAllServicesByBillingType("monthly").toFixed(0)}.-
                     </div>
                     <div className="text-sm text-green-700">Totale mensile</div>
                   </div>
@@ -516,7 +530,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                 {getTotalForAllServicesByBillingType("yearly") > 0 && (
                   <div>
                     <div className="text-2xl font-bold text-green-900">
-                      CHF {getTotalForAllServicesByBillingType("yearly").toFixed(2)}.-
+                      CHF {getTotalForAllServicesByBillingType("yearly").toFixed(0)}.-
                     </div>
                     <div className="text-sm text-green-700">Totale annuale</div>
                   </div>

@@ -243,7 +243,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           </div>
 
                           <div className="text-right">
-                            <div className="font-bold text-gray-900">CHF {product.total}.-</div>
+                            <div className="font-bold text-gray-900">CHF {product.total.toFixed(0)}.-</div>
                             <div className="text-xs text-gray-600">Totale</div>
                           </div>
                         </div>
@@ -275,7 +275,6 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                     <div>
                       <h4 className="font-semibold text-gray-900 text-base mb-2">Subtotale prodotti</h4>
-                      <p className="text-gray-700 text-lg font-medium">{frequencyLabels[serviceData.section3.selectedFrequency]}</p>
                     </div>
 
                     <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
@@ -343,7 +342,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
                       <div className="text-right">
                         <div className="font-bold text-gray-900">
-                          CHF {service.id == "clientPC" ? service.total * (1 - (service.quantity - 1) / 100) : service.total} .-
+                          CHF {service.id == "clientPC" ? (service.total * (1 - (service.quantity - 1) / 100)).toFixed(0) : service.total.toFixed(0)} .-
                         </div>
                       </div>
                     </div>
