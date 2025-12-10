@@ -457,7 +457,7 @@ export default function RecordsTable({
         )
 
         for (const row of changedRows) {
-        const res = await axiosInstanceClient.post(
+        await axiosInstanceClient.post(
           "/postApi",
           {
           apiRoute: "fieldsupdate",
@@ -474,8 +474,8 @@ export default function RecordsTable({
           },
           },
         )
-      }
-      toast.success("Ordine aggiornato con successo", {id: loadingToastId})
+        }
+        toast.success("Ordine aggiornato con successo", {id: loadingToastId})
       } catch (error) {
         console.error("Errore durante l'aggiornamento dell'ordine:", error)
         toast.dismiss(loadingToastId)
