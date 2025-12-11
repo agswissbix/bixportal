@@ -65,6 +65,10 @@ interface ResponseInterface {
   recordid: string
 }
 
+interface TableSetting {
+  tablesettings: Record<string, { type: string; value: string }>;
+}
+
 interface CalculationResponseInterface {
   updated_fields: { [key: string]: any }
 }
@@ -102,6 +106,23 @@ export default function CardFields({
   }, [tableid, recordid, mastertableid, masterrecordid, externalFields])
 
 	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+
+  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
+  const payloadSettings = useMemo(() => {
+    if (isDev) return null;
+    return {
+      apiRoute: 'settings_table_settings',
+      tableid,
+    };
+  }, [tableid]);
+  
+  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
+
+  useEffect(() => {
+    if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
+      setTableSettings(responseSettings.tablesettings ?? undefined)
+    }
+  }, [responseSettings]);
 
   const currentFields = useMemo(() => {
     if (externalFields) {
@@ -246,8 +267,9 @@ export default function CardFields({
   const renderField = (field: FieldInterface) => {
     const rawValue = typeof field.value === "object" ? field.value?.value : field.value
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
-    const isCalculated = typeof field.settings === "object" && field.settings.calcolato === "true"
+    const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true") || tableSettings?.edit?.value === 'false'
 
+    setIsSaveDisabled(tableSettings?.edit?.value === 'false')
 
     console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
@@ -260,6 +282,8 @@ export default function CardFields({
     const hasDependencies = field.hasDependencies
 
     const user = field.lookupitemsuser?.find((u) => u.userid.toString() === value.toString())
+
+    console.log("fieldtypes: ", field.fieldtype, field.fieldtypewebid)
 
     if (isCalculated) {
       return (
@@ -313,7 +337,8 @@ export default function CardFields({
                   )}
                 </>
               ) : (
-                <>{value}</>
+                <div dangerouslySetInnerHTML={{ __html: value }} />
+                // <>{value}</>
               )}
             </div>
           </div>
@@ -406,7 +431,7 @@ export default function CardFields({
                 fieldid={field.fieldid}
                 formValues={currentValues}
               />
-            ) : field.fieldtype === "LongText" ? (
+            ) : field.fieldtype === "html" ? (
               <InputEditor initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
             ) : field.fieldtype === "Attachment" ? (
               <InputFile
@@ -552,7 +577,7 @@ export default function CardFields({
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={isSaveDisabled || isCalculating}
+                  disabled={isSaveDisabled || isCalculating || tableSettings?.edit?.value === 'false'}
                   className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled || isCalculating ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {isSaving ? "Salvataggio..." : "Salva"}

@@ -64,6 +64,7 @@ export default function RecordCard({
   const [mountedTime, setMountedTime] = useState<string>('');
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' ? window.innerWidth < WIDTH_WINDOW_MOBILE : false); 
 
+  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
   // API for custom functions (desktop behavior kept)
   const responseDataDEFAULT: ResponseInterface = { fn: [] };
   const responseDataDEV: ResponseInterface = { fn: [] };
@@ -98,6 +99,7 @@ export default function RecordCard({
   useEffect(() => {
     if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
       console.log('RecordCard: fetched table settings', responseSettings);
+      setTableSettings(responseSettings.tablesettings ?? undefined)
       setIsMaximized(responseSettings.tablesettings?.card_default_size?.value === 'max' ? true : false);
     }
   }, [responseSettings]);
@@ -316,6 +318,7 @@ export default function RecordCard({
                     </div>
 
                     {/* Trash */}
+                    {tableSettings?.delete.value == 'true' && (
                     <button
                       className="p-1.5 rounded-full hover:bg-red-100 hover:scale-110 transition-all duration-100 ease-in-out"
                       onClick={handleTrashClick}
@@ -323,6 +326,7 @@ export default function RecordCard({
                     >
                       <Trash2 className="w-5 h-5 text-red-500 hover:text-red-700" />
                     </button>
+                    )}
                     <button
                       className="p-1.5 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-100 ease-in-out"
                       onClick={duplicateRecord}
@@ -489,6 +493,7 @@ export default function RecordCard({
                           )}
                         </div>
 
+                          {tableSettings?.delete?.value == 'true' && (
                         <button
                           className="p-2 rounded-full hover:bg-red-100 hover:scale-110 transition-colors hover:scale-110"
                           onClick={handleTrashClick}
@@ -496,6 +501,7 @@ export default function RecordCard({
                         >
                           <Trash2 className="w-6 h-6 text-red-500 hover:text-red-700" />
                         </button>
+                          )}
                         <button
                           className="p-1.5 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-100 ease-in-out"
                           onClick={duplicateRecord}

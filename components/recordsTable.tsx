@@ -89,6 +89,10 @@ interface ResponseInterface {
   order: SortOrder
 }
 
+interface TableSetting {
+  tablesettings: Record<string, { type: string; value: string }>;
+}
+
 // TIPO DI ORDINAMENTO
 type SortDirection = "asc" | "desc" | null
 
@@ -322,10 +326,26 @@ export default function RecordsTable({
       // Aggiorna i dati della tabella
       if (JSON.stringify(response) !== JSON.stringify(responseData)) {
         setResponseData(response)
-        console.log("DEALLINE", response)
       }
     }
   }, [response])
+
+  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
+    const payloadSettings = useMemo(() => {
+      if (isDev) return null;
+      return {
+        apiRoute: 'settings_table_settings',
+        tableid,
+      };
+    }, [tableid]);
+    
+    const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
+  
+    useEffect(() => {
+      if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
+        setTableSettings(responseSettings.tablesettings ?? undefined)
+      }
+    }, [responseSettings]);
 
   const [localRows, setLocalRows] = useState<typeof response.rows>([])
 
@@ -811,16 +831,19 @@ export default function RecordsTable({
                     <Copy className="w-4 h-4" />
                     Duplica
                   </button>
-                  <button
-                    onClick={() => {
-                      handleTrashClick(contextMenu.recordid)
-                      setContextMenu(null)
-                    }}
-                    className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Elimina
-                  </button>
+
+                  {tableSettings?.delete?.value === 'true' && (
+                    <button
+                      onClick={() => {
+                        handleTrashClick(contextMenu.recordid)
+                        setContextMenu(null)
+                      }}
+                      className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                      >
+                      <Trash2 className="w-4 h-4" />
+                      Elimina
+                    </button>
+                  )}
 
                   {context === "linked" && (
                     <>
