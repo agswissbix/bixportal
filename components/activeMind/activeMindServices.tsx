@@ -26,6 +26,7 @@ interface ServiceData {
   section1: {
     selectedTier: string
     price: number
+    cost?: number
   }
   section2Products: {
     [key: string]: {

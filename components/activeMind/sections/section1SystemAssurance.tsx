@@ -10,6 +10,7 @@ interface Section1Props {
   data: {
     selectedTier: string
     price: number
+    cost?: number
   }
   dealid?: string
   onUpdate: (data: any) => void
@@ -33,6 +34,7 @@ interface ResponseInterface {
     id: string
     label: string
     price: number
+    cost?: number
     icon?: LucideIcon
     selected?: boolean
   }[]
@@ -78,6 +80,7 @@ export default function Section1SystemAssurance({ data, onUpdate, dealid: record
               onUpdate({
                 selectedTier: tier.id,
                 price: tier.price,
+                cost: tier.cost
               });
             }
             setResponseData((prevData) => ({
@@ -97,11 +100,13 @@ export default function Section1SystemAssurance({ data, onUpdate, dealid: record
       onUpdate({
         selectedTier: null,
         price: null,
+        cost: null
       })
     }else {
       onUpdate({
         selectedTier: tier.id,
         price: tier.price,
+        cost: tier.cost
       })
     }
   }

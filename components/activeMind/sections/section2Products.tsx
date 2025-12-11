@@ -313,7 +313,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                 {service.description && <p className="text-xs text-gray-500 mt-1">{service.description}</p>}
                 <div className="flex items-start mt-2">
                   {service.unitPrice && (
-                    <Badge variant="secondary" className="p-0 text-xs text-gray-700">
+                    <Badge variant="secondary" className="text-xs">
                       CHF {service.unitPrice}/unità
                     </Badge>
                   )}
