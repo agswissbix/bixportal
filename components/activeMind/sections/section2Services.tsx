@@ -14,6 +14,7 @@ interface Section2Props {
       title: string
       quantity: number
       unitPrice: number
+      unitCost?: number
       total: number
       features?: string[]
     }
@@ -27,6 +28,7 @@ interface Service {
   id: string;
   title: string;
   unitPrice: number;
+  unitCost?: number
   icon: string;
   quantity?: number;
   features: string[];
@@ -83,6 +85,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
               title: service.title,
               quantity: service.quantity,
               unitPrice: service.unitPrice,
+              unitCost: service.unitCost ?? 0,
               total: service.quantity * service.unitPrice,
               features: service.features || [],
             };

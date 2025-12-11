@@ -34,6 +34,7 @@ interface ServiceData {
       quantity: number
       billingType?: "monthly" | "yearly"
       unitPrice: number
+      unitCost?: number
       total: number
       features?: string[]
       category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
@@ -47,6 +48,7 @@ interface ServiceData {
       title: string
       quantity: number
       unitPrice: number
+      unitCost?: number
       total: number
       features?: string[]
     }

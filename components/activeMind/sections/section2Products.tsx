@@ -36,6 +36,7 @@ interface ProductSelectionProps {
       title: string
       quantity: number
       unitPrice: number
+      unitCost?: number
       total: number
       features?: string[]
       category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
@@ -53,6 +54,7 @@ interface Service {
   id: string
   title: string
   unitPrice: number
+  unitCost?: number
   icon: string
   features: string[]
   category: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
@@ -171,6 +173,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                     title: service.title,
                     quantity: (service as any).quantity,
                     unitPrice: pricePerUnit,
+                    unitCost: service.unitCost ?? 0,
                     total: (service as any).quantity * pricePerUnit,
                     features: service.features || [],
                     category: service.category,
