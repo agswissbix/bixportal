@@ -246,6 +246,11 @@ export async function POST(request: Request) {
     case 'print_deal': djangoUrl = '/commonapp/print_deal/'; break;
     case 'print_servicecontract': djangoUrl = '/customapp_swissbix/print_servicecontract/'; break;
     case 'renew_servicecontract': djangoUrl = '/customapp_swissbix/renew_servicecontract/'; break;
+
+    case 'get_timetracking': djangoUrl = '/customapp_swissbix/get_timetracking/'; break;
+    case 'save_timetracking': djangoUrl = '/customapp_swissbix/save_timetracking/'; break;
+    case 'stop_timetracking': djangoUrl = '/customapp_swissbix/stop_timetracking/'; break;
+    
     
     //   -----------------   TEMPORARY -----------------
     case 'get_job_status': djangoUrl = '/commonapp/get_job_status/'; break;
