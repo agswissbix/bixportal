@@ -4,9 +4,11 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from '@/components/genericComponent'
 import { AppContext } from '@/context/appContext';
-import { PlusCircleIcon, StopCircleIcon, XMarkIcon } from '@heroicons/react/24/solid'; // Aggiunto XMarkIcon
+import { PlusCircleIcon, StopCircleIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
+import WidgetTaskTracker from '@/components/widgets/widgetTaskTracker';
+import WidgetBattery from './widgetBattery';
 
 const MINUTES_PER_HOUR = 60;
 
@@ -116,6 +118,17 @@ export default function TimetrackingList() {
         };
     }, [responseData.timetracking]);
 
+    const activeTrack = useMemo(() => {
+        return responseData.timetracking.find(t => t.status === 'Attivo');
+    }, [responseData.timetracking]);
+
+    const finishedTracks = useMemo(() => {
+        return responseData.timetracking
+            .filter(t => t.status !== 'Attivo')
+            .sort((a, b) => b.start.localeCompare(a.start));
+    }, [responseData.timetracking]);
+
+
     // HELPERS
     const getDynamicDuration = (startTime: string): string => {
         if (!startTime) return "00:00";
@@ -135,7 +148,7 @@ export default function TimetrackingList() {
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
 
-    const totalWorkedHours = (timetracking: Timetracking[]) => {
+    const calculateTotalHoursNumeric = (timetracking: Timetracking[]): number => {
         let totalMinutesSum = 0;
 
         for (const time of timetracking) {
@@ -163,20 +176,15 @@ export default function TimetrackingList() {
             totalMinutesSum += diff;
         }
 
-        const hours = Math.floor(totalMinutesSum / MINUTES_PER_HOUR);
-        const minutes = totalMinutesSum % MINUTES_PER_HOUR;
-
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        return totalMinutesSum / MINUTES_PER_HOUR;
     }
 
-    const sortedTimetrackings = useMemo(() => {
-        const timetrackings = [...responseData.timetracking];
-        return timetrackings.sort((a, b) => {
-            if (a.status === 'Attivo' && b.status !== 'Attivo') return -1;
-            if (b.status === 'Attivo' && a.status !== 'Attivo') return 1;
-            return b.start.localeCompare(a.start);
-        });
-    }, [responseData.timetracking]);
+    const totalWorkedHoursString = (timetracking: Timetracking[]) => {
+        const numericHours = calculateTotalHoursNumeric(timetracking);
+        const hours = Math.floor(numericHours);
+        const minutes = Math.round((numericHours - hours) * 60);
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }   
 
     const handleStopActivity = async (timetracking: Timetracking) => {
         console.log("Stopping timetracking:", timetracking.id);
@@ -213,7 +221,7 @@ export default function TimetrackingList() {
                 if (!response.data.success) {
                     toast.error("Errore nel fermare il tracking");
                 } else {
-                    toast.success("il tracking è stata fermato correttamente!");
+                    toast.success("Tracking fermato correttamente!");
                 }
             } catch (e) {
                 console.error("Errore nel fermare il tracking:" + e);
@@ -268,9 +276,15 @@ export default function TimetrackingList() {
             return;
         }
 
+        if (activeTrack) {
+            await handleStopActivity(activeTrack);
+        }
+
         await saveTimetracking(newDescription);
         closeModal();
     };
+
+    const numericWorkedHours = calculateTotalHoursNumeric(response?.timetracking || []);
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
@@ -292,14 +306,63 @@ export default function TimetrackingList() {
                     <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-2">
                         <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
                             <div className="p-4 border-b border-gray-100 bg-gray-50 shrink-0">
-                                <h3 className="font-medium text-gray-700">Stato Attuale</h3>
+                                <h3 className="font-medium text-gray-700">Riepilogo Oggi</h3>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center space-y-1">
-                                <span className="text-sm text-gray-500">Ore Totali Lavorate Oggi</span>
-                                <span className="text-3xl font-bold text-blue-600">
-                                    {totalWorkedHours(response.timetracking)} h
-                                </span>
+                            <div className="flex-1 overflow-y-auto p-4 flex flex-col md:flex-row items-center justify-around space-y-4 md:space-y-0">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-sm text-gray-500 mb-1">Ore Totali</span>
+                                    <span className="text-4xl font-bold font-mono text-green-600">
+                                        {totalWorkedHoursString(response.timetracking)} h
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-col items-center">
+                                    <span className="text-sm text-gray-500 mb-2">Carico Lavoro</span>
+                                    <WidgetBattery customHours={numericWorkedHours} cleanView={true} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-2 mt-8">
+                        <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
+                            <div className="flex-1 p-4">
+                                {activeTrack ? (
+                                    <div className="p-4 rounded-lg border transition-all border-green-200 bg-green-50 shadow-sm">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-semibold text-gray-800">{activeTrack.description}</span>
+                                            
+                                            <button 
+                                                onClick={() => handleStopActivity(activeTrack)}
+                                                className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer group"
+                                                title="Ferma tracking"
+                                            >
+                                                <StopCircleIcon className="w-4 h-4 animate-pulse group-hover:animate-none" />
+                                                <span className="text-xs font-bold uppercase">Stop</span>
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="flex justify-between text-sm text-gray-500 mt-2 items-end">
+                                            <div className="flex flex-col">
+                                                <span className="text-xs text-gray-400">Inizio</span>
+                                                <span>{activeTrack.start}</span>
+                                            </div>
+                                            
+                                            <div className="flex flex-col items-end">
+                                                 <span className="text-xs text-gray-400">Durata</span>
+                                                 <span className="font-mono text-2xl font-bold text-green-600">
+                                                    {getDynamicDuration(activeTrack.start)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                        <p className="text-gray-400">Nessuna attività in corso al momento.</p>
+                                        <p className="text-sm text-gray-400 mt-1">Premi il pulsante + per iniziare.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -307,58 +370,38 @@ export default function TimetrackingList() {
                     <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-24 mt-8">
                         <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
                             <div className="p-4 border-b border-gray-100 bg-gray-50 shrink-0">
-                                <h3 className="font-medium text-gray-700">Lista Tracking giornalieri</h3>
+                                <h3 className="font-medium text-gray-700">Timetracker terminati oggi</h3>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                                {sortedTimetrackings.length > 0 ? (
-                                    sortedTimetrackings.map((track, i) => {
-                                        const isAttivo = track.status === 'Attivo';
-                                        
-                                        return (
-                                            <div key={track.id || i} className={`p-4 rounded-lg border transition-all ${isAttivo ? 'border-green-200 bg-green-50 shadow-sm' : 'border-gray-200 hover:bg-gray-50'}`}>
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="font-semibold text-gray-800">{track.description}</span>
-                                                    
-                                                    {isAttivo ? (
-                                                        <button 
-                                                            onClick={() => handleStopActivity(track)}
-                                                            className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer group"
-                                                            title="Ferma tracking"
-                                                        >
-                                                            <StopCircleIcon className="w-4 h-4 animate-pulse group-hover:animate-none" />
-                                                            <span className="text-xs font-bold uppercase">Stop</span>
-                                                        </button>
-                                                    ) : (
-                                                        <span className={`text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600`}>
-                                                            {track.status}
-                                                        </span>
-                                                    )}
+                                {finishedTracks.length > 0 ? (
+                                    finishedTracks.map((track, i) => (
+                                        <div key={track.id || i} className="p-4 rounded-lg border transition-all border-gray-200 hover:bg-gray-50">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-semibold text-gray-800">{track.description}</span>
+                                                
+                                                <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                                                    {track.status}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="flex justify-between text-sm text-gray-500 mt-2 items-end">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-gray-400">Orario</span>
+                                                    <span>{track.start} - {track.end}</span>
                                                 </div>
                                                 
-                                                <div className="flex justify-between text-sm text-gray-500 mt-2 items-end">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-xs text-gray-400">Orario</span>
-                                                        <span>
-                                                            {track.start} - {isAttivo ? "In corso..." : track.end}
-                                                        </span>
-                                                    </div>
-                                                    
-                                                    <div className="flex flex-col items-end">
-                                                         <span className="text-xs text-gray-400">Durata</span>
-                                                         <span className={`font-mono ${isAttivo ? 'text-lg font-bold text-green-600' : ''}`}>
-                                                            {isAttivo 
-                                                                ? getDynamicDuration(track.start) + " h"
-                                                                : track.worktime_string + " h"
-                                                            }
-                                                        </span>
-                                                    </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-xs text-gray-400">Durata</span>
+                                                    <span className="font-mono font-medium text-gray-700">
+                                                        {track.worktime_string} h
+                                                    </span>
                                                 </div>
                                             </div>
-                                        );
-                                    })
+                                        </div>
+                                    ))
                                 ) : (
-                                    <p className="text-center text-gray-400 py-4">Nessuna tracking registrata</p>
+                                    <p className="text-center text-gray-400 py-4">Nessun'altra attività registrata oggi.</p>
                                 )}
                             </div>
                         </div>
@@ -380,7 +423,7 @@ export default function TimetrackingList() {
                                 <form onSubmit={submitNewTracking} className="p-6">
                                     <div className="mb-6">
                                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Descrizione tracking
+                                            Descrizione attività
                                         </label>
                                         <input
                                             type="text"
@@ -391,6 +434,11 @@ export default function TimetrackingList() {
                                             value={newDescription}
                                             onChange={(e) => setNewDescription(e.target.value)}
                                         />
+                                        {activeTrack && (
+                                            <p className="text-xs text-amber-600 mt-2 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                                                Nota: L'attività attuale "{activeTrack.description}" verrà terminata automaticamente.
+                                            </p>
+                                        )}
                                     </div>
                                     
                                     <div className="flex space-x-3">
