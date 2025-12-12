@@ -318,7 +318,7 @@ export default function RecordCard({
                     </div>
 
                     {/* Trash */}
-                    {tableSettings?.delete.value == 'true' && (
+                    {tableSettings?.delete?.value == 'true' && (
                     <button
                       className="p-1.5 rounded-full hover:bg-red-100 hover:scale-110 transition-all duration-100 ease-in-out"
                       onClick={handleTrashClick}

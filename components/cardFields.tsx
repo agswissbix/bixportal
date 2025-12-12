@@ -126,7 +126,6 @@ export default function CardFields({
   }, [responseSettings]);
 
   const getIsEditable = () => {
-    return true
     const edit = tableSettings?.edit;
     if (!edit) return false;
 
