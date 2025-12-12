@@ -66,7 +66,7 @@ interface ResponseInterface {
 }
 
 interface TableSetting {
-  tablesettings: Record<string, { type: string; value: string }>;
+  tablesettings: Record<string, { type: string; value: string; valid_records?: string[] }>;
 }
 
 interface CalculationResponseInterface {
@@ -92,6 +92,7 @@ export default function CardFields({
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? (undefined as any) : responseDataDEFAULT)
   const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] | File }>({})
   const [isSaveDisabled, setIsSaveDisabled] = useState(true)
+  const [isEditable, setIsEditable] = useState(false)
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({})
 
   const [isSaving, setIsSaving] = useState(false)
@@ -107,7 +108,7 @@ export default function CardFields({
 
 	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
-  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
+  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string; valid_records?: string[] }>>({})
   const payloadSettings = useMemo(() => {
     if (isDev) return null;
     return {
@@ -119,10 +120,32 @@ export default function CardFields({
   const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
 
   useEffect(() => {
-    if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
+    if (!isDev && responseSettings && JSON.stringify(responseSettings.tablesettings) !== JSON.stringify(tableSettings)) {
       setTableSettings(responseSettings.tablesettings ?? undefined)
     }
   }, [responseSettings]);
+
+  const getIsEditable = () => {
+    return true
+    const edit = tableSettings?.edit;
+    if (!edit) return false;
+
+    const validRecords = edit.valid_records ?? [];
+    const value = edit.value === "true";
+
+    if (validRecords.length === 0) {
+      return value;
+    }
+
+    const match = validRecords.includes(String(recordid));
+    return match ? value : !value;
+  };
+
+  // 2) Calcola l'editabilità quando cambia tableSettings o recordid
+  useEffect(() => {
+    setIsEditable(getIsEditable());
+  }, [tableSettings, recordid]);
+
 
   const currentFields = useMemo(() => {
     if (externalFields) {
@@ -265,16 +288,17 @@ export default function CardFields({
   }, [loading])
 
   const renderField = (field: FieldInterface) => {
+    const isNewRecord = recordid === undefined || recordid === null || recordid === ""
+    const isEditInsert = isNewRecord ? true : isEditable
+    console.log("isedit", tableSettings?.edit?.valid_records ?? [], recordid)
     const rawValue = typeof field.value === "object" ? field.value?.value : field.value
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
-    const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true") || tableSettings?.edit?.value === 'false'
-
-    setIsSaveDisabled(tableSettings?.edit?.value === 'false')
+    const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true")
+        || !isEditInsert
 
     console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
 
-    const isNewRecord = recordid === undefined || recordid === null || recordid === ""
     const currentValue = currentValues[field.fieldid]
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
     const isRequiredEmpty = isRequired && isEmpty
@@ -577,7 +601,7 @@ export default function CardFields({
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={isSaveDisabled || isCalculating || tableSettings?.edit?.value === 'false'}
+                  disabled={isSaveDisabled || isCalculating}
                   className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled || isCalculating ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {isSaving ? "Salvataggio..." : "Salva"}
@@ -593,6 +617,9 @@ export default function CardFields({
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
       {(response: ResponseInterface) => (
+        <>
+        <GenericComponent response={tableSettings} loading={loadingSettings} error={errorSettings} title="CardFields">
+      {(responseSettings: Record<string, { type: string; value: string; valid_records?: string[]; }>) => (
         <>
           <div className={"absolute inset-0 flex items-center justify-center " + (delayedLoading ? "" : " hidden")}>
             <LoadingComp />
@@ -645,8 +672,8 @@ export default function CardFields({
                   <button
                     type="button"
                     onClick={handleSave}
-                    disabled={isSaveDisabled || isCalculating}
-                    className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled || isCalculating ? "opacity-50 cursor-not-allowed" : ""}`}
+                    disabled={isSaveDisabled || isCalculating || !isEditable}
+                    className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled || isCalculating || !isEditable ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {isSaving ? "Salvataggio..." : "Salva"}
                   </button>
@@ -654,6 +681,9 @@ export default function CardFields({
               </div>
             )}
           </div>
+</>
+      )}
+    </GenericComponent>
         </>
       )}
     </GenericComponent>
