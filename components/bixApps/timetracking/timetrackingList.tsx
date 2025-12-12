@@ -307,59 +307,8 @@ export default function TimetrackingList() {
                             Timetracking
                         </h1>
                         <p className="text-center text-gray-600 mb-8">
-                            Tracking giornaliero • Obiettivo {DAILY_GOAL_HOURS}h
+                            Tracking giornaliero
                         </p>
-                    </div>
-
-                    <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-2">
-                        <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
-                            
-                            {isLunchTime && activeTrack && (
-                                <div className="bg-amber-50 border-b border-amber-100 p-3 flex items-center justify-center space-x-2 text-amber-700 animate-pulse">
-                                    <ExclamationTriangleIcon className="w-5 h-5" />
-                                    <span className="font-medium">Attenzione: È ora di pranzo (12:00 - 13:00). Metti in pausa!</span>
-                                </div>
-                            )}
-
-                            <div className="p-4 border-b border-gray-100 bg-gray-50 shrink-0 flex justify-between items-center">
-                                <h3 className="font-medium text-gray-700">Riepilogo Oggi</h3>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${isOvertime ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>
-                                    {isOvertime ? 'STRAORDINARI' : 'STANDARD'}
-                                </span>
-                            </div>
-
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-xl border border-gray-100 h-full">
-                                    <span className="text-sm text-gray-500 mb-1 font-medium uppercase tracking-wide">Ore Lavorate</span>
-                                    <span className={`text-4xl font-bold font-mono ${isOvertime ? 'text-purple-600' : 'text-green-600'}`}>
-                                        {totalWorkedHoursString(numericWorkedHours)}
-                                    </span>
-                                    <span className="text-xs text-gray-400 mt-1">su {DAILY_GOAL_HOURS}h previste</span>
-                                </div>
-
-                                <div className="flex flex-col items-center justify-center">
-                                    <span className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wide">Carico Lavoro</span>
-                                    <WidgetBattery 
-                                        customHours={numericWorkedHours} 
-                                        cleanView={true} 
-                                        isLunchTime={isLunchTime}
-                                    />
-                                </div>
-
-                                <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl border border-blue-100 h-full">
-                                    <span className="text-sm text-blue-500 mb-1 font-medium uppercase tracking-wide">Stima Uscita</span>
-                                    <div className="flex items-center space-x-2">
-                                        <ClockIcon className="w-6 h-6 text-blue-400" />
-                                        <span className="text-3xl font-bold font-mono text-blue-700">
-                                            {isOvertime ? "Adesso" : estimatedFinishString}
-                                        </span>
-                                    </div>
-                                    <span className="text-xs text-blue-400 mt-1">
-                                        {isOvertime ? "Hai raggiunto l'obiettivo" : `Mancano ${totalWorkedHoursString(remainingHours)} ore`}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-2 mt-8">
@@ -409,6 +358,57 @@ export default function TimetrackingList() {
                                         )}
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-2 mt-8">
+                        <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
+                            
+                            {isLunchTime && activeTrack && (
+                                <div className="bg-amber-50 border-b border-amber-100 p-3 flex items-center justify-center space-x-2 text-amber-700 animate-pulse">
+                                    <ExclamationTriangleIcon className="w-5 h-5" />
+                                    <span className="font-medium">Attenzione: È ora di pranzo (12:00 - 13:00). Metti in pausa!</span>
+                                </div>
+                            )}
+
+                            <div className="p-4 border-b border-gray-100 bg-gray-50 shrink-0 flex justify-between items-center">
+                                <h3 className="font-medium text-gray-700">Riepilogo Oggi</h3>
+                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${isOvertime ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>
+                                    {isOvertime ? 'STRAORDINARI' : 'STANDARD'}
+                                </span>
+                            </div>
+
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-xl border border-gray-100 h-full">
+                                    <span className="text-sm text-gray-500 mb-1 font-medium uppercase tracking-wide">Ore Lavorate</span>
+                                    <span className={`text-4xl font-bold font-mono ${isOvertime ? 'text-purple-600' : 'text-green-600'}`}>
+                                        {totalWorkedHoursString(numericWorkedHours)}
+                                    </span>
+                                    <span className="text-xs text-gray-400 mt-1">su {DAILY_GOAL_HOURS}h previste</span>
+                                </div>
+
+                                <div className="flex flex-col items-center justify-center">
+                                    <span className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wide">Carico Lavoro</span>
+                                    <WidgetBattery 
+                                        customHours={numericWorkedHours} 
+                                        cleanView={true} 
+                                        isLunchTime={isLunchTime}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl border border-blue-100 h-full">
+                                    <span className="text-sm text-blue-500 mb-1 font-medium uppercase tracking-wide">Stima Uscita</span>
+                                    <div className="flex items-center space-x-2">
+                                        <ClockIcon className="w-6 h-6 text-blue-400" />
+                                        <span className="text-3xl font-bold font-mono text-blue-700">
+                                            {isOvertime ? "Adesso" : estimatedFinishString}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs text-blue-400 mt-1">
+                                        {isOvertime ? "Hai raggiunto l'obiettivo" : `Mancano ${totalWorkedHoursString(remainingHours)} ore`}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
