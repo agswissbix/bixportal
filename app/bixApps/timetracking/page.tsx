@@ -1,15 +1,12 @@
 import Timetracking from "@/components/bixApps/timetracking/timetracking";
 import * as React from "react";
 
-interface TimesheetBixAppProps {
-  params: {
-    
-  };
+interface TimetrackingBixAppProps {
+  params: Promise<{}>;
 }
 
-export default function TimesheetBixApp(props: TimesheetBixAppProps) {
-  const { params } = props;
-  const {  } = params;
+export default async function TimetrackingBixApp(props: TimetrackingBixAppProps) {
+  const params = await props.params;
 
   return (
     <Timetracking />

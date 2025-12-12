@@ -4,13 +4,21 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from '@/components/genericComponent'
 import { AppContext } from '@/context/appContext';
-import { PlusCircleIcon, StopCircleIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { 
+    PlusCircleIcon, 
+    StopCircleIcon, 
+    XMarkIcon, 
+    ClockIcon, 
+    ExclamationTriangleIcon
+} from '@heroicons/react/24/solid';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
-import WidgetTaskTracker from '@/components/widgets/widgetTaskTracker';
 import WidgetBattery from './widgetBattery';
 
 const MINUTES_PER_HOUR = 60;
+const DAILY_GOAL_HOURS = 8.0;
+const LUNCH_BREAK_START = 12; // 12:00
+const LUNCH_BREAK_END = 13;   // 13:00
 
 // INTERFACCE
 interface Timetracking {
@@ -46,16 +54,16 @@ export default function TimetrackingList() {
                 description: 'Sviluppo Backend API',
                 date: new Date(),
                 start: '08:00',
-                end: '12:30',
-                worktime: 4.5,
-                worktime_string: '04:30',
+                end: '12:00',
+                worktime: 4.0,
+                worktime_string: '04:00',
                 status: 'Terminato'
             },
             {
                 id: '2',
                 description: 'Meeting con il team',
                 date: new Date(),
-                start: '14:00',
+                start: '13:00',
                 end: '', 
                 worktime: 0,
                 worktime_string: '00:00',
@@ -104,19 +112,12 @@ export default function TimetrackingList() {
 
     // TIMER EFFECT
     useEffect(() => {
-        const hasActiveTimetracking = responseData.timetracking.some(t => t.status === 'Attivo');
-        
-        let interval: NodeJS.Timeout;
-        if (hasActiveTimetracking) {
-            interval = setInterval(() => {
-                setNow(new Date());
-            }, 1000);
-        }
+        const interval = setInterval(() => {
+            setNow(new Date());
+        }, 1000);
 
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [responseData.timetracking]);
+        return () => clearInterval(interval);
+    }, []);
 
     const activeTrack = useMemo(() => {
         return responseData.timetracking.find(t => t.status === 'Attivo');
@@ -179,8 +180,7 @@ export default function TimetrackingList() {
         return totalMinutesSum / MINUTES_PER_HOUR;
     }
 
-    const totalWorkedHoursString = (timetracking: Timetracking[]) => {
-        const numericHours = calculateTotalHoursNumeric(timetracking);
+    const totalWorkedHoursString = (numericHours: number) => {
         const hours = Math.floor(numericHours);
         const minutes = Math.round((numericHours - hours) * 60);
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -285,6 +285,14 @@ export default function TimetrackingList() {
     };
 
     const numericWorkedHours = calculateTotalHoursNumeric(response?.timetracking || []);
+    const remainingHours = Math.max(0, DAILY_GOAL_HOURS - numericWorkedHours);
+    
+    const estimatedFinishDate = new Date(now.getTime() + (remainingHours * 60 * 60 * 1000));
+    const estimatedFinishString = `${String(estimatedFinishDate.getHours()).padStart(2, '0')}:${String(estimatedFinishDate.getMinutes()).padStart(2, '0')}`;
+
+    const currentHour = now.getHours();
+    const isLunchTime = currentHour >= LUNCH_BREAK_START && currentHour < LUNCH_BREAK_END;
+    const isOvertime = numericWorkedHours > DAILY_GOAL_HOURS;
 
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
@@ -299,27 +307,56 @@ export default function TimetrackingList() {
                             Timetracking
                         </h1>
                         <p className="text-center text-gray-600 mb-8">
-                            Tracking giornaliero
+                            Tracking giornaliero • Obiettivo {DAILY_GOAL_HOURS}h
                         </p>
                     </div>
 
                     <div className="flex-1 w-full max-w-6xl mx-auto px-4 min-h-0 pb-2">
                         <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
-                            <div className="p-4 border-b border-gray-100 bg-gray-50 shrink-0">
+                            
+                            {isLunchTime && activeTrack && (
+                                <div className="bg-amber-50 border-b border-amber-100 p-3 flex items-center justify-center space-x-2 text-amber-700 animate-pulse">
+                                    <ExclamationTriangleIcon className="w-5 h-5" />
+                                    <span className="font-medium">Attenzione: È ora di pranzo (12:00 - 13:00). Metti in pausa!</span>
+                                </div>
+                            )}
+
+                            <div className="p-4 border-b border-gray-100 bg-gray-50 shrink-0 flex justify-between items-center">
                                 <h3 className="font-medium text-gray-700">Riepilogo Oggi</h3>
+                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${isOvertime ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>
+                                    {isOvertime ? 'STRAORDINARI' : 'STANDARD'}
+                                </span>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-4 flex flex-col md:flex-row items-center justify-around space-y-4 md:space-y-0">
-                                <div className="flex flex-col items-center">
-                                    <span className="text-sm text-gray-500 mb-1">Ore Totali</span>
-                                    <span className="text-4xl font-bold font-mono text-green-600">
-                                        {totalWorkedHoursString(response.timetracking)} h
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-xl border border-gray-100 h-full">
+                                    <span className="text-sm text-gray-500 mb-1 font-medium uppercase tracking-wide">Ore Lavorate</span>
+                                    <span className={`text-4xl font-bold font-mono ${isOvertime ? 'text-purple-600' : 'text-green-600'}`}>
+                                        {totalWorkedHoursString(numericWorkedHours)}
                                     </span>
+                                    <span className="text-xs text-gray-400 mt-1">su {DAILY_GOAL_HOURS}h previste</span>
                                 </div>
 
-                                <div className="flex flex-col items-center">
-                                    <span className="text-sm text-gray-500 mb-2">Carico Lavoro</span>
-                                    <WidgetBattery customHours={numericWorkedHours} cleanView={true} />
+                                <div className="flex flex-col items-center justify-center">
+                                    <span className="text-sm text-gray-500 mb-2 font-medium uppercase tracking-wide">Carico Lavoro</span>
+                                    <WidgetBattery 
+                                        customHours={numericWorkedHours} 
+                                        cleanView={true} 
+                                        isLunchTime={isLunchTime}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl border border-blue-100 h-full">
+                                    <span className="text-sm text-blue-500 mb-1 font-medium uppercase tracking-wide">Stima Uscita</span>
+                                    <div className="flex items-center space-x-2">
+                                        <ClockIcon className="w-6 h-6 text-blue-400" />
+                                        <span className="text-3xl font-bold font-mono text-blue-700">
+                                            {isOvertime ? "Adesso" : estimatedFinishString}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs text-blue-400 mt-1">
+                                        {isOvertime ? "Hai raggiunto l'obiettivo" : `Mancano ${totalWorkedHoursString(remainingHours)} ore`}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -329,7 +366,7 @@ export default function TimetrackingList() {
                         <div className="bg-white shadow-xl rounded-2xl border border-gray-100 h-full flex flex-col overflow-hidden">
                             <div className="flex-1 p-4">
                                 {activeTrack ? (
-                                    <div className="p-4 rounded-lg border transition-all border-green-200 bg-green-50 shadow-sm">
+                                    <div className={`p-4 rounded-lg border transition-all shadow-sm ${isLunchTime ? 'border-amber-200 bg-amber-50' : 'border-green-200 bg-green-50'}`}>
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-semibold text-gray-800">{activeTrack.description}</span>
                                             
@@ -350,17 +387,26 @@ export default function TimetrackingList() {
                                             </div>
                                             
                                             <div className="flex flex-col items-end">
-                                                 <span className="text-xs text-gray-400">Durata</span>
-                                                 <span className="font-mono text-2xl font-bold text-green-600">
+                                                 <span className="text-xs text-gray-400">Durata Attuale</span>
+                                                 <span className={`font-mono text-2xl font-bold ${isLunchTime ? 'text-amber-600' : 'text-green-600'}`}>
                                                     {getDynamicDuration(activeTrack.start)}
                                                 </span>
                                             </div>
                                         </div>
+                                        {isLunchTime && (
+                                            <div className="mt-2 text-xs text-amber-700 text-right">
+                                                * Attività in corso durante la pausa pranzo
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                                         <p className="text-gray-400">Nessuna attività in corso al momento.</p>
-                                        <p className="text-sm text-gray-400 mt-1">Premi il pulsante + per iniziare.</p>
+                                        {isLunchTime ? (
+                                            <p className="text-sm text-green-600 mt-1 font-medium">Buon appetito! 🥪</p>
+                                        ) : (
+                                            <p className="text-sm text-gray-400 mt-1">Premi il pulsante + per iniziare.</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -437,6 +483,12 @@ export default function TimetrackingList() {
                                         {activeTrack && (
                                             <p className="text-xs text-amber-600 mt-2 bg-amber-50 p-2 rounded-lg border border-amber-100">
                                                 Nota: L'attività attuale "{activeTrack.description}" verrà terminata automaticamente.
+                                            </p>
+                                        )}
+                                        {isLunchTime && (
+                                            <p className="text-xs text-blue-600 mt-2 bg-blue-50 p-2 rounded-lg border border-blue-100 flex items-center">
+                                                <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
+                                                Stai iniziando un'attività durante la pausa pranzo (12:00-13:00).
                                             </p>
                                         )}
                                     </div>

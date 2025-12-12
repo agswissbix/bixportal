@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import BarcodeScanner from '@/components/BarcodeScanner'
+import BarcodeScanner from '@/components/barcodeScanner'
 
 export default function Home() {
   const [isScanning, setIsScanning] = useState(false)
