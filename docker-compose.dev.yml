@@ -1,0 +1,23 @@
+version: '3.8' 
+
+services:
+  bixportal:
+    container_name: bixportal_dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_PORTAL_BASE_URL=${NEXT_PUBLIC_PORTAL_BASE_URL}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+      - NEXT_PUBLIC_CORS_ORIGIN=${NEXT_PUBLIC_CORS_ORIGIN}
+      - NEXT_PUBLIC_MODE=${NEXT_PUBLIC_MODE}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
