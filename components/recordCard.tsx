@@ -52,19 +52,20 @@ export default function RecordCard({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
-  const { removeCard, setRefreshTable, handleRowClick } = useRecordsStore();
+  const { removeCard, setRefreshTable, handleRowClick, tableSettings, getIsSettingAllowed } = useRecordsStore();
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
   const [animationClass, setAnimationClass] = useState('animate-slide-in'); // desktop animation
   const [animationClassMobile, setAnimationClassMobile] = useState('animate-mobile-slide-in'); // mobile animation (if you have it)
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isDeleteAble, setIsDeleteAble] = useState(false);
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>('');
   const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' ? window.innerWidth < WIDTH_WINDOW_MOBILE : false); 
-
-  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
+  
+  // const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
   // API for custom functions (desktop behavior kept)
   const responseDataDEFAULT: ResponseInterface = { fn: [] };
   const responseDataDEV: ResponseInterface = { fn: [] };
@@ -86,23 +87,17 @@ export default function RecordCard({
     }
   }, [response, responseData]);
 
-  const payloadSettings = useMemo(() => {
-    if (isDev) return null;
-    return {
-      apiRoute: 'settings_table_settings',
-      tableid,
-    };
-  }, [tableid]);
-
-  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
-
   useEffect(() => {
-    if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
-      console.log('RecordCard: fetched table settings', responseSettings);
-      setTableSettings(responseSettings.tablesettings ?? undefined)
-      setIsMaximized(responseSettings.tablesettings?.card_default_size?.value === 'max' ? true : false);
-    }
-  }, [responseSettings]);
+    if (!tableSettings?.card_default_size) return
+
+    setIsMaximized((tableSettings?.card_default_size?.value === 'max' ? true : false))
+  }, [tableSettings?.card_default_size])
+  
+  useEffect(() => {
+    if (!tableSettings?.delete) return
+
+    setIsDeleteAble(getIsSettingAllowed('delete', recordid))
+  }, [tableSettings?.delete])
 
   // dimension / responsive detection
   useEffect(() => {
@@ -318,7 +313,7 @@ export default function RecordCard({
                     </div>
 
                     {/* Trash */}
-                    {tableSettings?.delete?.value == 'true' && (
+                    {isDeleteAble && (
                     <button
                       className="p-1.5 rounded-full hover:bg-red-100 hover:scale-110 transition-all duration-100 ease-in-out"
                       onClick={handleTrashClick}
@@ -493,7 +488,7 @@ export default function RecordCard({
                           )}
                         </div>
 
-                          {tableSettings?.delete?.value == 'true' && (
+                          {isDeleteAble && (
                         <button
                           className="p-2 rounded-full hover:bg-red-100 hover:scale-110 transition-colors hover:scale-110"
                           onClick={handleTrashClick}

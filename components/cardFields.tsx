@@ -99,7 +99,7 @@ export default function CardFields({
 
   const [isCalculating, setIsCalculating] = useState(false)
 
-  const { removeCard, setRefreshTable, theme } = useRecordsStore()
+  const { removeCard, setRefreshTable, theme, tableSettings, getIsSettingAllowed } = useRecordsStore()
 
   const payload = useMemo(() => {
     if (isDev || externalFields) return null
@@ -108,41 +108,9 @@ export default function CardFields({
 
 	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
-  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string; valid_records?: string[] }>>({})
-  const payloadSettings = useMemo(() => {
-    if (isDev) return null;
-    return {
-      apiRoute: 'settings_table_settings',
-      tableid,
-    };
-  }, [tableid]);
-  
-  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
-
-  useEffect(() => {
-    if (!isDev && responseSettings && JSON.stringify(responseSettings.tablesettings) !== JSON.stringify(tableSettings)) {
-      setTableSettings(responseSettings.tablesettings ?? undefined)
-    }
-  }, [responseSettings]);
-
-  const getIsEditable = () => {
-    const edit = tableSettings?.edit;
-    if (!edit) return false;
-
-    const validRecords = edit.valid_records ?? [];
-    const value = edit.value === "true";
-
-    if (validRecords.length === 0) {
-      return value;
-    }
-
-    const match = validRecords.includes(String(recordid));
-    return match ? value : !value;
-  };
-
   // 2) Calcola l'editabilità quando cambia tableSettings o recordid
   useEffect(() => {
-    setIsEditable(getIsEditable());
+    setIsEditable(getIsSettingAllowed('edit', recordid));
   }, [tableSettings, recordid]);
 
 
@@ -289,13 +257,12 @@ export default function CardFields({
   const renderField = (field: FieldInterface) => {
     const isNewRecord = recordid === undefined || recordid === null || recordid === ""
     const isEditInsert = isNewRecord ? true : isEditable
-    console.log("isedit", tableSettings?.edit?.valid_records ?? [], recordid)
     const rawValue = typeof field.value === "object" ? field.value?.value : field.value
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
     const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true")
         || !isEditInsert
 
-    console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
+    // console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
 
     const currentValue = currentValues[field.fieldid]
@@ -617,9 +584,6 @@ export default function CardFields({
     <GenericComponent response={responseData} loading={loading} error={error} title="CardFields">
       {(response: ResponseInterface) => (
         <>
-        <GenericComponent response={tableSettings} loading={loadingSettings} error={errorSettings} title="CardFields">
-      {(responseSettings: Record<string, { type: string; value: string; valid_records?: string[]; }>) => (
-        <>
           <div className={"absolute inset-0 flex items-center justify-center " + (delayedLoading ? "" : " hidden")}>
             <LoadingComp />
           </div>
@@ -680,9 +644,6 @@ export default function CardFields({
               </div>
             )}
           </div>
-</>
-      )}
-    </GenericComponent>
         </>
       )}
     </GenericComponent>

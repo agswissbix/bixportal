@@ -246,6 +246,8 @@ export default function RecordsTable({
 
   const [currentPage, setCurrentPage] = useState(1)
 
+  const [isDeleteAble, setIsDeleteAble] = useState(false);
+
   const [rowOpen, setRowOpen] = useState<string | null>(null)
 
   const [errorFile, setErrorFile] = useState<Record<string, boolean>>({})
@@ -269,6 +271,9 @@ export default function RecordsTable({
     cardsList,
     addCard,
     activeServer,
+    setTableSettings,
+    tableSettings,
+    getIsSettingAllowed
   } = useRecordsStore()
 
   // Quando la tabella cambia (es. tableid), resetta la pagina a 1
@@ -330,7 +335,7 @@ export default function RecordsTable({
     }
   }, [response])
 
-  const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
+  // const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
     const payloadSettings = useMemo(() => {
       if (isDev) return null;
       return {
@@ -663,6 +668,8 @@ export default function RecordsTable({
 
                       const x = e.clientX - (rect?.left || 0) + scrollX
                       const y = e.clientY - (rect?.top || 0) + scrollY
+                  
+                      setIsDeleteAble(getIsSettingAllowed('delete', row.recordid))
 
                       setContextMenu({
                         x,
@@ -832,7 +839,7 @@ export default function RecordsTable({
                     Duplica
                   </button>
 
-                  {tableSettings?.delete?.value === 'true' && (
+                  {isDeleteAble && (
                     <button
                       onClick={() => {
                         handleTrashClick(contextMenu.recordid)

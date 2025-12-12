@@ -101,6 +101,11 @@ interface RecordsStore {
     selectedClubs: string[]
   }
   setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) => void;
+
+  tableSettings: Record<string, { type: string; value: string; valid_records?: string[] }>
+  setTableSettings: (tableSettings: Record<string, { type: string; value: string; valid_records?: string[] }>) => void
+
+  getIsSettingAllowed: (settingName: string, recordid: string) => boolean
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -228,4 +233,26 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
   },
   setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) =>
     set({ dashboardFilters }),
+
+  tableSettings: {},
+  setTableSettings: (tableSettings: Record<string, { type: string; value: string; valid_records?: string[] }>) =>
+    set({tableSettings}),
+
+  getIsSettingAllowed: (settingName: string, recordid: string) => {
+    const { tableSettings } = get(); 
+    const setting = tableSettings?.[settingName];
+    if (!setting) return false;
+
+    const validRecords = setting.valid_records ?? [];
+    const value = setting.value === "true";
+
+    // Caso senza condizioni → rispetta semplicemente value
+    if (validRecords.length === 0) {
+        return value;
+    }
+
+    const match = validRecords.includes(String(recordid));
+
+    return match ? value : !value;
+  },
 }));
