@@ -1,18 +1,20 @@
-'use client';
-
 import './globals.css';
-import { AppContext, AppProvider } from '@/context/appContext';
-import axiosInstanceClient from '@/utils/axiosInstanceClient';
-import { use, useEffect } from 'react';
+import { AppProvider } from '@/context/appContext';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+  isolated, 
+}: {
+  children: React.ReactNode;
+  isolated: React.ReactNode; 
+}) {
   return (
     <html lang="it">
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap"
           rel="stylesheet"
-        />  
+        />
         <style>
           {`
             .toastui-editor-defaultUI, 

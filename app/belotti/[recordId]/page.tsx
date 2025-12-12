@@ -2,62 +2,59 @@
 
 import { useEffect, useState, useMemo, use } from "react";
 import { CheckCircle, Home, AlertCircle } from "lucide-react";
-import {useApi} from "@/utils/useApi";
+import { useApi } from "@/utils/useApi";
 import GenericComponent from "@/components/genericComponent";
 import { useRecordsStore } from "@/components/records/recordsStore";
 import { useRouter } from "next/navigation";
 
 const isDev = false
 
-
 interface ResponseInterface {
-	message: string
-	record: any
+  message: string
+  record: any
 }
 
 const responseDefault: ResponseInterface = {
-	message: "",
-	record: {}
+  message: "",
+  record: {}
 }
 
-export default function BelottiPage(props: { params: { recordId: string } }) {
-  const unwrappedParams = use(props.params); 
+export default function BelottiPage(props: { params: Promise<{ recordId: string }> }) {
+  const unwrappedParams = use(props.params); 
   const { recordId } = unwrappedParams;
 
-const { setSelectedMenu } = useRecordsStore();
-
+  const { setSelectedMenu } = useRecordsStore();
   const router = useRouter();
-
 
   const [responseData, setResponseData] = useState<ResponseInterface>(responseDefault);
 
   const payload = useMemo(() => {
-		if (isDev) return null;
-		return { 
-			apiRoute: 'belotti_conferma_ricezione',
-			recordid_hashed: recordId
-		};
-	}, [recordId]);
+    if (isDev) return null;
+    return { 
+      apiRoute: 'belotti_conferma_ricezione',
+      recordid_hashed: recordId
+    };
+  }, [recordId]);
   
-	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
-	
-	useEffect(() => {
-			if (!isDev && response) { 
-				console.log("Response received:", response);
-				setResponseData(response); 
-			}
-	}, [response]);
+  const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+  
+  useEffect(() => {
+      if (!isDev && response) { 
+        console.log("Response received:", response);
+        setResponseData(response); 
+      }
+  }, [response]);
 
   
-	const handleBackHome = () => {
-		setSelectedMenu("richieste");
-		router.push("/home");
-	};
+  const handleBackHome = () => {
+    setSelectedMenu("richieste");
+    router.push("/home");
+  };
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
-				<div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
           <div className="max-w-2xl w-full">
             {/* Loading State */}
             {loading && (
@@ -107,27 +104,6 @@ const { setSelectedMenu } = useRecordsStore();
                   </p>
                 </div>
 
-                {/* Record Details */}
-                {/* {response.record && Object.keys(response.record).length > 0 && (
-                  <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                      Dettagli Operazione
-                    </h3>
-                    <div className="space-y-2">
-                      {Object.entries(response.record).map(([key, value]) => (
-                        <div key={key} className="flex justify-between items-center border-b border-gray-200 pb-2 last:border-0">
-                          <span className="text-sm font-medium text-gray-600 capitalize">
-                            {key.replace(/_/g, ' ')}:
-                          </span>
-                          <span className="text-sm text-gray-800 font-mono">
-                            {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )} */}
-
                 {/* Home Button */}
                 <button
                   onClick={handleBackHome}
@@ -145,7 +121,7 @@ const { setSelectedMenu } = useRecordsStore();
             )}
           </div>
         </div>
-		)}
-	</GenericComponent>
+    )}
+  </GenericComponent>
   );
 }
