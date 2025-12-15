@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -28,12 +28,14 @@ ENV NEXT_PUBLIC_CORS_ORIGIN=$NEXT_PUBLIC_CORS_ORIGIN
 ENV NEXT_PUBLIC_MODE=$NEXT_PUBLIC_MODE
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=true
 
 RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
 
+ENV DOCKER_BUILD=true
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
