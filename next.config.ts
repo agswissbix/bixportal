@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-    output: "standalone", // Ottimizzazione delle dimensioni dell'immagine per Docker
+const isDockerBuild =
+    process.env.DOCKER_BUILD === "true" || process.env.DOCKER_BUILD === "1";
 
-    assetPrefix: "./",
+const nextConfig: NextConfig = {
+    ...(isDockerBuild && { output: "standalone" }), // Ottimizzazione delle dimensioni dell'immagine per Docker
 
     reactStrictMode: true,
 

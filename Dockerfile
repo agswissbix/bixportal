@@ -34,6 +34,7 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+ENV DOCKER_BUILD=true
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
