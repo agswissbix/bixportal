@@ -1,32 +1,45 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone', // Ottimizzazione delle dimensioni dell'immagine per Docker
+    output: "standalone", // Ottimizzazione delle dimensioni dell'immagine per Docker
 
-  reactStrictMode: false,
-  devIndicators: {
-    appIsrStatus: false,     // nasconde il badge "Static/Dynamic route"
-    buildActivity: false,    // nasconde lo spinner di compilazione
-    // buildActivityPosition: 'bottom-left', // opzionale
-  },
-  //TODO: Rivedere questa configurazione per la produzione per le porte
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/**',
-      },
-      //Eventualmente, aggiungi altri pattern per un dominio di produzione:
-      {
-         protocol: 'https',
-         hostname: 'localhost',
-         port: '3002',
-         pathname: '/**',
-       },
+    reactStrictMode: true,
+
+    devIndicators: {
+        // buildActivity: false, // Decommenta se vuoi nascondere lo spinner
+        position: "bottom-left",
+    },
+
+    allowedDevOrigins: [
+        "localhost",
+        "devstagista.swissbix.com",
     ],
-  },
+
+    //TODO: Rivedere questa configurazione per la produzione per le porte
+    images: {
+        remotePatterns: [
+            {
+                protocol: "http",
+                hostname: "localhost",
+                port: "3000",
+                pathname: "/**",
+            },
+            //Eventualmente, aggiungi altri pattern per un dominio di produzione:
+            {
+                protocol: "https",
+                hostname: "localhost",
+                port: "3002",
+                pathname: "/**",
+            },
+            // Esempio per produzione (sostituisci col dominio reale quando serve)
+            {
+                protocol: "https",
+                hostname: "swissbix.com",
+                port: "",
+                pathname: "/**",
+            },
+        ],
+    },
 };
 
 export default nextConfig;

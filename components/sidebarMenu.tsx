@@ -1,3 +1,5 @@
+'use client'; // 1. AGGIUNTA OBBLIGATORIA
+
 import { useMemo, useState, useEffect, useContext } from "react"
 import Image from "next/image"
 import { useApi } from "@/utils/useApi"
@@ -7,7 +9,6 @@ import {
   Package,
   Mail,
   ChevronDown,
-  HelpCircle,
   Menu,
   X,
   Settings,
@@ -29,15 +30,15 @@ const isDev = false
 interface PropsInterface {}
 
 interface ResponseInterface {
-    menuItems: Record<string, MenuItem>;
-    otherItems: SubItem[];
-    userid?: string;
-    favoriteTables?: FavoriteTableItem[];
+  menuItems: Record<string, MenuItem>;
+  otherItems: SubItem[];
+  userid?: string;
+  favoriteTables?: FavoriteTableItem[];
 }
 
 interface FavoriteTableItem {
-    id: string;
-    tableid: string;
+  id: string;
+  tableid: string;
 }
 
 interface SubItem {
@@ -107,7 +108,7 @@ export default function Sidebar({}: PropsInterface) {
   const [openDropdown, setOpenDropdown] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  const { selectedMenu, setSelectedMenu, setUserid, userid, timestamp, theme, resetCardsList } = useRecordsStore()
+  const { selectedMenu, setSelectedMenu, setUserid, userid, theme, resetCardsList } = useRecordsStore()
   const { user, activeServer, role } = useContext(AppContext)
 
   const handleMenuClick = (item: string) => {
@@ -131,12 +132,15 @@ export default function Sidebar({}: PropsInterface) {
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       setResponseData(response)
+      
       if (response.userid) {
-        setUserid(response.userid)
+        setTimeout(() => {
+            setUserid(response.userid!)
+        }, 0);
       }
       console.log(response)
     }
-  }, [response, responseData])
+  }, [response, responseData, setUserid]) 
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="Sidebar" elapsedTime={elapsedTime}>
@@ -145,7 +149,7 @@ export default function Sidebar({}: PropsInterface) {
           {/* Bottone toggle SOLO su mobile */}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-lg shadow-lg z-50 xl:hidden hover:scale-105 active:scale-95 transition-transform"
+            className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-lg shadow-lg xl:hidden hover:scale-105 active:scale-95 transition-transform"
             aria-label="Toggle menu"
           >
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

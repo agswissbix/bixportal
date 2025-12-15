@@ -1,25 +1,27 @@
-// utils/axiosInstance.ts
-import axios from 'axios';
-import Cookies from 'js-cookie';
-import Router from 'next/router';
+import axios from "axios";
 
-// Crea un'istanza axios preconfigurata
 const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // Base URL del backend Django
-    withCredentials: true, // Invia automaticamente i cookie di sessione con ogni richiesta
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, 
 });
 
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const apiRoute =
+            config.data && config.data.apiRoute
+                ? ` | apiRoute: ${config.data.apiRoute}`
+                : "";
 
-  
-
-// Interceptor per loggare l'URL della richiesta e apiRoute se presente
-axiosInstance.interceptors.request.use((config) => {
-    const apiRoute = config.data?.apiRoute ? ` | apiRoute: ${config.data.apiRoute}` : "";
-    console.log(`[AxiosInstanceClient Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}${apiRoute}`);
-    return config;
-}, (error) => {
-    console.error("[AxiosInstanceClient Request Error]", error);
-    return Promise.reject(error);
-});
+        console.log(
+            `[Server-to-Django] ${config.method?.toUpperCase()} ${
+                config.baseURL
+            }${config.url}${apiRoute}`
+        );
+        return config;
+    },
+    (error) => {
+        console.error("[Server-to-Django Error]", error);
+        return Promise.reject(error);
+    }
+);
 
 export default axiosInstance;
