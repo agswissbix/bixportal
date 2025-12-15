@@ -82,7 +82,7 @@ export default function MixedChart() {
   return (
     <div className="bg-white p-4 rounded shadow">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexCharts.ApexOptions}
         series={chartData.series}
         type="line"
         height={400}
