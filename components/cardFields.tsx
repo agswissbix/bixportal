@@ -325,7 +325,7 @@ export default function CardFields({
                     </div>
                   )}
                 </>
-              ) : field.fieldtype === "linkedmaster" ? (
+              ) : field.fieldtype === "linkedmaster" && typeof field.value === "object" && field.value?.code ? (
               <InputLinked
                 initialValue={value}
                 valuecode={typeof field.value === "object" ? field.value : undefined}
@@ -338,8 +338,7 @@ export default function CardFields({
                 disabled={true}
               />
               ) : (
-                <div dangerouslySetInnerHTML={{ __html: value }} />
-                // <>{value}</>
+                <div className="min-h-[24px]" dangerouslySetInnerHTML={{ __html: value }} />
               )}
             </div>
           </div>

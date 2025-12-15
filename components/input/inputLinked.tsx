@@ -172,7 +172,7 @@ export default function inputLinked({
             onFocus={handleFocus}
             disabled={disabled}
             autoComplete="off"
-            placeholder="Cerca..."
+            placeholder={disabled ? "" : "Cerca..."}
             className="block min-w-0 grow py-2.5 pl-1 pr-2 text-sm text-foreground placeholder:text-muted-foreground bg-transparent focus:outline-none transition-colors"
           />
 
