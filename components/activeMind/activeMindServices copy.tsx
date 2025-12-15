@@ -161,21 +161,57 @@ export default function ActiveMindServices({ recordIdTrattativa }: propsServices
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 1:
-        return (
-          <Section1SystemAssurance
-            data={serviceData.section1}
-            onUpdate={(data) => updateServiceData("section1", data)}
-          />
-        )
-      case 2:
-        return <Section2Services data={serviceData.section2} onUpdate={(data) => updateServiceData("section2", data)} />
-      case 3:
-        return <Section3Conditions data={{ section3: serviceData.section3, section2: serviceData.section2 }} onUpdate={(data) => updateServiceData("section3", data)} />
-      case 4:
-        return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange}/>
-      default:
-        return null
+        case 1:
+            return (
+                <Section1SystemAssurance
+                    data={serviceData.section1}
+                    onUpdate={(data) => updateServiceData("section1", data)}
+                />
+            );
+        case 2:
+            return (
+                <Section2Services
+                    data={serviceData.section2}
+                    onUpdate={(data) => updateServiceData("section2", data)}
+                    dealid=""
+                />
+            );
+        case 3:
+            return (
+                <Section3Conditions
+                    data={{
+                        section3: serviceData.section3,
+                        section2: serviceData.section2,
+                    }}
+                    onUpdate={(data) => updateServiceData("section3", data)}
+                />
+            );
+        case 4:
+            const currentService = serviceData.section2.services;
+            const servicesMap =
+                currentService && "title" in currentService
+                    ? { "main-service": currentService }
+                    : {};
+
+            const currentProduct = serviceData.section2.products;
+            const productsMap =
+                currentProduct && "title" in currentProduct
+                    ? { "main-product": currentProduct }
+                    : {};
+
+            return (
+                <Section4Summary
+                    serviceData={{
+                        ...serviceData,
+                        section2Products: productsMap as any,
+                        section2Services: servicesMap as any,
+                    }}
+                    onUpdate={(data) => updateServiceData("clientInfo", data)}
+                    onSignatureChange={handleSignatureChange}
+                />
+            );
+        default:
+            return null;
     }
   }
 
