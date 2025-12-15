@@ -63,7 +63,7 @@ export default function CandlestickChart({ seriesData = devSeriesData, name = de
   return (
     <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2 overflow-hidden">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexCharts.ApexOptions}
         series={chartData.series}
         type="candlestick"
         height="100%"

@@ -75,7 +75,7 @@ export default function BarChart({ values, labels, name, fields }: PropsInterfac
   return (
     <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2 overflow-hidden">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexCharts.ApexOptions}
         series={chartData.series}
         type="bar"
         height="100%"
