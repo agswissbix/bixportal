@@ -50,6 +50,7 @@
     "framer-motion": "^12.4.10",
     "gantt-task-react": "^0.3.9",
     "gridstack": "^11.5.1",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "js-cookie": "3.0.5",
