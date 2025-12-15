@@ -125,6 +125,7 @@
         "proxy-from-env": ">=1.1.0",
         "is-number": ">=7.0.0",
         "get-nonce": ">=1.0.1",
-        "axios": "$axios"
+        "axios": "$axios",
+        "@koa/cors": ">=5.0.0"
     }
 }
