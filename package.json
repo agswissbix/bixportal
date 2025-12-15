@@ -33,11 +33,11 @@
         "@radix-ui/react-tabs": "^1.1.13",
         "@radix-ui/react-tooltip": "^1.2.8",
         "@tailwindcss/postcss": "^4.0.0",
-        "@toast-ui/editor": "^3.2.2",
+        "@toast-ui/editor": "^3.1.0",
         "@types/lodash": "^4.17.15",
         "@welldone-software/why-did-you-render": "^10.0.1",
         "apexcharts": "^4.5.0",
-        "axios": "1.7.9",
+        "axios": "^1.13.2",
         "bixdata_frontend_react": "file:",
         "bixportal": "file:",
         "class-variance-authority": "^0.7.1",
@@ -63,7 +63,7 @@
         "panda": "^0.6.5",
         "pandas": "^0.0.3",
         "qrcode.react": "^4.2.0",
-        "quagga": "^0.12.1",
+        "quagga": "^0.6.16",
         "react": "^19.2.3",
         "react-apexcharts": "^1.7.0",
         "react-day-picker": "^9.11.1",
@@ -109,6 +109,13 @@
         "gantt-task-react": {
             "react": "$react",
             "react-dom": "$react-dom"
-        }
+        },
+        "mongoose": ">=6.13.6",
+        "json5": ">=1.0.2",
+        "dicer": ">=0.3.1",
+        "passport": ">=0.6.0",
+        "jsonwebtoken": ">=9.0.0",
+        "glob": ">=11.1.0",
+        "tar": ">=7.5.2"
     }
 }
