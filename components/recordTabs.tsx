@@ -31,6 +31,9 @@ interface ResponseInterface {
 
 export default function RecordTabs({ tableid }: PropsInterface) {
   const { user } = useContext(AppContext);
+  const [calendarType, setCalendarType] = useState<"calendar" | "planner">(
+      "calendar"
+  );
 
   const responseDataDEFAULT: ResponseInterface = {
     tableTabs: ['Tabella', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
@@ -70,77 +73,123 @@ export default function RecordTabs({ tableid }: PropsInterface) {
   const { handleRowClick, searchTerm, tableView, currentPage, pageLimit, columnOrder, filtersList } = useRecordsStore();
 
   return (
-    <GenericComponent>
-      {(data) => (
-        <div className="h-full flex flex-col">
-          {/* Tabs */}
-          <div className="hidden xl:inline h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
-            <ul className="flex flex-wrap -mb-px relative">
-              {responseData.tableTabs.map((tab, index) => (
-                <li key={index} className="me-2">
-                  <button
-                    className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                      activeTab === tab
-                        ? 'text-primary border-primary'
-                        : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <GenericComponent>
+          {(data) => (
+              <div className="h-full flex flex-col">
+                  {/* Tabs */}
+                  <div className="hidden xl:inline h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
+                      <ul className="flex flex-wrap -mb-px relative">
+                          {responseData.tableTabs.map((tab, index) => (
+                              <li
+                                  key={index}
+                                  className="me-2">
+                                  <button
+                                      className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
+                                          activeTab === tab
+                                              ? "text-primary border-primary"
+                                              : "text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300"
+                                      }`}
+                                      onClick={() => setActiveTab(tab)}>
+                                      {tab}
+                                  </button>
+                              </li>
+                          ))}
+                      </ul>
+                  </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 p-4 overflow-auto xl:inline hidden">
-            {activeTab === 'Tabella' && (
-              <RecordsTable  tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} filtersList={filtersList} limit={100} />
-            )}
-            {activeTab === 'Kanban' && (
-              <RecordsKanban tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
-            )}
-            {activeTab === 'Calendario' && (
-              <UnifiedCalendar tableid={tableid} showUnplannedEvents={true} defaultView="calendar" />
-              // <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
-            )}
-            {activeTab === 'MatrixCalendar' && (
-              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={false} >
-                {(calendarProps : CalendarChildProps) => (
-                  <MatrixView 
-                    {...calendarProps}
-                  />
-                )}
-              </CalendarBase>
-              // <RecordsPlanner tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} showUnplannedEvents={false} />
-            )}
-            {activeTab === 'Planner' && (
-              <CalendarBase viewType='records' tableid={tableid} showUnplannedEvents={true} >
-                {(calendarProps : CalendarChildProps) => (
-                  <MatrixView 
-                    {...calendarProps}
-                  />
-                )}
-              </CalendarBase>
-              // <RecordsPlanner tableid={tableid} view={tableView} searchTerm={searchTerm} showUnplannedEvents={true}/>
-            )}
-            {activeTab === 'Gallery' && (
-              <GalleryView tableid={tableid} />
-            )}
-            {activeTab === 'Pivot' && (
-              <Pivot tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm}  />
-            )}
-            {['Tabella', 'Kanban', 'Calendario', 'Gallery', 'Pivot', 'Planner'].indexOf(activeTab) === -1 && (
-              <div className="text-gray-400 italic">Nessun contenuto da mostrare</div>
-            )}
-          </div>
+                  {/* Tab Content */}
+                  <div className="flex-1 p-4 overflow-auto xl:inline hidden">
+                      {activeTab === "Tabella" && (
+                          <RecordsTable
+                              tableid={tableid}
+                              context="standard"
+                              view={tableView}
+                              searchTerm={searchTerm}
+                              filtersList={filtersList}
+                              limit={100}
+                          />
+                      )}
+                      {activeTab === "Kanban" && (
+                          <RecordsKanban
+                              tableid={tableid}
+                              context="standard"
+                              view={tableView}
+                              searchTerm={searchTerm}
+                          />
+                      )}
+                      {activeTab === "Calendario" && (
+                          <UnifiedCalendar
+                              tableid={tableid}
+                              showUnplannedEvents={true}
+                              defaultView="calendar"
+                          />
+                          // <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
+                      )}
+                      {activeTab === "MatrixCalendar" && (
+                          <CalendarBase
+                              viewType="records"
+                              tableid={tableid}
+                              showUnplannedEvents={false}>
+                              {(calendarProps: CalendarChildProps) => (
+                                  <MatrixView
+                                      {...calendarProps}
+                                      calendarType={calendarType}
+                                      onCalendarTypeChange={setCalendarType}
+                                  />
+                              )}
+                          </CalendarBase>
+                          // <RecordsPlanner tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} showUnplannedEvents={false} />
+                      )}
+                      {activeTab === "Planner" && (
+                          <CalendarBase
+                              viewType="records"
+                              tableid={tableid}
+                              showUnplannedEvents={true}>
+                              {(calendarProps: CalendarChildProps) => (
+                                  <MatrixView
+                                      {...calendarProps}
+                                      calendarType={calendarType}
+                                      onCalendarTypeChange={setCalendarType}
+                                  />
+                              )}
+                          </CalendarBase>
+                          // <RecordsPlanner tableid={tableid} view={tableView} searchTerm={searchTerm} showUnplannedEvents={true}/>
+                      )}
+                      {activeTab === "Gallery" && (
+                          <GalleryView tableid={tableid} />
+                      )}
+                      {activeTab === "Pivot" && (
+                          <Pivot
+                              tableid={tableid}
+                              context="standard"
+                              view={tableView}
+                              searchTerm={searchTerm}
+                          />
+                      )}
+                      {[
+                          "Tabella",
+                          "Kanban",
+                          "Calendario",
+                          "Gallery",
+                          "Pivot",
+                          "Planner",
+                      ].indexOf(activeTab) === -1 && (
+                          <div className="text-gray-400 italic">
+                              Nessun contenuto da mostrare
+                          </div>
+                      )}
+                  </div>
 
-          <div className="flex-1 overflow-hidden xl:hidden">
-            <CardsList tableid={tableid} searchTerm={searchTerm} view={tableView} context='standard' />
-          </div>
-        </div>
-      )}
-    </GenericComponent>
+                  <div className="flex-1 overflow-hidden xl:hidden">
+                      <CardsList
+                          tableid={tableid}
+                          searchTerm={searchTerm}
+                          view={tableView}
+                          context="standard"
+                      />
+                  </div>
+              </div>
+          )}
+      </GenericComponent>
   );
 }
