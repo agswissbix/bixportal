@@ -42,21 +42,22 @@ export function AddTaskDialog() {
     if (!formData.title.trim()) return
 
     const taskData = {
+      recordid: editingTask?.recordid || "",
       title: formData.title.trim(),
       description: formData.description.trim() || undefined,
       priority: formData.priority,
       assignee: formData.assignee.trim() || undefined,
       dueDate: formData.dueDate || undefined,
       tags: formData.tags
-        ? formData.tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter(Boolean)
-        : undefined,
-    }
+          ? formData.tags
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+          : undefined,
+    };
 
     if (editingTask) {
-      updateTask(editingTask.id, taskData)
+      updateTask(editingTask.recordid, taskData)
     } else {
       addTask(selectedColumnId, taskData)
     }
