@@ -38,7 +38,8 @@ export async function POST(request: Request) {
 
   try {
     if (contentType.includes('application/json')) {
-      postData = await request.json();
+      const bodyText = await request.text();
+      postData = bodyText ? JSON.parse(bodyText) : {};
     } else if (contentType.includes('multipart/form-data')) {
       const { fields, files } = await parseFormData(request);
       const singleValueFields: Record<string, any> = {};
@@ -288,30 +289,30 @@ export async function POST(request: Request) {
 
   // Gestione della risposta in base al content-type
   if (!resContentType.includes('application/json')) {
-    // Risposta File/Blob
-    const contentDisposition = response.headers['content-disposition'] || 'attachment';
+    // Risposta File/Blob
+    const contentDisposition = response.headers['content-disposition'] || 'attachment';
 
-    const nextResponse = new Response(response.data, {
-      status: 200,
-      headers: {
-        'Content-Type': resContentType, // Inoltra il content-type originale
-        'Content-Disposition': contentDisposition, // Inoltra l'header per il nome del file
-        'Access-Control-Allow-Origin': corsOrigin,
-        'Access-Control-Allow-Credentials': 'true',
-      },
-    });
+    const nextResponse = new Response(response.data, {
+      status: 200,
+      headers: {
+        'Content-Type': resContentType, // Inoltra il content-type originale
+        'Content-Disposition': contentDisposition, // Inoltra l'header per il nome del file
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Credentials': 'true',
+      },
+    });
 
-    // Inoltra i cookie al client
-    if (Array.isArray(setCookieHeader)) {
-      setCookieHeader.forEach((cookie) => {
-        nextResponse.headers.append('Set-Cookie', cookie);
-      });
-    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
-    }
+    // Inoltra i cookie al client
+    if (Array.isArray(setCookieHeader)) {
+      setCookieHeader.forEach((cookie) => {
+        nextResponse.headers.append('Set-Cookie', cookie);
+      });
+    } else if (typeof setCookieHeader === 'string' && setCookieHeader.length > 0) {
+      nextResponse.headers.set('Set-Cookie', setCookieHeader);
+    }
 
-    return nextResponse;
-  } else {
+    return nextResponse;
+  } else {
     // Risposta JSON: convertiamo l'arraybuffer in stringa e poi facciamo il parse
     const parsedData = JSON.parse(Buffer.from(response.data).toString('utf-8'));
      const nextResponse = NextResponse.json(parsedData, {

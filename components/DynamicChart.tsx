@@ -1,78 +1,88 @@
 import React, { useMemo } from "react";
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
+    BarChart,
+    Bar,
+    LineChart,
+    Line,
+    PieChart,
+    Pie,
+    Cell,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
 } from "recharts";
+
+interface DynamicChartProps {
+    data: Record<string, any>[];
+    valueField: string;
+    categoryField: string;
+    aggregationType: "sum" | "average" | "count";
+    chartType: "bar" | "line" | "pie";
+}
 
 /**
  * A component to display aggregated data in various chart types.
- * @param {object[]} data - The array of objects to analyze.
- * @param {string} valueField - The key for the numeric field for the formula.
- * @param {string} categoryField - The key for the field to group data by.
- * @param {'sum' | 'average' | 'count'} aggregationType - The type of aggregation.
- * @param {'bar' | 'line' | 'pie'} chartType - The type of chart to display.
  */
 const DynamicChart = ({
-  data,
-  valueField,
-  categoryField,
-  aggregationType,
-  chartType,
-}) => {
-  // useMemo hook to process data only when dependencies change
-  const processedData = useMemo(() => {
-    if (!data || !valueField || !categoryField || !aggregationType) {
-      return [];
-    }
+    data,
+    valueField,
+    categoryField,
+    aggregationType,
+    chartType,
+}: DynamicChartProps) => {
+    // useMemo hook to process data only when dependencies change
+    const processedData = useMemo(() => {
+        if (!data || !valueField || !categoryField || !aggregationType) {
+            return [];
+        }
 
-    // Group data by the specified category field
-    const grouped = data.reduce((acc, item) => {
-      const key = item[categoryField];
-      // Skip items with null or undefined keys
-      if (key === undefined || key === null) return acc;
+        // Group data by the specified category field
+        const grouped = data.reduce<Record<string, number[]>>((acc, item) => {
+            const keyRaw = item[categoryField];
 
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      const value = parseFloat(item[valueField]);
-      // Push the value if it's a valid number
-      if (!isNaN(value)) {
-        acc[key].push(value);
-      }
-      return acc;
-    }, {});
+            // Skip items with null or undefined keys
+            if (keyRaw === undefined || keyRaw === null) return acc;
 
-    // Aggregate the grouped data based on the aggregation type
-    return Object.entries(grouped).map(([name, values]) => {
-      let aggregatedValue;
-      switch (aggregationType) {
-        case "sum":
-          aggregatedValue = values.reduce((sum, val) => sum + val, 0);
-          break;
-        case "average":
-          aggregatedValue =
-            values.reduce((sum, val) => sum + val, 0) / values.length;
-          break;
-        case "count":
-          aggregatedValue = values.length;
-          break;
-        default:
-          aggregatedValue = 0;
-      }
-      return { name, value: aggregatedValue };
-    });
-  }, [data, valueField, categoryField, aggregationType]);
+            const key = String(keyRaw); // Assicuriamo che la chiave sia stringa
+
+            if (!acc[key]) {
+                acc[key] = [];
+            }
+
+            const value = parseFloat(item[valueField]);
+            // Push the value if it's a valid number
+            if (!isNaN(value)) {
+                acc[key].push(value);
+            }
+            return acc;
+        }, {});
+
+        // Aggregate the grouped data based on the aggregation type
+        return Object.entries(grouped).map(([name, values]) => {
+            let aggregatedValue = 0;
+            switch (aggregationType) {
+                case "sum":
+                    aggregatedValue = values.reduce((sum, val) => sum + val, 0);
+                    break;
+                case "average":
+                    aggregatedValue =
+                        values.length > 0
+                            ? values.reduce((sum, val) => sum + val, 0) /
+                              values.length
+                            : 0;
+                    break;
+                case "count":
+                    aggregatedValue = values.length;
+                    break;
+                default:
+                    aggregatedValue = 0;
+            }
+            return { name, value: aggregatedValue };
+        });
+    }, [data, valueField, categoryField, aggregationType]);
 
   // Colors for the Pie Chart
   const PIE_COLORS = [

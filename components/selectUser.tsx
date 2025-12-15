@@ -91,7 +91,7 @@ export default function SelectUser({
     newValue: SingleValue<OptionType> | MultiValue<OptionType>,
     actionMeta: ActionMeta<OptionType>
   ) => {
-    setSelectedOption(newValue);
+    setSelectedOption(newValue as OptionType | OptionType[]);
     if (onChange) {
       if (isMulti) {
         const values = (newValue as MultiValue<OptionType>).map(

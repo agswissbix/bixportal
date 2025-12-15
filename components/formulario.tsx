@@ -28,10 +28,10 @@ const FormularioOrdineLifestyle = () => {
     }
   };
   
-  const getTotalItems = () => {
-    return Object.values(ordine).reduce((total, val) => {
-      return total + (val ? parseInt(val) : 0);
-    }, 0);
+  const getTotalItems = (): number => {
+    return Object.values(ordine).reduce((total: number, val: any) => {
+        return total + (val ? parseInt(val) : 0);
+    }, 0) as number;
   };
   
   const categorie = [

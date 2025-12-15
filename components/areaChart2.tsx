@@ -1,3 +1,4 @@
+import { ApexOptions } from 'apexcharts';
 import React, { useMemo } from 'react';
 import ReactApexChart from 'react-apexcharts';
 
@@ -108,7 +109,7 @@ export default function AreaChart({ values, labels, name }: PropsInterface) {
   return (
     <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-4 overflow-hidden">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexOptions}
         series={chartData.series}
         type="area"
         height="100%"

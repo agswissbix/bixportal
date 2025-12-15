@@ -35,7 +35,8 @@ const TrasfertaForm = () => {
     if (name === "data") {
       const now = new Date();
       const inputDate = new Date(value);
-      const diffHours = (inputDate - now) / (1000 * 60 * 60);
+      const diffHours =
+          (inputDate.getTime() - now.getTime()) / (1000 * 60 * 60);
       setDateWarning(diffHours < 48);
     }
   };

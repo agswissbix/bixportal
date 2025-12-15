@@ -44,11 +44,12 @@ export function AddColumnDialog({ onAddColumn }: AddColumnDialogProps) {
     if (!title.trim()) return
 
     onAddColumn({
-      title: title.trim(),
-      color,
-      tasks: [],
-      editable: true,
-    })
+        title: title.trim(),
+        color,
+        tasks: [],
+        editable: true,
+        aggregatefunctions: [],
+    });
 
     setTitle("")
     setColor("bg-gray-100")

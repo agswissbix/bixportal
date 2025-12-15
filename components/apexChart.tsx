@@ -1,3 +1,4 @@
+import { ApexOptions } from 'apexcharts';
 import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 
@@ -121,7 +122,7 @@ export default function GroupedBarWithPlaceAverages() {
   return (
     <div className="bg-white p-4 rounded shadow">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexOptions}
         series={chartData.series}
         type="bar"
         height={400}

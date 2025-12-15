@@ -29,10 +29,15 @@ const isDev = false
 interface PropsInterface {}
 
 interface ResponseInterface {
-  menuItems: Record<string, MenuItem>
-  otherItems: SubItem[]
-  userid?: string
-  favoriteTables?: string[]
+    menuItems: Record<string, MenuItem>;
+    otherItems: SubItem[];
+    userid?: string;
+    favoriteTables?: FavoriteTableItem[];
+}
+
+interface FavoriteTableItem {
+    id: string;
+    tableid: string;
 }
 
 interface SubItem {
@@ -233,7 +238,7 @@ export default function Sidebar({}: PropsInterface) {
                           className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
                           onClick={() => handleMenuClick(item.id)}
                         >
-                          {item.description}
+                          {item.title}
                         </span>
                       </li>
                     ))}

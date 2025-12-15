@@ -18,15 +18,15 @@
 // Interfacce esistenti del kanban con aggiunte per nuove funzionalità
 export interface Task {
   recordid: string
-  // title: string
-  // description?: string
-  // priority: "low" | "medium" | "high"
-  // assignee?: string
-  // dueDate?: string
-  // tags?: string[]
-  // createdAt: string
-  // updatedAt: string
-  // collapsed?: boolean
+  title?: string
+  description?: string
+  priority?: "low" | "medium" | "high"
+  assignee?: string
+  dueDate?: string
+  tags?: string[]
+  createdAt?: string
+  updatedAt?: string
+  collapsed?: boolean
   css?: string
   fields?: { [key: string]: string }
 }

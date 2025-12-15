@@ -69,43 +69,44 @@ const DynamicPieChart = ({ data }) => {
   }
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Legend
-          layout="horizontal"
-          verticalAlign="top"
-          align="center"
-          iconSize={12}
-          iconType="square"
-          wrapperStyle={{ paddingBottom: "20px" }}
-        />
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          outerRadius="80%"
-          fill="#8884d8"
-          labelLine={false}
-          label={<CustomPieLabel />}
-        >
-          {data.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={PIE_COLORS[index % PIE_COLORS.length]}
-            />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(value) => [
-            new Intl.NumberFormat("it-IT").format(value),
-            "Soci",
-          ]}
-          cursor={{ fill: "rgba(200, 200, 200, 0.2)" }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+      <ResponsiveContainer
+          width="100%"
+          height="100%">
+          <PieChart>
+              <Legend
+                  layout="horizontal"
+                  verticalAlign="top"
+                  align="center"
+                  iconSize={12}
+                  iconType="square"
+                  wrapperStyle={{ paddingBottom: "20px" }}
+              />
+              <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="80%"
+                  fill="#8884d8"
+                  labelLine={false}
+                  label={(props: any) => <CustomPieLabel {...props} />}>
+                  {data.map((entry, index) => (
+                      <Cell
+                          key={`cell-${index}`}
+                          fill={PIE_COLORS[index % PIE_COLORS.length]}
+                      />
+                  ))}
+              </Pie>
+              <Tooltip
+                  formatter={(value) => [
+                      new Intl.NumberFormat("it-IT").format(value as number),
+                      "Soci",
+                  ]}
+                  cursor={{ fill: "rgba(200, 200, 200, 0.2)" }}
+              />
+          </PieChart>
+      </ResponsiveContainer>
   );
 };
 

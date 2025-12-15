@@ -8,11 +8,11 @@ interface PropsInterface {
   name?: string;
 }
 
-const devSeriesData = [
-  { x: '2021-01-01', y: [120000, 125000, 115000, 123000] },
-  { x: '2021-02-01', y: [123000, 130000, 119000, 129000] },
-  { x: '2021-03-01', y: [129000, 135000, 125000, 130000] },
-  { x: '2021-04-01', y: [130000, 138000, 128000, 134000] },
+const devSeriesData: { x: string; y: [number, number, number, number] }[] = [
+  { x: "2021-01-01", y: [120000, 125000, 115000, 123000] },
+  { x: "2021-02-01", y: [123000, 130000, 119000, 129000] },
+  { x: "2021-03-01", y: [129000, 135000, 125000, 130000] },
+  { x: "2021-04-01", y: [130000, 138000, 128000, 134000] },
 ];
 
 const devName = 'Esempio Candlestick';
@@ -57,13 +57,13 @@ export default function CandlestickChart({ seriesData = devSeriesData, name = de
       tooltip: {
         enabled: true,
       },
-    },
+    } as ApexCharts.ApexOptions,
   };
 
   return (
     <div className="h-full w-full bg-white drop-shadow-lg rounded-sm p-2 overflow-hidden">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexCharts.ApexOptions}
         series={chartData.series}
         type="candlestick"
         height="100%"

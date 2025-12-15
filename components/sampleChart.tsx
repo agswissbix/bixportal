@@ -47,16 +47,16 @@ const processChartData = (data, valueField, categoryField, aggregationType) => {
 
   return Object.entries(grouped).map(([name, values]) => {
     let aggregatedValue;
+    const nums = values as number[];
     switch (aggregationType) {
       case "sum":
-        aggregatedValue = values.reduce((sum, val) => sum + val, 0);
+        aggregatedValue = nums.reduce((sum, val) => sum + val, 0);
         break;
       case "average":
-        aggregatedValue =
-          values.reduce((sum, val) => sum + val, 0) / values.length;
+        aggregatedValue = nums.reduce((sum, val) => sum + val, 0) / nums.length;
         break;
       case "count":
-        aggregatedValue = values.length;
+        aggregatedValue = nums.length;
         break;
       default:
         aggregatedValue = 0;
@@ -252,9 +252,9 @@ const App = () => {
 
   // Load PapaParse library for CSV export
   useEffect(() => {
-    if (window.Papa) {
-      setIsPapaReady(true);
-      return;
+    if ((window as any).Papa) {
+        setIsPapaReady(true);
+        return;
     }
     const script = document.createElement("script");
     script.src =
@@ -304,7 +304,7 @@ const App = () => {
       alert("Libreria di esportazione non ancora pronta.");
       return;
     }
-    const csv = window.Papa.unparse(data);
+    const csv = (window as any).Papa.unparse(data);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     if (link.download !== undefined) {

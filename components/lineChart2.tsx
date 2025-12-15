@@ -99,7 +99,7 @@ export default function LineChart({ values, labels, name }: PropsInterface) {
   return (
     <div className="h-full w-full bg-white ">
       <ReactApexChart
-        options={chartData.options}
+        options={chartData.options as ApexCharts.ApexOptions}
         series={chartData.series}
         type="line"
         height="100%"

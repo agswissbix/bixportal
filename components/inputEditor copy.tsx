@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { createEditor, Descendant, Transforms, Element as SlateElement, Text } from 'slate';
-import { Slate, Editable, withReact, useSlate } from 'slate-react';
-import { withHistory } from 'slate-history';
+import { createEditor, Descendant, Transforms, Element as SlateElement, Text, BaseEditor } from 'slate';
+import { Slate, Editable, withReact, useSlate, ReactEditor } from 'slate-react';
+import { HistoryEditor, withHistory } from 'slate-history';
 import { Bold, Italic, Underline, List, Image as ImageIcon } from 'lucide-react';
 
 interface PropsInterface {
@@ -12,6 +12,51 @@ interface PropsInterface {
   tableid?: string;
   recordid?: string;
   fieldid?: string;
+}
+
+export type CustomText = {
+    text: string;
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+    code?: boolean;
+};
+
+export type ParagraphElement = {
+    type: "paragraph";
+    children: (CustomText | CustomElement)[];
+};
+
+export type BulletedListElement = {
+    type: "bulleted-list";
+    children: Array<ListItemElement | CustomText | CustomElement>;
+};
+
+export type ListItemElement = {
+    type: "list-item";
+    children: (CustomText | CustomElement)[];
+};
+
+export type ImageElement = {
+    type: "image";
+    url: string;
+    children: CustomText[];
+};
+
+export type CustomElement =
+    | ParagraphElement
+    | BulletedListElement
+    | ListItemElement
+    | ImageElement;
+
+export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
+
+declare module "slate" {
+    interface CustomTypes {
+        Editor: CustomEditor;
+        Element: CustomElement;
+        Text: CustomText;
+    }
 }
 
 export default function InputEditor({ initialValue = '', onChange, tableid, recordid, fieldid }: PropsInterface) {
@@ -41,23 +86,25 @@ export default function InputEditor({ initialValue = '', onChange, tableid, reco
   };
 
   return (
-    <div className="border rounded-md shadow-sm p-2 w-full">
-      <Slate editor={editor} value={value} onChange={handleChange}>
-        <Toolbar />
-        <Editable
-          className="min-h-[200px] p-2 focus:outline-none"
-          placeholder="Scrivi qui..."
-          renderElement={props => <Element {...props} />}
-          renderLeaf={props => <Leaf {...props} />}
-        />
-      </Slate>
-      <button
-        onClick={handleSave}
-        className="mt-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-      >
-        Salva
-      </button>
-    </div>
+      <div className="border rounded-md shadow-sm p-2 w-full">
+          <Slate
+              editor={editor}
+              initialValue={value}
+              onChange={handleChange}>
+              <Toolbar />
+              <Editable
+                  className="min-h-[200px] p-2 focus:outline-none"
+                  placeholder="Scrivi qui..."
+                  renderElement={(props) => <Element {...props} />}
+                  renderLeaf={(props) => <Leaf {...props} />}
+              />
+          </Slate>
+          <button
+              onClick={handleSave}
+              className="mt-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+              Salva
+          </button>
+      </div>
   );
 }
 
@@ -135,8 +182,8 @@ const withImages = (editor: any) => {
 };
 
 const insertImage = (editor: any, url: string) => {
-  const text = { text: '' };
-  const image = { type: 'image', url, children: [text] };
+  const text = { text: "" };
+  const image: ImageElement = { type: "image", url, children: [text] };
   Transforms.insertNodes(editor, image);
 };
 
