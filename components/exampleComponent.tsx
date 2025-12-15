@@ -1,5 +1,6 @@
 import React, { use, useMemo } from 'react';
 import { useRecordsStore } from './records/recordsStore';
+import RecordsTable from './recordsTable';
 
 // INTERFACCIA PROPS
 interface PropsInterface {
