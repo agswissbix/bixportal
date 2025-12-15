@@ -22,6 +22,7 @@ import { Tooltip } from "react-tooltip"
 import LoadingComp from "./loading"
 import { ChevronDownIcon } from "@heroicons/react/24/solid"
 import InputTime from "./input/inputTime"
+import { Input } from "./ui/input"
 
 const isDev = false
 
@@ -273,8 +274,6 @@ export default function CardFields({
 
     const user = field.lookupitemsuser?.find((u) => u.userid.toString() === value.toString())
 
-    console.log("fieldtypes: ", field.fieldtype, field.fieldtypewebid)
-
     if (isCalculated) {
       return (
         <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
@@ -305,7 +304,7 @@ export default function CardFields({
             }`}
             >
             <div className="p-2 bg-gray-100 rounded-md">
-              {field.fieldtype === "Utente" ? (
+              {field.fieldtypewebid === "Utente" ? (
                 <>
                   {value && user && (
                     <div className="flex items-center gap-2">
@@ -326,9 +325,20 @@ export default function CardFields({
                     </div>
                   )}
                 </>
+              ) : field.fieldtype === "linkedmaster" && typeof field.value === "object" && field.value?.code ? (
+              <InputLinked
+                initialValue={value}
+                valuecode={typeof field.value === "object" ? field.value : undefined}
+                onChange={(v) => handleInputChange(field.fieldid, v)}
+                tableid={tableid}
+                linkedmaster_tableid={field.linked_mastertable}
+                linkedmaster_recordid={typeof field.value === "object" ? field.value?.code : ""}
+                fieldid={field.fieldid}
+                formValues={currentValues}
+                disabled={true}
+              />
               ) : (
-                <div dangerouslySetInnerHTML={{ __html: value }} />
-                // <>{value}</>
+                <div className="min-h-[24px]" dangerouslySetInnerHTML={{ __html: value }} />
               )}
             </div>
           </div>

@@ -18,6 +18,7 @@ interface PropsInterface {
   fieldid: string
   valuecode?: { code: string; value: string }
   formValues: Record<string, any>
+  disabled?: boolean
 }
 
 interface LinkedItem {
@@ -66,6 +67,7 @@ export default function inputLinked({
   fieldid,
   valuecode,
   formValues,
+  disabled=false
 }: PropsInterface) {
   const [value, setValue] = useState(valuecode?.value ?? "")
   const [isOpen, setIsOpen] = useState(false)
@@ -168,8 +170,9 @@ export default function inputLinked({
             value={value}
             onChange={handleChange}
             onFocus={handleFocus}
+            disabled={disabled}
             autoComplete="off"
-            placeholder="Cerca..."
+            placeholder={disabled ? "" : "Cerca..."}
             className="block min-w-0 grow py-2.5 pl-1 pr-2 text-sm text-foreground placeholder:text-muted-foreground bg-transparent focus:outline-none transition-colors"
           />
 

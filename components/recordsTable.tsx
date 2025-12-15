@@ -786,7 +786,7 @@ export default function RecordsTable({
                           ${isNumber ? "min-w-[60px] max-w-[80px] text-right whitespace-nowrap overflow-hidden text-ellipsis" : "min-w-[80px] max-w-[300px] text-left"}
                           ${index === 0 ? "sticky left-0 bg-table-header rounded-bl-xl" : ""}
                         `}
-                        title={isNumber ? String(totalValue) : ""} // Tooltip per vedere il valore intero
+                        title={isNumber ? Number(totalValue).toLocaleString("de-CH") : ""} // Tooltip per vedere il valore intero
                       >
                         {index === 0
                           ? "Totali"
