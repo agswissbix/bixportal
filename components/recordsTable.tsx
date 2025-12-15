@@ -348,7 +348,7 @@ export default function RecordsTable({
   
     useEffect(() => {
       if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
-        setTableSettings(responseSettings.tablesettings ?? undefined)
+        setTableSettings(tableid, responseSettings.tablesettings ?? undefined)
       }
     }, [responseSettings]);
 

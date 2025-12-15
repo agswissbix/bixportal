@@ -111,7 +111,7 @@ export default function CardFields({
 
   // 2) Calcola l'editabilità quando cambia tableSettings o recordid
   useEffect(() => {
-    setIsEditable(getIsSettingAllowed('edit', recordid));
+    setIsEditable(getIsSettingAllowed(tableid, 'edit', recordid));
   }, [tableSettings, recordid]);
 
 

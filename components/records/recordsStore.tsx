@@ -102,10 +102,15 @@ interface RecordsStore {
   }
   setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) => void;
 
-  tableSettings: Record<string, { type: string; value: string; valid_records?: string[] }>
-  setTableSettings: (tableSettings: Record<string, { type: string; value: string; valid_records?: string[] }>) => void
+  tableSettings: Record<string, Record<string, Setting>>;
+  setTableSettings: (tableid: string, tableSettings: Record<string, Setting>) => void;
+  getIsSettingAllowed: (tableid: string, settingName: string, recordid?: string) => boolean;
+}
 
-  getIsSettingAllowed: (settingName: string, recordid: string) => boolean
+interface Setting {
+  type: string;
+  value: string;
+  valid_records?: string[];
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -235,24 +240,29 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     set({ dashboardFilters }),
 
   tableSettings: {},
-  setTableSettings: (tableSettings: Record<string, { type: string; value: string; valid_records?: string[] }>) =>
-    set({tableSettings}),
+  setTableSettings: (tableid, tableSettings) => {
+    set((state) => ({
+      tableSettings: {
+        ...state.tableSettings,
+        [tableid]: tableSettings,
+      },
+    }));
+  },
 
-  getIsSettingAllowed: (settingName: string, recordid: string) => {
-    const { tableSettings } = get(); 
-    const setting = tableSettings?.[settingName];
+  getIsSettingAllowed: (tableid, settingName, recordid) => {
+    const table = get().tableSettings[tableid];
+    if (!table) return false;
+
+    const setting = table[settingName];
     if (!setting) return false;
 
-    const validRecords = setting.valid_records ?? [];
     const value = setting.value === "true";
+    const validRecords = setting.valid_records ?? [];
 
-    // Caso senza condizioni → rispetta semplicemente value
-    if (validRecords.length === 0) {
-        return value;
-    }
+    if (validRecords.length === 0) return value;
+    if (!recordid) return false;
 
     const match = validRecords.includes(String(recordid));
-
     return match ? value : !value;
   },
 }));
