@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
     output: "standalone", // Ottimizzazione delle dimensioni dell'immagine per Docker
 
+    assetPrefix: "./",
+
     reactStrictMode: true,
 
     devIndicators: {
@@ -10,10 +12,7 @@ const nextConfig: NextConfig = {
         position: "bottom-left",
     },
 
-    allowedDevOrigins: [
-        "localhost",
-        "devstagista.swissbix.com",
-    ],
+    allowedDevOrigins: ["localhost", "devstagista.swissbix.com"],
 
     //TODO: Rivedere questa configurazione per la produzione per le porte
     images: {
