@@ -1,23 +1,26 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import type React from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
+import ConditionsEditor from "@/components/admin/tables/conditionsEditor"
 
 interface FieldSetting {
   type: string
   options?: string[]
   value: string
+  conditions?: string | { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> }
 }
 
 interface LookupItem {
   itemcode: string
   itemdesc: string
-  status?: "new" | "deleted" | "changed"| "unchanged"
+  status?: "new" | "deleted" | "changed" | "unchanged"
 }
 
 interface Props {
@@ -26,7 +29,7 @@ interface Props {
   userId?: string
   items?: LookupItem[]
   currentSettings: Record<string, FieldSetting>
-  record?: { lookuptableid?: string, description?: string; label?: string }
+  record?: { lookuptableid?: string; description?: string; label?: string }
   onSave?: (updatedSettings: Record<string, FieldSetting>) => void
 }
 
@@ -37,7 +40,6 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
   const [lookupItems, setLookupItems] = useState<LookupItem[]>(items || [])
   const [lookupTableId, setLookupTableId] = useState(record?.lookuptableid || "")
 
-  // Se cambia currentSettings esterno, aggiorno lo stato interno
   useEffect(() => {
     setLocalSettings(currentSettings)
   }, [currentSettings])
@@ -63,13 +65,49 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
     }))
   }
 
+  const handleConditionsChange = (
+    key: string,
+    conditions: { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> },
+  ) => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        conditions: JSON.stringify(conditions),
+      },
+    }))
+  }
+
+  const isBooleanField = (field: FieldSetting): boolean => {
+    return (
+      field.type === "select" &&
+      field.options?.length === 2 &&
+      field.options.includes("true") &&
+      field.options.includes("false")
+    )
+  }
+
+  const parseConditions = (
+    conditionsValue:
+      | string
+      | { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> }
+      | undefined,
+  ) => {
+    if (!conditionsValue) return null
+    if (typeof conditionsValue === "string") {
+      try {
+        return JSON.parse(conditionsValue)
+      } catch {
+        return null
+      }
+    }
+    return conditionsValue
+  }
+
   const renderSettingInput = (key: string, field: FieldSetting) => {
     if (field.type === "select" && field.options) {
       return (
-        <Select
-          value={field.value}
-          onValueChange={(val) => handleSettingChange(key, val)}
-        >
+        <Select value={field.value} onValueChange={(val) => handleSettingChange(key, val)}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Seleziona..." />
           </SelectTrigger>
@@ -84,20 +122,14 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
       )
     }
 
-    return (
-      <Input
-        value={field.value}
-        onChange={(e) => handleSettingChange(key, e.target.value)}
-        className="w-full"
-      />
-    )
+    return <Input value={field.value} onChange={(e) => handleSettingChange(key, e.target.value)} className="w-full" />
   }
 
   const handleLookupChange = (index: number, value: string) => {
     setLookupItems((prev) =>
       prev.map((item, i) =>
-        i === index ? { ...item, itemdesc: value, status: item.status === "new" ? item.status : "changed" } : item
-      )
+        i === index ? { ...item, itemdesc: value, status: item.status === "new" ? item.status : "changed" } : item,
+      ),
     )
   }
 
@@ -105,19 +137,14 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
     const newItem: LookupItem = {
       itemcode: "",
       itemdesc: "",
-      status: "new"
+      status: "new",
     }
     setLookupItems((prev) => [...prev, newItem])
   }
 
   const handleDeleteLookup = (index: number) => {
-    setLookupItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, status: "deleted" } : item
-      )
-    )
+    setLookupItems((prev) => prev.map((item, i) => (i === index ? { ...item, status: "deleted" } : item)))
   }
-
 
   const handleSave = async () => {
     try {
@@ -129,15 +156,15 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
           tableid: tableId,
           fieldid: fieldId,
           userid: userId,
-          record: { description, label},
-          items: lookupItems
+          record: { description, label },
+          items: lookupItems,
         },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
-      );
+        },
+      )
 
       if (response.data.success) {
         toast.success("Impostazioni campo salvate")
@@ -160,8 +187,10 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
           <CardTitle className="text-gray-700">Impostazioni Campo</CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-2">
-           <div className="flex flex-col gap-1">
-            <label htmlFor="field-description" className="font-medium">Descrizione</label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="field-description" className="font-medium">
+              Descrizione
+            </label>
             <Input
               id="field-description"
               value={description}
@@ -169,22 +198,26 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
               className="w-full"
             />
 
-            <label htmlFor="field-label" className="font-medium">Label</label>
-            <Input
-              id="field-label"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              className="w-full"
-            />
+            <label htmlFor="field-label" className="font-medium">
+              Label
+            </label>
+            <Input id="field-label" value={label} onChange={(e) => setLabel(e.target.value)} className="w-full" />
           </div>
 
           {Object.entries(localSettings).map(([key, field]) => (
-            <div
-              key={key}
-              className="flex flex-col gap-1"
-            >
+            <div key={key} className="flex flex-col gap-1">
               <span className="font-medium">{key}</span>
               {renderSettingInput(key, field)}
+
+              {isBooleanField(field) && (
+                <div className="mt-2 pl-2 border-l-2 border-gray-300">
+                  <span className="text-sm text-gray-600 mb-2 block">Condizioni di visibilità</span>
+                  <ConditionsEditor
+                    value={parseConditions(field.conditions)}
+                    onChange={(conditions) => handleConditionsChange(key, conditions)}
+                  />
+                </div>
+              )}
             </div>
           ))}
 
@@ -192,11 +225,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
             <div className="mt-6 space-y-4">
               <h3 className="text-lg font-semibold text-gray-700">Lookup Items</h3>
 
-              <Button
-                variant="secondary"
-                onClick={handleAddLookup}
-                className="bg-gray-200 hover:bg-gray-300"
-              >
+              <Button variant="secondary" onClick={handleAddLookup} className="bg-gray-200 hover:bg-gray-300">
                 Aggiungi
               </Button>
 
@@ -204,19 +233,13 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
                 {lookupItems.map((item, index) => (
                   <div
                     key={item.itemcode}
-                    className={`flex items-center gap-2 ${
-                      item.status === "deleted" ? "opacity-50" : ""
-                    }`}
+                    className={`flex items-center gap-2 ${item.status === "deleted" ? "opacity-50" : ""}`}
                   >
                     <Input
                       type="text"
                       value={item.itemdesc}
-                      onChange={(e) =>
-                        handleLookupChange(index, e.target.value)
-                      }
-                      className={`flex-1 ${
-                        item.status === "deleted" ? "bg-red-100" : ""
-                      }`}
+                      onChange={(e) => handleLookupChange(index, e.target.value)}
+                      className={`flex-1 ${item.status === "deleted" ? "bg-red-100" : ""}`}
                       disabled={item.status === "deleted"}
                     />
                     <Button
@@ -234,10 +257,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
         </CardContent>
       </Card>
 
-      <Button
-        onClick={handleSave}
-        className="w-full bg-green-600 hover:bg-green-700"
-      >
+      <Button onClick={handleSave} className="w-full bg-green-600 hover:bg-green-700">
         Salva Impostazioni
       </Button>
     </div>

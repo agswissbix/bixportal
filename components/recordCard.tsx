@@ -88,16 +88,16 @@ export default function RecordCard({
   }, [response, responseData]);
 
   useEffect(() => {
-    if (!tableSettings?.card_default_size) return
+    if (!tableSettings?.[tableid]?.card_default_size) return;
 
-    setIsMaximized((tableSettings?.card_default_size?.value === 'max' ? true : false))
-  }, [tableSettings?.card_default_size])
-  
+    setIsMaximized(tableSettings[tableid].card_default_size.value === "max");
+  }, [tableSettings?.[tableid]?.card_default_size, tableid]);
+
   useEffect(() => {
-    if (!tableSettings?.delete) return
+    if (!tableSettings?.[tableid]?.delete) return;
 
-    setIsDeleteAble(getIsSettingAllowed('delete', recordid))
-  }, [tableSettings?.delete])
+    setIsDeleteAble(getIsSettingAllowed(tableid, "delete", recordid));
+  }, [tableSettings?.[tableid]?.delete, tableid, recordid]);
 
   // dimension / responsive detection
   useEffect(() => {
