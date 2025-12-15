@@ -15,7 +15,13 @@ interface FormTypesResponseInterface {
   formtypes: string[];
 }
 
-export default function OrdinePage() {
+interface OrdinePageProps {
+    formType?: string;
+    params?: any;
+    searchParams?: any;
+}
+
+export default function OrdinePage(props: OrdinePageProps) {
 
   const FormTypesResponseDefault = {
     formtypes: []
@@ -38,7 +44,10 @@ export default function OrdinePage() {
     ]
   }
 
-  const [selectedFormType, setSelectedFormType] = useState<string>('MERCE BELOTTI');
+  const { formType: propFormType } = props;
+  const [selectedFormType, setSelectedFormType] = useState<string>(
+      propFormType || "MERCE BELOTTI"
+  );
   const [cartItems, setCartItems] = useState<any[]>([]);
   const { setSelectedMenu } = useRecordsStore();
   const [responseData, setResponseData] = useState<FormTypesResponseInterface>(isDev ? FormTypesResponseDev : FormTypesResponseDefault);
@@ -57,7 +66,9 @@ export default function OrdinePage() {
 				setResponseData(response); 
         console.log("Response form types:", response);
         if (response.formtypes && response.formtypes.length > 0) {
-          setSelectedFormType(response.formtypes[0] as any); 
+            setSelectedFormType(response.formtypes[0] as any);
+        } else if (propFormType) {
+            setSelectedFormType(propFormType);
         }
 			}
 	}, [response]);
