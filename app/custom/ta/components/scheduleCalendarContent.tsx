@@ -113,6 +113,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
   const [currentYear, setCurrentYear] = useState(realCurrentYear);
   const [currentMonth, setCurrentMonth] = useState(realCurrentMonth);
+  const availableYears = [2025, 2026];
   const [selectedVolunteer, setSelectedVolunteer] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
   const [draggedItem, setDraggedItem] = useState(null);
@@ -130,11 +131,18 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const [formData, setFormData] = useState({ name: '', shift: '', dev: '' });
   const [shiftError, setShiftError] = useState<string | null>(null);
 
-  const months = useMemo(() => 
-    role === 'Amministratore'
-      ? ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
-      : ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio']
-  , [role]);
+  // Definisci prima tutti i mesi
+  const allMonths = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+  const months = useMemo(() => {
+    // Se l'anno è 2026 E l'utente NON è admin, mostra solo Gennaio
+    if (currentYear === 2026 && !isAdmin) {
+      return ['Gennaio', 'Febbraio'];
+    }
+    
+    // In tutti gli altri casi (2025 per tutti, o 2026 per admin), mostra tutti i mesi
+    return allMonths;
+  }, [currentYear, isAdmin]); // Assicurati che le dipendenze siano [currentYear, isAdmin]
   
 
 
@@ -169,17 +177,43 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
   useEffect(() => {
     if (!isDev && response) {
-      if (response.shifts) setShifts(response.shifts);
-      if (response.volunteers) setVolunteers(response.volunteers.sort());
-      if (response.slots) {
-        setSlots(response.slots.map(slot => ({
-          ...slot,
-          access: ["edit", "view", "delete"].includes(slot.access)
-            ? (slot.access as "edit" | "view" | "delete")
-            : "view"
-        })));
+      // Caricamento Sedi
+      if (response.shifts) {
+        setShifts(response.shifts);
       }
-      if (response.timeSlots) setTimeSlots(response.timeSlots);
+
+      // Caricamento Volontari (ordinati)
+      if (response.volunteers) {
+        setVolunteers(response.volunteers.sort());
+      }
+
+      // Caricamento Slots con NORMALIZZAZIONE
+      if (response.slots) {
+        setSlots(response.slots.map(slot => {
+          // 1. Normalizziamo l'accesso in minuscolo per sicurezza
+          // Gestisce casi null, undefined o misti (es: "Edit", "EDIT")
+          const rawAccess = slot.access ? slot.access.toLowerCase() : "view";
+          
+          // 2. Verifichiamo se il valore è valido, altrimenti default a "view"
+          const validAccess = ["edit", "view", "delete"].includes(rawAccess)
+            ? (rawAccess as "edit" | "view" | "delete")
+            : "view";
+
+          return {
+            ...slot,
+            // 3. Trim delle stringhe per evitare spazi vuoti invisibili
+            name: slot.name ? slot.name.trim() : "",
+            shift: slot.shift ? slot.shift.trim() : "",
+            dev: slot.dev ? slot.dev.trim() : "",
+            access: validAccess
+          };
+        }));
+      }
+
+      // Caricamento TimeSlots
+      if (response.timeSlots) {
+        setTimeSlots(response.timeSlots);
+      }
     }
   }, [response]);
 
@@ -262,6 +296,18 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
     setScheduleData(newScheduleData);
   };
 
+	const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const newYear = parseInt(e.target.value);
+		setCurrentYear(newYear);
+
+		// Se il nuovo anno è 2026, l'utente NON è admin
+		// e il mese attualmente selezionato è > 0 (non Gennaio),
+		// reimposta il mese a 0 (Gennaio) per evitare errori.
+		if (newYear === 2026 && !isAdmin && currentMonth > 0) {
+		  setCurrentMonth(0);
+		}
+	  };
+  
   // Funzione per aprire il modal
   const openModal = (slot: Slot | null, dayIndex: number, slotIndex: number) => {
     setActiveSlot({ dayIndex, slotIndex, slot, timeSlot: timeSlots[slotIndex] });
@@ -274,56 +320,83 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   };
 
   // Funzione chiamata al click sulla cella: gestisce i permessi
+  // Funzione chiamata al click sulla cella: gestisce i permessi
   const handleCellClick = (dayIndex: number, slotIndex: number) => {
+    console.log("--- CLICK RILEVATO ---");
+    
+    // Recupero dati dello slot e del giorno
     const dayInfo = scheduleData[dayIndex];
+    if (!dayInfo) return;
+
     const slot = dayInfo.slots[slotIndex];
     const dayDate = new Date(currentYear, currentMonth, dayInfo.day);
 
-    // Normalizziamo le date (solo anno-mese-giorno) per i confronti
+    // Normalizzazione date (reset ore a 00:00:00 per confronti corretti)
+    dayDate.setHours(0, 0, 0, 0);
+    
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
 
-    const twoWeeksFromToday = new Date();
-    twoWeeksFromToday.setDate(twoWeeksFromToday.getDate() + 21);
-    twoWeeksFromToday.setHours(0,0,0,0);
+    // Definizione del limite (21 giorni come nel tuo codice originale)
+    const limitDate = new Date();
+    limitDate.setDate(limitDate.getDate() + 21);
+    limitDate.setHours(0, 0, 0, 0);
 
-    // Se sei Amministratore, puoi sempre aprire il modal
-    if (role === 'Amministratore') {
+    // 1. FIX IMPORTANTE: Normalizziamo il ruolo in minuscolo
+    // Gestisce casi come "Amministratore", "amministratore", "AMMINISTRATORE"
+    const userRole = role ? role.toLowerCase() : '';
+    
+    console.log(`Ruolo: ${userRole} | Utente: ${userName} | Data Click: ${dayDate.toLocaleDateString()}`);
+
+    // --- LOGICA AMMINISTRATORE ---
+    if (userRole === 'amministratore') {
+      console.log("Accesso Amministratore: Apro modale.");
       openModal(slot, dayIndex, slotIndex);
       return;
     }
 
-    // Se sei Utente, gestiamo le restrizioni
-    if (role === 'Utente') {
-      // 1) Se la data è oggi o antecedente, non fai nulla
+    // --- LOGICA UTENTE ---
+    if (userRole === 'utente') {
+      
+      // Caso A: Data passata o odierna -> Nessuna azione
       if (dayDate <= today) {
+        console.warn("Data passata o odierna: modifica bloccata.");
         return;
       }
-      // 2) Se la data è entro le prossime 2 settimane
-      if (dayDate > today && dayDate <= twoWeeksFromToday) {
-        // Puoi solo aggiungere in slot vuoti
+
+      // Caso B: Entro il limite (prossime 3 settimane circa)
+      // Regola: Puoi solo aggiungere nuovi turni, non modificare esistenti
+      if (dayDate > today && dayDate <= limitDate) {
         if (!slot) {
-          // Slot vuoto, apri il modal per inserire
-          openModal(null, dayIndex, slotIndex);
-        }
-        // Altrimenti (slot esistente), non fai nulla
-        return;
-      }
-      // 3) Se la data è oltre le 2 settimane
-      // puoi inserire/modificare/eliminare, ma se lo slot è già occupato
-      // devi essere lo stesso utente che lo ha inserito (slot.name === userName)
-      if (dayDate > twoWeeksFromToday) {
-        if (!slot) {
-          // slot vuoto => puoi inserire
+          // Slot vuoto -> OK inserimento
           openModal(null, dayIndex, slotIndex);
         } else {
-          // slot esistente => verifica se corrisponde al tuo userName
-          if (slot.name === userName) {
+          // Slot pieno -> BLOCCO
+          console.warn("Slot già occupato: modifica bloccata nel breve periodo.");
+        }
+        return;
+      }
+
+      // Caso C: Oltre il limite (futuro lontano)
+      // Regola: Puoi inserire o modificare SOLO i tuoi turni
+      if (dayDate > limitDate) {
+        if (!slot) {
+          // Slot vuoto -> OK inserimento
+          openModal(null, dayIndex, slotIndex);
+        } else {
+          // Slot pieno -> Controllo se è il tuo
+          if (slot.name.toLowerCase() === userName?.toLowerCase()) {
             openModal(slot, dayIndex, slotIndex);
+          } else {
+            console.warn(`Slot occupato da ${slot.name}: non puoi modificarlo.`);
           }
         }
+        return;
       }
     }
+
+    // Se arriviamo qui, il ruolo non è stato riconosciuto o non ci sono permessi
+    console.warn("Nessun permesso valido trovato per questa azione.");
   };
 
   // Gestione onChange select nel modal
@@ -498,16 +571,16 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                   <Phone size={30} />
                 </div>
                 <select
-                  className="border rounded px-2 py-1 bg-white"
-                  value={currentYear}
-                  onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-                >
-                  {[ 2025].map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+                  className="border rounded px-2 py-1 bg-white"
+                  value={currentYear}
+                  onChange={handleYearChange} // Usa la nuova funzione handler
+                >
+                  {availableYears.map((year) => ( // Usa la costante availableYears
+                    <option key={year} value={year}>
+					  {year}
+					</option>
+                  ))}
+                </select>
 
                 <div className="flex items-center gap-2">
                  
@@ -697,7 +770,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                       className="border rounded px-3 py-2 w-full"
                       value={formData.name}
                       onChange={handleInputChange}
-                      disabled={role !== "Amministratore"} // Disabilita la select se il ruolo non è "Amministratore"
+                      disabled={role?.toLowerCase() !== "amministratore"}// Disabilita la select se il ruolo non è "Amministratore"
                     >
                       {volunteers.map((volunteer) => (
                         <option key={volunteer} value={volunteer}>
