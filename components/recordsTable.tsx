@@ -691,7 +691,7 @@ export default function RecordsTable({
                       const x = e.clientX - (rect?.left || 0) + scrollX
                       const y = e.clientY - (rect?.top || 0) + scrollY
                   
-                      setIsDeleteAble(getIsSettingAllowed('delete', row.recordid))
+                      setIsDeleteAble(getIsSettingAllowed(tableid, 'delete', row.recordid))
 
                       setContextMenu({
                         x,
@@ -840,7 +840,7 @@ export default function RecordsTable({
                     absolute p-1 z-50
                     bg-white dark:bg-gray-800
                     border border-gray-200 dark:border-gray-600
-                    rounded-lg shadow-xl
+                    rounded-lg shadow-2xl shadow-gray-500
                     flex flex-col
                     min-w-[160px] overflow-hidden
                   "
@@ -874,7 +874,7 @@ export default function RecordsTable({
                     </button>
                   )}
 
-                  {customFunctions?.fn.filter((fn) => fn.context === 'cards') && (
+                  {customFunctions?.fn.filter((fn) => fn.context === 'cards').length > 0 && (
                     <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
                   )}
 
