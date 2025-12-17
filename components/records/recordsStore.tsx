@@ -111,6 +111,7 @@ interface Setting {
   type: string;
   value: string;
   valid_records?: string[];
+  conditions?: string 
 }
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
@@ -258,8 +259,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     const value = setting.value === "true";
     const validRecords = setting.valid_records ?? [];
+    const hasConditions = Boolean(setting.conditions ?? false);
 
-    if (validRecords.length === 0) return value;
+    if (!hasConditions) return value;
     if (!recordid) return false;
 
     const match = validRecords.includes(String(recordid));
