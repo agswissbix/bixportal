@@ -52,7 +52,7 @@ export default function RecordCard({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
-  const { removeCard, setRefreshTable, handleRowClick, tableSettings, getIsSettingAllowed } = useRecordsStore();
+  const { removeCard, setRefreshTable, handleRowClick, tableSettings, getIsSettingAllowed, setTableSettings } = useRecordsStore();
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
@@ -87,11 +87,39 @@ export default function RecordCard({
     }
   }, [response, responseData]);
 
+  const hasSettingsForTable = !!tableSettings?.[tableid];
+
+  const payloadSettings = useMemo(() => {
+    if (isDev) return null;
+    return {
+      apiRoute: 'settings_table_settings',
+      tableid,
+    };
+  }, [tableid]);
+      
+  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
+
+  useEffect(() => {
+    if (!responseSettings || !tableid) return;
+
+    setTableSettings(tableid, responseSettings.tablesettings ?? {});
+  }, [responseSettings, tableid]);
+
   useEffect(() => {
     if (!tableSettings?.[tableid]?.card_default_size) return;
 
     setIsMaximized(tableSettings[tableid].card_default_size.value === "max");
   }, [tableSettings?.[tableid]?.card_default_size, tableid]);
+
+  useEffect(() => {
+    if (!tableSettings?.[tableid]?.view) return;
+
+    const canView = getIsSettingAllowed(tableid, "view", recordid)
+    if (!canView) {
+      toast.error('Non hai i permessi per visualizzare questo record');
+      handleRemoveCard()
+    }
+  }, [tableSettings?.[tableid]?.view, tableid]);
 
   useEffect(() => {
     if (!tableSettings?.[tableid]?.delete) return;

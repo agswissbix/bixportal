@@ -347,10 +347,27 @@ export default function RecordsTable({
     const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
   
     useEffect(() => {
-      if (!isDev && responseSettings && JSON.stringify(responseSettings) !== JSON.stringify(responseData)) {
-        setTableSettings(tableid, responseSettings.tablesettings ?? undefined)
-      }
-    }, [responseSettings]);
+      if (!responseSettings || !tableid) return;
+
+      setTableSettings(tableid, responseSettings.tablesettings ?? {});
+    }, [responseSettings, tableid]);
+
+    const payloadFunctions = useMemo(() => {
+        if (isDev) return null;
+        return {
+          apiRoute: 'get_custom_functions',
+          tableid,
+        };
+      }, [tableid]);
+
+      const { response: responseFunc, loading: loadingFunc, error: errorFunc } = !isDev && payloadFunctions ? useApi<ResponseCustomFunction>(payloadFunctions) : { response: null, loading: false, error: null };
+
+      const [ customFunctions, setCustomFunctions ] = useState<ResponseCustomFunction>(null);
+      useEffect(() => {
+        if (!isDev && responseFunc) {
+          setCustomFunctions(responseFunc);
+        }
+      }, [responseFunc]);
 
   const [localRows, setLocalRows] = useState<typeof response.rows>([])
 
