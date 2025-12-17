@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 import { motion, AnimatePresence } from "framer-motion"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
+import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 // FLAG PER LO SVILUPPO
@@ -91,6 +92,10 @@ interface ResponseInterface {
 
 interface TableSetting {
   tablesettings: Record<string, { type: string; value: string }>;
+}
+
+interface ResponseCustomFunction {
+  fn: CustomFunction[];
 }
 
 // TIPO DI ORDINAMENTO
@@ -868,6 +873,21 @@ export default function RecordsTable({
                       Elimina
                     </button>
                   )}
+
+                  {customFunctions?.fn.filter((fn) => fn.context === 'cards') && (
+                    <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
+                  )}
+
+                  {customFunctions?.fn.map((fn) => fn.context === 'cards' && (
+                    <DynamicMenuItem
+                      key={fn.title}
+                      fn={fn}
+                      params={{
+                        recordid: contextMenu.recordid,
+                        ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                      }}
+                    />                            
+                  ))}
 
                   {context === "linked" && (
                     <>
