@@ -299,12 +299,12 @@ export default function CardFields({
 
             <div
             className={`w-3/4 relative transition-all duration-200 rounded-md ${
-              theme !== 'oceanic' ? 
+              theme !== 'alenonvede' ? 
               (isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : "") : ""
             }`}
             >
             <div className="p-2 bg-gray-100 rounded-md">
-              {field.fieldtypewebid === "Utente" ? (
+              {field.fieldtype === "Utente" ? (
                 <>
                   {value && user && (
                     <div className="flex items-center gap-2">
