@@ -76,8 +76,9 @@ export default function RecordCard({
     return {
       apiRoute: 'get_custom_functions',
       tableid,
+      recordid
     };
-  }, [tableid]);
+  }, [tableid, recordid]);
 
   const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 

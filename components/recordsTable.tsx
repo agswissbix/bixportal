@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useContext, useState, useEffect } from "react"
+import { useMemo, useContext, useState, useEffect, useRef } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "./genericComponent"
 import { AppContext } from "@/context/appContext"
@@ -362,17 +362,41 @@ export default function RecordsTable({
         return {
           apiRoute: 'get_custom_functions',
           tableid,
+          recordid: contextMenu?.recordid || null,
         };
-      }, [tableid]);
+      }, [tableid, contextMenu?.recordid]);
 
       const { response: responseFunc, loading: loadingFunc, error: errorFunc } = !isDev && payloadFunctions ? useApi<ResponseCustomFunction>(payloadFunctions) : { response: null, loading: false, error: null };
 
-      const [ customFunctions, setCustomFunctions ] = useState<ResponseCustomFunction>(null);
-      useEffect(() => {
-        if (!isDev && responseFunc) {
-          setCustomFunctions(responseFunc);
-        }
-      }, [responseFunc]);
+      const [ visibleFunctions, setVisibleFunctions ] = useState<ResponseCustomFunction>(null);
+      const [functionsLoading, setFunctionsLoading] = useState(false)
+      const requestIdRef = useRef(0);
+      const [menuOpenId, setMenuOpenId] = useState(0);
+
+      
+    useEffect(() => {
+      requestIdRef.current += 1;
+    }, [menuOpenId]);
+
+    useEffect(() => {
+      if (!contextMenu?.recordid) return;
+
+      setVisibleFunctions(null);
+      setFunctionsLoading(true);
+    }, [menuOpenId]);
+
+    useEffect(() => {
+      if (!responseFunc) return;
+
+      const currentRequestId = requestIdRef.current;
+
+      requestAnimationFrame(() => {
+        if (currentRequestId !== requestIdRef.current) return;
+
+        setVisibleFunctions({fn: responseFunc.fn ?? []});
+        setFunctionsLoading(false);
+      });
+    }, [responseFunc]);
 
   const [localRows, setLocalRows] = useState<typeof response.rows>([])
 
@@ -693,6 +717,10 @@ export default function RecordsTable({
                   
                       setIsDeleteAble(getIsSettingAllowed(tableid, 'delete', row.recordid))
 
+                      if (row.recordid !== contextMenu?.recordid) {
+                        setMenuOpenId((v) => v + 1);
+                      }
+                      
                       setContextMenu({
                         x,
                         y,
@@ -874,21 +902,6 @@ export default function RecordsTable({
                     </button>
                   )}
 
-                  {customFunctions?.fn.filter((fn) => fn.context === 'cards').length > 0 && (
-                    <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
-                  )}
-
-                  {customFunctions?.fn.map((fn) => fn.context === 'cards' && (
-                    <DynamicMenuItem
-                      key={fn.title}
-                      fn={fn}
-                      params={{
-                        recordid: contextMenu.recordid,
-                        ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
-                      }}
-                    />                            
-                  ))}
-
                   {context === "linked" && (
                     <>
                       <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
@@ -903,6 +916,30 @@ export default function RecordsTable({
                         <GripVertical className="w-4 h-4" />
                         {isReorderMode ? "Disattiva riordinamento" : "Riordina righe"}
                       </button>
+                    </>
+                  )}
+
+                  {functionsLoading ? (
+                    <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
+                      <span className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-transparent rounded-full" />
+                      Caricamento funzioni...
+                    </div>
+                  ) : (
+                    <>
+                      {visibleFunctions?.fn.filter((fn) => fn.context === 'cards').length > 0 && (
+                        <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
+                      )}
+
+                      {visibleFunctions?.fn.map((fn) => fn.context === 'cards' && (
+                        <DynamicMenuItem
+                          key={fn.title}
+                          fn={fn}
+                          params={{
+                            recordid: contextMenu.recordid,
+                            ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                          }}
+                        />                            
+                      ))}
                     </>
                   )}
                 </motion.div>
