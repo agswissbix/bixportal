@@ -620,7 +620,6 @@ export default function RecordCard({
                 </div>
             </div>
           )}
-          <Toaster richColors />
         </>
       )}
     </GenericComponent>
