@@ -43,6 +43,9 @@ export default function ButtonChart({ chartData, view }: Props) {
     return <div className="p-4 text-gray-500">Nessun dato disponibile</div>;
   }
   const firstDataset = chartData?.datasets[0];
+  if (!firstDataset?.fn) {
+    return <div className="p-4 text-gray-500">Nessun dato disponibile</div>;
+  }
   firstDataset.fn.title += " " + firstDataset.tableid
   // Vista "chart" minimalista - solo valore e immagine
   return (
