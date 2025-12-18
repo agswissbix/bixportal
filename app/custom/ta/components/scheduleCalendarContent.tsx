@@ -19,7 +19,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   
   const { user, role, userName } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
-  const isAdmin = role === 'Amministratore';
+  const isAdmin = role && role.toLowerCase() === 'amministratore';
     // All’interno del componente, aggiungi lo state per i filtri dell'agenda:
   const [agendaFilters, setAgendaFilters] = useState({
     startDate: '',

@@ -75,10 +75,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setChat(result.chat || null);
         setTelefono(result.telefono || null);
         setUserName(result.name ?? null);
-        setActiveServer(result.activeServer ?? null);
+        var activeServer=result.activeServer ?? null
+        setActiveServer(activeServer);
         if (pathname === '/login') {
-          router.push('/home');
-          return
+          //TODO CUSTOM TELEFONO AMICO
+          if (activeServer!=='telefonoamico') {
+            router.push('/home');
+            return            
+          }
+        
+           
         }
       }
       setLoadingAuth(false); // <--- Fine verifica
