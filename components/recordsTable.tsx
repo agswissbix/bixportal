@@ -930,16 +930,35 @@ export default function RecordsTable({
                         <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
                       )}
 
-                      {visibleFunctions?.fn.map((fn) => fn.context === 'cards' && (
-                        <DynamicMenuItem
-                          key={fn.title}
-                          fn={fn}
-                          params={{
-                            recordid: contextMenu.recordid,
-                            ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
-                          }}
-                        />                            
-                      ))}
+                      {visibleFunctions?.fn
+                        .filter((fn) => fn.context === 'cards')
+                        .map((originalFn) => {
+                        if (originalFn.context !== 'cards') return null;
+
+                        // Crea una copia di fn per non modificare lo stato originale
+                        const fn = { ...originalFn };
+
+                        // Tenta di convertire fn.params da stringa JSON a oggetto
+                        try {
+                          if (fn.params && typeof fn.params === 'string') {
+                            fn.params = JSON.parse(fn.params);
+                          }
+                        } catch (error) {
+                          console.error("Errore nel parsing di fn.params:", fn.params, error);
+                          // Se il parsing fallisce, lo lasciamo come stringa o lo impostiamo a null
+                          fn.params = null; 
+                        }
+                        return (
+                          <DynamicMenuItem
+                            key={fn.title}
+                            fn={fn}
+                            params={{
+                              recordid: contextMenu.recordid,
+                              ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                            }}
+                          />
+                        )                         
+                      })}
                     </>
                   )}
                 </motion.div>
