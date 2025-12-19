@@ -67,7 +67,7 @@ export default function TableChart({ chartData, view }: Props) {
 
             <RecordsTable
                 tableid={firstDataset.tableid}
-                context="linked"
+                context="standard"
                 searchTerm={searchTerm}
                 view={firstDataset.view?.toString()}
                 limit={10}
