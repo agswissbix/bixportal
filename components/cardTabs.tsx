@@ -157,7 +157,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                     <div className=" p-4" style={{ height: `calc(100% - ${tabsHeight}px)` }}>
                     {/* Mostra solo CardFields se recordid è nullo */}
                     {isNewRecord ? (
-                      responseData.cardTabs.find(tab => tab === 'Custom') ? (
+                      responseData.cardTabs.find(tab => tab === 'Steps') ? (
                         <CardSteps 
                             tableid={tableid}
                             recordid={recordid}
@@ -183,7 +183,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                       )
                     ) : (
                       <>
-                        {activeTab === 'Custom' && (
+                        {activeTab === 'Steps' && (
                           <CardSteps 
                             tableid={tableid}
                             recordid={recordid}
@@ -225,7 +225,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                         {activeTab === 'AttachmentsDemo' && (
                           <RecordAttachmentsDemo tableid={tableid} recordid={recordid} />
                         )}
-                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Custom', "Checklist"].indexOf(activeTab) === -1 && (
+                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Steps', "Checklist"].indexOf(activeTab) === -1 && (
                           <div className="text-gray-400 italic">Nessun contenuto da mostrare {activeTab}</div>
                         )}
                       </>
