@@ -2,9 +2,12 @@
 
 // src/components/ValueChart.tsx
 
-import { useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import DynamicMenuItem from "../dynamicMenuItem"
 import { ImageIcon, X } from "lucide-react"
+import { createPortal } from "react-dom"
+import { useRecordsStore } from "../records/recordsStore"
+import { AppContext } from "@/context/appContext"
 
 export type CustomFunction = {
   tableid: string
@@ -36,26 +39,39 @@ interface Props {
   chartType: string
   chartData: ChartDataInterface
   view: "chart" | "table"
+  activeServer?: string
 }
 
-export default function ButtonChart({ chartData, view }: Props) {
+export default function ButtonChart({ chartData, view, activeServer }: Props) {
   const [errorImage, setErrorImage] = useState<Record<number, boolean>>({})
   const [showJumpScare, setShowJumpScare] = useState(false)
 
   const handleImageClick = () => {
+    if (activeServer !== "swissbix") return
     setShowJumpScare(true)
     const audio = new Audio("/api/media-proxy?url=audio/sium.mp3")
     audio.volume = 0.5
     audio.play().catch((err) => console.error("Errore riproduzione audio:", err))
   }
 
-  if (!chartData?.datasets?.length) return null
-  const firstDataset = chartData.datasets[0]
-  if (!firstDataset?.fn) return null
-
-  if (firstDataset.fn?.context === "table") {
-    firstDataset.fn.title += " " + (firstDataset.tableid || "")
+  if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
+    return <div className="p-4 text-gray-500">Nessun dato disponibile</div>;
   }
+  const firstDataset = chartData.datasets[0]
+  if (!firstDataset?.fn) {
+    return <div className="p-4 text-gray-500">Nessun dato disponibile</div>;
+  }
+
+  const computedTitle = useMemo(() => {
+    if (!firstDataset.fn) return ""
+
+    if (firstDataset.fn.context === "table") {
+      return `${firstDataset.fn.title} ${firstDataset.tableid ?? ""}`
+    }
+
+    return firstDataset.fn.title
+  }, [firstDataset.fn, firstDataset.tableid])
+
 
   return (
     <div className="flex items-center justify-center h-full w-full">
@@ -93,8 +109,11 @@ export default function ButtonChart({ chartData, view }: Props) {
           "
           >
             <DynamicMenuItem
-              key={firstDataset.fn.title}
-              fn={firstDataset.fn}
+              key={computedTitle}
+              fn={{
+                ...firstDataset.fn,
+                title: computedTitle,
+              }}
               params={{
                 tableid: firstDataset.tableid,
                 ...(typeof firstDataset.fn.params === "object" ? firstDataset.fn.params : {}),
@@ -110,31 +129,29 @@ export default function ButtonChart({ chartData, view }: Props) {
         <div className="absolute -z-10 inset-0 bg-slate-500/5 opacity-0 group-hover:opacity-100 blur-xl transition-opacity rounded-2xl" />
       </div>
 
-      {showJumpScare && (
+      {showJumpScare && createPortal(
         <div
           className="fixed inset-0 z-[9999] bg-black flex items-center justify-center animate-in fade-in duration-100"
+          style={{ width: '100vw', height: '100vh' }} // Forza dimensioni viewport
           onClick={() => setShowJumpScare(false)}
         >
-          {/* Pulsante chiudi */}
           <button
-            className="absolute top-4 right-4 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+            className="absolute top-4 right-4 z-[10000] ..."
             onClick={() => setShowJumpScare(false)}
           >
             <X className="w-6 h-6 text-white" />
           </button>
 
-          {/* Immagine jump scare con animazione zoom */}
-          <div className="absolute w-full h-full flex items-center justify-center animate-in zoom-in duration-300">
-            <img src="/api/media-proxy?url=audio/sium.jpg" alt="Jump Scare" className="max-w-full max-h-full object-contain" />
-
-            {/* Testo BOO animato */}
+          <div className="relative w-full h-full flex items-center justify-center animate-in zoom-in duration-300">
+            <img src="/api/media-proxy?url=audio/sium.jpg" className="max-w-full max-h-full object-contain" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <h1 className="text-9xl font-black text-red-600 animate-pulse drop-shadow-[0_0_30px_rgba(255,0,0,0.8)]">
+              <h1 className="text-9xl font-black text-red-600 animate-pulse ...">
                 SIUUUMM!
               </h1>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body // Destinazione del portale
       )}
     </div>
   )

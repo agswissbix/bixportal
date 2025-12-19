@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { ArrowLeftRight, ChartBar, ChartLine, Eye, EyeOff, FileDown, ImageDown, Table, TableProperties, Tags, Trash2 } from "lucide-react"
 import ValueChart, {ChartDataInterface as IValueChartData} from "./charts/valueChart"
 import GenericApexChart from "./charts/genericApexChart"
@@ -9,6 +9,7 @@ import OverlayBarChart, {ChartDataInterface as IMultiChartData} from "./charts/m
 import ApexCharts from "apexcharts";
 import ButtonChart, {ChartDataInterface as IButtonChartData} from "./charts/buttonChart";
 import TableChart, {ChartDataInterface as ITableChartData} from "./charts/tableChart";
+import { AppContext } from "@/context/appContext"
 
 interface Props {
   id: number
@@ -17,6 +18,7 @@ interface Props {
   chart_data: string
   onDelete: (id: number) => void
   onExport: (id: number) => void
+  activeServer?: string
 }
 
 interface ChartDataInterface {
@@ -53,7 +55,7 @@ export const supportsHideMetaToggle = (chartType: string): boolean => {
     return !noToggle.includes(chartType.toLowerCase())
 }
 
-export default function BlockChart({ id, name, type, chart_data, onDelete, onExport }: Props) {
+export default function BlockChart({ id, name, type, chart_data, onDelete, onExport, activeServer }: Props) {
   
   const [view, setView] = useState<"chart" | "table">("chart")
   const [showDataLabels, setShowDataLabels] = useState(() => getDefaultShowDataLabels(type))
@@ -72,7 +74,7 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
       case "value":
         return <ValueChart chartType={chartType} chartData={chartData as IValueChartData} hideData={hideMeta} />
       case 'button':
-        return <ButtonChart chartType={chartType} chartData={chartData as IButtonChartData} view="chart" />;
+        return <ButtonChart chartType={chartType} chartData={chartData as IButtonChartData} activeServer={activeServer} view="chart" />;
       case 'table':
         return <TableChart chartType={chartType} chartData={chartData as ITableChartData} view="chart" />;
       case "multibarchart":

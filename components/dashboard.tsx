@@ -257,7 +257,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
 
 
             // DATI DEL CONTESTO
-            const { user } = useContext(AppContext);
+            const { user, activeServer } = useContext(AppContext);
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
@@ -571,6 +571,7 @@ useEffect(() => {
                                           chart_data={block.chart_data || ""}
                                           onDelete={deleteBlock}
                                           onExport={handleExcelExport}
+                                          activeServer={activeServer}
                                       />
                                     </div>
                                     
