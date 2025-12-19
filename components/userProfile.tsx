@@ -32,6 +32,7 @@ function UserProfilePic() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [presetAvatars, setPresetAvatars] = useState<string[]>([])
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const profilePicUrl = `/api/media-proxy?url=userProfilePic/${userid}.png?t=${timestamp}`
   const defaultPicUrl = "/api/media-proxy?url=userProfilePic/default.jpg"
@@ -95,6 +96,39 @@ function UserProfilePic() {
     }
   }
 
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      if (file.type.startsWith("image/")) {
+        updateUserProfilePic(file)
+      } else {
+        toast.error("Per favore carica solo file immagine.")
+      }
+    }
+  }
+
   return (
     <>
       <div className="relative group w-24 h-24">
@@ -149,7 +183,15 @@ function UserProfilePic() {
 
             <TabsContent value="upload" className="space-y-4 pt-4">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors">
+                <div
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  className={`w-full p-8 border-2 border-dashed rounded-lg transition-all ${
+                    isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-gray-300 hover:border-primary"
+                  }`}
+                >
                   <input
                     type="file"
                     accept="image/*"
@@ -159,7 +201,9 @@ function UserProfilePic() {
                   />
                   <label htmlFor="profile-pic-upload" className="flex flex-col items-center gap-2 cursor-pointer">
                     <Upload className="w-12 h-12 text-muted-foreground" />
-                    <span className="text-sm font-medium">Clicca per caricare un'immagine</span>
+                    <span className="text-sm font-medium">
+                      {isDragging ? "Rilascia l'immagine qui" : "Trascina un'immagine o clicca per caricare"}
+                    </span>
                     <span className="text-xs text-muted-foreground">PNG, JPG o GIF (MAX. 5MB)</span>
                   </label>
                 </div>
