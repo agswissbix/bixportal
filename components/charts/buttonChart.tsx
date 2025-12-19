@@ -143,7 +143,7 @@ export default function ButtonChart({ chartData, view, activeServer }: Props) {
           </button>
 
           <div className="relative w-full h-full flex items-center justify-center animate-in zoom-in duration-300">
-            <img src="/api/media-proxy?url=audio/sium.jpg" className="max-w-full max-h-full object-contain" />
+            <img src="/api/media-proxy?url=audio/sium.jpg" className="max-w-full h-full object-contain" />
             <div className="absolute inset-0 flex items-center justify-center">
               <h1 className="text-9xl font-black text-red-600 animate-pulse ...">
                 SIUUUMM!
