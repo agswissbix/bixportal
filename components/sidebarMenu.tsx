@@ -225,9 +225,10 @@ export default function Sidebar({}: PropsInterface) {
                   <>
                     <li>
                       <span
-                        className="block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        className="flex items-center gap-3 block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
                         onClick={() => handleMenuClick("Dashboard")}
                       >
+                        <Icons.LayoutDashboard className="w-5 h-5"/>
                         Dashboard
                       </span>
                     </li>
