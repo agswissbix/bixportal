@@ -14,7 +14,7 @@ interface PropsInterface {
 
 export default function SideBar({  }: PropsInterface) {
   return (
-        <div className="h-full xl:w-2/12 2xl:w-2/12 3xl:w-1/12"> 
+        <div className="h-full xl:w-2/12 2xl:w-2/12 3xl:w-[12%]"> 
            <SidebarMenu ></SidebarMenu>
         </div>
   );

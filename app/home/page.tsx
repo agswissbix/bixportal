@@ -69,7 +69,7 @@ useEffect(() => {
       <Sidebar />
 
       {/* Contenitore principale con Navbar e contenuto */}
-      <div className=" flex flex-col w-full xl:w-10/12 2xl:w-10/12 3xl:w-11/12 h-full">
+      <div className=" flex flex-col w-full xl:w-10/12 2xl:w-10/12 3xl:w-[88%] h-full">
 
         {/* Contenuto principale */}
         <PopUpManager 
