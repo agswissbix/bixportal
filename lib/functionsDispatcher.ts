@@ -429,6 +429,10 @@ export function useFrontendFunctions() {
     handleRowClick('linked', '', tableid)
   },
 
+  renderToTimeTracking: ({url } : {url: string}) => {
+    window.open(url, '_blank')
+  }, 
+
   printDeal: async ({ recordid }: { recordid: string }) => {
      try {
       const response = await axiosInstanceClient.post(
