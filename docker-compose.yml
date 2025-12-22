@@ -1,14 +1,7 @@
 services:
   bixportal:
     container_name: bixportal
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_PORTAL_BASE_URL: ${NEXT_PUBLIC_PORTAL_BASE_URL}
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
-        NEXT_PUBLIC_CORS_ORIGIN: ${NEXT_PUBLIC_CORS_ORIGIN}
-        NEXT_PUBLIC_MODE: ${NEXT_PUBLIC_MODE}
+    image: ghcr.io/<tuo-utente>/bixportal-${CLIENT_ID}:latest
     restart: unless-stopped
     ports:
       - "3000:3000"

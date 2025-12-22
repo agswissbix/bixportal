@@ -1,0 +1,58 @@
+name: Build and Push Frontend Client Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_id:
+        description: 'ID Cliente'
+        required: true
+      tag:
+        description: 'Tag versione'
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare image name
+        id: prep
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          CLIENT="${{ github.event.inputs.client_id }}"
+          # Trasforma in minuscolo per il tag dell'immagine
+          IMAGE_PATH=$(echo "${{ env.REGISTRY }}/${OWNER}/bixportal-${CLIENT}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          target: runner
+          tags: |
+            ${{ env.IMAGE_PATH }}:${{ github.event.inputs.tag }}
+            ${{ env.IMAGE_PATH }}:latest
+          build-args: |
+            NEXT_PUBLIC_PORTAL_BASE_URL=${{ secrets[format('{0}_NEXT_PUBLIC_PORTAL_BASE_URL', env.CLIENT_UPPER)] }}
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets[format('{0}_NEXT_PUBLIC_API_BASE_URL', env.CLIENT_UPPER)] }}
+            NEXT_PUBLIC_CORS_ORIGIN=${{ secrets[format('{0}_NEXT_PUBLIC_CORS_ORIGIN', env.CLIENT_UPPER)] }}
+            NEXT_PUBLIC_MODE=${{ secrets[format('{0}_NEXT_PUBLIC_MODE', env.CLIENT_UPPER)] }}
+        env:
+          CLIENT_UPPER: ${{ github.event.inputs.client_id }}
