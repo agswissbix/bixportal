@@ -1,4 +1,4 @@
-name: Build and Push Frontend Client Image
+name: Build and Push BixPortal
 
 on:
   workflow_dispatch:
