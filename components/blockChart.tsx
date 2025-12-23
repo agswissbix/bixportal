@@ -110,129 +110,151 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
   };
 
   return (
-    <div className="w-full h-full bg-white rounded-lg shadow-md flex flex-col overflow-hidden border border-gray-200">
-      {/* HEADER in stile WeGolf */}
-      <div className="bg-gray-100 flex flex-col">
-        {/* Riga 1 — barra comandi */}
-        <div className="flex justify-end items-center px-3 py-1.5 sm:py-2 border-b border-gray-200 bg-gray-100  not-print-header">
-
-          {supportsHideMetaToggle(type) && (
-            <button
-            onClick={() => setHideMeta(!hideMeta)}
-            className={`p-2 rounded-md transition-colors ${
-              hideMeta ? "text-blue-600 bg-blue-50" : "text-gray-400 hover:text-blue-600 hover:bg-gray-200"
-            }`}
-            title={hideMeta ? 'Nascondi dati' : 'Mostra dati'}
-            >
-              {hideMeta ? <EyeOff className="w-5 h-5 transition-all" /> : <Eye className="w-5 h-5 transition-all" />}
-            </button>
-          )}
-          {supportsDataLabelsToggle(type) && (
-            <button
-              onClick={() => setShowDataLabels(!showDataLabels)}
-              className={`p-2 rounded-md transition-all duration-200
+      <div className="w-full h-full bg-white rounded-lg shadow-md flex flex-col overflow-hidden border border-gray-200">
+          {/* HEADER in stile WeGolf */}
+          <div className="bg-gray-100 flex flex-col">
+              {/* Riga 1 — barra comandi */}
+              <div className="flex justify-end items-center px-3 py-1.5 sm:py-2 border-b border-gray-200 bg-gray-100  not-print-header">
+                  {supportsHideMetaToggle(type) && (
+                      <button
+                          onClick={() => setHideMeta(!hideMeta)}
+                          className={`p-2 rounded-md transition-colors ${
+                              hideMeta
+                                  ? "text-blue-600 bg-blue-50"
+                                  : "text-gray-400 hover:text-blue-600 hover:bg-gray-200"
+                          }`}
+                          title={hideMeta ? "Nascondi dati" : "Mostra dati"}>
+                          {hideMeta ? (
+                              <EyeOff className="w-5 h-5 transition-all" />
+                          ) : (
+                              <Eye className="w-5 h-5 transition-all" />
+                          )}
+                      </button>
+                  )}
+                  {supportsDataLabelsToggle(type) && (
+                      <button
+                          onClick={() => setShowDataLabels(!showDataLabels)}
+                          className={`p-2 rounded-md transition-all duration-200
                 ${
-                  showDataLabels
-                    ? "text-blue-600 bg-blue-50 shadow-sm"
-                    : "text-gray-400 hover:text-blue-600 hover:bg-gray-200 hover:shadow-sm"
+                    showDataLabels
+                        ? "text-blue-600 bg-blue-50 shadow-sm"
+                        : "text-gray-400 hover:text-blue-600 hover:bg-gray-200 hover:shadow-sm"
                 }
               `}
-              title={
-                showDataLabels
-                  ? "Nascondi valori"
-                  : "Mostra valori"
-              }
-            >
-              <div
-                className="w-5 h-5 flex items-center justify-center transition-all"
-              >
-                <Tags className="w-5 h-5" />
+                          title={
+                              showDataLabels
+                                  ? "Nascondi valori"
+                                  : "Mostra valori"
+                          }>
+                          <div className="w-5 h-5 flex items-center justify-center transition-all">
+                              <Tags className="w-5 h-5" />
+                          </div>
+                      </button>
+                  )}
+
+                  {type !== "button" && (
+                    /* --- Dropdown Download --- */
+                    <div className="relative group">
+                        <button
+                            className="p-2 rounded-md text-gray-500 hover:text-green-600 hover:bg-gray-200 transition-colors flex items-center"
+                            title={"Scarica"}>
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                />
+                            </svg>
+                            <svg
+                                className="w-4 h-4 ml-1 text-gray-500 group-hover:text-green-600 transition"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </button>
+
+                        {/* Dropdown menu */}
+                        <div className="absolute right-0 hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                            <button
+                                onClick={handleExportPNG}
+                                className="w-full px-4 py-2 text-left text-gray-500 hover:text-green-600 text-sm hover:bg-gray-100 flex items-center gap-2">
+                                <ImageDown className="w-4 h-4" />
+                                PNG
+                            </button>
+
+                            <button
+                                onClick={() => onExport(id)}
+                                className="w-full px-4 py-2 text-left text-gray-500 hover:text-green-600 text-sm hover:bg-gray-100 flex items-center gap-2">
+                                <FileDown className="w-4 h-4" />
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                  )}
+
+                  <button
+                      onClick={() => onDelete(id)}
+                      className="p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-gray-200 transition-colors"
+                      title={"Elimina"}>
+                      <Trash2 className="w-5 h-5" />
+                  </button>
+                  
+                  {type != "button" && (
+                    <button
+                        onClick={() =>
+                            setView(view === "chart" ? "table" : "chart")
+                        }
+                        className="p-2 rounded-md text-gray-500 hover:text-blue-600 hover:bg-gray-200 transition-colors"
+                        title={"Cambia vista"}>
+                        {view === "chart" ? (
+                            <TableProperties className="w-5 h-5" />
+                        ) : (
+                            <ChartLine className="w-5 h-5" />
+                        )}
+                    </button>
+                  )}
               </div>
-            </button>
-          )}
 
-          {/* --- Dropdown Download --- */}
-          <div className="relative group">
-            <button
-              className="p-2 rounded-md text-gray-500 hover:text-green-600 hover:bg-gray-200 transition-colors flex items-center"
-              title={'Scarica'}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              <svg
-                className="w-4 h-4 ml-1 text-gray-500 group-hover:text-green-600 transition"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {/* Dropdown menu */}
-            <div className="absolute right-0 hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-lg z-50">
-              <button
-                onClick={handleExportPNG}
-                className="w-full px-4 py-2 text-left text-gray-500 hover:text-green-600 text-sm hover:bg-gray-100 flex items-center gap-2"
-              >
-                <ImageDown className="w-4 h-4"/>
-                PNG
-              </button>
-
-              <button
-                onClick={() => onExport(id)}
-                className="w-full px-4 py-2 text-left text-gray-500 hover:text-green-600 text-sm hover:bg-gray-100 flex items-center gap-2"
-              >
-                <FileDown className="w-4 h-4"/>
-                Excel
-              </button>
-            </div>
+              
+              { type != "button" && (
+                /* Riga 2 — titolo su una o più righe */
+                <div className="px-4 py-2 bg-white">
+                    <h4 className="text-base sm:text-lg font-semibold text-gray-700 leading-snug break-words">
+                        {name}
+                    </h4>
+                </div>
+              )}
           </div>
 
-          <button
-            onClick={() => onDelete(id)}
-            className="p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-gray-200 transition-colors"
-            title={'Elimina'}
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={() => setView(view === "chart" ? "table" : "chart")}
-            className="p-2 rounded-md text-gray-500 hover:text-blue-600 hover:bg-gray-200 transition-colors"
-            title={'Cambia vista'}
-          >
-            {view === "chart" ? 
-            <TableProperties className="w-5 h-5" />
-            : <ChartLine className="w-5 h-5" /> }
-          </button>
-        </div>
-
-        {/* Riga 2 — titolo su una o più righe */}
-        <div className="px-4 py-2 bg-white">
-          <h4 className="text-base sm:text-lg font-semibold text-gray-700 leading-snug break-words">
-            {name}
-          </h4>
-        </div>
-      </div>
-
-      {/* CONTENUTO */}
-      <div className="chart-container flex-grow relative">
-        <div className={`flipper ${view === "table" ? "is-flipped" : ""}`}>
-          <div className="front p-4">{renderChartComponent(type, parsed)}</div>
-          <div className="back p-4">
-            <div className="keep-upright">
-              <GenericApexChart chartType={type} chartData={parsed} view="table" />
-            </div>
+          {/* CONTENUTO */}
+          <div className="chart-container flex-grow relative">
+              <div
+                  className={`flipper ${view === "table" ? "is-flipped" : ""}`}>
+                  <div className="front p-4">
+                      {renderChartComponent(type, parsed)}
+                  </div>
+                  <div className="back p-4">
+                      <div className="keep-upright">
+                          <GenericApexChart
+                              chartType={type}
+                              chartData={parsed}
+                              view="table"
+                          />
+                      </div>
+                  </div>
+              </div>
           </div>
-        </div>
       </div>
-    </div>
-  )
+  );
 }
