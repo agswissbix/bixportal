@@ -52,7 +52,7 @@ interface Materiale {
 }
 
 interface AllegatoDettagliato {
-    id: number;
+    id: number
     tipo: "Allegato generico" | "Signature";
     file: File | null;
     filename: string;
@@ -162,9 +162,11 @@ export default function ProfessionalTimesheet() {
         if (!searchQuery) return list;
         return list.filter(
             (item: ListItem) =>
-                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (item?.name || "")
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
                 (item.details &&
-                    item.details
+                    (item?.details || "")
                         .toLowerCase()
                         .includes(searchQuery.toLowerCase()))
         );
