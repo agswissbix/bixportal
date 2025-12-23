@@ -433,6 +433,10 @@ export function useFrontendFunctions() {
     window.open(url, '_blank')
   }, 
 
+  renderToTimesheet: ({url } : {url: string}) => {
+    window.open(url, '_blank')
+  },
+
   printDeal: async ({ recordid }: { recordid: string }) => {
      try {
       const response = await axiosInstanceClient.post(

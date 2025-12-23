@@ -568,6 +568,12 @@ export async function POST(request: Request) {
         case "stop_timetracking":
             djangoUrl = "/customapp_swissbix/stop_timetracking/";
             break;
+        case "get_timesheet_initial_data":
+            djangoUrl = "/customapp_swissbix/get_timesheet_initial_data/";
+            break;
+        case "save_timesheet":
+            djangoUrl = "/customapp_swissbix/save_timesheet/";
+            break;
 
         // TEMPORARY
         case "get_job_status":
