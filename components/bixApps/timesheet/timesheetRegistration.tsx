@@ -53,7 +53,7 @@ interface Materiale {
 
 interface AllegatoDettagliato {
     id: number;
-    tipo: "Allegato generico" | "Documento firmato";
+    tipo: "Allegato generico" | "Signature";
     file: File | null;
     filename: string;
     data: string;
@@ -1024,7 +1024,7 @@ export default function ProfessionalTimesheet() {
                                     <div className="grid grid-cols-2 gap-2">
                                         {[
                                             "Allegato generico",
-                                            "Documento firmato",
+                                            "Signature",
                                         ].map((t: any) => (
                                             <button
                                                 key={t}
