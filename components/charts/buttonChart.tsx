@@ -90,14 +90,13 @@ export default function ButtonChart({ chartData }: Props) {
     return (
         <div className="flex items-center justify-center h-full w-full">
             <div
-                className={`group relative w-full flex items-center p-1 pr-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 hover:border-accent ${
+                className={`group relative w-full h-full flex items-center p-3 gap-3 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/10 hover:border-accent overflow-hidden ${
                     isLoading
                         ? "opacity-70 pointer-events-none"
-                        : "active:scale-95"
+                        : "active:scale-[0.98]"
                 }`}>
-                {/* Area Icona / Immagine - Ora cliccabile */}
                 <div
-                    className="relative flex items-center justify-center w-14 h-14 m-1 rounded-xl bg-slate-50 group-hover:bg-accent transition-colors duration-300 overflow-hidden cursor-pointer"
+                    className="relative w-1/3 max-h-full flex-shrink-0 flex items-center justify-center aspect-square rounded-xl bg-slate-50 group-hover:bg-accent transition-colors duration-300 overflow-hidden cursor-pointer"
                     onClick={handleExecute}>
                     {isLoading ? (
                         <div className="scale-75">
@@ -106,7 +105,7 @@ export default function ButtonChart({ chartData }: Props) {
                     ) : firstDataset.image && !errorImage[0] ? (
                         <img
                             src={`/api/media-proxy?url=${firstDataset.image}`}
-                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                            className="max-w-full max-h-full object-contain p-2 transition-transform duration-500 group-hover:scale-110"
                             onError={() =>
                                 setErrorImage((prev) => ({
                                     ...prev,
@@ -116,26 +115,32 @@ export default function ButtonChart({ chartData }: Props) {
                             alt="icon"
                         />
                     ) : (
-                        <ImageIcon className="w-7 h-7 text-slate-300 group-hover:text-white" />
+                        <ImageIcon className="w-1/2 h-1/2 text-slate-300 group-hover:text-white" />
                     )}
                 </div>
 
-                {/* Area Testo/Bottone */}
-                <div className="ml-4 flex flex-col flex-1 justify-center">
+                <div className="w-2/3 flex flex-col justify-center min-w-0 py-1">
                     <div
                         className="
-            cursor-pointer
-            [&_*]:!border-0 
-            [&_button]:!bg-transparent 
-            [&_button]:!p-0 
-            [&_button]:!m-0
-            [&_button]:text-2xl 
-            [&_button]:font-black 
-            [&_button]:tracking-tight
-            [&_button]:text-slate-800
-            group-hover:[&_button]:text-accent
-            transition-colors
-          ">
+                            cursor-pointer
+                            [&_*]:!border-0 
+                            [&_button]:!bg-transparent 
+                            [&_button]:!p-0 
+                            [&_button]:!m-0
+                            [&_button]:text-base
+                            lg:[&_button]:text-lg 
+                            [&_button]:font-bold 
+                            [&_button]:tracking-tight
+                            [&_button]:text-slate-800
+                            [&_button]:text-left
+                            /* Gestione testo per evitare overflow orizzontale */
+                            [&_button]:whitespace-normal 
+                            [&_button]:break-words
+                            [&_button]:leading-tight
+                            [&_button]:overflow-hidden
+                            group-hover:[&_button]:text-accent
+                            transition-colors
+                        ">
                         <DynamicMenuItem
                             key={computedTitle}
                             fn={{
@@ -150,7 +155,7 @@ export default function ButtonChart({ chartData }: Props) {
 
                     {/* Sottolineatura decorativa */}
                     <div
-                        className={`h-1 bg-accent rounded-full transition-all duration-300 mt-0.5 ${
+                        className={`h-1 bg-accent rounded-full transition-all duration-300 mt-1.5 ${
                             isLoading
                                 ? "w-full animate-pulse"
                                 : "w-0 group-hover:w-full"
@@ -158,7 +163,7 @@ export default function ButtonChart({ chartData }: Props) {
                     />
                 </div>
 
-                {/* Effetto Glow */}
+                {/* Effetto Glow di sfondo */}
                 <div className="absolute -z-10 inset-0 bg-slate-500/5 opacity-0 group-hover:opacity-100 blur-xl transition-opacity rounded-2xl" />
             </div>
         </div>
