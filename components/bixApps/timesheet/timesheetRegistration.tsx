@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useContext, useState, useEffect } from "react";
+import React, { useMemo, useContext, useState, useEffect, useCallback } from "react";
 import { useApi } from "@/utils/useApi";
 import GenericComponent from "@/components/genericComponent";
 import { AppContext } from "@/context/appContext";
@@ -10,6 +10,16 @@ import { toast, Toaster } from "sonner";
 import * as Icons from "@heroicons/react/24/outline";
 
 const isDev = false;
+
+
+function useDebounce(value: string, delay: number) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedValue(value), delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+    return debouncedValue;
+}
 
 // --- MAPPER ICONE SERVIZI ---
 const iconMap: Record<string, React.ElementType> = {
@@ -141,30 +151,30 @@ export default function ProfessionalTimesheet() {
         }
     }, [response]);
 
-    // --- RICERCA FILTRATA ---
-    const filteredList = useMemo(() => {
-        if (!activeSearch || !responseData) return [];
-        const keyMap: any = {
-            azienda: "aziende",
-            progetto: "progetti",
-            ticket: "tickets",
-            prodotto: "prodotti",
-            rapportiLavoro: "rapporti",
-            progettoAllegato: "progetti",
-        };
-        const list = (responseData as any)[keyMap[activeSearch]] || [];
-        if (!searchQuery) return list;
-        return list.filter(
-            (item: ListItem) =>
-                (item?.name || "")
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                (item.details &&
-                    (item?.details || "")
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()))
-        );
-    }, [activeSearch, searchQuery, responseData]);
+    const [searchResults, setSearchResults] = useState<ListItem[]>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const debouncedSearch = useDebounce(searchQuery, 300);
+
+    const fetchResults = useCallback(async (target: string, query: string) => {
+        setSearchLoading(true);
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "search_timesheet_entities");
+            body.append("target", target);
+            body.append("q", query);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            setSearchResults(res.data.results || []);
+        } catch (err) {
+            toast.error("Errore nel recupero dati");
+        } finally {
+            setSearchLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (activeSearch) fetchResults(activeSearch, debouncedSearch);
+    }, [activeSearch, debouncedSearch, fetchResults]);
 
     const update = (field: string, val: any) =>
         setFormData((p) => ({ ...p, [field]: val }));
@@ -172,6 +182,8 @@ export default function ProfessionalTimesheet() {
     // --- VALIDAZIONE CAMPI OBBLIGATORI ---
     const isStepValid = useMemo(() => {
         switch (step) {
+            case 1:
+                return !!formData.azienda;
             case 4:
                 return !!formData.servizio;
             case 6:
@@ -403,6 +415,7 @@ export default function ProfessionalTimesheet() {
                                     <StepTitle
                                         title="Cliente"
                                         sub="Scegli l'azienda."
+                                        required
                                         completed={!!formData.azienda}
                                     />
                                     <button
@@ -1117,67 +1130,106 @@ export default function ProfessionalTimesheet() {
                         {/* --- MODALE RICERCA --- */}
                         {activeSearch && (
                             <div className="fixed inset-0 z-[300] bg-white flex flex-col animate-in slide-in-from-bottom duration-300">
+                                {/* Header del Modale */}
                                 <div className="p-5 border-b flex items-center justify-between bg-zinc-50">
                                     <button
                                         onClick={() => {
                                             setActiveSearch(null);
                                             setSearchQuery("");
                                         }}
-                                        className="p-2 text-zinc-400 active:scale-90">
+                                        className="p-2 text-zinc-400 active:scale-90 transition-all">
                                         <Icons.XMarkIcon className="w-6 h-6" />
                                     </button>
-                                    <span className="font-bold text-sm uppercase tracking-widest text-zinc-400">
+                                    <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
                                         Ricerca {activeSearch}
                                     </span>
-                                    <div className="w-10"></div>
+                                    <div className="w-10"></div>{" "}
                                 </div>
                                 <div className="p-6">
-                                    <input
-                                        autoFocus
-                                        className="w-full p-4 bg-zinc-50 border rounded-3xl font-semibold outline-none focus:bg-white"
-                                        placeholder="Filtra..."
-                                        value={searchQuery}
-                                        onChange={(e) =>
-                                            setSearchQuery(e.target.value)
-                                        }
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            autoFocus
+                                            className="w-full p-4 bg-zinc-50 border border-zinc-200 rounded-3xl font-semibold outline-none focus:bg-white focus:border-orange-500 transition-all"
+                                            placeholder="Inizia a scrivere per cercare..."
+                                            value={searchQuery}
+                                            onChange={(e) =>
+                                                setSearchQuery(e.target.value)
+                                            }
+                                        />
+                                        {searchLoading && (
+                                            <div className="absolute right-4 top-4">
+                                                <Icons.ArrowPathIcon className="w-6 h-6 text-orange-500 animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {/* Lista Risultati */}
                                 <div className="flex-1 overflow-y-auto px-6 pb-12 space-y-2">
-                                    {filteredList.map((item: ListItem) => (
-                                        <button
-                                            key={item.id}
-                                            onClick={() => {
-                                                if (activeSearch === "prodotto")
-                                                    setTempMaterial({
-                                                        ...tempMaterial,
-                                                        prodotto: item,
-                                                    });
-                                                else if (
-                                                    activeSearch ===
-                                                    "rapportiLavoro"
-                                                )
-                                                    setTempAllegato({
-                                                        ...tempAllegato,
-                                                        rapportiLavoro: item,
-                                                    });
-                                                else if (
-                                                    activeSearch ===
-                                                    "progettoAllegato"
-                                                )
-                                                    setTempAllegato({
-                                                        ...tempAllegato,
-                                                        progetto: item,
-                                                    });
-                                                else
-                                                    update(activeSearch!, item);
-                                                setActiveSearch(null);
-                                                setSearchQuery("");
-                                            }}
-                                            className="w-full text-left p-5 bg-zinc-50 rounded-2xl font-semibold flex justify-between items-center group active:bg-zinc-800 active:text-white transition-all">
-                                            <span>{item.name}</span>
-                                            <Icons.CheckCircleIcon className="w-5 h-5 opacity-0 group-active:opacity-100" />
-                                        </button>
-                                    ))}
+                                    {searchResults.length === 0 &&
+                                    !searchLoading &&
+                                    searchQuery.length > 1 ? (
+                                        <div className="text-center py-20">
+                                            <Icons.MagnifyingGlassIcon className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
+                                            <p className="text-zinc-400 text-sm font-medium">
+                                                Nessun risultato trovato per "
+                                                {searchQuery}"
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        searchResults.map((item: ListItem) => (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => {
+                                                    if (
+                                                        activeSearch ===
+                                                        "prodotto"
+                                                    ) {
+                                                        setTempMaterial({
+                                                            ...tempMaterial,
+                                                            prodotto: item,
+                                                        });
+                                                    } else if (
+                                                        activeSearch ===
+                                                        "rapportiLavoro"
+                                                    ) {
+                                                        setTempAllegato({
+                                                            ...tempAllegato,
+                                                            rapportiLavoro:
+                                                                item,
+                                                        });
+                                                    } else if (
+                                                        activeSearch ===
+                                                        "progettoAllegato"
+                                                    ) {
+                                                        setTempAllegato({
+                                                            ...tempAllegato,
+                                                            progetto: item,
+                                                        });
+                                                    } else {
+                                                        update(
+                                                            activeSearch!,
+                                                            item
+                                                        );
+                                                    }
+                                                    setActiveSearch(null);
+                                                    setSearchQuery("");
+                                                }}
+                                                className="w-full text-left p-5 bg-zinc-50 rounded-2xl font-semibold flex justify-between items-center group active:bg-zinc-800 active:text-white transition-all border border-transparent hover:border-zinc-200">
+                                                <div className="overflow-hidden">
+                                                    <p className="text-sm truncate">
+                                                        {item.name}
+                                                    </p>
+                                                    {item.details && (
+                                                        <p className="text-[10px] font-normal text-zinc-400 group-active:text-zinc-300 truncate">
+                                                            {item.details}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <Icons.ChevronRightIcon className="w-5 h-5 text-zinc-300 group-active:text-white" />
+                                            </button>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         )}
