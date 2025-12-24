@@ -1,3 +1,6 @@
+// DynamicMenuItem.tsx
+import { useState } from "react";
+import { useFrontendFunctions } from "@/lib/functionsDispatcher";
 import LoadingComp from "./loading";
 
 export type CustomFunction = {
@@ -10,32 +13,48 @@ export type CustomFunction = {
   css?: string;
 };
 
-interface DynamicMenuItemProps {
+export default function DynamicMenuItem({
+  fn,
+  params,
+  onClick,
+}: {
   fn: CustomFunction;
   params?: any;
   onClick?: () => void;
-  externalLoading?: boolean; // Nuova prop per delegare lo stato al genitore
-}
-
-export default function DynamicMenuItem({
-  fn,
-  onClick,
-  externalLoading,
-}: DynamicMenuItemProps) {
-  
-  // Se externalLoading è definito, usiamo quello, altrimenti potremmo usare uno stato interno (opzionale)
-  const isLoading = externalLoading ?? false;
+}) {
+  const frontendFunctions = useFrontendFunctions();
+  const [isLoading, setIsLoading] = useState(false);
+  const handleClick = async () => {
+    setIsLoading(true); // Start loading
+    const func = frontendFunctions[fn.function];
+    try {
+      if (func) {
+        console.log(`Esecuzione della funzione: ${fn.function} con params:`, params);
+        if (params !== undefined) {
+          await func(params);
+        } else {
+          await func();
+        }
+      } else {
+        console.warn(`Funzione non trovata: ${fn.function}`);
+      }
+    } catch (error) {
+      console.error(
+        `Errore durante l'esecuzione della funzione: ${fn.function}`,
+        error
+      );
+    } finally {
+      setIsLoading(false); // End loading
+    }
+    onClick && onClick();
+  };
 
   return (
     <li
       role="button"
       aria-disabled={isLoading}
-      onClick={(e) => {
-        e.stopPropagation(); // Evita bubbling se necessario
-        if (!isLoading && onClick) onClick();
-      }}
+      onClick={!isLoading ? handleClick : undefined}
       className={`
-        list-none
         w-full
         flex items-center gap-2
         px-4 py-2
@@ -43,6 +62,7 @@ export default function DynamicMenuItem({
         text-gray-700 dark:text-gray-200
         rounded-lg
         cursor-pointer
+        hover:bg-gray-100 dark:hover:bg-gray-700
         transition-colors
         ${isLoading ? "opacity-60 cursor-not-allowed" : ""}
         ${fn.css || ""}
@@ -51,7 +71,7 @@ export default function DynamicMenuItem({
       {isLoading ? (
         <LoadingComp />
       ) : (
-        <span>{fn.title}</span>
+        fn.title
       )}
     </li>
   );
