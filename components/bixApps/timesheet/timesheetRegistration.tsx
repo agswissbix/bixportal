@@ -1,12 +1,5 @@
 "use client";
-import React, {
-    useMemo,
-    useContext,
-    useState,
-    useEffect,
-    useRef,
-    useCallback,
-} from "react";
+import React, { useMemo, useContext, useState, useEffect } from "react";
 import { useApi } from "@/utils/useApi";
 import GenericComponent from "@/components/genericComponent";
 import { AppContext } from "@/context/appContext";
@@ -52,7 +45,7 @@ interface Materiale {
 }
 
 interface AllegatoDettagliato {
-    id: number
+    id: number;
     tipo: "Allegato generico" | "Signature";
     file: File | null;
     filename: string;
@@ -76,7 +69,6 @@ interface ResponseInterface {
 export default function ProfessionalTimesheet() {
     const { user: contextUser } = useContext(AppContext);
 
-    // COSTANTI
     const MAX_DESC_LENGTH = 500;
     const MAX_SEARCH_LENGTH = 40;
 
@@ -88,6 +80,9 @@ export default function ProfessionalTimesheet() {
     const [searchQuery, setSearchQuery] = useState("");
     const [showAddMaterial, setShowAddMaterial] = useState(false);
     const [showAddAllegato, setShowAddAllegato] = useState(false);
+
+    // ID RITORNATO DAL BACKEND DOPO IL SALVATAGGIO DELLA TESTATA
+    const [timesheetId, setTimesheetId] = useState<number | null>(null);
 
     // STATO DEL FORM
     const [formData, setFormData] = useState({
@@ -107,7 +102,6 @@ export default function ProfessionalTimesheet() {
         allegati: [] as AllegatoDettagliato[],
     });
 
-    // STATI TEMPORANEI MODALI
     const [tempMaterial, setTempMaterial] = useState<Materiale>({
         id: 0,
         prodotto: null,
@@ -175,7 +169,7 @@ export default function ProfessionalTimesheet() {
     const update = (field: string, val: any) =>
         setFormData((p) => ({ ...p, [field]: val }));
 
-    // --- VALIDAZIONE ---
+    // --- VALIDAZIONE CAMPI OBBLIGATORI ---
     const isStepValid = useMemo(() => {
         switch (step) {
             case 4:
@@ -184,50 +178,109 @@ export default function ProfessionalTimesheet() {
                 return !!formData.data && !!formData.tempoLavoro;
             case 7:
                 return formData.descrizione.trim().length > 1;
+            case 9:
+                return (
+                    !!formData.servizio &&
+                    !!formData.data &&
+                    formData.descrizione.trim().length > 1
+                );
             default:
                 return true;
         }
     }, [step, formData]);
 
-    // --- SALVATAGGIO (LOGICA CARDSTEPS) ---
-    const handleSave = async () => {
+    // --- LOGICHE DI SALVATAGGIO ---
+
+    const handleSaveBase = async (mode: "finish" | "continue") => {
         setIsSaving(true);
         try {
-            const form = new FormData();
-            form.append("apiRoute", "save_timesheet");
+            const body = new FormData();
+            body.append("apiRoute", "save_timesheet");
+            body.append(
+                "fields",
+                JSON.stringify({
+                    data: formData.data,
+                    descrizione: formData.descrizione,
+                    tempo_lavoro: formData.tempoLavoro,
+                    tempo_trasferta: formData.tempoTrasferta,
+                    note_interne: formData.noteInterne,
+                    nota_rifiuto: formData.notaRifiuto,
+                    servizio: formData.servizio?.name,
+                    opzione: formData.opzioni?.name,
+                    azienda_id: formData.azienda?.id,
+                    progetto_id: formData.progetto?.id,
+                    ticket_id: formData.ticket?.id,
+                    utente_id: formData.utente?.id,
+                })
+            );
 
-            const fieldsPayload = {
-                data: formData.data,
-                descrizione: formData.descrizione,
-                tempo_lavoro: formData.tempoLavoro,
-                tempo_trasferta: formData.tempoTrasferta,
-                note_interne: formData.noteInterne,
-                nota_rifiuto: formData.notaRifiuto,
-                servizio: formData.servizio?.name,
-                opzione: formData.opzioni?.name,
-                azienda_id: formData.azienda?.id,
-                progetto_id: formData.progetto?.id,
-                ticket_id: formData.ticket?.id,
-                utente_id: formData.utente?.id,
-                materiali: formData.materiali.map((m) => ({
-                    prodotto_id: m.prodotto?.id,
-                    expectedquantity: m.qtaPrevista,
-                    actualquantity: m.qtaEffettiva,
-                    note: m.note,
-                })),
-            };
+            const res = await axiosInstanceClient.post("/postApi", body);
 
-            form.append("fields", JSON.stringify(fieldsPayload));
+            if (res.status === 200 && res.data.id) {
+                setTimesheetId(res.data.id);
+                toast.success("Timesheet salvato correttamente");
+                if (mode === "finish") setIsSuccess(true);
+                else setStep(10);
+            } else {
+                toast.error(res.data.error || "Errore nel salvataggio");
+            }
+        } catch (err) {
+            toast.error("Errore di rete");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSaveAllMaterials = async (mode: "finish" | "hub") => {
+        if (!timesheetId) return;
+        setIsSaving(true);
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "save_timesheet_material");
+            body.append("timesheet_id", timesheetId.toString());
+            body.append(
+                "materiali",
+                JSON.stringify(
+                    formData.materiali.map((m) => ({
+                        prodotto_id: m.prodotto?.id,
+                        expectedquantity: m.qtaPrevista,
+                        actualquantity: m.qtaEffettiva,
+                        note: m.note,
+                    }))
+                )
+            );
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            if (res.status === 200) {
+                toast.success("Materiali registrati");
+                if (mode === "finish") setIsSuccess(true);
+                else setStep(10);
+            }
+        } catch (err) {
+            toast.error("Errore salvataggio materiali");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSaveAllAttachments = async (mode: "finish" | "hub") => {
+        if (!timesheetId) return;
+        setIsSaving(true);
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "save_timesheet_attachment");
+            body.append("timesheet_id", timesheetId.toString());
 
             formData.allegati.forEach((a, i) => {
                 if (a.file) {
-                    form.append(`file_${i}`, a.file);
-                    form.append(
+                    body.append(`file_${i}`, a.file);
+                    body.append(
                         `metadata_${i}`,
                         JSON.stringify({
                             tipo: a.tipo,
                             note: a.note,
                             filename: a.filename,
+                            data: a.data,
                             rapporto_id: a.rapportiLavoro?.id,
                             progetto_id: a.progetto?.id,
                         })
@@ -235,16 +288,14 @@ export default function ProfessionalTimesheet() {
                 }
             });
 
-            const res = await axiosInstanceClient.post("/postApi", form);
-
+            const res = await axiosInstanceClient.post("/postApi", body);
             if (res.status === 200) {
-                toast.success("Timesheet registrato correttamente");
-                setIsSuccess(true);
-            } else {
-                toast.error(res.data.error || "Errore nel salvataggio");
+                toast.success("Allegati caricati correttamente");
+                if (mode === "finish") setIsSuccess(true);
+                else setStep(10);
             }
         } catch (err) {
-            toast.error("Errore di rete");
+            toast.error("Errore caricamento file");
         } finally {
             setIsSaving(false);
         }
@@ -285,14 +336,9 @@ export default function ProfessionalTimesheet() {
         icon: Icon,
         colorClass = "text-zinc-800",
     }: any) => {
-        if (
-            !value ||
-            value === "00:00" ||
-            (Array.isArray(value) && value.length === 0)
-        )
-            return null;
+        if (!value || value === "00:00") return null;
         return (
-            <div className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-0">
+            <div className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-0 text-left">
                 <div className="flex items-center gap-3">
                     <Icon className="w-4 h-4 text-zinc-400" />
                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
@@ -309,29 +355,25 @@ export default function ProfessionalTimesheet() {
 
     if (isSuccess)
         return (
-            <>
-                <Toaster richColors position="top-right" />
-                <div className="flex flex-col min-h-[100dvh] bg-white items-center justify-center p-8 text-center animate-in fade-in duration-500">
-                    <Icons.CheckCircleIcon className="w-20 h-20 text-teal-500 mb-6" />
-                    <h2 className="text-3xl font-black uppercase">
-                        Timesheet Inviato!
-                    </h2>
-                    <div className="w-full max-w-xs mt-10 space-y-4">
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="w-full h-16 bg-orange-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95">
-                            <Icons.ArrowPathIcon className="w-5 h-5" />
-                            Nuovo
-                        </button>
-                        <button
-                            onClick={() => (window.location.href = "/home")}
-                            className="w-full h-16 bg-zinc-100 text-zinc-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
-                            <Icons.HomeIcon className="w-5 h-5" />
-                            Home
-                        </button>
-                    </div>
+            <div className="flex flex-col min-h-[100dvh] bg-white items-center justify-center p-8 text-center animate-in fade-in duration-500">
+                <Icons.CheckCircleIcon className="w-20 h-20 text-teal-500 mb-6" />
+                <h2 className="text-3xl font-black uppercase tracking-tighter">
+                    Attività Inviata
+                </h2>
+                <div className="w-full max-w-xs mt-10 space-y-4">
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="w-full h-16 bg-orange-500 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <Icons.ArrowPathIcon className="w-5 h-5" /> Nuovo
+                        Timesheet
+                    </button>
+                    <button
+                        onClick={() => (window.location.href = "/home")}
+                        className="w-full h-16 bg-zinc-100 text-zinc-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                        <Icons.HomeIcon className="w-5 h-5" /> Home
+                    </button>
                 </div>
-            </>
+            </div>
         );
 
     return (
@@ -341,27 +383,32 @@ export default function ProfessionalTimesheet() {
             error={error}>
             {(res: ResponseInterface) => (
                 <>
-                    <Toaster richColors position="top-right" />
+                    <Toaster
+                        richColors
+                        position="top-right"
+                    />
 
-                    <div className="flex flex-col min-h-[100dvh] bg-[#F9FAFB] text-zinc-900 font-sans">
+                    <div className="flex flex-col min-h-[100dvh] bg-[#F9FAFB] text-zinc-900 font-sans pb-24">
                         <div className="fixed top-0 left-0 right-0 h-1.5 flex z-[200] bg-white border-b border-zinc-100">
                             <div
                                 className="h-full bg-orange-500 transition-all duration-500"
-                                style={{ width: `${(step / 11) * 100}%` }}
+                                style={{ width: `${(step / 14) * 100}%` }}
                             />
                         </div>
 
                         <main className="flex-1 px-6 pt-12 pb-32 max-w-lg mx-auto w-full">
-                            {/* 1. AZIENDA */}
+                            {/* --- STEP 1-8: FLOW RACCOLTA DATI --- */}
                             {step === 1 && (
                                 <div>
                                     <StepTitle
                                         title="Cliente"
-                                        sub="Azienda di riferimento."
+                                        sub="Scegli l'azienda."
                                         completed={!!formData.azienda}
                                     />
                                     <button
-                                        onClick={() => setActiveSearch("azienda")}
+                                        onClick={() =>
+                                            setActiveSearch("azienda")
+                                        }
                                         className={`w-full p-6 bg-white border rounded-3xl text-left shadow-sm flex items-center justify-between active:bg-zinc-50 ${
                                             formData.azienda
                                                 ? "border-teal-200"
@@ -386,7 +433,9 @@ export default function ProfessionalTimesheet() {
                                     </button>
                                     {formData.azienda && (
                                         <button
-                                            onClick={() => update("azienda", null)}
+                                            onClick={() =>
+                                                update("azienda", null)
+                                            }
                                             className="mt-4 flex items-center gap-1.5 text-[10px] font-black text-red-500 uppercase ml-2 tracking-widest">
                                             <Icons.XMarkIcon
                                                 className="w-3.5 h-3.5"
@@ -398,7 +447,6 @@ export default function ProfessionalTimesheet() {
                                 </div>
                             )}
 
-                            {/* 2. PROGETTO */}
                             {step === 2 && (
                                 <div>
                                     <StepTitle
@@ -407,7 +455,9 @@ export default function ProfessionalTimesheet() {
                                         completed={!!formData.progetto}
                                     />
                                     <button
-                                        onClick={() => setActiveSearch("progetto")}
+                                        onClick={() =>
+                                            setActiveSearch("progetto")
+                                        }
                                         className={`w-full p-6 bg-white border rounded-3xl text-left shadow-sm flex items-center justify-between active:bg-zinc-50 ${
                                             formData.progetto
                                                 ? "border-teal-200"
@@ -432,7 +482,9 @@ export default function ProfessionalTimesheet() {
                                     </button>
                                     {formData.progetto && (
                                         <button
-                                            onClick={() => update("progetto", null)}
+                                            onClick={() =>
+                                                update("progetto", null)
+                                            }
                                             className="mt-4 flex items-center gap-1.5 text-[10px] font-black text-red-500 uppercase ml-2 tracking-widest">
                                             <Icons.XMarkIcon
                                                 className="w-3.5 h-3.5"
@@ -444,7 +496,6 @@ export default function ProfessionalTimesheet() {
                                 </div>
                             )}
 
-                            {/* 3. TICKET */}
                             {step === 3 && (
                                 <div>
                                     <StepTitle
@@ -453,7 +504,9 @@ export default function ProfessionalTimesheet() {
                                         completed={!!formData.ticket}
                                     />
                                     <button
-                                        onClick={() => setActiveSearch("ticket")}
+                                        onClick={() =>
+                                            setActiveSearch("ticket")
+                                        }
                                         className={`w-full p-6 bg-white border rounded-3xl text-left shadow-sm flex items-center justify-between active:bg-zinc-50 ${
                                             formData.ticket
                                                 ? "border-teal-200"
@@ -478,7 +531,9 @@ export default function ProfessionalTimesheet() {
                                     </button>
                                     {formData.ticket && (
                                         <button
-                                            onClick={() => update("ticket", null)}
+                                            onClick={() =>
+                                                update("ticket", null)
+                                            }
                                             className="mt-4 flex items-center gap-1.5 text-[10px] font-black text-red-500 uppercase ml-2 tracking-widest">
                                             <Icons.XMarkIcon
                                                 className="w-3.5 h-3.5"
@@ -490,7 +545,6 @@ export default function ProfessionalTimesheet() {
                                 </div>
                             )}
 
-                            {/* 4. SERVIZIO */}
                             {step === 4 && (
                                 <div>
                                     <StepTitle
@@ -500,42 +554,36 @@ export default function ProfessionalTimesheet() {
                                         completed={!!formData.servizio}
                                     />
                                     <div className="grid grid-cols-2 gap-3">
-                                        {res.servizi.map((s) => {
-                                            const IconComp =
-                                                iconMap[s.icon_slug || ""] ||
-                                                iconMap["default"];
-                                            return (
-                                                <button
-                                                    key={s.id}
-                                                    onClick={() =>
-                                                        update("servizio", s)
-                                                    }
-                                                    className={`p-4 rounded-2xl border transition-all flex flex-col items-start gap-3 ${
-                                                        formData.servizio?.id ===
-                                                        s.id
-                                                            ? "border-orange-500 bg-orange-50/40"
-                                                            : "border-zinc-200 bg-white"
+                                        {res.servizi.map((s) => (
+                                            <button
+                                                key={s.id}
+                                                onClick={() =>
+                                                    update("servizio", s)
+                                                }
+                                                className={`p-4 rounded-2xl border transition-all flex flex-col items-start gap-3 ${
+                                                    formData.servizio?.id ===
+                                                    s.id
+                                                        ? "border-orange-500 bg-orange-50/40"
+                                                        : "border-zinc-200 bg-white"
+                                                }`}>
+                                                <div
+                                                    className={`p-2 rounded-lg ${
+                                                        formData.servizio
+                                                            ?.id === s.id
+                                                            ? "bg-orange-500 text-white"
+                                                            : "bg-zinc-50 text-zinc-400"
                                                     }`}>
-                                                    <div
-                                                        className={`p-2 rounded-lg ${
-                                                            formData.servizio
-                                                                ?.id === s.id
-                                                                ? "bg-orange-500 text-white"
-                                                                : "bg-zinc-50 text-zinc-400"
-                                                        }`}>
-                                                        <IconComp className="w-5 h-5" />
-                                                    </div>
-                                                    <span className="text-[10px] font-black uppercase text-left leading-tight">
-                                                        {s.name}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
+                                                    <Icons.CommandLineIcon className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase text-left leading-tight">
+                                                    {s.name}
+                                                </span>
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* 5. OPZIONI */}
                             {step === 5 && (
                                 <div>
                                     <StepTitle
@@ -547,13 +595,16 @@ export default function ProfessionalTimesheet() {
                                         {res.opzioni.map((o) => (
                                             <button
                                                 key={o.id}
-                                                onClick={() => update("opzioni", o)}
+                                                onClick={() =>
+                                                    update("opzioni", o)
+                                                }
                                                 className={`p-4 min-h-[80px] rounded-2xl border transition-all flex items-center justify-center text-center ${
-                                                    formData.opzioni?.id === o.id
+                                                    formData.opzioni?.id ===
+                                                    o.id
                                                         ? "border-orange-500 bg-orange-50 text-orange-800 font-bold"
                                                         : "border-zinc-200 bg-white text-zinc-500"
                                                 }`}>
-                                                <span className="text-[10px] font-black uppercase tracking-tight leading-tight">
+                                                <span className="text-[10px] font-black uppercase">
                                                     {o.name}
                                                 </span>
                                             </button>
@@ -561,7 +612,9 @@ export default function ProfessionalTimesheet() {
                                     </div>
                                     {formData.opzioni && (
                                         <button
-                                            onClick={() => update("opzioni", null)}
+                                            onClick={() =>
+                                                update("opzioni", null)
+                                            }
                                             className="mt-4 flex items-center gap-1.5 text-[10px] font-black text-red-500 uppercase ml-2 tracking-widest">
                                             <Icons.XMarkIcon
                                                 className="w-3.5 h-3.5"
@@ -573,7 +626,6 @@ export default function ProfessionalTimesheet() {
                                 </div>
                             )}
 
-                            {/* 6. TEMPI */}
                             {step === 6 && (
                                 <div>
                                     <StepTitle
@@ -592,10 +644,13 @@ export default function ProfessionalTimesheet() {
                                             </span>
                                             <input
                                                 type="date"
-                                                className="font-semibold text-lg outline-none text-zinc-800 bg-transparent text-right"
+                                                className="font-semibold text-lg outline-none text-right bg-transparent"
                                                 value={formData.data}
                                                 onChange={(e) =>
-                                                    update("data", e.target.value)
+                                                    update(
+                                                        "data",
+                                                        e.target.value
+                                                    )
                                                 }
                                             />
                                         </div>
@@ -605,7 +660,7 @@ export default function ProfessionalTimesheet() {
                                             </span>
                                             <input
                                                 type="time"
-                                                className="font-bold text-4xl outline-none text-orange-600 bg-transparent text-right"
+                                                className="font-bold text-4xl outline-none text-orange-600 text-right bg-transparent"
                                                 value={formData.tempoLavoro}
                                                 onChange={(e) =>
                                                     update(
@@ -621,7 +676,7 @@ export default function ProfessionalTimesheet() {
                                             </span>
                                             <input
                                                 type="time"
-                                                className="font-bold text-xl outline-none text-zinc-400 bg-transparent text-right"
+                                                className="font-bold text-xl outline-none text-zinc-400 text-right bg-transparent"
                                                 value={formData.tempoTrasferta}
                                                 onChange={(e) =>
                                                     update(
@@ -635,178 +690,77 @@ export default function ProfessionalTimesheet() {
                                 </div>
                             )}
 
-                            {/* 7. DESCRIZIONE */}
                             {step === 7 && (
                                 <div className="h-full flex flex-col">
                                     <StepTitle
                                         title="Descrizione"
                                         sub="Cosa hai fatto?"
                                         required
-                                        completed={formData.descrizione.length > 3}
+                                        completed={
+                                            formData.descrizione.length > 3
+                                        }
                                     />
-                                    <div className="relative flex-1 flex flex-col">
-                                        <textarea
-                                            autoFocus
-                                            maxLength={MAX_DESC_LENGTH}
-                                            className={`flex-1 min-h-[300px] w-full p-6 text-lg font-medium bg-white border rounded-3xl outline-none transition-colors ${
-                                                formData.descrizione.length > 3
-                                                    ? "border-teal-200 focus:border-teal-400"
-                                                    : "border-zinc-200 focus:border-orange-300"
-                                            }`}
-                                            placeholder="Dettagli attività..."
-                                            value={formData.descrizione}
-                                            onChange={(e) =>
-                                                update(
-                                                    "descrizione",
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                        <div
-                                            className={`absolute bottom-6 right-6 text-[10px] font-black px-2 py-1 rounded-lg ${
-                                                formData.descrizione.length >=
-                                                MAX_DESC_LENGTH
-                                                    ? "bg-red-500 text-white"
-                                                    : "bg-zinc-100 text-zinc-400"
-                                            }`}>
-                                            {formData.descrizione.length} /{" "}
-                                            {MAX_DESC_LENGTH}
-                                        </div>
-                                    </div>
+                                    <textarea
+                                        autoFocus
+                                        maxLength={MAX_DESC_LENGTH}
+                                        className={`flex-1 min-h-[300px] w-full p-6 text-lg font-medium bg-white border rounded-3xl outline-none ${
+                                            formData.descrizione.length > 3
+                                                ? "border-teal-200 focus:border-teal-400"
+                                                : "border-zinc-200 focus:border-orange-300"
+                                        }`}
+                                        placeholder="Dettagli attività..."
+                                        value={formData.descrizione}
+                                        onChange={(e) =>
+                                            update(
+                                                "descrizione",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
                                 </div>
                             )}
 
-                            {/* 8. EXTRA */}
                             {step === 8 && (
                                 <div className="space-y-4">
                                     <StepTitle
                                         title="Note Extra"
                                         sub="Note aggiuntive."
-                                        completed={
-                                            !!formData.noteInterne ||
-                                            !!formData.notaRifiuto
-                                        }
                                     />
                                     <input
                                         className="w-full p-5 bg-white border border-zinc-200 rounded-2xl font-semibold outline-none focus:border-zinc-400"
                                         placeholder="Note interne..."
                                         value={formData.noteInterne}
                                         onChange={(e) =>
-                                            update("noteInterne", e.target.value)
+                                            update(
+                                                "noteInterne",
+                                                e.target.value
+                                            )
                                         }
                                     />
                                     <input
-                                        className="w-full p-5 bg-red-50 border border-red-100 rounded-2xl text-red-700 font-semibold outline-none"
+                                        className="w-full p-5 bg-red-50 border border-red-100 rounded-2xl text-red-700 font-semibold outline-none focus:border-red-300"
                                         placeholder="Nota rifiuto..."
                                         value={formData.notaRifiuto}
                                         onChange={(e) =>
-                                            update("notaRifiuto", e.target.value)
+                                            update(
+                                                "notaRifiuto",
+                                                e.target.value
+                                            )
                                         }
                                     />
                                 </div>
                             )}
 
-                            {/* 9. MATERIALI */}
+                            {/* --- 9. RIEPILOGO RECAP --- */}
                             {step === 9 && (
-                                <div>
-                                    <StepTitle
-                                        title="Materiali"
-                                        sub="Prodotti usati."
-                                        completed={formData.materiali.length > 0}
-                                    />
-                                    <div className="space-y-3 mb-6">
-                                        {formData.materiali.map((m) => (
-                                            <div
-                                                key={m.id}
-                                                className="bg-white p-5 rounded-2xl border border-zinc-200 flex justify-between items-center">
-                                                <span className="font-bold text-sm">
-                                                    {m.prodotto?.name} (x
-                                                    {m.qtaEffettiva})
-                                                </span>
-                                                <button
-                                                    onClick={() =>
-                                                        update(
-                                                            "materiali",
-                                                            formData.materiali.filter(
-                                                                (x) => x.id !== m.id
-                                                            )
-                                                        )
-                                                    }
-                                                    className="text-zinc-300 active:text-red-500">
-                                                    <Icons.TrashIcon className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={() => setShowAddMaterial(true)}
-                                        className="w-full py-8 border-2 border-dashed border-zinc-200 rounded-3xl text-zinc-400 font-bold text-xs uppercase flex flex-col items-center gap-2 active:bg-zinc-50 transition-colors">
-                                        <Icons.PlusIcon className="w-6 h-6" />{" "}
-                                        Aggiungi Riga
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* 10. ALLEGATI */}
-                            {step === 10 && (
-                                <div>
-                                    <StepTitle
-                                        title="Allegati"
-                                        sub="Documentazione."
-                                        completed={formData.allegati.length > 0}
-                                    />
-                                    <div className="space-y-3 mb-6">
-                                        {formData.allegati.map((a, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="bg-white p-5 rounded-2xl border border-zinc-200 flex justify-between items-center">
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
-                                                        <Icons.DocumentIcon className="w-5 h-5" />
-                                                    </div>
-                                                    <div className="overflow-hidden text-left">
-                                                        <p className="font-bold text-sm truncate max-w-[200px]">
-                                                            {a.filename ||
-                                                                a.file?.name}
-                                                        </p>
-                                                        <p className="text-[10px] text-zinc-400 uppercase font-black">
-                                                            {a.tipo}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() =>
-                                                        update(
-                                                            "allegati",
-                                                            formData.allegati.filter(
-                                                                (_, i) => i !== idx
-                                                            )
-                                                        )
-                                                    }
-                                                    className="text-zinc-300 active:text-red-500">
-                                                    <Icons.TrashIcon className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={() => setShowAddAllegato(true)}
-                                        className="w-full py-8 border-2 border-dashed border-zinc-200 rounded-3xl text-zinc-400 font-bold text-xs uppercase flex flex-col items-center gap-2 active:bg-zinc-50 transition-colors">
-                                        <Icons.PlusIcon className="w-6 h-6" /> Nuovo
-                                        Allegato
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* 11. RECAP TOTALE (TUTTO RIPRISTINATO) */}
-                            {step === 11 && (
                                 <div className="animate-in zoom-in-95 duration-300">
                                     <StepTitle
-                                        title="Recap"
-                                        sub="Controlla tutto prima dell'invio."
-                                        completed
+                                        title="Riepilogo Totale"
+                                        sub="Verifica ogni dettaglio prima di registrare."
+                                        required
+                                        completed={isStepValid}
                                     />
-                                    <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 shadow-sm space-y-1">
+                                    <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 shadow-sm space-y-1 mb-8 text-left">
                                         <RecapRow
                                             label="Utente"
                                             value={formData.utente?.name}
@@ -844,72 +798,295 @@ export default function ProfessionalTimesheet() {
                                             icon={Icons.CalendarIcon}
                                         />
                                         <RecapRow
-                                            label="Lavoro"
+                                            label="Tempo Lavoro"
                                             value={formData.tempoLavoro}
                                             icon={Icons.ClockIcon}
                                             colorClass="text-orange-600"
                                         />
                                         <RecapRow
-                                            label="Trasferta"
+                                            label="Tempo Trasferta"
                                             value={formData.tempoTrasferta}
                                             icon={Icons.ClockIcon}
                                         />
-
-                                        {formData.materiali.length > 0 && (
-                                            <div className="pt-4 mt-4 border-t border-zinc-100 text-left">
-                                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2 flex items-center gap-2">
-                                                    <Icons.ListBulletIcon className="w-3 h-3" />{" "}
-                                                    Materiali (
-                                                    {formData.materiali.length})
-                                                </span>
-                                                {formData.materiali.map((m) => (
-                                                    <p
-                                                        key={m.id}
-                                                        className="text-xs font-semibold text-zinc-600 flex justify-between tracking-tight">
-                                                        <span>
-                                                            • {m.prodotto?.name}
-                                                        </span>
-                                                        <span>
-                                                            x{m.qtaEffettiva}
-                                                        </span>
-                                                    </p>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {formData.allegati.length > 0 && (
-                                            <div className="pt-4 mt-4 border-t border-zinc-100 text-left">
-                                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2 flex items-center gap-2">
-                                                    <Icons.PaperClipIcon className="w-3 h-3" />{" "}
-                                                    Allegati (
-                                                    {formData.allegati.length})
-                                                </span>
-                                                {formData.allegati.map((a, i) => (
-                                                    <p
-                                                        key={i}
-                                                        className="text-[11px] text-zinc-500 italic truncate ml-2 mb-1">
-                                                        📄 {a.filename || "Doc"}
-                                                    </p>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <div className="pt-4 mt-4 border-t border-zinc-100 text-left">
+                                        <div className="pt-4 mt-4 border-t border-zinc-100">
                                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">
-                                                Descrizione
+                                                Descrizione Attività
                                             </span>
                                             <p className="text-sm font-medium italic text-zinc-600 leading-relaxed">
                                                 "{formData.descrizione}"
                                             </p>
                                         </div>
                                     </div>
+                                    <div className="space-y-4">
+                                        <button
+                                            onClick={() =>
+                                                handleSaveBase("finish")
+                                            }
+                                            disabled={isSaving || !isStepValid}
+                                            className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
+                                            Invia e Chiudi{" "}
+                                            <Icons.PaperAirplaneIcon className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleSaveBase("continue")
+                                            }
+                                            disabled={isSaving || !isStepValid}
+                                            className="w-full h-16 bg-orange-600 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
+                                            Invia e Aggiungi Extra{" "}
+                                            <Icons.ChevronRightIcon className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- 10. HUB DECISIONALE --- */}
+                            {step === 10 && (
+                                <div className="animate-in slide-in-from-bottom duration-500 text-center">
+                                    <Icons.CheckCircleIcon className="w-16 h-16 text-teal-500 mx-auto mb-6" />
+                                    <h2 className="text-2xl font-black uppercase tracking-tight">
+                                        Cosa vuoi aggiungere?
+                                    </h2>
+                                    <div className="grid gap-4 mt-10">
+                                        <button
+                                            onClick={() => setStep(11)}
+                                            className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
+                                            <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
+                                                <Icons.InboxStackIcon className="w-6 h-6" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold text-zinc-800">
+                                                    Aggiungi Materiali
+                                                </p>
+                                                <p className="text-xs text-zinc-400 font-medium">
+                                                    {formData.materiali.length}{" "}
+                                                    prodotti in lista
+                                                </p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => setStep(13)}
+                                            className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
+                                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                                                <Icons.PaperClipIcon className="w-6 h-6" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold text-zinc-800">
+                                                    Carica Allegati
+                                                </p>
+                                                <p className="text-xs text-zinc-400 font-medium">
+                                                    {formData.allegati.length}{" "}
+                                                    file pronti
+                                                </p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => setIsSuccess(true)}
+                                            className="mt-10 p-6 bg-zinc-900 text-white rounded-[2rem] font-bold flex items-center justify-center gap-3 w-full active:scale-95 transition-all shadow-lg">
+                                            <Icons.FlagIcon className="w-5 h-5" />
+                                            <span>Ho finito tutto</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- 11-12. MATERIALI --- */}
+                            {step === 11 && (
+                                <div>
+                                    <StepTitle
+                                        title="Materiali"
+                                        sub="Lista locale materiali usati."
+                                    />
+                                    {formData.materiali.map((m) => (
+                                        <div
+                                            key={m.id}
+                                            className="bg-white p-5 rounded-2xl border mb-3 flex justify-between items-center shadow-sm">
+                                            <span className="font-bold text-sm text-zinc-800">
+                                                {m.prodotto?.name} (x
+                                                {m.qtaEffettiva})
+                                            </span>
+                                            <button
+                                                onClick={() =>
+                                                    update(
+                                                        "materiali",
+                                                        formData.materiali.filter(
+                                                            (x) => x.id !== m.id
+                                                        )
+                                                    )
+                                                }
+                                                className="text-red-300 hover:text-red-500 transition-colors">
+                                                <Icons.TrashIcon className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={() => setShowAddMaterial(true)}
+                                        className="w-full py-8 border-2 border-dashed border-zinc-200 rounded-3xl text-zinc-400 font-bold flex flex-col items-center gap-2 hover:bg-zinc-50 transition-colors">
+                                        <Icons.PlusIcon className="w-6 h-6" />{" "}
+                                        Nuovo Materiale
+                                    </button>
+                                    {formData.materiali.length > 0 && (
+                                        <button
+                                            onClick={() => setStep(12)}
+                                            className="w-full mt-8 h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg">
+                                            Vai al Riepilogo Invio
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setStep(10)}
+                                        className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-800 uppercase tracking-widest transition-all">
+                                        <Icons.ChevronLeftIcon
+                                            className="w-4 h-4"
+                                            strokeWidth={3}
+                                        />{" "}
+                                        <span>Torna alla Scelta</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {step === 12 && (
+                                <div className="animate-in zoom-in-95">
+                                    <StepTitle
+                                        title="Conferma Materiali"
+                                        sub="Verifica ed invia in blocco."
+                                        completed
+                                    />
+                                    <div className="bg-zinc-900 text-white p-8 rounded-[2.5rem] space-y-3 mb-8 shadow-xl">
+                                        {formData.materiali.map((m) => (
+                                            <div
+                                                key={m.id}
+                                                className="flex justify-between border-b border-zinc-800 pb-2 text-sm font-semibold last:border-0">
+                                                <span className="truncate pr-4">
+                                                    {m.prodotto?.name}
+                                                </span>
+                                                <span className="text-orange-400 font-mono shrink-0">
+                                                    x{m.qtaEffettiva}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="space-y-4">
+                                        <button
+                                            onClick={() =>
+                                                handleSaveAllMaterials("finish")
+                                            }
+                                            disabled={isSaving}
+                                            className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
+                                            Invia e Termina
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleSaveAllMaterials("hub")
+                                            }
+                                            disabled={isSaving}
+                                            className="w-full h-16 bg-orange-600 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
+                                            Invia e Torna alla Scelta
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- 13-14. ALLEGATI --- */}
+                            {step === 13 && (
+                                <div>
+                                    <StepTitle
+                                        title="Allegati"
+                                        sub="Seleziona i file da caricare."
+                                    />
+                                    {formData.allegati.map((a, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-white p-5 rounded-2xl border mb-3 flex justify-between items-center shadow-sm">
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <Icons.DocumentIcon className="w-5 h-5 text-blue-500" />
+                                                <p className="font-bold text-sm truncate">
+                                                    {a.filename}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    update(
+                                                        "allegati",
+                                                        formData.allegati.filter(
+                                                            (_, idx) =>
+                                                                idx !== i
+                                                        )
+                                                    )
+                                                }
+                                                className="text-red-300 hover:text-red-500 transition-colors">
+                                                <Icons.TrashIcon className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={() => setShowAddAllegato(true)}
+                                        className="w-full py-8 border-2 border-dashed border-zinc-200 rounded-3xl text-zinc-400 font-bold flex flex-col items-center gap-2 hover:bg-zinc-50 transition-colors">
+                                        <Icons.PlusIcon className="w-6 h-6" />{" "}
+                                        Scegli File
+                                    </button>
+                                    {formData.allegati.length > 0 && (
+                                        <button
+                                            onClick={() => setStep(14)}
+                                            className="w-full mt-8 h-16 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">
+                                            Vai al Riepilogo File
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setStep(10)}
+                                        className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-800 uppercase tracking-widest transition-all">
+                                        <Icons.ChevronLeftIcon
+                                            className="w-4 h-4"
+                                            strokeWidth={3}
+                                        />{" "}
+                                        <span>Torna alla Scelta</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {step === 14 && (
+                                <div className="animate-in zoom-in-95">
+                                    <StepTitle
+                                        title="Invia Allegati"
+                                        sub="Riepilogo caricamento file."
+                                        completed
+                                    />
+                                    <div className="bg-white border p-8 rounded-[2.5rem] space-y-3 mb-8 shadow-sm">
+                                        {formData.allegati.map((a, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-center gap-4 text-sm font-semibold text-zinc-600 border-b border-zinc-50 pb-2 last:border-0">
+                                                <Icons.PaperClipIcon className="w-4 h-4 text-blue-500" />
+                                                {a.filename}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="space-y-4">
+                                        <button
+                                            onClick={() =>
+                                                handleSaveAllAttachments(
+                                                    "finish"
+                                                )
+                                            }
+                                            disabled={isSaving}
+                                            className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
+                                            Carica e Chiudi
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleSaveAllAttachments("hub")
+                                            }
+                                            disabled={isSaving}
+                                            className="w-full h-16 bg-blue-700 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
+                                            Carica e Torna alla Scelta
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </main>
 
-                        {/* FOOTER */}
+                        {/* FOOTER NAVIGAZIONE (SOLO STEP < 9) */}
                         <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex gap-3 z-[100]">
-                            {step > 1 && (
+                            {step > 1 && step < 10 && (
                                 <button
                                     onClick={() => setStep((s) => s - 1)}
                                     className="p-4 rounded-2xl border border-zinc-200 text-zinc-400 active:scale-90 transition-all">
@@ -919,36 +1096,28 @@ export default function ProfessionalTimesheet() {
                                     />
                                 </button>
                             )}
-                            <button
-                                disabled={!isStepValid || isSaving}
-                                onClick={() =>
-                                    step === 11
-                                        ? handleSave()
-                                        : setStep((s) => s + 1)
-                                }
-                                className={`flex-1 h-14 rounded-2xl font-bold tracking-tight shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
-                                    !isStepValid
-                                        ? "bg-zinc-100 text-zinc-400 shadow-none"
-                                        : "bg-orange-600 text-white shadow-orange-200 hover:bg-orange-700"
-                                }`}>
-                                {isSaving
-                                    ? "Salvataggio..."
-                                    : step === 11
-                                    ? "Conferma Registrazione"
-                                    : "Prosegui"}
-                                {!isSaving && isStepValid && (
+                            {step < 9 && (
+                                <button
+                                    disabled={!isStepValid || isSaving}
+                                    onClick={() => setStep((s) => s + 1)}
+                                    className={`flex-1 h-14 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all ${
+                                        !isStepValid
+                                            ? "bg-zinc-100 text-zinc-400 shadow-none"
+                                            : "bg-orange-600 text-white active:scale-95"
+                                    }`}>
+                                    Prosegui{" "}
                                     <Icons.ChevronRightIcon
                                         className="w-5 h-5"
                                         strokeWidth={3}
                                     />
-                                )}
-                            </button>
+                                </button>
+                            )}
                         </footer>
 
-                        {/* RICERCA (Z-INDEX 300) */}
+                        {/* --- MODALE RICERCA --- */}
                         {activeSearch && (
                             <div className="fixed inset-0 z-[300] bg-white flex flex-col animate-in slide-in-from-bottom duration-300">
-                                <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                                <div className="p-5 border-b flex items-center justify-between bg-zinc-50">
                                     <button
                                         onClick={() => {
                                             setActiveSearch(null);
@@ -957,18 +1126,16 @@ export default function ProfessionalTimesheet() {
                                         className="p-2 text-zinc-400 active:scale-90">
                                         <Icons.XMarkIcon className="w-6 h-6" />
                                     </button>
-                                    <span className="font-bold text-zinc-800 uppercase text-[10px] tracking-widest">
-                                        Scegli {activeSearch}
+                                    <span className="font-bold text-sm uppercase tracking-widest text-zinc-400">
+                                        Ricerca {activeSearch}
                                     </span>
                                     <div className="w-10"></div>
                                 </div>
-                                <div className="p-6 relative">
-                                    <Icons.MagnifyingGlassIcon className="absolute left-10 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300" />
+                                <div className="p-6">
                                     <input
                                         autoFocus
-                                        maxLength={MAX_SEARCH_LENGTH}
-                                        className="w-full p-4 pl-12 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none focus:bg-white focus:border-orange-200 font-semibold"
-                                        placeholder="Scrivi per filtrare..."
+                                        className="w-full p-4 bg-zinc-50 border rounded-3xl font-semibold outline-none focus:bg-white"
+                                        placeholder="Filtra..."
                                         value={searchQuery}
                                         onChange={(e) =>
                                             setSearchQuery(e.target.value)
@@ -1001,48 +1168,150 @@ export default function ProfessionalTimesheet() {
                                                         ...tempAllegato,
                                                         progetto: item,
                                                     });
-                                                else update(activeSearch!, item);
+                                                else
+                                                    update(activeSearch!, item);
                                                 setActiveSearch(null);
                                                 setSearchQuery("");
                                             }}
-                                            className="w-full text-left p-5 bg-zinc-50 rounded-2xl font-semibold text-zinc-700 active:bg-zinc-800 active:text-white transition-all flex justify-between items-center group overflow-hidden">
-                                            <div className="flex-1 min-w-0 pr-4">
-                                                <p className="group-active:text-white truncate font-bold">
-                                                    {item.name}
-                                                </p>
-                                                {item.details && (
-                                                    <p className="text-[10px] opacity-60 uppercase font-black truncate">
-                                                        {item.details}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <Icons.CheckCircleIcon className="w-5 h-5 opacity-0 group-active:opacity-100 shrink-0" />
+                                            className="w-full text-left p-5 bg-zinc-50 rounded-2xl font-semibold flex justify-between items-center group active:bg-zinc-800 active:text-white transition-all">
+                                            <span>{item.name}</span>
+                                            <Icons.CheckCircleIcon className="w-5 h-5 opacity-0 group-active:opacity-100" />
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* MODALE ALLEGATO (Z-INDEX 200) */}
+                        {/* --- MODALE MATERIALE (TUTTI I CAMPI RIPRISTINATI) --- */}
+                        {showAddMaterial && (
+                            <div className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-sm flex items-end">
+                                <div className="w-full bg-white rounded-t-[3rem] p-10 shadow-2xl animate-in slide-in-from-bottom max-w-lg mx-auto">
+                                    <h3 className="text-center text-base font-black uppercase tracking-widest mb-8 text-zinc-400 leading-none">
+                                        Dettaglio Materiale
+                                    </h3>
+                                    <div className="space-y-6 mb-10 text-left">
+                                        <button
+                                            onClick={() =>
+                                                setActiveSearch("prodotto")
+                                            }
+                                            className="w-full p-5 bg-zinc-50 border rounded-2xl text-left flex justify-between active:bg-zinc-100 group transition-all">
+                                            <span
+                                                className={
+                                                    tempMaterial.prodotto
+                                                        ? "font-bold text-zinc-800"
+                                                        : "text-zinc-400"
+                                                }>
+                                                {tempMaterial.prodotto?.name ||
+                                                    "Seleziona Prodotto"}
+                                            </span>
+                                            <Icons.MagnifyingGlassIcon className="w-5 h-5 text-zinc-300 group-active:text-orange-500" />
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-zinc-50 p-4 rounded-2xl border">
+                                                <span className="text-[10px] font-black uppercase block text-zinc-400">
+                                                    Prevista
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    className="bg-transparent font-bold outline-none w-full"
+                                                    value={
+                                                        tempMaterial.qtaPrevista
+                                                    }
+                                                    onChange={(e) =>
+                                                        setTempMaterial({
+                                                            ...tempMaterial,
+                                                            qtaPrevista:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                                                <span className="text-[10px] font-black uppercase block text-orange-400">
+                                                    Effettiva
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    className="bg-transparent font-bold outline-none w-full text-orange-600"
+                                                    value={
+                                                        tempMaterial.qtaEffettiva
+                                                    }
+                                                    onChange={(e) =>
+                                                        setTempMaterial({
+                                                            ...tempMaterial,
+                                                            qtaEffettiva:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                        <input
+                                            className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-orange-300 transition-colors"
+                                            placeholder="Note aggiuntive..."
+                                            value={tempMaterial.note}
+                                            onChange={(e) =>
+                                                setTempMaterial({
+                                                    ...tempMaterial,
+                                                    note: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() =>
+                                                setShowAddMaterial(false)
+                                            }
+                                            className="flex-1 p-5 rounded-2xl font-bold text-zinc-400 text-xs uppercase">
+                                            Annulla
+                                        </button>
+                                        <button
+                                            disabled={!tempMaterial.prodotto}
+                                            onClick={() => {
+                                                update("materiali", [
+                                                    ...formData.materiali,
+                                                    {
+                                                        ...tempMaterial,
+                                                        id: Date.now(),
+                                                    },
+                                                ]);
+                                                setShowAddMaterial(false);
+                                                setTempMaterial({
+                                                    id: 0,
+                                                    prodotto: null,
+                                                    note: "",
+                                                    qtaPrevista: "1",
+                                                    qtaEffettiva: "1",
+                                                });
+                                            }}
+                                            className="flex-[2] h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                                            Aggiungi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- MODALE ALLEGATO --- */}
                         {showAddAllegato && (
                             <div className="fixed inset-0 z-[200] bg-zinc-900/60 backdrop-blur-sm flex items-end">
-                                <div className="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl max-w-lg mx-auto overflow-y-auto max-h-[95dvh] animate-in slide-in-from-bottom duration-300">
-                                    <div className="w-12 h-1.5 bg-zinc-200 rounded-full mx-auto mb-8"></div>
+                                <div className="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom max-w-lg mx-auto overflow-y-auto max-h-[95dvh]">
                                     <div className="space-y-6 mb-10 text-left">
                                         <div className="grid grid-cols-2 gap-2">
                                             {[
                                                 "Allegato generico",
                                                 "Signature",
-                                            ].map((t: any) => (
+                                            ].map((t) => (
                                                 <button
                                                     key={t}
                                                     onClick={() =>
                                                         setTempAllegato({
                                                             ...tempAllegato,
-                                                            tipo: t,
+                                                            tipo: t as any,
                                                         })
                                                     }
-                                                    className={`p-3 rounded-xl border-2 text-[9px] font-black transition-all ${
+                                                    className={`p-3 rounded-xl border-2 text-[10px] font-black uppercase ${
                                                         tempAllegato.tipo === t
                                                             ? "border-orange-500 bg-orange-50 text-orange-700"
                                                             : "border-zinc-100 text-zinc-400"
@@ -1051,9 +1320,9 @@ export default function ProfessionalTimesheet() {
                                                 </button>
                                             ))}
                                         </div>
-                                        <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-dashed border-zinc-200 text-center relative">
-                                            <Icons.ArrowUpTrayIcon className="w-8 h-8 text-zinc-300 mx-auto mb-2" />
-                                            <span className="text-[10px] font-black text-zinc-400 block uppercase mb-4 truncate px-2">
+                                        <div className="bg-zinc-50 p-8 rounded-3xl border-2 border-dashed border-zinc-200 text-center relative">
+                                            <Icons.ArrowUpTrayIcon className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+                                            <span className="text-[10px] font-black text-zinc-400 block uppercase mb-4 truncate px-4">
                                                 {tempAllegato.file
                                                     ? tempAllegato.file.name
                                                     : "Scegli un file"}
@@ -1067,48 +1336,55 @@ export default function ProfessionalTimesheet() {
                                                         ...tempAllegato,
                                                         file: e.target.files[0],
                                                         filename:
-                                                            e.target.files[0].name,
+                                                            e.target.files[0]
+                                                                .name,
                                                     })
                                                 }
                                             />
-                                            <span className="bg-white px-4 py-2 rounded-lg text-[10px] font-black border border-zinc-100 active:scale-95 uppercase tracking-tighter cursor-pointer">
+                                            <button className="bg-white px-6 py-2 rounded-xl text-[10px] font-black border uppercase shadow-sm cursor-pointer transition-all active:scale-95">
                                                 Sfoglia
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                setActiveSearch(
+                                                    "rapportiLavoro"
+                                                )
+                                            }
+                                            className="w-full p-4 bg-zinc-50 border rounded-2xl text-left flex justify-between items-center group">
+                                            <span
+                                                className={
+                                                    tempAllegato.rapportiLavoro
+                                                        ? "font-bold text-zinc-800"
+                                                        : "text-zinc-400 text-xs"
+                                                }>
+                                                {tempAllegato.rapportiLavoro
+                                                    ?.name ||
+                                                    "Associa Rapporto di Lavoro"}
                                             </span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 font-bold uppercase text-[10px] tracking-widest text-zinc-400">
-                                                Filename
-                                                <input
-                                                    className="w-full mt-2 bg-transparent text-sm font-bold text-zinc-800 outline-none"
-                                                    value={tempAllegato.filename}
-                                                    onChange={(e) =>
-                                                        setTempAllegato({
-                                                            ...tempAllegato,
-                                                            filename:
-                                                                e.target.value,
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 font-bold uppercase text-[10px] tracking-widest text-zinc-400">
-                                                Data
-                                                <input
-                                                    type="date"
-                                                    className="w-full mt-2 bg-transparent text-sm font-bold text-zinc-800 outline-none"
-                                                    value={tempAllegato.data}
-                                                    onChange={(e) =>
-                                                        setTempAllegato({
-                                                            ...tempAllegato,
-                                                            data: e.target.value,
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                        <textarea
-                                            className="w-full p-5 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm"
-                                            placeholder="Note aggiuntive..."
-                                            rows={2}
+                                            <Icons.MagnifyingGlassIcon className="w-4 h-4 text-zinc-300 group-active:text-orange-500" />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                setActiveSearch(
+                                                    "progettoAllegato"
+                                                )
+                                            }
+                                            className="w-full p-4 bg-zinc-50 border rounded-2xl text-left flex justify-between items-center group">
+                                            <span
+                                                className={
+                                                    tempAllegato.progetto
+                                                        ? "font-bold text-zinc-800"
+                                                        : "text-zinc-400 text-xs"
+                                                }>
+                                                {tempAllegato.progetto?.name ||
+                                                    "Associa Progetto"}
+                                            </span>
+                                            <Icons.MagnifyingGlassIcon className="w-4 h-4 text-zinc-300 group-active:text-orange-500" />
+                                        </button>
+                                        <input
+                                            className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-blue-300"
+                                            placeholder="Note allegato..."
                                             value={tempAllegato.note}
                                             onChange={(e) =>
                                                 setTempAllegato({
@@ -1117,30 +1393,24 @@ export default function ProfessionalTimesheet() {
                                                 })
                                             }
                                         />
-                                        <button
-                                            onClick={() =>
-                                                setActiveSearch("rapportiLavoro")
+                                        <input
+                                            className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-blue-300"
+                                            placeholder="Nome visualizzato file..."
+                                            value={tempAllegato.filename}
+                                            onChange={(e) =>
+                                                setTempAllegato({
+                                                    ...tempAllegato,
+                                                    filename: e.target.value,
+                                                })
                                             }
-                                            className="w-full p-5 bg-white border-2 border-zinc-100 rounded-2xl text-left flex items-center justify-between active:bg-zinc-50 group transition-all">
-                                            <span
-                                                className={`text-sm font-bold ${
-                                                    tempAllegato.rapportiLavoro
-                                                        ? "text-zinc-800"
-                                                        : "text-zinc-300"
-                                                }`}>
-                                                {tempAllegato.rapportiLavoro
-                                                    ?.name ||
-                                                    "Rapporti di lavoro..."}
-                                            </span>
-                                            <Icons.ChevronRightIcon className="w-4 h-4 text-zinc-300 group-active:text-orange-500" />
-                                        </button>
+                                        />
                                     </div>
                                     <div className="flex gap-4">
                                         <button
                                             onClick={() =>
                                                 setShowAddAllegato(false)
                                             }
-                                            className="flex-1 p-5 rounded-2xl font-bold text-zinc-400 active:bg-zinc-50 transition-colors uppercase text-xs">
+                                            className="flex-1 p-5 rounded-2xl font-bold text-zinc-400 uppercase text-xs">
                                             Annulla
                                         </button>
                                         <button
@@ -1167,116 +1437,18 @@ export default function ProfessionalTimesheet() {
                                                     progetto: null,
                                                 });
                                             }}
-                                            className="flex-[2] h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg disabled:bg-zinc-100 active:scale-95 transition-all uppercase text-xs tracking-widest">
-                                            Salva
+                                            className="flex-[2] h-16 bg-blue-600 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                                            Pronto
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* MODALE MATERIALE (Z-INDEX 200) */}
-                        {showAddMaterial && (
-                            <div className="fixed inset-0 z-[200] bg-zinc-900/40 backdrop-blur-sm flex items-end">
-                                <div className="w-full bg-white rounded-t-[3rem] p-10 shadow-2xl animate-in slide-in-from-bottom duration-300 max-w-lg mx-auto">
-                                    <h3 className="text-xl font-bold text-zinc-800 tracking-tight mb-8 text-center uppercase text-sm tracking-widest leading-none">
-                                        Nuovo Materiale
-                                    </h3>
-                                    <div className="space-y-6 mb-10 text-left">
-                                        <button
-                                            onClick={() =>
-                                                setActiveSearch("prodotto")
-                                            }
-                                            className="w-full p-5 bg-zinc-50 border border-zinc-100 rounded-2xl text-left flex items-center justify-between active:bg-zinc-100 group transition-all">
-                                            <span
-                                                className={`font-semibold ${
-                                                    tempMaterial.prodotto
-                                                        ? "text-zinc-800"
-                                                        : "text-zinc-400"
-                                                }`}>
-                                                {tempMaterial.prodotto?.name ||
-                                                    "Scegli Prodotto..."}
-                                            </span>
-                                            <Icons.MagnifyingGlassIcon className="w-5 h-5 text-zinc-300 group-active:text-orange-500" />
-                                        </button>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-left text-zinc-400 font-bold uppercase text-[10px] tracking-widest">
-                                                Q.tà Prevista
-                                                <input
-                                                    type="number"
-                                                    className="w-full mt-2 bg-transparent text-xl font-bold text-zinc-800 outline-none"
-                                                    value={tempMaterial.qtaPrevista}
-                                                    onChange={(e) =>
-                                                        setTempMaterial({
-                                                            ...tempMaterial,
-                                                            qtaPrevista:
-                                                                e.target.value,
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-left text-orange-400 font-bold uppercase text-[10px] tracking-widest">
-                                                Q.tà Effettiva
-                                                <input
-                                                    type="number"
-                                                    className="w-full mt-2 bg-transparent text-xl font-bold text-orange-600 outline-none"
-                                                    value={
-                                                        tempMaterial.qtaEffettiva
-                                                    }
-                                                    onChange={(e) =>
-                                                        setTempMaterial({
-                                                            ...tempMaterial,
-                                                            qtaEffettiva:
-                                                                e.target.value,
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                        <input
-                                            className="w-full p-5 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold focus:border-orange-300 transition-colors"
-                                            placeholder="Note aggiuntive..."
-                                            value={tempMaterial.note}
-                                            onChange={(e) =>
-                                                setTempMaterial({
-                                                    ...tempMaterial,
-                                                    note: e.target.value,
-                                                })
-                                            }
-                                        />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <button
-                                            onClick={() =>
-                                                setShowAddMaterial(false)
-                                            }
-                                            className="flex-1 p-5 rounded-2xl font-bold text-zinc-400 active:bg-zinc-50 uppercase text-xs">
-                                            Annulla
-                                        </button>
-                                        <button
-                                            disabled={!tempMaterial.prodotto}
-                                            onClick={() => {
-                                                update("materiali", [
-                                                    ...formData.materiali,
-                                                    {
-                                                        ...tempMaterial,
-                                                        id: Date.now(),
-                                                    },
-                                                ]);
-                                                setShowAddMaterial(false);
-                                                setTempMaterial({
-                                                    id: 0,
-                                                    prodotto: null,
-                                                    note: "",
-                                                    qtaPrevista: "1",
-                                                    qtaEffettiva: "1",
-                                                });
-                                            }}
-                                            className="flex-[2] h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg disabled:bg-zinc-100 active:scale-95 transition-all uppercase text-xs tracking-widest">
-                                            Inserisci
-                                        </button>
-                                    </div>
-                                </div>
+                        {isDev && (
+                            <div className="fixed bottom-2 left-2 text-[8px] text-zinc-300 font-mono z-[500] pointer-events-none uppercase tracking-widest">
+                                Dev Mode: Step {step} | TS_ID:{" "}
+                                {timesheetId || "None"}
                             </div>
                         )}
                     </div>
