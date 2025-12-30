@@ -402,7 +402,7 @@ export function useFrontendFunctions() {
   },
   
   fieldsupdate: async (params: object) => {
-      console.info("dispatcher: printing_katun_bexio_api_set_invoice")
+      console.info("dispatcher: fieldsupdate")
       try {
         const response = await axiosInstanceClient.post(
           "/postApi",
