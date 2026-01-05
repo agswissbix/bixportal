@@ -182,6 +182,12 @@ export async function POST(request: Request) {
         case "get_table_records":
             djangoUrl = "/commonapp/get_table_records/";
             break;
+        case "get_grouped_table_records":
+            djangoUrl = "/commonapp/get_grouped_table_records/";
+            break;
+        case "get_available_groups_for_table":
+            djangoUrl = "/commonapp/get_available_groups_for_table/";
+            break;
         case "get_calendar_records":
             djangoUrl = "/commonapp/get_calendar_records/";
             break;
