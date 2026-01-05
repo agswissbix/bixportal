@@ -5,7 +5,8 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "./genericComponent";
 import { useRecordsStore } from "./records/recordsStore";
 import RecordsTable from "./recordsTable";
-import { Layers, ChevronDown, ChevronRight, ListFilter } from "lucide-react";
+import { Layers, ChevronDown, ChevronRight } from "lucide-react";
+import React from "react";
 
 export default function RecordsGroupedTable({
     tableid,
@@ -23,7 +24,8 @@ export default function RecordsGroupedTable({
         Record<string, boolean>
     >({});
 
-    // 1. Carica le COLONNE per il raggruppamento (Dimensioni)
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
     const { response: resDim, loading: loadingDim } = useApi<any>({
         apiRoute: "get_available_groups_for_table",
         tableid,
@@ -35,7 +37,6 @@ export default function RecordsGroupedTable({
         }
     }, [resDim, selectedDimension]);
 
-    // 2. Carica le ISTANZE (Mesi, Venditori, etc.)
     const payloadInstances = useMemo(() => {
         if (!selectedDimension) return null;
         return {
@@ -76,100 +77,185 @@ export default function RecordsGroupedTable({
             loading={loadingDim}
             title="recordsGroupedTable">
             {() => (
-                <div className="flex flex-col gap-6">
-                    {/* TOOLBAR PULSANTI (Come screenshot) */}
-                    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-x-auto">
-                        <div className="flex items-center gap-2 text-primary font-bold text-sm whitespace-nowrap">
-                            <Layers className="w-4 h-4" /> Raggruppa per:
-                        </div>
-                        <div className="flex gap-2">
-                            {resDim?.groups?.map((dim: any) => (
-                                <button
-                                    key={dim.value}
-                                    onClick={() => setSelectedDimension(dim)}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                                        selectedDimension?.value === dim.value
-                                            ? "bg-primary text-white border-primary shadow-sm"
-                                            : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                                    }`}>
-                                    {dim.label}
-                                </button>
-                            ))}
+                <div className="flex flex-col h-full max-h-screen">
+                    <div className="sticky top-0 z-30 p-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-100/50 dark:border-gray-800/50">
+                        <div className="max-w-7xl mx-auto flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3.5 pr-6 border-r border-gray-100 dark:border-gray-800">
+                                    <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)]">
+                                        <Layers className="w-5 h-5 text-primary opacity-90" />
+                                    </div>
+
+                                    <div className="flex flex-col justify-center leading-tight">
+                                        <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                            Raggruppa
+                                        </span>
+                                        <span className="text-[14px] font-black text-primary uppercase tracking-tight">
+                                            Campo
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="relative">
+                                    <button
+                                        onClick={() =>
+                                            setIsMenuOpen(!isMenuOpen)
+                                        }
+                                        className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:border-primary/50 transition-all active:scale-95">
+                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                                            {selectedDimension?.label ||
+                                                "Seleziona dimensione"}
+                                        </span>
+                                        <ChevronDown
+                                            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${
+                                                isMenuOpen ? "rotate-180" : ""
+                                            }`}
+                                        />
+                                    </button>
+
+                                    {isMenuOpen && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-10"
+                                                onClick={() =>
+                                                    setIsMenuOpen(false)
+                                                }
+                                            />
+
+                                            <div className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="p-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                                    {resDim?.groups?.map(
+                                                        (dim: any) => (
+                                                            <button
+                                                                key={dim.value}
+                                                                onClick={() => {
+                                                                    setSelectedDimension(
+                                                                        dim
+                                                                    );
+                                                                    setIsMenuOpen(
+                                                                        false
+                                                                    );
+                                                                }}
+                                                                className={`
+                                                                    w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors
+                                                                    ${
+                                                                        selectedDimension?.value ===
+                                                                        dim.value
+                                                                            ? "bg-primary/10 text-primary"
+                                                                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                                                    }
+                                                                `}>
+                                                                {dim.label}
+                                                                {selectedDimension?.value ===
+                                                                    dim.value && (
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                                )}
+                                                            </button>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-gray-50 dark:bg-gray-800/50 rounded-full border border-gray-100 dark:border-gray-800">
+                                <div className="w-2 h-2 rounded-full bg-green-500" />
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
+                                    {resInst?.groups?.length || 0} Gruppi
+                                    caricati
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* LISTA TABELLE RAGGRUPPATE */}
-                    <div className="flex flex-col gap-2">
-                        {loadingInst ? (
-                            <div className="flex justify-center p-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                            </div>
-                        ) : resInst?.groups?.length > 0 ? (
-                            resInst.groups.map((group: any, idx: number) => {
-                                const isExpanded =
-                                    !!expandedGroups[group.value];
-                                const groupFilters = [
-                                    ...filtersList,
-                                    {
-                                        fieldid: selectedDimension.value,
-                                        type: group.type,
-                                        label: group.label,
-                                        value: group.value,
-                                    },
-                                ];
-
-                                return (
-                                    <div
-                                        key={`${selectedDimension.value}-${idx}`}
-                                        className="border-b border-gray-100 dark:border-gray-800">
-                                        <div
-                                            className="flex items-center gap-4 py-3 px-2 cursor-pointer group hover:bg-gray-50/50"
-                                            onClick={() =>
-                                                toggleGroup(group.value)
-                                            }>
-                                            <div className="p-1 rounded bg-gray-100 dark:bg-gray-800">
-                                                {isExpanded ? (
-                                                    <ChevronDown className="w-4 h-4 text-primary" />
-                                                ) : (
-                                                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                                                )}
-                                            </div>
-                                            <span
-                                                className={`text-sm font-bold tracking-tight ${
-                                                    isExpanded
-                                                        ? "text-primary"
-                                                        : "text-gray-700"
-                                                }`}>
-                                                {group.label}
-                                            </span>
-                                        </div>
-
-                                        {isExpanded && (
-                                            <div className="pb-6 px-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                                                <RecordsTable
-                                                    tableid={tableid}
-                                                    searchTerm={searchTerm}
-                                                    view={view}
-                                                    order={order}
-                                                    filtersList={groupFilters}
-                                                    masterTableid={
-                                                        masterTableid
-                                                    }
-                                                    masterRecordid={
-                                                        masterRecordid
-                                                    }
-                                                    limit={limit}
-                                                />
-                                            </div>
-                                        )}
+                    <div className="flex-1 overflow-y-auto pr-2">
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col gap-2">
+                                {loadingInst ? (
+                                    <div className="flex justify-center p-12">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                     </div>
-                                );
-                            })
-                        ) : (
-                            <div className="p-20 text-center text-gray-400 italic">
-                                Nessun dato presente.
+                                ) : resInst?.groups?.length > 0 ? (
+                                    resInst.groups.map(
+                                        (group: any, idx: number) => {
+                                            const isExpanded =
+                                                !!expandedGroups[group.value];
+                                            const groupFilters = [
+                                                ...filtersList,
+                                                {
+                                                    fieldid:
+                                                        selectedDimension.value,
+                                                    type: group.type,
+                                                    label: group.label,
+                                                    value: group.value,
+                                                },
+                                            ];
+
+                                            return (
+                                                <div
+                                                    key={`${selectedDimension.value}-${idx}`}
+                                                    className="border-b border-gray-100 dark:border-gray-800">
+                                                    <div
+                                                        className="flex items-center gap-4 py-3 px-2 cursor-pointer group hover:bg-gray-50/50 transition-colors"
+                                                        onClick={() =>
+                                                            toggleGroup(
+                                                                group.value
+                                                            )
+                                                        }>
+                                                        <div className="p-1 rounded bg-gray-100 dark:bg-gray-800">
+                                                            {isExpanded ? (
+                                                                <ChevronDown className="w-4 h-4 text-primary" />
+                                                            ) : (
+                                                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                                                            )}
+                                                        </div>
+                                                        <span
+                                                            className={`text-sm font-bold tracking-tight ${
+                                                                isExpanded
+                                                                    ? "text-primary"
+                                                                    : "text-gray-700 dark:text-gray-300"
+                                                            }`}>
+                                                            {group.label}
+                                                        </span>
+                                                    </div>
+
+                                                    {isExpanded && (
+                                                        <div className="pb-6 px-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                            <RecordsTable
+                                                                tableid={
+                                                                    tableid
+                                                                }
+                                                                searchTerm={
+                                                                    searchTerm
+                                                                }
+                                                                view={view}
+                                                                order={order}
+                                                                filtersList={
+                                                                    groupFilters
+                                                                }
+                                                                masterTableid={
+                                                                    masterTableid
+                                                                }
+                                                                masterRecordid={
+                                                                    masterRecordid
+                                                                }
+                                                                limit={limit}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
+                                    )
+                                ) : (
+                                    <div className="p-20 text-center text-gray-400 italic">
+                                        Nessun dato presente.
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             )}
