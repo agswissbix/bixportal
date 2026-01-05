@@ -12,7 +12,7 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "../genericComponent";
 import { AppContext } from "@/context/appContext";
 
-// --- TIPTAP CORE ---
+// --- TIPTAP CORE & UI COMPONENTS ---
 import {
     useEditor,
     EditorContent,
@@ -20,11 +20,22 @@ import {
     NodeViewWrapper,
     NodeViewContent,
 } from "@tiptap/react";
+
+// Import corretto per Next.js / Turbopack come indicato
+import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
+
 import { StarterKit } from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+
+// --- ESTENSIONI LOGICHE (OPEN SOURCE) ---
+import { TaskList } from "@tiptap/extension-task-list";
+import { TaskItem } from "@tiptap/extension-task-item";
+import { Typography } from "@tiptap/extension-typography";
+import BubbleMenuExtension from "@tiptap/extension-bubble-menu";
+import FloatingMenuExtension from "@tiptap/extension-floating-menu";
 
 // --- TABELLE ---
 import { Table } from "@tiptap/extension-table";
@@ -47,8 +58,6 @@ import {
     Heading3,
     Maximize,
     Minimize,
-    Undo,
-    Redo,
     Save,
     Code as CodeIcon,
     Terminal,
@@ -60,6 +69,10 @@ import {
     AlignLeft,
     AlignCenter,
     AlignRight,
+    CheckSquare,
+    CloudUpload,
+    Undo,
+    Redo,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
@@ -75,7 +88,7 @@ declare module "@tiptap/core" {
 
 const lowlight = createLowlight(common);
 
-// --- 1. COMPONENTE IMMAGINE CON RESIZE E ALLINEAMENTO PERSISTENTE ---
+// --- 1. COMPONENTE IMMAGINE CON RESIZE E ALLINEAMENTO (ORIGINALE) ---
 const ResizableImageComponent = ({ node, updateAttributes, selected }: any) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -151,13 +164,11 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }: any) => {
                         </button>
                     </div>
                 )}
-
                 <img
                     src={node.attrs.src}
                     alt={node.attrs.alt}
                     className="rounded-xl w-full h-auto block border border-slate-100 shadow-sm pointer-events-none"
                 />
-
                 {selected && (
                     <div
                         onMouseDown={handleResize}
@@ -169,7 +180,7 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }: any) => {
     );
 };
 
-// --- 2. COMPONENTE CODE BLOCK ---
+// --- 2. COMPONENTE CODE BLOCK CON COPIA (ORIGINALE) ---
 const CodeBlockComponent = ({ node, editor, getPos }: any) => {
     const [copied, setCopied] = useState(false);
     return (
@@ -228,12 +239,14 @@ export default function MarkdownDocEditor({
     const [isSavingFlash, setIsSavingFlash] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [isAutosaving, setIsAutosaving] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const printRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const lastValueRef = useRef(initialValue || "");
 
+    // --- GESTIONE DATI ORIGINALE ---
     const isDev = true;
     const responseDataDEFAULT = { markdownContent: initialValue || "" };
     const responseDataDEV = {
@@ -264,12 +277,19 @@ export default function MarkdownDocEditor({
             StarterKit.configure({
                 heading: { levels: [1, 2, 3] },
                 codeBlock: false,
+                bulletList: false,
+                orderedList: false,
             }),
             Markdown.configure({
                 html: true,
                 tightLists: true,
                 bulletListMarker: "-",
             }),
+            Typography,
+            TaskList,
+            TaskItem.configure({ nested: true }),
+            BubbleMenuExtension.configure({ element: null }),
+            FloatingMenuExtension.configure({ element: null }),
             CodeBlockLowlight.extend({
                 addNodeView() {
                     return ReactNodeViewRenderer(CodeBlockComponent);
@@ -280,7 +300,7 @@ export default function MarkdownDocEditor({
             TableCell,
             TableHeader,
             Placeholder.configure({
-                placeholder: "Scrivi qui... (Ctrl+S per salvare)",
+                placeholder: "Inizia a scrivere o usa '/' per i comandi...",
             }),
             Link.configure({
                 openOnClick: false,
@@ -296,7 +316,7 @@ export default function MarkdownDocEditor({
                             default: "100%",
                             parseHTML: (element) =>
                                 element.getAttribute("width") ||
-                                element.style.width,
+                                (element as HTMLElement).style.width,
                             renderHTML: (attr) => ({
                                 width: attr.width,
                                 style: `width: ${attr.width}`,
@@ -340,6 +360,19 @@ export default function MarkdownDocEditor({
         },
     });
 
+    // --- AUTOSAVE ---
+    useEffect(() => {
+        if (!editor || isDev) return;
+        const timer = setTimeout(() => {
+            if (lastValueRef.current !== initialValue) {
+                setIsAutosaving(true);
+                onSaveRequested?.();
+                setTimeout(() => setIsAutosaving(false), 1000);
+            }
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [lastValueRef.current, onSaveRequested, initialValue, isDev]);
+
     const handleImageUpload = useCallback(
         async (file: File) => {
             if (!editor) return;
@@ -355,6 +388,7 @@ export default function MarkdownDocEditor({
         [editor, onChange]
     );
 
+    // --- FUNZIONI ORIGINALI RIPRISTINATE ---
     const setLink = useCallback(() => {
         if (!editor) return;
         const previousUrl = editor.getAttributes("link").href;
@@ -378,11 +412,17 @@ export default function MarkdownDocEditor({
         try {
             const html2pdfModule = await import("html2pdf.js");
             const html2pdf = (html2pdfModule as any).default || html2pdfModule;
+
+            printRef.current.innerHTML = editor.getHTML();
+
             const opt = {
                 margin: [15, 15, 15, 15],
-                filename: `documento_esportato.pdf`,
+                filename: `documento_${new Date().getTime()}.pdf`,
                 image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                },
                 jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
                 pagebreak: { mode: ["avoid-all", "css", "legacy"] },
             };
@@ -444,9 +484,9 @@ export default function MarkdownDocEditor({
                     className={`flex flex-col bg-white overflow-hidden transition-all duration-300 ${
                         isFullScreen
                             ? "fixed inset-0 z-[9999] w-screen h-screen"
-                            : "relative w-full h-full rounded-2xl border border-slate-200 shadow-lg"
+                            : "relative rounded-2xl border border-slate-200 shadow-lg"
                     }`}>
-                    {/* TOOLBAR */}
+                    {/* TOOLBAR ORIGINALE COMPLETA */}
                     <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur-md no-print">
                         <div className="flex items-center flex-wrap gap-1.5">
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
@@ -482,6 +522,25 @@ export default function MarkdownDocEditor({
                                     }`}>
                                     <Heading2 size={18} />
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleHeading({ level: 3 })
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("heading", { level: 3 })
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <Heading3 size={18} />
+                                </button>
+                            </div>
+
+                            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -525,6 +584,7 @@ export default function MarkdownDocEditor({
                                     <LinkIcon size={18} />
                                 </button>
                             </div>
+
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
                                 <button
                                     type="button"
@@ -532,36 +592,17 @@ export default function MarkdownDocEditor({
                                         editor
                                             .chain()
                                             .focus()
-                                            .toggleCode()
+                                            .toggleTaskList()
                                             .run()
                                     }
                                     className={`p-2 rounded-lg ${
-                                        editor.isActive("code")
+                                        editor.isActive("taskList")
                                             ? "bg-slate-900 text-white shadow-lg"
                                             : "text-slate-600 hover:bg-slate-200"
                                     }`}
-                                    title="Codice Inline">
-                                    <CodeIcon size={18} />
+                                    title="Checklist">
+                                    <CheckSquare size={18} />
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleCodeBlock()
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("codeBlock")
-                                            ? "bg-slate-900 text-white shadow-lg"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}
-                                    title="Blocco Codice">
-                                    <Terminal size={18} />
-                                </button>
-                            </div>
-                            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -603,7 +644,13 @@ export default function MarkdownDocEditor({
                                     <ImageIcon size={18} />
                                 </button>
                             </div>
-                            <div className="flex items-center gap-1">
+
+                            <div className="flex items-center gap-2">
+                                {isAutosaving && (
+                                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 animate-pulse uppercase">
+                                        <CloudUpload size={14} /> Autosave
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     onClick={handleExportPDF}
@@ -648,6 +695,73 @@ export default function MarkdownDocEditor({
                         </button>
                     </div>
 
+                    {/* BUBBLE & FLOATING MENU */}
+                    <BubbleMenu
+                        editor={editor}
+                        className="flex bg-slate-900 text-white rounded-lg shadow-xl overflow-hidden border border-slate-700">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                editor.chain().focus().toggleBold().run()
+                            }
+                            className={`p-2 hover:bg-slate-800 ${
+                                editor.isActive("bold") ? "text-blue-400" : ""
+                            }`}>
+                            <Bold size={14} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                editor.chain().focus().toggleItalic().run()
+                            }
+                            className={`p-2 hover:bg-slate-800 ${
+                                editor.isActive("italic") ? "text-blue-400" : ""
+                            }`}>
+                            <Italic size={14} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                editor.chain().focus().toggleCode().run()
+                            }
+                            className={`p-2 hover:bg-slate-800 ${
+                                editor.isActive("code") ? "text-blue-400" : ""
+                            }`}>
+                            <CodeIcon size={14} />
+                        </button>
+                    </BubbleMenu>
+
+                    <FloatingMenu
+                        editor={editor}
+                        className="flex gap-1 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                editor
+                                    .chain()
+                                    .focus()
+                                    .toggleHeading({ level: 2 })
+                                    .run()
+                            }
+                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
+                            <Heading2 size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                editor.chain().focus().toggleBulletList().run()
+                            }
+                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
+                            <List size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
+                            <ImageIcon size={16} />
+                        </button>
+                    </FloatingMenu>
+
                     {/* AREA EDITING */}
                     <div
                         className={`overflow-y-auto flex-1 bg-[#fcfcfc] ${
@@ -664,19 +778,16 @@ export default function MarkdownDocEditor({
                     </div>
 
                     {/* AREA PDF NASCOSTA */}
-                    <div className="hidden">
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "-9999px",
+                            left: "-9999px",
+                            width: "210mm",
+                        }}>
                         <div
                             ref={printRef}
-                            className="p-12 bg-white">
-                            <article className="prose prose-slate max-w-none prose-img:rounded-xl">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {editor
-                                        ? (
-                                              editor.storage as any
-                                          ).markdown.getMarkdown()
-                                        : ""}
-                                </ReactMarkdown>
-                            </article>
+                            className="p-12 bg-white prose prose-slate max-w-none prose-img:rounded-xl">    
                         </div>
                     </div>
 
@@ -695,9 +806,31 @@ export default function MarkdownDocEditor({
                         className="hidden"
                     />
 
+                    {/* STYLE ORIGINALE COMPLETO */}
                     <style
                         jsx
                         global>{`
+                        .prose .task-list {
+                            list-style: none;
+                            padding: 0;
+                        }
+                        .prose .task-list li {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 0.5rem;
+                            margin-bottom: 0.25rem;
+                        }
+                        .prose .task-list input[type="checkbox"] {
+                            margin-top: 0.4rem;
+                            cursor: pointer;
+                        }
+                        .prose p.is-editor-empty:first-child::before {
+                            content: attr(data-placeholder);
+                            float: left;
+                            color: #adb5bd;
+                            pointer-events: none;
+                            height: 0;
+                        }
                         .prose code::before,
                         .prose code::after {
                             content: "" !important;
