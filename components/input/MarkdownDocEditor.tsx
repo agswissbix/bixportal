@@ -21,7 +21,6 @@ import {
     NodeViewContent,
 } from "@tiptap/react";
 
-// Import corretto per Next.js / Turbopack come indicato
 import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 
 import { StarterKit } from "@tiptap/starter-kit";
@@ -30,7 +29,7 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 
-// --- ESTENSIONI LOGICHE (OPEN SOURCE) ---
+// --- ESTENSIONI LOGICHE ---
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { Typography } from "@tiptap/extension-typography";
@@ -56,6 +55,9 @@ import {
     Heading1,
     Heading2,
     Heading3,
+    Heading4,
+    Heading5,
+    Heading6,
     Maximize,
     Minimize,
     Save,
@@ -73,6 +75,7 @@ import {
     CloudUpload,
     Undo,
     Redo,
+    LayoutList,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
@@ -88,7 +91,7 @@ declare module "@tiptap/core" {
 
 const lowlight = createLowlight(common);
 
-// --- 1. COMPONENTE IMMAGINE CON RESIZE E ALLINEAMENTO (ORIGINALE) ---
+// --- 1. COMPONENTE IMMAGINE ---
 const ResizableImageComponent = ({ node, updateAttributes, selected }: any) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -180,7 +183,7 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }: any) => {
     );
 };
 
-// --- 2. COMPONENTE CODE BLOCK CON COPIA (ORIGINALE) ---
+// --- 2. COMPONENTE CODE BLOCK CON COPIA ---
 const CodeBlockComponent = ({ node, editor, getPos }: any) => {
     const [copied, setCopied] = useState(false);
     return (
@@ -246,7 +249,11 @@ export default function MarkdownDocEditor({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const lastValueRef = useRef(initialValue || "");
 
-    // --- GESTIONE DATI ORIGINALE ---
+    const [tocItems, setTocItems] = useState<
+        { level: number; text: string; pos: number }[]
+    >([]);
+
+    // --- GESTIONE DATI ---
     const isDev = true;
     const responseDataDEFAULT = { markdownContent: initialValue || "" };
     const responseDataDEV = {
@@ -275,7 +282,7 @@ export default function MarkdownDocEditor({
         immediatelyRender: false,
         extensions: [
             StarterKit.configure({
-                heading: { levels: [1, 2, 3] },
+                heading: { levels: [1, 2, 3, 4, 5, 6] },
                 codeBlock: false,
                 bulletList: false,
                 orderedList: false,
@@ -341,7 +348,11 @@ export default function MarkdownDocEditor({
         onUpdate: ({ editor }) => {
             const markdown = (editor.storage as any).markdown.getMarkdown();
             lastValueRef.current = markdown;
+            updateToc(editor);
             if (onChange) onChange(markdown);
+        },
+        onCreate: ({ editor }) => {
+            updateToc(editor);
         },
         editorProps: {
             attributes: {
@@ -388,7 +399,6 @@ export default function MarkdownDocEditor({
         [editor, onChange]
     );
 
-    // --- FUNZIONI ORIGINALI RIPRISTINATE ---
     const setLink = useCallback(() => {
         if (!editor) return;
         const previousUrl = editor.getAttributes("link").href;
@@ -465,9 +475,25 @@ export default function MarkdownDocEditor({
             editor.commands.setContent(responseData.markdownContent, {
                 emitUpdate: false,
             });
+            updateToc(editor);
         }
     }, [responseData.markdownContent, editor]);
 
+    const updateToc = useCallback((editorInstance: any) => {
+        const headings: any[] = [];
+        editorInstance.state.doc.descendants((node: any, pos: number) => {
+            if (node.type.name === "heading") {
+                headings.push({
+                    level: node.attrs.level,
+                    text: node.textContent,
+                    pos: pos,
+                });
+            }
+        });
+        setTocItems(headings);
+    }, []);
+
+    
     if (!editor || !mounted)
         return (
             <div className="h-[500px] bg-slate-50 animate-pulse rounded-xl" />
@@ -486,7 +512,7 @@ export default function MarkdownDocEditor({
                             ? "fixed inset-0 z-[9999] w-screen h-screen"
                             : "relative rounded-2xl border border-slate-200 shadow-lg"
                     }`}>
-                    {/* TOOLBAR ORIGINALE COMPLETA */}
+                    {/* TOP TOOLBAR */}
                     <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur-md no-print">
                         <div className="flex items-center flex-wrap gap-1.5">
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
@@ -522,6 +548,7 @@ export default function MarkdownDocEditor({
                                     }`}>
                                     <Heading2 size={18} />
                                 </button>
+
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -537,6 +564,55 @@ export default function MarkdownDocEditor({
                                             : "text-slate-600 hover:bg-slate-200"
                                     }`}>
                                     <Heading3 size={18} />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleHeading({ level: 4 })
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("heading", { level: 4 })
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <Heading4 size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleHeading({ level: 5 })
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("heading", { level: 5 })
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <Heading5 size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleHeading({ level: 6 })
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("heading", { level: 6 })
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <Heading6 size={18} />
                                 </button>
                             </div>
 
@@ -762,19 +838,56 @@ export default function MarkdownDocEditor({
                         </button>
                     </FloatingMenu>
 
-                    {/* AREA EDITING */}
-                    <div
-                        className={`overflow-y-auto flex-1 bg-[#fcfcfc] ${
-                            isFullScreen ? "p-12" : ""
-                        }`}>
-                        <div
-                            className={`mx-auto bg-white shadow-sm border border-slate-100 transition-all duration-300 ${
-                                isFullScreen
-                                    ? "max-w-5xl min-h-full p-16"
-                                    : "w-full min-h-full"
+                    <div className="flex flex-1 overflow-hidden relative">
+                        {/* SIDEBAR INDICE */}
+                        {isFullScreen && (
+                            <aside className="w-64 border-r bg-slate-50/50 p-6 overflow-y-auto no-print">
+                                <div className="flex items-center gap-2 mb-6 text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                    <LayoutList size={14} /> Indice
+                                </div>
+                                <nav className="space-y-1">
+                                    {tocItems.length > 0 ? (
+                                        tocItems.map((item, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() =>
+                                                    editor.commands.focus(
+                                                        item.pos
+                                                    )
+                                                }
+                                                className={`block w-full text-left transition-all hover:text-blue-600 text-sm ${
+                                                    item.level === 1
+                                                        ? "font-bold text-slate-700"
+                                                        : item.level === 2
+                                                        ? "text-slate-500 ml-3"
+                                                        : "text-slate-400 text-xs ml-6"
+                                                }`}>
+                                                {item.text}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-slate-300 italic">
+                                            Nessun titolo
+                                        </p>
+                                    )}
+                                </nav>
+                            </aside>
+                        )}
+
+                        {/* AREA EDITING */}
+                        <main
+                            className={`flex-1 overflow-y-auto bg-[#fcfcfc] ${
+                                isFullScreen ? "p-12" : ""
                             }`}>
-                            <EditorContent editor={editor} />
-                        </div>
+                            <div
+                                className={`mx-auto bg-white shadow-sm border border-slate-100 transition-all duration-300 ${
+                                    isFullScreen
+                                        ? "max-w-5xl min-h-full p-16"
+                                        : "w-full min-h-full"
+                                }`}>
+                                <EditorContent editor={editor} />
+                            </div>
+                        </main>
                     </div>
 
                     {/* AREA PDF NASCOSTA */}
@@ -787,8 +900,7 @@ export default function MarkdownDocEditor({
                         }}>
                         <div
                             ref={printRef}
-                            className="p-12 bg-white prose prose-slate max-w-none prose-img:rounded-xl">    
-                        </div>
+                            className="p-12 bg-white prose prose-slate max-w-none prose-img:rounded-xl"></div>
                     </div>
 
                     <input
@@ -806,7 +918,6 @@ export default function MarkdownDocEditor({
                         className="hidden"
                     />
 
-                    {/* STYLE ORIGINALE COMPLETO */}
                     <style
                         jsx
                         global>{`
