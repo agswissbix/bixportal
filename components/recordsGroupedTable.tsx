@@ -163,8 +163,8 @@ export default function RecordsGroupedTable({
                             <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-gray-50 dark:bg-gray-800/50 rounded-full border border-gray-100 dark:border-gray-800">
                                 <div className="w-2 h-2 rounded-full bg-green-500" />
                                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
-                                    {resInst?.groups?.length || 0} Gruppi
-                                    caricati
+                                    {resInst?.groups?.length || 0} Tabelle
+                                    caricate
                                 </span>
                             </div>
                         </div>
