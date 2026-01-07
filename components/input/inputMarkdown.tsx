@@ -305,6 +305,7 @@ export default function inputMarkdown({
                 html: true,
                 tightLists: true,
                 bulletListMarker: "-",
+                linkify: true,
             }),
             Typography,
             Underline,
@@ -340,27 +341,62 @@ export default function inputMarkdown({
                             parseHTML: (element) =>
                                 element.getAttribute("width") ||
                                 element.style.width,
-                            renderHTML: (attr) => ({
-                                width: attr.width,
-                                style: `width: ${attr.width}`,
+                            renderHTML: (attributes) => ({
+                                width: attributes.width,
                             }),
                         },
                         align: {
                             default: "center",
                             parseHTML: (element) =>
                                 element.getAttribute("data-align") || "center",
-                            renderHTML: (attr) => ({
-                                "data-align": attr.align,
+                            renderHTML: (attributes) => ({
+                                "data-align": attributes.align,
                             }),
                         },
                     };
                 },
+                addStorage() {
+                    return {
+                        markdown: {
+                            serialize(state: any, node: any) {
+                                const { src, alt, width, align } = node.attrs;
+                                const margin =
+                                    align === "left"
+                                        ? "0 auto 0 0"
+                                        : align === "right"
+                                        ? "0 0 0 auto"
+                                        : "0 auto";
+
+                                state.write(
+                                    `<img src="${src}" alt="${
+                                        alt || ""
+                                    }" width="${width}" data-align="${align}" style="display: block; margin: ${margin}; width: ${width};">`
+                                );
+                                state.closeBlock(node);
+                            },
+                            parse: {
+                                // Il parsing viene gestito automaticamente da parseHTML se html: true è attivo
+                            },
+                        },
+                    };
+                },
                 renderHTML({ HTMLAttributes }) {
+                    const align = HTMLAttributes["data-align"];
+                    const margin =
+                        align === "left"
+                            ? "0 auto 0 0"
+                            : align === "right"
+                            ? "0 0 0 auto"
+                            : "0 auto";
+
                     return [
                         "img",
                         mergeAttributes(
                             this.options.HTMLAttributes,
-                            HTMLAttributes
+                            HTMLAttributes,
+                            {
+                                style: `display: block; margin: ${margin}; width: ${HTMLAttributes.width}; height: auto;`,
+                            }
                         ),
                     ];
                 },
@@ -373,6 +409,7 @@ export default function inputMarkdown({
         onUpdate: ({ editor }) => {
             const markdown = (editor.storage as any).markdown.getMarkdown();
             lastValueRef.current = markdown;
+            setResponseData((prev) => ({ ...prev, markdownContent: markdown }));
             updateToc(editor);
             if (onChange) onChange(markdown);
         },
@@ -493,6 +530,7 @@ export default function inputMarkdown({
     useEffect(() => {
         if (
             editor &&
+            responseData.markdownContent !== undefined &&
             responseData.markdownContent !== lastValueRef.current &&
             !editor.isFocused
         ) {
@@ -1061,6 +1099,7 @@ export default function inputMarkdown({
                             margin-top: 0.4rem;
                             cursor: pointer;
                         }
+
                         .prose p.is-editor-empty:first-child::before {
                             content: attr(data-placeholder);
                             float: left;
@@ -1068,6 +1107,7 @@ export default function inputMarkdown({
                             pointer-events: none;
                             height: 0;
                         }
+
                         .prose code::before,
                         .prose code::after {
                             content: "" !important;
@@ -1108,11 +1148,29 @@ export default function inputMarkdown({
                         .hljs-params {
                             color: #24292e;
                         }
-                        .prose u, u {
+
+                        .prose u,
+                        u {
                             text-decoration: underline !important;
                             text-decoration-thickness: 1px !important;
                             text-underline-offset: 2px !important;
                             border-bottom: none !important; /* Rimuove eventuali bordi che simulano griglie */
+                        }
+
+                        .prose img[data-align="left"] {
+                            margin: 0 auto 0 0;
+                        }
+                        .prose img[data-align="right"] {
+                            margin: 0 0 0 auto;
+                        }
+                        .prose img[data-align="center"] {
+                            margin: 0 auto;
+                        }
+
+                        .prose img {
+                            display: block;
+                            max-width: 100%;
+                            height: auto;
                         }
                     `}</style>
                 </div>
