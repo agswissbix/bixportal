@@ -547,15 +547,11 @@ export default function TimetrackingList() {
                                             <div className="flex justify-between items-center mb-1">
                                                 <div className="flex flex-col">
                                                     <span className="font-semibold text-gray-800">
-                                                        {
-                                                            activeTrack.description
-                                                        }
+                                                        {track.description}
                                                     </span>
-                                                    {activeTrack.client_name && (
+                                                    {track.client_name && (
                                                         <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">
-                                                            {
-                                                                activeTrack.client_name
-                                                            }
+                                                            {track.client_name}
                                                         </span>
                                                     )}
                                                 </div>
