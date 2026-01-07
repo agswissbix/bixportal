@@ -27,7 +27,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dynamic from "next/dynamic"
 
-const MarkdownDocEditor = dynamic(() => import("./input/MarkdownDocEditor"), {
+const InputMarkdown = dynamic(() => import("./input/inputMarkdown"), {
     ssr: false,
 });
 
@@ -409,7 +409,7 @@ export default function CardFields({
                             : ""
                     }`}>
                     {field.fieldtype === "Markdown" ? (
-                        <MarkdownDocEditor
+                        <InputMarkdown
                             initialValue={String(value)}
                             onChange={(v) =>
                                 handleInputChange(field.fieldid, v)

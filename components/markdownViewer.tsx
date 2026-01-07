@@ -80,7 +80,7 @@ const CodeBlockComponent = ({ node: { attrs }, getPos, editor }: any) => {
     );
 };
 
-export default function MarkdownDocEditor({
+export default function MarkdownViewer({
     initialValue,
     onChange,
     onSaveRequested,

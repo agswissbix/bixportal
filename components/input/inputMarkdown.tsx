@@ -19,6 +19,7 @@ import {
     ReactNodeViewRenderer,
     NodeViewWrapper,
     NodeViewContent,
+    mergeAttributes,
 } from "@tiptap/react";
 
 import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
@@ -28,6 +29,8 @@ import { Markdown } from "tiptap-markdown";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import { Highlight } from "@tiptap/extension-highlight";
+import { Underline } from "@tiptap/extension-underline";
 
 // --- ESTENSIONI LOGICHE ---
 import { TaskList } from "@tiptap/extension-task-list";
@@ -75,7 +78,12 @@ import {
     CloudUpload,
     Undo,
     Redo,
+    Highlighter as HighlightIcon,
     LayoutList,
+    Highlighter,
+    QuoteIcon as Quote,
+    MinusIcon as Minus,
+    UnderlineIcon,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
@@ -192,9 +200,10 @@ const CodeBlockComponent = ({ node, editor, getPos }: any) => {
                 <button
                     type="button"
                     onClick={() => {
-                        navigator.clipboard.writeText(
-                            editor.state.doc.nodeAt(getPos()).textContent
-                        );
+                        const text = editor.state.doc.nodeAt(
+                            getPos()
+                        ).textContent;
+                        navigator.clipboard.writeText(text);
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                         toast.success("Copiato!");
@@ -231,7 +240,7 @@ interface ResponseInterface {
     markdownContent: string;
 }
 
-export default function MarkdownDocEditor({
+export default function inputMarkdown({
     initialValue,
     onChange,
     onSaveRequested,
@@ -270,8 +279,13 @@ export default function MarkdownDocEditor({
                 : { apiRoute: "get_markdown_content", recordId },
         [recordId, isDev]
     );
+
+    const apiResult = useApi<ResponseInterface>(
+        payload || { apiRoute: "", recordId: "" }
+    );
+
     const { response, loading, error } = payload
-        ? useApi<ResponseInterface>(payload)
+        ? apiResult
         : { response: null, loading: false, error: null };
 
     useEffect(() => {
@@ -293,6 +307,8 @@ export default function MarkdownDocEditor({
                 bulletListMarker: "-",
             }),
             Typography,
+            Underline,
+            Highlight.configure({ multicolor: true }),
             TaskList,
             TaskItem.configure({ nested: true }),
             BubbleMenuExtension.configure({ element: null }),
@@ -323,7 +339,7 @@ export default function MarkdownDocEditor({
                             default: "100%",
                             parseHTML: (element) =>
                                 element.getAttribute("width") ||
-                                (element as HTMLElement).style.width,
+                                element.style.width,
                             renderHTML: (attr) => ({
                                 width: attr.width,
                                 style: `width: ${attr.width}`,
@@ -332,12 +348,21 @@ export default function MarkdownDocEditor({
                         align: {
                             default: "center",
                             parseHTML: (element) =>
-                                element.getAttribute("data-align"),
+                                element.getAttribute("data-align") || "center",
                             renderHTML: (attr) => ({
                                 "data-align": attr.align,
                             }),
                         },
                     };
+                },
+                renderHTML({ HTMLAttributes }) {
+                    return [
+                        "img",
+                        mergeAttributes(
+                            this.options.HTMLAttributes,
+                            HTMLAttributes
+                        ),
+                    ];
                 },
                 addNodeView() {
                     return ReactNodeViewRenderer(ResizableImageComponent);
@@ -515,6 +540,26 @@ export default function MarkdownDocEditor({
                     {/* TOP TOOLBAR */}
                     <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur-md no-print">
                         <div className="flex items-center flex-wrap gap-1.5">
+                            <div className="flex items-center bg-slate-100 p-1 rounded-xl mr-1">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor.chain().focus().undo().run()
+                                    }
+                                    disabled={!editor.can().undo()}
+                                    className="p-2 text-slate-600 hover:bg-slate-200 disabled:opacity-30 rounded-lg">
+                                    <Undo size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor.chain().focus().redo().run()
+                                    }
+                                    disabled={!editor.can().redo()}
+                                    className="p-2 text-slate-600 hover:bg-slate-200 disabled:opacity-30 rounded-lg">
+                                    <Redo size={18} />
+                                </button>
+                            </div>
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
                                 <button
                                     type="button"
@@ -651,6 +696,48 @@ export default function MarkdownDocEditor({
                                 </button>
                                 <button
                                     type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleUnderline()
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("underline")
+                                            ? "bg-slate-900 text-white"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <UnderlineIcon size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleHighlight()
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("highlight")
+                                            ? "bg-yellow-400 text-black"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <HighlightIcon size={18} />
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleBlockquote()
+                                            .run()
+                                    }>
+                                    <Quote size={18} />
+                                </button>
+                                <button
+                                    type="button"
                                     onClick={setLink}
                                     className={`p-2 rounded-lg ${
                                         editor.isActive("link")
@@ -721,6 +808,43 @@ export default function MarkdownDocEditor({
                                 </button>
                             </div>
 
+                            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleCode()
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("code")
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}
+                                    title="Codice Inline">
+                                    <CodeIcon size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .toggleCodeBlock()
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("codeBlock")
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}
+                                    title="Blocco Codice">
+                                    <Terminal size={18} />
+                                </button>
+                            </div>
+
                             <div className="flex items-center gap-2">
                                 {isAutosaving && (
                                     <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 animate-pulse uppercase">
@@ -741,26 +865,24 @@ export default function MarkdownDocEditor({
                                     />
                                 </button>
                                 {isFullScreen ? (
-                                       <button
-                                            type="button"
-                                            onClick={() => {
-                                                onSaveRequested?.();
-                                                setIsSavingFlash(true);
-                                                setTimeout(
-                                                    () => setIsSavingFlash(false),
-                                                    500
-                                                );
-                                            }}
-                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${
-                                                isSavingFlash
-                                                    ? "bg-green-600 text-white scale-105"
-                                                    : "bg-blue-600 text-white hover:bg-blue-700"
-                                            }`}>
-                                            <Save size={16} /> <span>SALVA</span>
-                                        </button> 
-                                    ) : null
-                                }
-                                
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onSaveRequested?.();
+                                            setIsSavingFlash(true);
+                                            setTimeout(
+                                                () => setIsSavingFlash(false),
+                                                500
+                                            );
+                                        }}
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${
+                                            isSavingFlash
+                                                ? "bg-green-600 text-white scale-105"
+                                                : "bg-blue-600 text-white hover:bg-blue-700"
+                                        }`}>
+                                        <Save size={16} /> <span>SALVA</span>
+                                    </button>
+                                ) : null}
                             </div>
                         </div>
                         <button
@@ -985,6 +1107,12 @@ export default function MarkdownDocEditor({
                         }
                         .hljs-params {
                             color: #24292e;
+                        }
+                        .prose u, u {
+                            text-decoration: underline !important;
+                            text-decoration-thickness: 1px !important;
+                            text-underline-offset: 2px !important;
+                            border-bottom: none !important; /* Rimuove eventuali bordi che simulano griglie */
                         }
                     `}</style>
                 </div>
