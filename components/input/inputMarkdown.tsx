@@ -20,6 +20,7 @@ import {
     NodeViewWrapper,
     NodeViewContent,
     mergeAttributes,
+    ReactRenderer,  
 } from "@tiptap/react";
 
 import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
@@ -31,6 +32,9 @@ import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
+import Paragraph from "@tiptap/extension-paragraph";
+import Heading from "@tiptap/extension-heading";
+import TextAlign from "@tiptap/extension-text-align";;
 
 // --- ESTENSIONI LOGICHE ---
 import { TaskList } from "@tiptap/extension-task-list";
@@ -38,6 +42,12 @@ import { TaskItem } from "@tiptap/extension-task-item";
 import { Typography } from "@tiptap/extension-typography";
 import BubbleMenuExtension from "@tiptap/extension-bubble-menu";
 import FloatingMenuExtension from "@tiptap/extension-floating-menu";
+import Gapcursor from "@tiptap/extension-gapcursor";
+import Dropcursor from "@tiptap/extension-dropcursor";
+import CharacterCount from "@tiptap/extension-character-count";
+import { Extension } from "@tiptap/core";
+import Suggestion from "@tiptap/suggestion";
+import tippy from "tippy.js";
 
 // --- TABELLE ---
 import { Table } from "@tiptap/extension-table";
@@ -54,7 +64,13 @@ import {
     Bold,
     Italic,
     List,
+    ListOrdered,
     Table as TableIcon,
+    Plus,
+    Trash2,
+    BetweenVerticalEnd, 
+    BetweenHorizontalEnd, 
+    Split, 
     Heading1,
     Heading2,
     Heading3,
@@ -74,6 +90,7 @@ import {
     AlignLeft,
     AlignCenter,
     AlignRight,
+    AlignJustify,
     CheckSquare,
     CloudUpload,
     Undo,
@@ -240,6 +257,228 @@ interface ResponseInterface {
     markdownContent: string;
 }
 
+const CustomParagraph = Paragraph.extend({
+    addStorage() {
+        return {
+            markdown: {
+                serialize(state, node) {
+                    if (
+                        node.attrs.textAlign &&
+                        node.attrs.textAlign !== "left"
+                    ) {
+                        state.write(
+                            `<p style="text-align: ${node.attrs.textAlign}">`
+                        );
+                        state.renderInline(node);
+                        state.write(`</p>`);
+                        state.closeBlock(node);
+                    } else {
+                        state.renderInline(node);
+                        state.closeBlock(node);
+                    }
+                },
+            },
+        };
+    },
+});
+
+const CustomHeading = Heading.extend({
+    addStorage() {
+        return {
+            markdown: {
+                serialize(state, node) {
+                    if (
+                        node.attrs.textAlign &&
+                        node.attrs.textAlign !== "left"
+                    ) {
+                        state.write(
+                            `<h${node.attrs.level} style="text-align: ${node.attrs.textAlign}">`
+                        );
+                        state.renderInline(node);
+                        state.write(`</h${node.attrs.level}>`);
+                        state.closeBlock(node);
+                    } else {
+                        state.write(state.repeat("#", node.attrs.level) + " ");
+                        state.renderInline(node);
+                        state.closeBlock(node);
+                    }
+                },
+            },
+        };
+    },
+});
+
+// --- LOGICA SUGGESTION ---
+const Commands = Extension.create({
+    name: "mention",
+    addOptions() {
+        return {
+            suggestion: {
+                char: "/",
+                command: ({ editor, range, props }: any) => {
+                    props.command({ editor, range });
+                },
+            },
+        };
+    },
+    addProseMirrorPlugins() {
+        return [
+            Suggestion({
+                editor: this.editor,
+                ...this.options.suggestion,
+            }),
+        ];
+    },
+});
+
+// --- LISTA DEI COMANDI ---
+const getSuggestionItems = ({ query }: { query: string }) => {
+    return [
+        {
+            title: "Titolo 1",
+            description: "Titolo grande",
+            icon: <Heading1 size={18} />,
+            command: ({ editor, range }: any) => {
+                editor
+                    .chain()
+                    .focus()
+                    .deleteRange(range)
+                    .setNode("heading", { level: 1 })
+                    .run();
+            },
+        },
+        {
+            title: "Titolo 2",
+            description: "Titolo medio",
+            icon: <Heading2 size={18} />,
+            command: ({ editor, range }: any) => {
+                editor
+                    .chain()
+                    .focus()
+                    .deleteRange(range)
+                    .setNode("heading", { level: 2 })
+                    .run();
+            },
+        },
+        {
+            title: "Checklist",
+            description: "Lista di attività",
+            icon: <CheckSquare size={18} />,
+            command: ({ editor, range }: any) => {
+                editor
+                    .chain()
+                    .focus()
+                    .deleteRange(range)
+                    .toggleTaskList()
+                    .run();
+            },
+        },
+        {
+            title: "Tabella",
+            description: "Inserisci una griglia",
+            icon: <TableIcon size={18} />,
+            command: ({ editor, range }: any) => {
+                editor
+                    .chain()
+                    .focus()
+                    .deleteRange(range)
+                    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                    .run();
+            },
+        },
+        {
+            title: "Blocco Codice",
+            description: "Codice con evidenziazione",
+            icon: <Terminal size={18} />,
+            command: ({ editor, range }: any) => {
+                editor
+                    .chain()
+                    .focus()
+                    .deleteRange(range)
+                    .toggleCodeBlock()
+                    .run();
+            },
+        },
+    ]
+        .filter((item) =>
+            item.title.toLowerCase().startsWith(query.toLowerCase())
+        )
+        .slice(0, 10);
+};
+
+const CommandList = React.forwardRef((props: any, ref) => {
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
+    const selectItem = (index: number) => {
+        const item = props.items[index];
+        if (item) {
+            props.command(item);
+        }
+    };
+
+    useEffect(() => setSelectedIndex(0), [props.items]);
+
+    React.useImperativeHandle(ref, () => ({
+        onKeyDown: ({ event }: any) => {
+            if (event.key === "ArrowUp") {
+                setSelectedIndex(
+                    (selectedIndex + props.items.length - 1) %
+                        props.items.length
+                );
+                return true;
+            }
+            if (event.key === "ArrowDown") {
+                setSelectedIndex((selectedIndex + 1) % props.items.length);
+                return true;
+            }
+            if (event.key === "Enter") {
+                selectItem(selectedIndex);
+                return true;
+            }
+            return false;
+        },
+    }));
+
+    return (
+        <div className="bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden flex flex-col min-w-[200px] p-1">
+            {props.items.length ? (
+                props.items.map((item: any, index: number) => (
+                    <button
+                        key={index}
+                        onClick={() => selectItem(index)}
+                        className={`flex items-center gap-3 px-3 py-2 text-left text-sm rounded-md transition-colors ${
+                            index === selectedIndex
+                                ? "bg-blue-50 text-blue-700"
+                                : "hover:bg-slate-50 text-slate-700"
+                        }`}>
+                        <div
+                            className={`p-1.5 rounded border ${
+                                index === selectedIndex
+                                    ? "bg-white border-blue-200"
+                                    : "bg-slate-50"
+                            }`}>
+                            {item.icon}
+                        </div>
+                        <div>
+                            <div className="font-bold leading-none mb-1">
+                                {item.title}
+                            </div>
+                            <div className="text-[10px] text-slate-400 uppercase tracking-tight">
+                                {item.description}
+                            </div>
+                        </div>
+                    </button>
+                ))
+            ) : (
+                <div className="px-3 py-2 text-slate-400 text-sm italic">
+                    Nessun comando...
+                </div>
+            )}
+        </div>
+    );
+});
+CommandList.displayName = "CommandList";
+
 export default function inputMarkdown({
     initialValue,
     onChange,
@@ -296,8 +535,16 @@ export default function inputMarkdown({
         immediatelyRender: false,
         extensions: [
             StarterKit.configure({
-                heading: { levels: [1, 2, 3, 4, 5, 6] },
+                heading: false,
+                paragraph: false,
                 codeBlock: false,
+            }),
+            CustomParagraph,
+            CustomHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
+            TextAlign.configure({
+                types: ["heading", "paragraph"],
+                alignments: ["left", "center", "right", "justify"],
+                defaultAlignment: "left",
             }),
             Markdown.configure({
                 html: true,
@@ -334,6 +581,14 @@ export default function inputMarkdown({
                 HTMLAttributes: {
                     class: "text-blue-600 underline cursor-pointer",
                 },
+            }),
+            Gapcursor,
+            Dropcursor.configure({
+                color: "#3b82f6",
+                width: 2,
+            }),
+            CharacterCount.configure({
+                limit: 10000,
             }),
             Image.extend({
                 addAttributes() {
@@ -407,6 +662,51 @@ export default function inputMarkdown({
                     return ReactNodeViewRenderer(ResizableImageComponent);
                 },
             }).configure({ allowBase64: false }),
+            Commands.configure({
+                suggestion: {
+                    items: getSuggestionItems,
+                    render: () => {
+                        let component: any;
+                        let popup: any;
+
+                        return {
+                            onStart: (props: any) => {
+                                component = new ReactRenderer(CommandList, {
+                                    props,
+                                    editor: props.editor,
+                                });
+
+                                popup = tippy("body", {
+                                    getReferenceClientRect: props.clientRect,
+                                    appendTo: () => document.body,
+                                    content: component.element,
+                                    showOnCreate: true,
+                                    interactive: true,
+                                    trigger: "manual",
+                                    placement: "bottom-start",
+                                });
+                            },
+                            onUpdate(props: any) {
+                                component.updateProps(props);
+                                popup[0].setProps({
+                                    getReferenceClientRect: props.clientRect,
+                                });
+                            },
+                            onKeyDown(props: any) {
+                                if (props.event.key === "Escape") {
+                                    popup[0].hide();
+                                    return true;
+                                }
+                                return component.ref?.onKeyDown(props);
+                            },
+                            onExit() {
+                                popup[0].destroy();
+                                component.destroy();
+                            },
+                        };
+                    },
+                },
+            }),
         ],
         content: responseData.markdownContent,
         onUpdate: ({ editor }) => {
@@ -422,6 +722,58 @@ export default function inputMarkdown({
         editorProps: {
             attributes: {
                 class: "focus:outline-none min-h-[500px] p-10 sm:p-16 bg-white prose prose-slate max-w-none selection:bg-blue-100",
+            },
+            handleDrop: (view, event, slice, moved) => {
+                if (
+                    !moved &&
+                    event.dataTransfer &&
+                    event.dataTransfer.files &&
+                    event.dataTransfer.files[0]
+                ) {
+                    const files = Array.from(event.dataTransfer.files);
+                    const images = files.filter((file) =>
+                        /image/i.test(file.type)
+                    );
+
+                    if (images.length > 0) {
+                        event.preventDefault();
+
+                        const coordinates = view.posAtCoords({
+                            left: event.clientX,
+                            top: event.clientY,
+                        });
+
+                        const insertionPos =
+                            coordinates?.pos ?? view.state.doc.content.size;
+
+                        images.forEach((image) => {
+                            handleImageUpload(image, insertionPos);
+                        });
+                        return true;
+                    }
+                }
+                return false;
+            },
+            handlePaste: (view, event) => {
+                if (
+                    event.clipboardData &&
+                    event.clipboardData.files &&
+                    event.clipboardData.files[0]
+                ) {
+                    const files = Array.from(event.clipboardData.files);
+                    const images = files.filter((file) =>
+                        /image/i.test(file.type)
+                    );
+
+                    if (images.length > 0) {
+                        event.preventDefault();
+                        images.forEach((image) => {
+                            handleImageUpload(image);
+                        });
+                        return true;
+                    }
+                }
+                return false;
             },
             handleKeyDown: (view, event) => {
                 if ((event.ctrlKey || event.metaKey) && event.key === "s") {
@@ -450,15 +802,29 @@ export default function inputMarkdown({
     }, [lastValueRef.current, onSaveRequested, initialValue, isDev]);
 
     const handleImageUpload = useCallback(
-        async (file: File) => {
+        async (file: File, pos?: number) => {
             if (!editor) return;
+
             const url = await uploadImageService(file);
             if (url) {
-                editor.chain().focus().setImage({ src: url }).run();
-                lastValueRef.current = (
-                    editor.storage as any
-                ).markdown.getMarkdown();
-                if (onChange) onChange(lastValueRef.current);
+                const content = {
+                    type: "image",
+                    attrs: {
+                        src: url,
+                        width: "100%",
+                        align: "center",
+                    },
+                };
+
+                if (pos !== undefined) {
+                    editor.chain().insertContentAt(pos, content).focus().run();
+                } else {
+                    editor.chain().focus().insertContent(content).run();
+                }
+
+                const markdown = (editor.storage as any).markdown.getMarkdown();
+                lastValueRef.current = markdown;
+                if (onChange) onChange(markdown);
             }
         },
         [editor, onChange]
@@ -796,6 +1162,75 @@ export default function inputMarkdown({
                                         editor
                                             .chain()
                                             .focus()
+                                            .setTextAlign("left")
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive({ textAlign: "left" })
+                                            ? "bg-white shadow-sm text-blue-600"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <AlignLeft size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .setTextAlign("center")
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive({ textAlign: "center" })
+                                            ? "bg-white shadow-sm text-blue-600"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <AlignCenter size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .setTextAlign("right")
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive({ textAlign: "right" })
+                                            ? "bg-white shadow-sm text-blue-600"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <AlignRight size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .setTextAlign("justify")
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive({
+                                            textAlign: "justify",
+                                        })
+                                            ? "bg-white shadow-sm text-blue-600"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <AlignJustify size={18} />
+                                </button>
+                            </div>
+
+                            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
                                             .toggleTaskList()
                                             .run()
                                     }
@@ -829,6 +1264,22 @@ export default function inputMarkdown({
                                         editor
                                             .chain()
                                             .focus()
+                                            .toggleOrderedList()
+                                            .run()
+                                    }
+                                    className={`p-2 rounded-lg ${
+                                        editor.isActive("orderedList")
+                                            ? "bg-slate-900 text-white shadow-lg"
+                                            : "text-slate-600 hover:bg-slate-200"
+                                    }`}>
+                                    <ListOrdered size={18} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
                                             .insertTable({
                                                 rows: 3,
                                                 cols: 3,
@@ -839,11 +1290,83 @@ export default function inputMarkdown({
                                     className="p-2 hover:bg-slate-200 text-slate-600 rounded-lg">
                                     <TableIcon size={18} />
                                 </button>
+                                {editor.isActive("table") && (
+                                    <>
+                                        <div className="w-[1px] h-4 bg-slate-300 mx-1" />
+                                        <button
+                                            onClick={() =>
+                                                editor
+                                                    .chain()
+                                                    .focus()
+                                                    .addColumnAfter()
+                                                    .run()
+                                            }
+                                            className="p-2 hover:bg-slate-200 text-blue-600 rounded-lg"
+                                            title="Aggiungi Colonna">
+                                            <BetweenVerticalEnd size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                editor
+                                                    .chain()
+                                                    .focus()
+                                                    .addRowAfter()
+                                                    .run()
+                                            }
+                                            className="p-2 hover:bg-slate-200 text-blue-600 rounded-lg"
+                                            title="Aggiungi Riga">
+                                            <BetweenHorizontalEnd size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                editor
+                                                    .chain()
+                                                    .focus()
+                                                    .deleteColumn()
+                                                    .run()
+                                            }
+                                            className="p-2 hover:bg-red-50 text-red-500 rounded-lg"
+                                            title="Elimina Colonna">
+                                            <Trash2 size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                editor
+                                                    .chain()
+                                                    .focus()
+                                                    .deleteRow()
+                                                    .run()
+                                            }
+                                            className="p-2 hover:bg-red-50 text-red-500 rounded-lg"
+                                            title="Elimina Riga">
+                                            <Trash2
+                                                size={16}
+                                                className="rotate-90"
+                                            />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                editor
+                                                    .chain()
+                                                    .focus()
+                                                    .deleteTable()
+                                                    .run()
+                                            }
+                                            className="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg"
+                                            title="Elimina Tabella">
+                                            <TableIcon
+                                                size={18}
+                                                className="text-red-700"
+                                            />
+                                        </button>
+                                    </>
+                                )}
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        fileInputRef.current?.click()
-                                    }
+                                    onClick={() => {
+                                        editor.chain().focus().run();
+                                        fileInputRef.current?.click();
+                                    }}
                                     className="p-2 hover:bg-slate-200 text-slate-600 rounded-lg">
                                     <ImageIcon size={18} />
                                 </button>
@@ -999,7 +1522,18 @@ export default function inputMarkdown({
                         </button>
                         <button
                             type="button"
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={() =>
+                                editor.chain().focus().toggleOrderedList().run()
+                            }
+                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
+                            <ListOrdered size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                editor.chain().focus().run();
+                                fileInputRef.current?.click();
+                            }}
                             className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
                             <ImageIcon size={16} />
                         </button>
@@ -1057,6 +1591,19 @@ export default function inputMarkdown({
                         </main>
                     </div>
 
+                    <div className="flex items-center justify-between px-6 py-2 border-t bg-slate-50 text-[11px] font-medium text-slate-500 no-print">
+                        <div className="flex items-center gap-4">
+                            <span>
+                                {editor.storage.characterCount.words()} PAROLE
+                            </span>
+                            <span>
+                                {editor.storage.characterCount.characters()}{" "}
+                                CARATTERI
+                            </span>
+                        </div>
+                        <div className="uppercase tracking-wider">Markdown</div>
+                    </div>
+
                     {/* AREA PDF NASCOSTA */}
                     <div
                         style={{
@@ -1074,10 +1621,11 @@ export default function inputMarkdown({
                         type="file"
                         ref={fileInputRef}
                         onChange={(e) => {
-                            if (e.target.files)
-                                Array.from(e.target.files).forEach(
-                                    handleImageUpload
-                                );
+                            if (e.target.files && e.target.files.length > 0) {
+                                Array.from(e.target.files).forEach((file) => {
+                                    handleImageUpload(file);
+                                });
+                            }
                             e.target.value = "";
                         }}
                         accept="image/*"
@@ -1088,31 +1636,92 @@ export default function inputMarkdown({
                     <style
                         jsx
                         global>{`
-                        /* LISTE PUNTATE STANDARD (Ripristino pallini) */
+                        /* 1. LISTE STANDARD (Puntate e Numerate) */
                         .prose ul:not([data-type="taskList"]) {
                             list-style-type: disc !important;
                             padding-left: 1.5rem !important;
+                            margin-bottom: 1rem;
                         }
 
-                        /* CHECKLIST (Mantieni i fix precedenti) */
+                        .prose ol {
+                            list-style-type: decimal !important;
+                            padding-left: 1.5rem !important;
+                            margin-bottom: 1rem;
+                        }
+
+                        /* Assicura che i numeri/pallini siano visibili e ben spaziati */
+                        .prose ol > li,
+                        .prose ul:not([data-type="taskList"]) > li {
+                            padding-left: 0.5rem;
+                            margin-bottom: 0.25rem;
+                        }
+
+                        /* 2. CHECKLIST (TaskList) */
                         .prose ul[data-type="taskList"] {
                             list-style: none !important;
                             padding: 0 !important;
-                        }
-
-                        .prose ul[data-type="taskList"] li::before {
-                            display: none !important; /* Rimuove i pallini dalle checklist */
+                            margin: 1.5rem 0 !important;
                         }
 
                         .prose ul[data-type="taskList"] li {
                             display: flex;
                             align-items: flex-start;
                             gap: 0.75rem;
+                            margin-bottom: 0.5rem;
                         }
 
-                        .prose .task-list input[type="checkbox"] {
-                            margin-top: 0.4rem;
+                        /* Rimuove i pallini generati automaticamente da Tailwind nelle checklist */
+                        .prose ul[data-type="taskList"] li::before {
+                            content: none !important;
+                            display: none !important;
+                        }
+
+                        /* Allineamento perfetto del checkbox con la riga di testo */
+                        .prose ul[data-type="taskList"] input[type="checkbox"] {
+                            appearance: checkbox !important;
+                            width: 1.1rem;
+                            height: 1.1rem;
                             cursor: pointer;
+                            margin: 0;
+                            margin-top: 0.35rem;
+                            flex-shrink: 0;
+                        }
+
+                        /* Effetto sbiadito e barrato per task completate */
+                        .prose
+                            ul[data-type="taskList"]
+                            li[data-checked="true"]
+                            > div
+                            > p {
+                            text-decoration: line-through;
+                            opacity: 0.5;
+                        }
+
+                        /* 3. IMMAGINI (Allineamento e Dimensioni) */
+                        .prose img {
+                            display: block;
+                            max-width: 100%;
+                            height: auto;
+                            border-radius: 0.75rem;
+                        }
+
+                        .prose img[data-align="left"] {
+                            margin: 0 auto 0 0;
+                        }
+                        .prose img[data-align="right"] {
+                            margin: 0 0 0 auto;
+                        }
+                        .prose img[data-align="center"] {
+                            margin: 0 auto;
+                        }
+
+                        /* 4. TESTO (Underline e Placeholder) */
+                        .prose u,
+                        u {
+                            text-decoration: underline !important;
+                            text-decoration-thickness: 1px !important;
+                            text-underline-offset: 3px !important;
+                            border-bottom: none !important;
                         }
 
                         .prose p.is-editor-empty:first-child::before {
@@ -1123,10 +1732,7 @@ export default function inputMarkdown({
                             height: 0;
                         }
 
-                        .prose code::before,
-                        .prose code::after {
-                            content: "" !important;
-                        }
+                        /* 5. CODICE (Inline e Syntax Highlighting) */
                         .prose :not(pre) > code {
                             color: #cf222e !important;
                             background-color: #f6f8fa !important;
@@ -1136,6 +1742,13 @@ export default function inputMarkdown({
                             border: 1px solid #d0d7de !important;
                             font-weight: 600 !important;
                         }
+
+                        .prose code::before,
+                        .prose code::after {
+                            content: "" !important;
+                        }
+
+                        /* Colori HLJS per il blocco codice */
                         .hljs-comment {
                             color: #6a737d;
                         }
@@ -1164,69 +1777,80 @@ export default function inputMarkdown({
                             color: #24292e;
                         }
 
-                        .prose u,
-                        u {
-                            text-decoration: underline !important;
-                            text-decoration-thickness: 1px !important;
-                            text-underline-offset: 2px !important;
-                            border-bottom: none !important; /* Rimuove eventuali bordi che simulano griglie */
+                        /* Stile per il Gapcursor (la linea per inserire blocchi) */
+                        .ProseMirror .ProseMirror-gapcursor {
+                            background: none;
+                            border-left: 1px solid black;
+                            cursor: text;
+                            display: none;
+                            position: absolute;
                         }
 
-                        .prose img[data-align="left"] {
-                            margin: 0 auto 0 0;
-                        }
-                        .prose img[data-align="right"] {
-                            margin: 0 0 0 auto;
-                        }
-                        .prose img[data-align="center"] {
-                            margin: 0 auto;
-                        }
-
-                        .prose img {
+                        .ProseMirror .ProseMirror-gapcursor:after {
+                            border-top: 2px solid #3b82f6;
+                            content: "";
                             display: block;
-                            max-width: 100%;
-                            height: auto;
+                            position: absolute;
+                            top: -2px;
+                            width: 20px;
                         }
 
-                        /* Allineamento perfetto per la Checklist */
-                        .prose ul[data-type="taskList"] {
-                            list-style: none;
-                            padding: 0 !important;
-                            margin: 1.5rem 0 !important;
+                        .ProseMirror-focused .ProseMirror-gapcursor {
+                            display: block;
                         }
 
-                        .prose ul[data-type="taskList"] li {
-                            display: flex;
-                            align-items: flex-start; /* Allinea all'inizio del testo */
-                            gap: 0.75rem;
-                            margin-bottom: 0.5rem;
+                        /* STILE TABELLE */
+                        .prose table {
+                            border-collapse: collapse;
+                            table-layout: fixed;
+                            width: 100%;
+                            margin: 2rem 0;
+                            overflow: hidden;
                         }
 
-                        /* Rimuove i pallini/numeri di default che prose aggiunge alle liste */
-                        .prose ul[data-type="taskList"] li::before {
-                            content: none !important;
-                            display: none !important;
+                        .prose table td,
+                        .prose table th {
+                            border: 1px solid #e2e8f0; /* slate-200 */
+                            box-sizing: border-box;
+                            min-width: 1em;
+                            padding: 12px 15px;
+                            position: relative;
+                            vertical-align: top;
+                            text-align: left;
                         }
 
-                        /* Centra il checkbox rispetto alla prima riga di testo */
-                        .prose ul[data-type="taskList"] input[type="checkbox"] {
-                            appearance: checkbox !important;
-                            width: 1.1rem;
-                            height: 1.1rem;
-                            cursor: pointer;
-                            margin: 0;
-                            margin-top: 0.3rem; /* Sposta il checkbox verso il basso per allinearlo alla riga */
-                            flex-shrink: 0;
+                        .prose table th {
+                            background-color: #f8fafc; /* slate-50 */
+                            font-weight: bold;
                         }
 
-                        /* Stile testo task completata */
-                        .prose
-                            ul[data-type="taskList"]
-                            li[data-checked="true"]
-                            > div
-                            > p {
-                            text-decoration: line-through;
-                            opacity: 0.5;
+                        /* Evidenzia la cella selezionata */
+                        .prose table .selectedCell:after {
+                            background: rgba(
+                                59,
+                                130,
+                                246,
+                                0.1
+                            ); /* blue-500 con opacità */
+                            content: "";
+                            left: 0;
+                            right: 0;
+                            top: 0;
+                            bottom: 0;
+                            pointer-events: none;
+                            position: absolute;
+                            z-index: 2;
+                        }
+
+                        /* Gestione ridimensionamento colonne */
+                        .prose .column-resize-handle {
+                            background-color: #3b82f6;
+                            bottom: -2px;
+                            position: absolute;
+                            right: -2px;
+                            top: 0;
+                            width: 4px;
+                            z-index: 20;
                         }
                     `}</style>
                 </div>
