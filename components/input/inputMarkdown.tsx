@@ -34,7 +34,9 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
 import Paragraph from "@tiptap/extension-paragraph";
 import Heading from "@tiptap/extension-heading";
-import TextAlign from "@tiptap/extension-text-align";;
+import TextAlign from "@tiptap/extension-text-align";
+import {TextStyle} from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 
 // --- ESTENSIONI LOGICHE ---
 import { TaskList } from "@tiptap/extension-task-list";
@@ -68,9 +70,9 @@ import {
     Table as TableIcon,
     Plus,
     Trash2,
-    BetweenVerticalEnd, 
-    BetweenHorizontalEnd, 
-    Split, 
+    BetweenVerticalEnd,
+    BetweenHorizontalEnd,
+    Split,
     Heading1,
     Heading2,
     Heading3,
@@ -101,6 +103,8 @@ import {
     QuoteIcon as Quote,
     MinusIcon as Minus,
     UnderlineIcon,
+    Palette,
+    Baseline,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
@@ -590,6 +594,8 @@ export default function inputMarkdown({
             CharacterCount.configure({
                 limit: 10000,
             }),
+            TextStyle,
+            Color,
             Image.extend({
                 addAttributes() {
                     return {
@@ -1066,6 +1072,46 @@ export default function inputMarkdown({
                                     }`}>
                                     <Heading6 size={18} />
                                 </button>
+                            </div>
+
+                            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .unsetColor()
+                                            .run()
+                                    }
+                                    className="p-2 hover:bg-slate-200 text-slate-400 rounded-lg"
+                                    title="Colore Automatico">
+                                    <Baseline size={18} />
+                                </button>
+
+                                {[
+                                    { name: "Black", color: "#000000" },
+                                    { name: "Red", color: "#ef4444" },
+                                    { name: "Blue", color: "#3b82f6" },
+                                    { name: "Green", color: "#22c55e" },
+                                    { name: "Orange", color: "#f97316" },
+                                    { name: "Purple", color: "#a855f7" },
+                                ].map((c) => (
+                                    <button
+                                        key={c.color}
+                                        type="button"
+                                        onClick={() =>
+                                            editor
+                                                .chain()
+                                                .focus()
+                                                .setColor(c.color)
+                                                .run()
+                                        }
+                                        className="w-6 h-6 rounded-full border border-white shadow-sm transition-transform hover:scale-125"
+                                        style={{ backgroundColor: c.color }}
+                                        title={c.name}
+                                    />
+                                ))}
                             </div>
 
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
@@ -1851,6 +1897,11 @@ export default function inputMarkdown({
                             top: 0;
                             width: 4px;
                             z-index: 20;
+                        }
+
+                        /* Gestione colori */
+                        .prose span[style*="color"] {
+                            color: inherit;
                         }
                     `}</style>
                 </div>
