@@ -298,8 +298,6 @@ export default function inputMarkdown({
             StarterKit.configure({
                 heading: { levels: [1, 2, 3, 4, 5, 6] },
                 codeBlock: false,
-                bulletList: false,
-                orderedList: false,
             }),
             Markdown.configure({
                 html: true,
@@ -311,7 +309,12 @@ export default function inputMarkdown({
             Underline,
             Highlight.configure({ multicolor: true }),
             TaskList,
-            TaskItem.configure({ nested: true }),
+            TaskItem.configure({
+                nested: true,
+                HTMLAttributes: {
+                    class: "task-item-row",
+                },
+            }),
             BubbleMenuExtension.configure({ element: null }),
             FloatingMenuExtension.configure({ element: null }),
             CodeBlockLowlight.extend({
@@ -1085,16 +1088,28 @@ export default function inputMarkdown({
                     <style
                         jsx
                         global>{`
-                        .prose .task-list {
-                            list-style: none;
-                            padding: 0;
+                        /* LISTE PUNTATE STANDARD (Ripristino pallini) */
+                        .prose ul:not([data-type="taskList"]) {
+                            list-style-type: disc !important;
+                            padding-left: 1.5rem !important;
                         }
-                        .prose .task-list li {
+
+                        /* CHECKLIST (Mantieni i fix precedenti) */
+                        .prose ul[data-type="taskList"] {
+                            list-style: none !important;
+                            padding: 0 !important;
+                        }
+
+                        .prose ul[data-type="taskList"] li::before {
+                            display: none !important; /* Rimuove i pallini dalle checklist */
+                        }
+
+                        .prose ul[data-type="taskList"] li {
                             display: flex;
                             align-items: flex-start;
-                            gap: 0.5rem;
-                            margin-bottom: 0.25rem;
+                            gap: 0.75rem;
                         }
+
                         .prose .task-list input[type="checkbox"] {
                             margin-top: 0.4rem;
                             cursor: pointer;
@@ -1171,6 +1186,47 @@ export default function inputMarkdown({
                             display: block;
                             max-width: 100%;
                             height: auto;
+                        }
+
+                        /* Allineamento perfetto per la Checklist */
+                        .prose ul[data-type="taskList"] {
+                            list-style: none;
+                            padding: 0 !important;
+                            margin: 1.5rem 0 !important;
+                        }
+
+                        .prose ul[data-type="taskList"] li {
+                            display: flex;
+                            align-items: flex-start; /* Allinea all'inizio del testo */
+                            gap: 0.75rem;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        /* Rimuove i pallini/numeri di default che prose aggiunge alle liste */
+                        .prose ul[data-type="taskList"] li::before {
+                            content: none !important;
+                            display: none !important;
+                        }
+
+                        /* Centra il checkbox rispetto alla prima riga di testo */
+                        .prose ul[data-type="taskList"] input[type="checkbox"] {
+                            appearance: checkbox !important;
+                            width: 1.1rem;
+                            height: 1.1rem;
+                            cursor: pointer;
+                            margin: 0;
+                            margin-top: 0.3rem; /* Sposta il checkbox verso il basso per allinearlo alla riga */
+                            flex-shrink: 0;
+                        }
+
+                        /* Stile testo task completata */
+                        .prose
+                            ul[data-type="taskList"]
+                            li[data-checked="true"]
+                            > div
+                            > p {
+                            text-decoration: line-through;
+                            opacity: 0.5;
                         }
                     `}</style>
                 </div>
