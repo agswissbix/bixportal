@@ -26,6 +26,7 @@ import { Input } from "./ui/input"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dynamic from "next/dynamic"
+import InputSimpleMarkdown from "./input/inputSimpleMarkdown"
 
 const InputMarkdown = dynamic(() => import("./input/inputMarkdown"), {
     ssr: false,
@@ -268,6 +269,7 @@ export default function CardFields({
     const rawValue = typeof field.value === "object" ? field.value?.value : field.value
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
     const isMarkdown = field.fieldtype === "Markdown";
+    const isSimpleMarkdown = field.fieldtype === "SimpleMarkdown";
     const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true")
         || !isEditInsert
 
@@ -349,6 +351,10 @@ export default function CardFields({
                 <article className="prose prose-sm max-w-none">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{String(value)}</ReactMarkdown>
                 </article>
+              ) : isSimpleMarkdown ? (
+                <article className="prose prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{String(value)}</ReactMarkdown>
+                </article>
               ) : (
                 <div className="min-h-[24px]" dangerouslySetInnerHTML={{ __html: value }} />
               )}
@@ -410,6 +416,14 @@ export default function CardFields({
                     }`}>
                     {field.fieldtype === "Markdown" ? (
                         <InputMarkdown
+                            initialValue={String(value)}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            onSaveRequested={() => handleSave()}
+                        />
+                    ) : field.fieldtype === "SimpleMarkdown" ? (
+                        <InputSimpleMarkdown
                             initialValue={String(value)}
                             onChange={(v) =>
                                 handleInputChange(field.fieldid, v)

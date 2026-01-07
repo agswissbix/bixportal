@@ -19,11 +19,10 @@ import {
     ReactNodeViewRenderer,
     NodeViewWrapper,
     NodeViewContent,
-    mergeAttributes,
-    ReactRenderer,  
+    mergeAttributes, 
 } from "@tiptap/react";
 
-import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
+import { BubbleMenu } from "@tiptap/react/menus";
 
 import { StarterKit } from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
@@ -32,8 +31,6 @@ import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
-import Paragraph from "@tiptap/extension-paragraph";
-import Heading from "@tiptap/extension-heading";
 import TextAlign from "@tiptap/extension-text-align";
 import {TextStyle} from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
@@ -47,9 +44,6 @@ import FloatingMenuExtension from "@tiptap/extension-floating-menu";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import CharacterCount from "@tiptap/extension-character-count";
-import { Extension } from "@tiptap/core";
-import Suggestion from "@tiptap/suggestion";
-import tippy from "tippy.js";
 
 // --- TABELLE ---
 import { Table } from "@tiptap/extension-table";
@@ -68,17 +62,12 @@ import {
     List,
     ListOrdered,
     Table as TableIcon,
-    Plus,
     Trash2,
     BetweenVerticalEnd,
     BetweenHorizontalEnd,
-    Split,
     Heading1,
     Heading2,
     Heading3,
-    Heading4,
-    Heading5,
-    Heading6,
     Maximize,
     Minimize,
     Save,
@@ -92,24 +81,14 @@ import {
     AlignLeft,
     AlignCenter,
     AlignRight,
-    AlignJustify,
-    CheckSquare,
     CloudUpload,
     Undo,
     Redo,
-    Highlighter as HighlightIcon,
     LayoutList,
-    Highlighter,
-    QuoteIcon as Quote,
-    MinusIcon as Minus,
     UnderlineIcon,
-    Palette,
-    Baseline,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 // --- TYPES ---
 declare module "@tiptap/core" {
@@ -261,229 +240,7 @@ interface ResponseInterface {
     markdownContent: string;
 }
 
-const CustomParagraph = Paragraph.extend({
-    addStorage() {
-        return {
-            markdown: {
-                serialize(state, node) {
-                    if (
-                        node.attrs.textAlign &&
-                        node.attrs.textAlign !== "left"
-                    ) {
-                        state.write(
-                            `<p style="text-align: ${node.attrs.textAlign}">`
-                        );
-                        state.renderInline(node);
-                        state.write(`</p>`);
-                        state.closeBlock(node);
-                    } else {
-                        state.renderInline(node);
-                        state.closeBlock(node);
-                    }
-                },
-            },
-        };
-    },
-});
-
-const CustomHeading = Heading.extend({
-    addStorage() {
-        return {
-            markdown: {
-                serialize(state, node) {
-                    if (
-                        node.attrs.textAlign &&
-                        node.attrs.textAlign !== "left"
-                    ) {
-                        state.write(
-                            `<h${node.attrs.level} style="text-align: ${node.attrs.textAlign}">`
-                        );
-                        state.renderInline(node);
-                        state.write(`</h${node.attrs.level}>`);
-                        state.closeBlock(node);
-                    } else {
-                        state.write(state.repeat("#", node.attrs.level) + " ");
-                        state.renderInline(node);
-                        state.closeBlock(node);
-                    }
-                },
-            },
-        };
-    },
-});
-
-// --- LOGICA SUGGESTION ---
-const Commands = Extension.create({
-    name: "mention",
-    addOptions() {
-        return {
-            suggestion: {
-                char: "/",
-                command: ({ editor, range, props }: any) => {
-                    props.command({ editor, range });
-                },
-            },
-        };
-    },
-    addProseMirrorPlugins() {
-        return [
-            Suggestion({
-                editor: this.editor,
-                ...this.options.suggestion,
-            }),
-        ];
-    },
-});
-
-// --- LISTA DEI COMANDI ---
-const getSuggestionItems = ({ query }: { query: string }) => {
-    return [
-        {
-            title: "Titolo 1",
-            description: "Titolo grande",
-            icon: <Heading1 size={18} />,
-            command: ({ editor, range }: any) => {
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange(range)
-                    .setNode("heading", { level: 1 })
-                    .run();
-            },
-        },
-        {
-            title: "Titolo 2",
-            description: "Titolo medio",
-            icon: <Heading2 size={18} />,
-            command: ({ editor, range }: any) => {
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange(range)
-                    .setNode("heading", { level: 2 })
-                    .run();
-            },
-        },
-        {
-            title: "Checklist",
-            description: "Lista di attività",
-            icon: <CheckSquare size={18} />,
-            command: ({ editor, range }: any) => {
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange(range)
-                    .toggleTaskList()
-                    .run();
-            },
-        },
-        {
-            title: "Tabella",
-            description: "Inserisci una griglia",
-            icon: <TableIcon size={18} />,
-            command: ({ editor, range }: any) => {
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange(range)
-                    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                    .run();
-            },
-        },
-        {
-            title: "Blocco Codice",
-            description: "Codice con evidenziazione",
-            icon: <Terminal size={18} />,
-            command: ({ editor, range }: any) => {
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange(range)
-                    .toggleCodeBlock()
-                    .run();
-            },
-        },
-    ]
-        .filter((item) =>
-            item.title.toLowerCase().startsWith(query.toLowerCase())
-        )
-        .slice(0, 10);
-};
-
-const CommandList = React.forwardRef((props: any, ref) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
-
-    const selectItem = (index: number) => {
-        const item = props.items[index];
-        if (item) {
-            props.command(item);
-        }
-    };
-
-    useEffect(() => setSelectedIndex(0), [props.items]);
-
-    React.useImperativeHandle(ref, () => ({
-        onKeyDown: ({ event }: any) => {
-            if (event.key === "ArrowUp") {
-                setSelectedIndex(
-                    (selectedIndex + props.items.length - 1) %
-                        props.items.length
-                );
-                return true;
-            }
-            if (event.key === "ArrowDown") {
-                setSelectedIndex((selectedIndex + 1) % props.items.length);
-                return true;
-            }
-            if (event.key === "Enter") {
-                selectItem(selectedIndex);
-                return true;
-            }
-            return false;
-        },
-    }));
-
-    return (
-        <div className="bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden flex flex-col min-w-[200px] p-1">
-            {props.items.length ? (
-                props.items.map((item: any, index: number) => (
-                    <button
-                        key={index}
-                        onClick={() => selectItem(index)}
-                        className={`flex items-center gap-3 px-3 py-2 text-left text-sm rounded-md transition-colors ${
-                            index === selectedIndex
-                                ? "bg-blue-50 text-blue-700"
-                                : "hover:bg-slate-50 text-slate-700"
-                        }`}>
-                        <div
-                            className={`p-1.5 rounded border ${
-                                index === selectedIndex
-                                    ? "bg-white border-blue-200"
-                                    : "bg-slate-50"
-                            }`}>
-                            {item.icon}
-                        </div>
-                        <div>
-                            <div className="font-bold leading-none mb-1">
-                                {item.title}
-                            </div>
-                            <div className="text-[10px] text-slate-400 uppercase tracking-tight">
-                                {item.description}
-                            </div>
-                        </div>
-                    </button>
-                ))
-            ) : (
-                <div className="px-3 py-2 text-slate-400 text-sm italic">
-                    Nessun comando...
-                </div>
-            )}
-        </div>
-    );
-});
-CommandList.displayName = "CommandList";
-
-export default function inputMarkdown({
+export default function inputSimpleMarkdown({
     initialValue,
     onChange,
     onSaveRequested,
@@ -539,16 +296,8 @@ export default function inputMarkdown({
         immediatelyRender: false,
         extensions: [
             StarterKit.configure({
-                heading: false,
-                paragraph: false,
+                heading: { levels: [1, 2, 3] },
                 codeBlock: false,
-            }),
-            CustomParagraph,
-            CustomHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
-            TextAlign.configure({
-                types: ["heading", "paragraph"],
-                alignments: ["left", "center", "right", "justify"],
-                defaultAlignment: "left",
             }),
             Markdown.configure({
                 html: true,
@@ -567,7 +316,6 @@ export default function inputMarkdown({
                 },
             }),
             BubbleMenuExtension.configure({ element: null }),
-            FloatingMenuExtension.configure({ element: null }),
             CodeBlockLowlight.extend({
                 addNodeView() {
                     return ReactNodeViewRenderer(CodeBlockComponent);
@@ -578,7 +326,7 @@ export default function inputMarkdown({
             TableCell,
             TableHeader,
             Placeholder.configure({
-                placeholder: "Inizia a scrivere o usa '/' per i comandi...",
+                placeholder: "Inizia a scrivere qualcosa...",
             }),
             Link.configure({
                 openOnClick: false,
@@ -668,51 +416,6 @@ export default function inputMarkdown({
                     return ReactNodeViewRenderer(ResizableImageComponent);
                 },
             }).configure({ allowBase64: false }),
-            Commands.configure({
-                suggestion: {
-                    items: getSuggestionItems,
-                    render: () => {
-                        let component: any;
-                        let popup: any;
-
-                        return {
-                            onStart: (props: any) => {
-                                component = new ReactRenderer(CommandList, {
-                                    props,
-                                    editor: props.editor,
-                                });
-
-                                popup = tippy("body", {
-                                    getReferenceClientRect: props.clientRect,
-                                    appendTo: () => document.body,
-                                    content: component.element,
-                                    showOnCreate: true,
-                                    interactive: true,
-                                    trigger: "manual",
-                                    placement: "bottom-start",
-                                });
-                            },
-                            onUpdate(props: any) {
-                                component.updateProps(props);
-                                popup[0].setProps({
-                                    getReferenceClientRect: props.clientRect,
-                                });
-                            },
-                            onKeyDown(props: any) {
-                                if (props.event.key === "Escape") {
-                                    popup[0].hide();
-                                    return true;
-                                }
-                                return component.ref?.onKeyDown(props);
-                            },
-                            onExit() {
-                                popup[0].destroy();
-                                component.destroy();
-                            },
-                        };
-                    },
-                },
-            }),
         ],
         content: responseData.markdownContent,
         onUpdate: ({ editor }) => {
@@ -1023,95 +726,6 @@ export default function inputMarkdown({
                                     }`}>
                                     <Heading3 size={18} />
                                 </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleHeading({ level: 4 })
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("heading", { level: 4 })
-                                            ? "bg-slate-900 text-white shadow-lg"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <Heading4 size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleHeading({ level: 5 })
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("heading", { level: 5 })
-                                            ? "bg-slate-900 text-white shadow-lg"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <Heading5 size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleHeading({ level: 6 })
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("heading", { level: 6 })
-                                            ? "bg-slate-900 text-white shadow-lg"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <Heading6 size={18} />
-                                </button>
-                            </div>
-
-                            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .unsetColor()
-                                            .run()
-                                    }
-                                    className="p-2 hover:bg-slate-200 text-slate-400 rounded-lg"
-                                    title="Colore Automatico">
-                                    <Baseline size={18} />
-                                </button>
-
-                                {[
-                                    { name: "Black", color: "#000000" },
-                                    { name: "Red", color: "#ef4444" },
-                                    { name: "Blue", color: "#3b82f6" },
-                                    { name: "Green", color: "#22c55e" },
-                                    { name: "Orange", color: "#f97316" },
-                                    { name: "Purple", color: "#a855f7" },
-                                ].map((c) => (
-                                    <button
-                                        key={c.color}
-                                        type="button"
-                                        onClick={() =>
-                                            editor
-                                                .chain()
-                                                .focus()
-                                                .setColor(c.color)
-                                                .run()
-                                        }
-                                        className="w-6 h-6 rounded-full border border-white shadow-sm transition-transform hover:scale-125"
-                                        style={{ backgroundColor: c.color }}
-                                        title={c.name}
-                                    />
-                                ))}
                             </div>
 
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
@@ -1165,32 +779,6 @@ export default function inputMarkdown({
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleHighlight()
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("highlight")
-                                            ? "bg-yellow-400 text-black"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <HighlightIcon size={18} />
-                                </button>
-                                <button
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleBlockquote()
-                                            .run()
-                                    }>
-                                    <Quote size={18} />
-                                </button>
-                                <button
-                                    type="button"
                                     onClick={setLink}
                                     className={`p-2 rounded-lg ${
                                         editor.isActive("link")
@@ -1202,92 +790,6 @@ export default function inputMarkdown({
                             </div>
 
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .setTextAlign("left")
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive({ textAlign: "left" })
-                                            ? "bg-white shadow-sm text-blue-600"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <AlignLeft size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .setTextAlign("center")
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive({ textAlign: "center" })
-                                            ? "bg-white shadow-sm text-blue-600"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <AlignCenter size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .setTextAlign("right")
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive({ textAlign: "right" })
-                                            ? "bg-white shadow-sm text-blue-600"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <AlignRight size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .setTextAlign("justify")
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive({
-                                            textAlign: "justify",
-                                        })
-                                            ? "bg-white shadow-sm text-blue-600"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <AlignJustify size={18} />
-                                </button>
-                            </div>
-
-                            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleTaskList()
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("taskList")
-                                            ? "bg-slate-900 text-white shadow-lg"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}
-                                    title="Checklist">
-                                    <CheckSquare size={18} />
-                                </button>
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -1543,48 +1045,6 @@ export default function inputMarkdown({
                         </button>
                     </BubbleMenu>
 
-                    <FloatingMenu
-                        editor={editor}
-                        className="flex gap-1 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                editor
-                                    .chain()
-                                    .focus()
-                                    .toggleHeading({ level: 2 })
-                                    .run()
-                            }
-                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
-                            <Heading2 size={16} />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                editor.chain().focus().toggleBulletList().run()
-                            }
-                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
-                            <List size={16} />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                editor.chain().focus().toggleOrderedList().run()
-                            }
-                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
-                            <ListOrdered size={16} />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                editor.chain().focus().run();
-                                fileInputRef.current?.click();
-                            }}
-                            className="p-2 hover:bg-slate-50 rounded-lg text-slate-600">
-                            <ImageIcon size={16} />
-                        </button>
-                    </FloatingMenu>
-
                     <div className="flex flex-1 overflow-hidden relative">
                         {/* SIDEBAR INDICE */}
                         {isFullScreen && (
@@ -1700,47 +1160,6 @@ export default function inputMarkdown({
                         .prose ul:not([data-type="taskList"]) > li {
                             padding-left: 0.5rem;
                             margin-bottom: 0.25rem;
-                        }
-
-                        /* 2. CHECKLIST (TaskList) */
-                        .prose ul[data-type="taskList"] {
-                            list-style: none !important;
-                            padding: 0 !important;
-                            margin: 1.5rem 0 !important;
-                        }
-
-                        .prose ul[data-type="taskList"] li {
-                            display: flex;
-                            align-items: flex-start;
-                            gap: 0.75rem;
-                            margin-bottom: 0.5rem;
-                        }
-
-                        /* Rimuove i pallini generati automaticamente da Tailwind nelle checklist */
-                        .prose ul[data-type="taskList"] li::before {
-                            content: none !important;
-                            display: none !important;
-                        }
-
-                        /* Allineamento perfetto del checkbox con la riga di testo */
-                        .prose ul[data-type="taskList"] input[type="checkbox"] {
-                            appearance: checkbox !important;
-                            width: 1.1rem;
-                            height: 1.1rem;
-                            cursor: pointer;
-                            margin: 0;
-                            margin-top: 0.35rem;
-                            flex-shrink: 0;
-                        }
-
-                        /* Effetto sbiadito e barrato per task completate */
-                        .prose
-                            ul[data-type="taskList"]
-                            li[data-checked="true"]
-                            > div
-                            > p {
-                            text-decoration: line-through;
-                            opacity: 0.5;
                         }
 
                         /* 3. IMMAGINI (Allineamento e Dimensioni) */
@@ -1897,11 +1316,6 @@ export default function inputMarkdown({
                             top: 0;
                             width: 4px;
                             z-index: 20;
-                        }
-
-                        /* Gestione colori */
-                        .prose span[style*="color"] {
-                            color: inherit;
                         }
                     `}</style>
                 </div>
