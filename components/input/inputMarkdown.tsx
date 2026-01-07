@@ -761,6 +761,8 @@ export default function inputMarkdown({
                 return false;
             },
             handlePaste: (view, event) => {
+                const text = event.clipboardData?.getData("text/plain");
+
                 if (
                     event.clipboardData &&
                     event.clipboardData.files &&
@@ -776,6 +778,44 @@ export default function inputMarkdown({
                         images.forEach((image) => {
                             handleImageUpload(image);
                         });
+                        return true;
+                    }
+                }
+
+                if (text && text.includes("|")) {
+                    const lines = text.split("\n");
+                    const cleanedLines: string[] = [];
+                    let inTable = false;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const currentLine = lines[i].trim();
+                        const isTableLine =
+                            currentLine.startsWith("|") &&
+                            currentLine.endsWith("|");
+
+                        if (isTableLine) {
+                            inTable = true;
+                            cleanedLines.push(currentLine);
+                        } else if (inTable && currentLine === "") {
+                            const nextLine = lines[i + 1]?.trim();
+                            if (nextLine && nextLine.startsWith("|")) {
+                                continue;
+                            } else {
+                                inTable = false;
+                                cleanedLines.push(currentLine);
+                            }
+                        } else {
+                            inTable = false;
+                            cleanedLines.push(currentLine);
+                        }
+                    }
+
+                    const cleanedText = cleanedLines.join("\n");
+
+                    if (cleanedText !== text) {
+                        const { state } = view;
+                        const { tr } = state;
+                        view.dispatch(tr.insertText(cleanedText));
                         return true;
                     }
                 }

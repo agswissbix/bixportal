@@ -31,7 +31,6 @@ import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
 import {TextStyle} from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 
@@ -464,6 +463,8 @@ export default function inputSimpleMarkdown({
                 return false;
             },
             handlePaste: (view, event) => {
+                const text = event.clipboardData?.getData("text/plain");
+
                 if (
                     event.clipboardData &&
                     event.clipboardData.files &&
@@ -479,6 +480,44 @@ export default function inputSimpleMarkdown({
                         images.forEach((image) => {
                             handleImageUpload(image);
                         });
+                        return true;
+                    }
+                }
+                
+                if (text && text.includes("|")) {
+                    const lines = text.split("\n");
+                    const cleanedLines: string[] = [];
+                    let inTable = false;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const currentLine = lines[i].trim();
+                        const isTableLine =
+                            currentLine.startsWith("|") &&
+                            currentLine.endsWith("|");
+
+                        if (isTableLine) {
+                            inTable = true;
+                            cleanedLines.push(currentLine);
+                        } else if (inTable && currentLine === "") {
+                            const nextLine = lines[i + 1]?.trim();
+                            if (nextLine && nextLine.startsWith("|")) {
+                                continue;
+                            } else {
+                                inTable = false;
+                                cleanedLines.push(currentLine);
+                            }
+                        } else {
+                            inTable = false;
+                            cleanedLines.push(currentLine);
+                        }
+                    }
+
+                    const cleanedText = cleanedLines.join("\n");
+
+                    if (cleanedText !== text) {
+                        const { state } = view;
+                        const { tr } = state;
+                        view.dispatch(tr.insertText(cleanedText));
                         return true;
                     }
                 }
@@ -1271,6 +1310,7 @@ export default function inputSimpleMarkdown({
                             width: 100%;
                             margin: 2rem 0;
                             overflow: hidden;
+                            display: table !important;
                         }
 
                         .prose table td,
