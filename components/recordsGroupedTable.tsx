@@ -263,6 +263,7 @@ export default function RecordsGroupedTable({
                                                                 searchTerm
                                                             }
                                                             view={view}
+                                                            context={view}
                                                             order={order}
                                                             filtersList={[
                                                                 ...filtersList,
