@@ -740,23 +740,27 @@ export default function MarkdownDocEditor({
                                         }
                                     />
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        onSaveRequested?.();
-                                        setIsSavingFlash(true);
-                                        setTimeout(
-                                            () => setIsSavingFlash(false),
-                                            500
-                                        );
-                                    }}
-                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${
-                                        isSavingFlash
-                                            ? "bg-green-600 text-white scale-105"
-                                            : "bg-blue-600 text-white hover:bg-blue-700"
-                                    }`}>
-                                    <Save size={16} /> <span>SALVA</span>
-                                </button>
+                                {isFullScreen ? (
+                                       <button
+                                            type="button"
+                                            onClick={() => {
+                                                onSaveRequested?.();
+                                                setIsSavingFlash(true);
+                                                setTimeout(
+                                                    () => setIsSavingFlash(false),
+                                                    500
+                                                );
+                                            }}
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${
+                                                isSavingFlash
+                                                    ? "bg-green-600 text-white scale-105"
+                                                    : "bg-blue-600 text-white hover:bg-blue-700"
+                                            }`}>
+                                            <Save size={16} /> <span>SALVA</span>
+                                        </button> 
+                                    ) : null
+                                }
+                                
                             </div>
                         </div>
                         <button
