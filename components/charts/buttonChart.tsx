@@ -149,7 +149,6 @@ export default function ButtonChart({ chartData }: Props) {
                             }}
                             // Passiamo handleExecute come onClick e gestiamo lo stato esternamente
                             onClick={handleExecute}
-                            externalLoading={isLoading}
                         />
                     </div>
 

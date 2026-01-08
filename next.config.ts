@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     reactStrictMode: true,
 
     devIndicators: {
-        // buildActivity: false, // Decommenta se vuoi nascondere lo spinner
+        // buildActivity is now handled automatically or removed; just set the position
         position: "bottom-left",
     },
 
