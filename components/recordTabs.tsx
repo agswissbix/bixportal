@@ -17,6 +17,7 @@ import { CalendarBase, CalendarChildProps } from './calendar/calendarBase';
 import RecordsCalendar from './recordsCalendar';
 import MatrixView from './calendar/matrixView';
 import UnifiedCalendar from './calendar/unifiedCalendar';
+import RecordsGroupedTable from './recordsGroupedTable';
 
 const isDev = false;
 
@@ -36,12 +37,12 @@ export default function RecordTabs({ tableid }: PropsInterface) {
   );
 
   const responseDataDEFAULT: ResponseInterface = {
-    tableTabs: ['Tabella', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
+    tableTabs: ['Tabella', 'TabellaRaggruppata', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
     activeTab: 'Tabella'
   };
 
   const responseDataDEV: ResponseInterface = {
-    tableTabs: ['Tabella', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
+    tableTabs: ['Tabella', 'TabellaRaggruppata', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
     activeTab: 'Tabella'
   };
 
@@ -109,6 +110,15 @@ export default function RecordTabs({ tableid }: PropsInterface) {
                               limit={100}
                           />
                       )}
+                      {activeTab === "TabellaRaggruppata" && (
+                            <RecordsGroupedTable
+                                tableid={tableid}
+                                view={tableView}
+                                searchTerm={searchTerm}
+                                filtersList={filtersList}
+                                limit={100}
+                            />
+                      )}
                       {activeTab === "Kanban" && (
                           <RecordsKanban
                               tableid={tableid}
@@ -168,6 +178,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
                       )}
                       {[
                           "Tabella",
+                          "TabellaRaggruppata",
                           "Kanban",
                           "Calendario",
                           "Gallery",

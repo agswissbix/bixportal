@@ -69,6 +69,7 @@ interface ResponseInterface {
     servizi: ListItem[];
     opzioni: ListItem[];
     aziendeRecenti: ListItem[];
+    progettiRecenti: ListItem[];
     utenteCorrente: ListItem;
 }
 
@@ -544,6 +545,43 @@ export default function ProfessionalTimesheet() {
                                                 }`}
                                             />
                                         </button>
+
+                                        {res.progettiRecenti?.length > 0 &&
+                                            !formData.progetto && (
+                                                <div className="mt-10 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
+                                                    <div className="flex items-center gap-2 mb-4 px-2">
+                                                        <Icons.ClockIcon className="w-4 h-4 text-zinc-400" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                                            Progetti Recenti
+                                                        </span>
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        {res.progettiRecenti.map(
+                                                            (prj) => (
+                                                                <button
+                                                                    key={prj.id}
+                                                                    onClick={() =>
+                                                                        update(
+                                                                            "progetto",
+                                                                            prj
+                                                                        )
+                                                                    }
+                                                                    className="w-full p-5 bg-white border border-zinc-100 rounded-2xl text-left flex items-center justify-between hover:border-orange-200 active:bg-orange-50 transition-all group shadow-sm">
+                                                                    <div className="overflow-hidden">
+                                                                        <p className="font-bold text-zinc-800 text-sm group-hover:text-orange-600 transition-colors">
+                                                                            {
+                                                                                prj.name
+                                                                            }
+                                                                        </p>
+                                                                    </div>
+                                                                    <Icons.ChevronRightIcon className="w-4 h-4 text-zinc-200 group-hover:text-orange-400 transition-colors" />
+                                                                </button>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                         {formData.progetto && (
                                             <button
                                                 onClick={() =>
@@ -724,8 +762,11 @@ export default function ProfessionalTimesheet() {
                                                 </span>
                                                 <input
                                                     type="time"
+                                                    step="900"
                                                     className="font-bold text-4xl outline-none text-orange-600 text-right bg-transparent"
                                                     value={formData.tempoLavoro}
+                                                    min="00:00"
+                                                    max="12:00"
                                                     onChange={(e) =>
                                                         update(
                                                             "tempoLavoro",
@@ -740,6 +781,9 @@ export default function ProfessionalTimesheet() {
                                                 </span>
                                                 <input
                                                     type="time"
+                                                    step="900"
+                                                    min="00:00"
+                                                    max="12:00"
                                                     className="font-bold text-xl outline-none text-zinc-400 text-right bg-transparent"
                                                     value={
                                                         formData.tempoTrasferta

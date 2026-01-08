@@ -182,6 +182,12 @@ export async function POST(request: Request) {
         case "get_table_records":
             djangoUrl = "/commonapp/get_table_records/";
             break;
+        case "get_grouped_table_records":
+            djangoUrl = "/commonapp/get_grouped_table_records/";
+            break;
+        case "get_available_groups_for_table":
+            djangoUrl = "/commonapp/get_available_groups_for_table/";
+            break;
         case "get_calendar_records":
             djangoUrl = "/commonapp/get_calendar_records/";
             break;
@@ -583,6 +589,17 @@ export async function POST(request: Request) {
         case "save_timesheet_attachment":
             djangoUrl = "/customapp_swissbix/save_timesheet_attachment/";
             break;
+        case "upload_markdown_image":
+            djangoUrl = "/customapp_swissbix/upload_markdown_image/";
+            break;
+        case "swissbix_create_timesheet_from_timetracking":
+            djangoUrl =
+                "/customapp_swissbix/swissbix_create_timesheet_from_timetracking/";
+            break;
+        case "start_timetracking_from_task":
+            djangoUrl = "/customapp_swissbix/start_timetracking_from_task/";
+            break;
+        
 
         // TEMPORARY
         case "get_job_status":

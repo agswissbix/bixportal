@@ -23,6 +23,14 @@ import LoadingComp from "./loading"
 import { ChevronDownIcon } from "@heroicons/react/24/solid"
 import InputTime from "./input/inputTime"
 import { Input } from "./ui/input"
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import dynamic from "next/dynamic"
+import InputSimpleMarkdown from "./input/inputSimpleMarkdown"
+
+const InputMarkdown = dynamic(() => import("./input/inputMarkdown"), {
+    ssr: false,
+});
 
 const isDev = false
 
@@ -260,6 +268,8 @@ export default function CardFields({
     const isEditInsert = isNewRecord ? true : isEditable
     const rawValue = typeof field.value === "object" ? field.value?.value : field.value
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
+    const isMarkdown = field.fieldtype === "Markdown";
+    const isSimpleMarkdown = field.fieldtype === "SimpleMarkdown";
     const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true")
         || !isEditInsert
 
@@ -337,6 +347,14 @@ export default function CardFields({
                 formValues={currentValues}
                 disabled={true}
               />
+              ) : isMarkdown ? (
+                <article className="prose prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{String(value)}</ReactMarkdown>
+                </article>
+              ) : isSimpleMarkdown ? (
+                <article className="prose prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{String(value)}</ReactMarkdown>
+                </article>
               ) : (
                 <div className="min-h-[24px]" dangerouslySetInnerHTML={{ __html: value }} />
               )}
@@ -347,102 +365,186 @@ export default function CardFields({
     }
 
     return (
-      <div
-        key={`${field.fieldid}-container`}
-        className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group"
-        onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}
-      >
-        <div className="w-full lg:w-1/4 pt-2">
-          <div className="flex items-center gap-1">
-            {isRequired && (
-              <div
-                className={`w-1 h-4 rounded-full mr-1 ${
-                  isRequiredEmpty ? "bg-red-500" : isRequiredFilled ? "bg-green-500" : ""
-                }`}
-              />
-            )}
-            <p
-              data-tooltip-id="my-tooltip"
-              data-tooltip-content={`${role === "admin" ? field.fieldid : ""}${isRequired ? " (Campo obbligatorio)" : ""}`}
-              data-tooltip-place="top"
-              className={`text-sm font-medium ${isRequired ? "text-gray-900" : "text-gray-700"}`}
-            >
-              {field.description}
-            </p>
-          </div>
-        </div>
-
         <div
-          className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
-            theme !== 'alenonvede' ? 
-              (isRequiredEmpty ? "ring-2 ring-red-500/20" : isRequiredFilled ? "ring-2 ring-green-500/20" : "") : ""
-            }`}
-        >
-          <div
-            className={`${
-              isRequiredEmpty
-                ? "[&>*]:!border-red-400 [&>*]:!border-radius-25 [&>*]:focus:!border-red-500 [&>*]:focus:!ring-red-500/20"
-                : isRequiredFilled
-                  ? "[&>*]:!border-green-400 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
-                  : ""
-            }`}
-          >
-            {field.fieldtype === "Parola" ? (
-              <InputWord initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : (field.fieldtype === "lookup" || field.fieldtype === "Categoria") && field.lookupitems ? (
-              <SelectStandard
-                lookupItems={field.lookupitems}
-                initialValue={value}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-                isMulti={false}
-              />
-            ) : field.fieldtype === "multiselect" && field.lookupitems ? (
-              <SelectStandard
-                lookupItems={field.lookupitems}
-                initialValue={value}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-                isMulti={true}
-              />
-            ) : field.fieldtype === "Numero" ? (
-              <InputNumber initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === "Data" ? (
-              <InputDate initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === "Ora" ? (
-              <InputTime initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === "Memo" ? (
-              <InputMemo initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === "Checkbox" ? (
-              <InputCheckbox initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === "Utente" && field.lookupitemsuser ? (
-              <SelectUser
-                lookupItems={field.lookupitemsuser}
-                initialValue={value}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-                isMulti={false}
-              />
-            ) : field.fieldtype === "linkedmaster" ? (
-              <InputLinked
-                initialValue={value}
-                valuecode={typeof field.value === "object" ? field.value : undefined}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-                tableid={tableid}
-                linkedmaster_tableid={field.linked_mastertable}
-                linkedmaster_recordid={typeof field.value === "object" ? field.value?.code : ""}
-                fieldid={field.fieldid}
-                formValues={currentValues}
-              />
-            ) : field.fieldtype === "html" ? (
-              <InputEditor initialValue={value} onChange={(v) => handleInputChange(field.fieldid, v)} />
-            ) : field.fieldtype === "Attachment" ? (
-              <InputFile
-                initialValue={value ? `/api/media-proxy?url=${value}` : null}
-                onChange={(v) => handleInputChange(field.fieldid, v)}
-              />
-            ) : null}
-          </div>
+            key={`${field.fieldid}-container`}
+            className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group"
+            onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}>
+            <div className="w-full lg:w-1/4 pt-2">
+                <div className="flex items-center gap-1">
+                    {isRequired && (
+                        <div
+                            className={`w-1 h-4 rounded-full mr-1 ${
+                                isRequiredEmpty
+                                    ? "bg-red-500"
+                                    : isRequiredFilled
+                                    ? "bg-green-500"
+                                    : ""
+                            }`}
+                        />
+                    )}
+                    <p
+                        data-tooltip-id="my-tooltip"
+                        data-tooltip-content={`${
+                            role === "admin" ? field.fieldid : ""
+                        }${isRequired ? " (Campo obbligatorio)" : ""}`}
+                        data-tooltip-place="top"
+                        className={`text-sm font-medium ${
+                            isRequired ? "text-gray-900" : "text-gray-700"
+                        }`}>
+                        {field.description}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                className={`w-full lg:w-3/4 relative transition-all duration-200 rounded-md ${
+                    theme !== "alenonvede"
+                        ? isRequiredEmpty
+                            ? "ring-2 ring-red-500/20"
+                            : isRequiredFilled
+                            ? "ring-2 ring-green-500/20"
+                            : ""
+                        : ""
+                }`}>
+                <div
+                    className={`${
+                        isRequiredEmpty
+                            ? "[&>*]:!border-red-400 [&>*]:!border-radius-25 [&>*]:focus:!border-red-500 [&>*]:focus:!ring-red-500/20"
+                            : isRequiredFilled
+                            ? "[&>*]:!border-green-400 [&>*]:focus:!border-green-500 [&>*]:focus:!ring-green-500/20"
+                            : ""
+                    }`}>
+                    {field.fieldtype === "Markdown" ? (
+                        <InputMarkdown
+                            initialValue={String(value)}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            onSaveRequested={() => handleSave()}
+                        />
+                    ) : field.fieldtype === "SimpleMarkdown" ? (
+                        <InputSimpleMarkdown
+                            initialValue={String(value)}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            onSaveRequested={() => handleSave()}
+                        />
+                    ) : field.fieldtype === "Parola" ? (
+                        <InputWord
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : (field.fieldtype === "lookup" ||
+                          field.fieldtype === "Categoria") &&
+                      field.lookupitems ? (
+                        <SelectStandard
+                            lookupItems={field.lookupitems}
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            isMulti={false}
+                        />
+                    ) : field.fieldtype === "multiselect" &&
+                      field.lookupitems ? (
+                        <SelectStandard
+                            lookupItems={field.lookupitems}
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            isMulti={true}
+                        />
+                    ) : field.fieldtype === "Numero" ? (
+                        <InputNumber
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : field.fieldtype === "Data" ? (
+                        <InputDate
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : field.fieldtype === "Ora" ? (
+                        <InputTime
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : field.fieldtype === "Memo" ? (
+                        <InputMemo
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : field.fieldtype === "Checkbox" ? (
+                        <InputCheckbox
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : field.fieldtype === "Utente" &&
+                      field.lookupitemsuser ? (
+                        <SelectUser
+                            lookupItems={field.lookupitemsuser}
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            isMulti={false}
+                        />
+                    ) : field.fieldtype === "linkedmaster" ? (
+                        <InputLinked
+                            initialValue={value}
+                            valuecode={
+                                typeof field.value === "object"
+                                    ? field.value
+                                    : undefined
+                            }
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                            tableid={tableid}
+                            linkedmaster_tableid={field.linked_mastertable}
+                            linkedmaster_recordid={
+                                typeof field.value === "object"
+                                    ? field.value?.code
+                                    : ""
+                            }
+                            fieldid={field.fieldid}
+                            formValues={currentValues}
+                        />
+                    ) : field.fieldtype === "html" ? (
+                        <InputEditor
+                            initialValue={value}
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : field.fieldtype === "Attachment" ? (
+                        <InputFile
+                            initialValue={
+                                value ? `/api/media-proxy?url=${value}` : null
+                            }
+                            onChange={(v) =>
+                                handleInputChange(field.fieldid, v)
+                            }
+                        />
+                    ) : null}
+                </div>
+            </div>
         </div>
-      </div>
-    )
+    );
   }
 
   useEffect(() => {

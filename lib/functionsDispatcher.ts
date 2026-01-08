@@ -1,6 +1,7 @@
 // functionsDispatcher.ts
 import { useRecordsStore } from "@/components/records/recordsStore"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
+import { se } from "date-fns/locale"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
@@ -321,6 +322,61 @@ export function useFrontendFunctions() {
     } catch (error) {
       console.error("Errore durante la creazione dei record", error)
       toast.error("Errore durante la creazione dei record")
+    }
+  },
+  swissbix_create_timesheet_from_timetracking: async (params: object) => {
+    console.info("dispatcher: swissbix_create_timesheet_from_timetracking");
+
+    const service = await openPopup("service", null);
+    if (service == null) {
+        toast.error("Operazione annullata");
+        return;
+    }
+
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "swissbix_create_timesheet_from_timetracking",
+          params: params,
+          service: service,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Timesheet creato con successo: " + response.data.status)
+      return response.data
+    } catch (error) {
+      console.error("Errore durante la creazione del record", error)
+      toast.error("Errore durante la creazione del record")
+    }
+  },
+  start_timetracking_from_task: async (params: object) => {
+    console.info("dispatcher: start_timetracking_from_task")
+    try {
+        const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+                apiRoute: "start_timetracking_from_task",
+                params: params,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+        );
+        toast.success("Timetracking creato con successo: " + response.data.status);
+
+        response.data?.url && window.open(response.data.url, "_blank");
+
+        return response.data;
+    } catch (error) {
+        console.error("Errore durante la creazione del record", error);
+        toast.error("Errore durante la creazione del record");
     }
   },
   

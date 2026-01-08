@@ -53,6 +53,8 @@ const fieldTypeOptions = [
   { value: "Memo", label: "Memo", icon: FileText },
   { value: "html", label: "HTML", icon: FileText },
   { value: "Linked", label: "Linked", icon: SquareArrowDownRightIcon },
+  { value: "Markdown", label: "Markdown", icon: FileText },
+  { value: "SimpleMarkdown", label: "SimpleMarkdown", icon: FileText },
 ]
 
 const typePreferenceOptions = [
