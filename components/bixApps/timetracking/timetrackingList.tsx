@@ -28,13 +28,16 @@ interface Timetracking {
     id: string;
     description: string;
     date: Date;
-    start: string; 
+    start: string;
     end: string;
     worktime: number;
     worktime_string: string;
     status: string; // "Attivo" | "Terminato"
     clientid?: string;
     client_name?: string;
+    task_id?: string;
+    task_name?: string;
+    task_expected_duration?: number;
 }
 
 interface Client {
@@ -46,6 +49,7 @@ interface Client {
 interface ResponseInterface {
     timetracking: Timetracking[];
     clients: Client[];
+    task_totals: Record<string, number>;
 }
 
 export default function TimetrackingList() {
@@ -55,92 +59,106 @@ export default function TimetrackingList() {
     // DATI RESPONSE DI DEFAULT
     const responseDataDEFAULT: ResponseInterface = {
         timetracking: [],
-        clients: []
+        clients: [],
+        task_totals: {},
     };
 
-    // DATI RESPONSE PER LO SVILUPPO 
+    // DATI RESPONSE PER LO SVILUPPO
     const responseDataDEV: ResponseInterface = {
         timetracking: [
             {
-                id: '1',
-                description: 'Sviluppo Backend API',
+                id: "1",
+                description: "Sviluppo Backend API",
                 date: new Date(),
-                start: '08:00',
-                end: '12:00',
+                start: "08:00",
+                end: "12:00",
                 worktime: 4.0,
-                worktime_string: '04:00',
-                status: 'Terminato',
+                worktime_string: "04:00",
+                status: "Terminato",
             },
             {
-                id: '2',
-                description: 'Meeting con il team',
+                id: "2",
+                description: "Meeting con il team",
                 date: new Date(),
-                start: '13:00',
-                end: '', 
+                start: "13:00",
+                end: "",
                 worktime: 0,
-                worktime_string: '00:00',
-                status: 'Attivo',
-            }
+                worktime_string: "00:00",
+                status: "Attivo",
+            },
         ],
         clients: [
             {
-                id: 'c1',
-                companyname: 'Azienda Alpha'
+                id: "c1",
+                companyname: "Azienda Alpha",
             },
             {
-                id: 'c2',
-                companyname: 'Beta Solutions'
+                id: "c2",
+                companyname: "Beta Solutions",
             },
             {
-                id: 'c3',
-                companyname: 'Gamma Corp'
+                id: "c3",
+                companyname: "Gamma Corp",
             },
             {
-                id: 'c4',
-                companyname: 'Delta Inc'
-            }
-        ]
+                id: "c4",
+                companyname: "Delta Inc",
+            },
+        ],
+        task_totals: {
+            "Sviluppo Backend API": 4.0,
+            "Meeting con il team": 0,
+        },
     };
 
     // DATI DEL CONTESTO
     const { user } = useContext(AppContext);
 
     // IMPOSTAZIONE DELLA RESPONSE
-    const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
-    
+    const [responseData, setResponseData] = useState<ResponseInterface>(
+        isDev ? responseDataDEV : responseDataDEFAULT
+    );
+
     // STATO PER IL TEMPO CORRENTE
     const [now, setNow] = useState(new Date());
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // STATO PER LA MODALE DI AGGIUNTA
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newDescription, setNewDescription] = useState('');
+    const [newDescription, setNewDescription] = useState("");
     const [selectedClientId, setSelectedClientId] = useState("");
 
     // STATO DI RICERCA
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     // PAYLOAD
     const payload = useMemo(() => {
         if (isDev) return null;
         return {
-            apiRoute: 'get_timetracking',
-            _t: refreshTrigger
+            apiRoute: "get_timetracking",
+            _t: refreshTrigger,
         };
     }, [refreshTrigger]);
 
     // CHIAMATA AL BACKEND
-    const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
+    const { response, loading, error } =
+        !isDev && payload
+            ? useApi<ResponseInterface>(payload)
+            : { response: null, loading: false, error: null };
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND
     useEffect(() => {
-        if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+        if (
+            !isDev &&
+            response &&
+            JSON.stringify(response) !== JSON.stringify(responseData)
+        ) {
             setResponseData(response);
         }
     }, [response, responseData]);
 
-    // PER DEVELOPMENT 
+    // PER DEVELOPMENT
     useEffect(() => {
         if (isDev) setResponseData({ ...responseData });
     }, []);
@@ -155,12 +173,12 @@ export default function TimetrackingList() {
     }, []);
 
     const activeTrack = useMemo(() => {
-        return responseData.timetracking.find(t => t.status === 'Attivo');
+        return responseData.timetracking.find((t) => t.status === "Attivo");
     }, [responseData.timetracking]);
 
     const finishedTracks = useMemo(() => {
         return responseData.timetracking
-            .filter(t => t.status !== 'Attivo')
+            .filter((t) => t.status !== "Attivo")
             .sort((a, b) => b.start.localeCompare(a.start));
     }, [responseData.timetracking]);
 
@@ -171,26 +189,55 @@ export default function TimetrackingList() {
         );
     }, [responseData.clients, searchQuery]);
 
+    const taskLiveTotals = useMemo(() => {
+        const totals = { ...(responseData.task_totals || {}) };
+
+        const active = responseData.timetracking.find(
+            (t) => t.status === "Attivo"
+        );
+
+        if (active) {
+            const taskId = active.task_id || "no_task";
+            const [h, m] = active.start.split(":").map(Number);
+            const start = new Date();
+            start.setHours(h, m, 0, 0);
+
+            const currentSessionHours = Math.max(
+                0,
+                (now.getTime() - start.getTime()) / (1000 * 60 * 60)
+            );
+
+            totals[taskId] = (totals[taskId] || 0) + currentSessionHours;
+        }
+
+        return totals;
+    }, [responseData, now]);
+
     // HELPERS
     const getDynamicDuration = (startTime: string): string => {
         if (!startTime) return "00:00";
-        
-        const [startHours, startMinutes] = startTime.split(':').map(Number);
+
+        const [startHours, startMinutes] = startTime.split(":").map(Number);
         const startDate = new Date();
         startDate.setHours(startHours, startMinutes, 0, 0);
-        
+
         let diffMs = now.getTime() - startDate.getTime();
         if (diffMs < 0) diffMs = 0;
 
         const totalSeconds = Math.floor(diffMs / 1000);
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60; 
+        const seconds = totalSeconds % 60;
 
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+            2,
+            "0"
+        )}:${String(seconds).padStart(2, "0")}`;
     };
 
-    const calculateTotalHoursNumeric = (timetracking: Timetracking[]): number => {
+    const calculateTotalHoursNumeric = (
+        timetracking: Timetracking[]
+    ): number => {
         let totalMinutesSum = 0;
 
         for (const time of timetracking) {
@@ -198,46 +245,129 @@ export default function TimetrackingList() {
 
             let endHours, endMinutes;
 
-            if (time.status === 'Attivo') {
+            if (time.status === "Attivo") {
                 endHours = now.getHours();
                 endMinutes = now.getMinutes();
             } else if (time.end) {
-                [endHours, endMinutes] = time.end.split(':').map(Number);
+                [endHours, endMinutes] = time.end.split(":").map(Number);
             } else {
-                continue; 
+                continue;
             }
 
-            const [startHours, startMinutes] = time.start.split(':').map(Number);
+            const [startHours, startMinutes] = time.start
+                .split(":")
+                .map(Number);
 
-            const startTotalMinutes = (startHours * MINUTES_PER_HOUR) + startMinutes;
-            const endTotalMinutes = (endHours * MINUTES_PER_HOUR) + endMinutes;
+            const startTotalMinutes =
+                startHours * MINUTES_PER_HOUR + startMinutes;
+            const endTotalMinutes = endHours * MINUTES_PER_HOUR + endMinutes;
 
             let diff = endTotalMinutes - startTotalMinutes;
-            if (diff < 0) diff += 24 * 60; 
+            if (diff < 0) diff += 24 * 60;
 
             totalMinutesSum += diff;
         }
 
         return totalMinutesSum / MINUTES_PER_HOUR;
-    }
+    };
 
-    const totalWorkedHoursString = (numericHours: number) => {
+    const totalWorkedHoursString = (numericHours: number): string => {
         const hours = Math.floor(numericHours);
         const minutes = Math.round((numericHours - hours) * 60);
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    }   
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+            2,
+            "0"
+        )}`;
+    };
+
+    const formatDecimalToHMS = (decimalHours: number): string => {
+        const totalSeconds = Math.max(0, Math.floor(decimalHours * 3600));
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(
+            2,
+            "0"
+        )}:${String(s).padStart(2, "0")}`;
+    };
+
+    interface ProgressBarProps {
+        current: number;
+        expected: number;
+        color?: "blue" | "green" | "amber" | "purple";
+    }
+
+    const TaskProgressBar = ({
+        current,
+        expected,
+        color = "blue",
+    }: ProgressBarProps) => {
+        if (!expected || expected <= 0) return null;
+
+        const percentage = Math.min(
+            Math.round((current / expected) * 100),
+            100
+        );
+
+        const isOver = current > expected;
+
+        const colorClasses = {
+            blue: "bg-blue-500",
+            green: "bg-green-500",
+            amber: "bg-amber-500",
+            purple: "bg-purple-500",
+            red: "bg-red-500",
+        };
+
+        return (
+            <div className="mt-4 w-full">
+                <div className="flex justify-between items-end mb-1">
+                    <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                            Progresso Task
+                        </span>
+                        <span
+                            className={`text-xs font-mono font-bold ${
+                                isOver ? "text-red-500" : "text-blue-600"
+                            }`}>
+                            {formatDecimalToHMS(current)} /{" "}
+                            {formatDecimalToHMS(expected)}
+                        </span>
+                    </div>
+                    <span className="text-xs font-bold text-gray-500">
+                        {percentage}%
+                    </span>
+                </div>
+
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200">
+                    <div
+                        className={`h-full transition-all duration-1000 ease-linear ${
+                            isOver ? colorClasses.red : colorClasses[color]
+                        }`}
+                        style={{ width: `${percentage}%` }}
+                    />
+                </div>
+            </div>
+        );
+    };
 
     const handleStopActivity = async (timetracking: Timetracking) => {
         console.log("Stopping timetracking:", timetracking.id);
-                
+
         if (isDev) {
-            const updatedList = responseData.timetracking.map(t => {
+            const updatedList = responseData.timetracking.map((t) => {
                 if (t.id === timetracking.id) {
-                    const currentHours = String(now.getHours()).padStart(2, '0');
-                    const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+                    const currentHours = String(now.getHours()).padStart(
+                        2,
+                        "0"
+                    );
+                    const currentMinutes = String(now.getMinutes()).padStart(
+                        2,
+                        "0"
+                    );
                     return {
                         ...t,
-                        status: 'Terminato',
+                        status: "Terminato",
                         end: `${currentHours}:${currentMinutes}`,
                     };
                 }
@@ -250,11 +380,13 @@ export default function TimetrackingList() {
                     "/postApi",
                     {
                         apiRoute: "stop_timetracking",
-                        timetracking: timetracking.id
+                        timetracking: timetracking.id,
                     },
                     {
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                            Authorization: `Bearer ${localStorage.getItem(
+                                "token"
+                            )}`,
                         },
                     }
                 );
@@ -268,7 +400,7 @@ export default function TimetrackingList() {
                 console.error("Errore nel fermare il tracking:" + e);
             }
         }
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     const saveTimetracking = async (description: string, clientid?: string) => {
@@ -278,11 +410,13 @@ export default function TimetrackingList() {
                 {
                     apiRoute: "save_timetracking",
                     description: description,
-                    clientid: clientid || '',
-                }, 
+                    clientid: clientid || "",
+                },
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
                     },
                 }
             );
@@ -292,22 +426,21 @@ export default function TimetrackingList() {
             } else {
                 toast.success("Il timetracking è stato avviato correttamente!");
             }
-
         } catch (e) {
             console.error("Errore nell'iniziare il timetracking:" + e);
         }
-        
-        setRefreshTrigger(prev => prev + 1);
-    }
+
+        setRefreshTrigger((prev) => prev + 1);
+    };
 
     const openModal = () => {
-        setNewDescription('');
+        setNewDescription("");
         setIsModalOpen(true);
     };
 
     const closeModal = () => {
         setIsModalOpen(false);
-        setNewDescription('');
+        setNewDescription("");
         setSelectedClientId("");
         setSearchQuery("");
         setIsDropdownOpen(false);
@@ -315,7 +448,7 @@ export default function TimetrackingList() {
 
     const submitNewTracking = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        
+
         if (!newDescription.trim()) {
             toast.error("Inserisci una descrizione");
             return;
@@ -329,14 +462,24 @@ export default function TimetrackingList() {
         closeModal();
     };
 
-    const numericWorkedHours = calculateTotalHoursNumeric(response?.timetracking || []);
+    const numericWorkedHours = calculateTotalHoursNumeric(
+        response?.timetracking || []
+    );
     const remainingHours = Math.max(0, DAILY_GOAL_HOURS - numericWorkedHours);
-    
-    const estimatedFinishDate = new Date(now.getTime() + (remainingHours * 60 * 60 * 1000));
-    const estimatedFinishString = `${String(estimatedFinishDate.getHours()).padStart(2, '0')}:${String(estimatedFinishDate.getMinutes()).padStart(2, '0')}`;
+
+    const estimatedFinishDate = new Date(
+        now.getTime() + remainingHours * 60 * 60 * 1000
+    );
+    const estimatedFinishString = `${String(
+        estimatedFinishDate.getHours()
+    ).padStart(2, "0")}:${String(estimatedFinishDate.getMinutes()).padStart(
+        2,
+        "0"
+    )}`;
 
     const currentHour = now.getHours();
-    const isLunchTime = currentHour >= LUNCH_BREAK_START && currentHour < LUNCH_BREAK_END;
+    const isLunchTime =
+        currentHour >= LUNCH_BREAK_START && currentHour < LUNCH_BREAK_END;
     const isOvertime = numericWorkedHours > DAILY_GOAL_HOURS;
 
     return (
@@ -420,6 +563,23 @@ export default function TimetrackingList() {
                                                 </span>
                                             </div>
                                         </div>
+
+                                        <div>
+                                            <TaskProgressBar
+                                                current={
+                                                    taskLiveTotals[
+                                                        activeTrack.task_id ||
+                                                            "no_task"
+                                                    ] || 0
+                                                }
+                                                expected={
+                                                    activeTrack.task_expected_duration ||
+                                                    0
+                                                }
+                                                color="green"
+                                            />
+                                        </div>
+
                                         {isLunchTime && (
                                             <div className="mt-2 text-xs text-amber-700 text-right">
                                                 * Attività in corso durante la
@@ -581,6 +741,21 @@ export default function TimetrackingList() {
                                                         h
                                                     </span>
                                                 </div>
+                                            </div>
+
+                                            <div className="flex justify-between text-sm text-gray-500 mt-2 items-end">
+                                                <TaskProgressBar
+                                                    current={
+                                                        taskLiveTotals[
+                                                            track.task_id ||
+                                                                "no_task"
+                                                        ] || 0
+                                                    }
+                                                    expected={
+                                                        track.task_expected_duration ||
+                                                        0
+                                                    }
+                                                />
                                             </div>
                                         </div>
                                     ))

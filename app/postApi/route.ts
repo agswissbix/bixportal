@@ -596,6 +596,10 @@ export async function POST(request: Request) {
             djangoUrl =
                 "/customapp_swissbix/swissbix_create_timesheet_from_timetracking/";
             break;
+        case "start_timetracking_from_task":
+            djangoUrl = "/customapp_swissbix/start_timetracking_from_task/";
+            break;
+        
 
         // TEMPORARY
         case "get_job_status":

@@ -354,6 +354,31 @@ export function useFrontendFunctions() {
       toast.error("Errore durante la creazione del record")
     }
   },
+  start_timetracking_from_task: async (params: object) => {
+    console.info("dispatcher: start_timetracking_from_task")
+    try {
+        const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+                apiRoute: "start_timetracking_from_task",
+                params: params,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+        );
+        toast.success("Timetracking creato con successo: " + response.data.status);
+
+        response.data?.url && window.open(response.data.url, "_blank");
+
+        return response.data;
+    } catch (error) {
+        console.error("Errore durante la creazione del record", error);
+        toast.error("Errore durante la creazione del record");
+    }
+  },
   
   //TODO
   //CUSTOM PITSERVICE
