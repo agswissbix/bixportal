@@ -7,6 +7,7 @@ import { useRecordsStore } from "./records/recordsStore";
 import RecordsTable from "./recordsTable";
 import { Layers, ChevronDown, ChevronRight } from "lucide-react";
 import React from "react";
+import DynamicMenuItem from "./dynamicMenuItem";
 
 export default function RecordsGroupedTable({
     tableid,
@@ -24,18 +25,22 @@ export default function RecordsGroupedTable({
         Record<string, boolean>
     >({});
 
+    const [openGroupMenu, setOpenGroupMenu] = useState<string | null>(null);
+
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-    const { response: resDim, loading: loadingDim } = useApi<any>({
+    const { response: resultData, loading: loadingDim } = useApi<any>({
         apiRoute: "get_available_groups_for_table",
         tableid,
     });
 
     useEffect(() => {
-        if (resDim?.groups?.length > 0 && !selectedDimension) {
-            setSelectedDimension(resDim.groups[0]);
+        console.log(resultData);
+        if (resultData?.groups?.length > 0 && !selectedDimension) {
+            setSelectedDimension(resultData.groups[0]);
         }
-    }, [resDim, selectedDimension]);
+        console.log("Data: " + JSON.stringify(resultData))
+    }, [resultData, selectedDimension]);
 
     const payloadInstances = useMemo(() => {
         if (!selectedDimension) return null;
@@ -79,7 +84,7 @@ export default function RecordsGroupedTable({
 
     return (
         <GenericComponent
-            response={resDim}
+            response={resultData}
             loading={loadingDim}
             title="recordsGroupedTable">
             {() => (
@@ -130,7 +135,7 @@ export default function RecordsGroupedTable({
 
                                             <div className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                                 <div className="p-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                                    {resDim?.groups?.map(
+                                                    {resultData?.groups?.map(
                                                         (dim: any) => (
                                                             <button
                                                                 key={dim.value}
@@ -187,16 +192,23 @@ export default function RecordsGroupedTable({
                                     (group: any, idx: number) => {
                                         const isExpanded =
                                             !!expandedGroups[group.value];
+                                        const isMenuOpen =
+                                            openGroupMenu === group.value;
+
                                         return (
                                             <div
                                                 key={idx}
-                                                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden">
+                                                className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm transition-all ${
+                                                    isMenuOpen
+                                                        ? "relative z-50"
+                                                        : "relative z-10"
+                                                }`}>
                                                 <div
-                                                    className="flex flex-col md:flex-row md:items-center p-4 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
+                                                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors gap-4"
                                                     onClick={() =>
                                                         toggleGroup(group.value)
                                                     }>
-                                                    <div className="flex items-center gap-4 flex-1 min-w-0 mb-4 md:mb-0">
+                                                    <div className="flex items-center gap-4 min-w-0 flex-1">
                                                         <div
                                                             className={`shrink-0 p-2 rounded-xl transition-colors ${
                                                                 isExpanded
@@ -215,10 +227,7 @@ export default function RecordsGroupedTable({
                                                                     isExpanded
                                                                         ? "text-primary"
                                                                         : "text-gray-800 dark:text-gray-100"
-                                                                }`}
-                                                                title={
-                                                                    group.label
-                                                                }>
+                                                                }`}>
                                                                 {group.label}
                                                             </span>
                                                             <span className="text-[11px] text-gray-400 font-bold uppercase tracking-tighter">
@@ -228,29 +237,138 @@ export default function RecordsGroupedTable({
                                                         </div>
                                                     </div>
 
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-2 shrink-0 md:ml-12 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100 dark:border-gray-800">
-                                                        {resInst.numeric_columns?.map(
-                                                            (col: any) => (
-                                                                <div
-                                                                    key={col.id}
-                                                                    className="flex flex-col items-start md:items-end min-w-[100px]">
-                                                                    <span className="text-[9px] uppercase font-bold text-gray-400 tracking-tight mb-0.5 whitespace-nowrap">
-                                                                        {
-                                                                            col.desc
+                                                    <div className="flex items-center gap-6 shrink-0">
+                                                        <div className="hidden sm:flex items-center gap-8 border-r border-gray-100 dark:border-gray-800 pr-6">
+                                                            {resInst.numeric_columns?.map(
+                                                                (col: any) => (
+                                                                    <div
+                                                                        key={
+                                                                            col.id
                                                                         }
+                                                                        className="flex flex-col items-end min-w-[80px]">
+                                                                        <span className="text-[9px] uppercase font-bold text-gray-400 tracking-tight mb-0.5 whitespace-nowrap">
+                                                                            {
+                                                                                col.desc
+                                                                            }
+                                                                        </span>
+                                                                        <span className="text-[13px] font-black text-gray-700 dark:text-gray-200 tabular-nums">
+                                                                            {formatNumber(
+                                                                                group
+                                                                                    .totals?.[
+                                                                                    col
+                                                                                        .id
+                                                                                ] ??
+                                                                                    0
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                )
+                                                            )}
+                                                        </div>
+
+                                                        {resultData?.fn.length >
+                                                            0 && (
+                                                            <div className="relative">
+                                                                <button
+                                                                    className="inline-flex items-center px-3 py-1.5 text-[11px] font-black uppercase tracking-widest bg-slate-700 hover:bg-slate-800 text-white rounded-lg transition-all shadow-sm active:scale-95"
+                                                                    type="button"
+                                                                    onClick={(
+                                                                        e
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        setOpenGroupMenu(
+                                                                            isMenuOpen
+                                                                                ? null
+                                                                                : group.value
+                                                                        );
+                                                                    }}>
+                                                                    <span>
+                                                                        Funzioni
                                                                     </span>
-                                                                    <span className="text-[13px] font-black text-gray-700 dark:text-gray-200 tabular-nums">
-                                                                        {formatNumber(
-                                                                            group
-                                                                                .totals?.[
-                                                                                col
-                                                                                    .id
-                                                                            ] ??
-                                                                                0
-                                                                        )}
-                                                                    </span>
-                                                                </div>
-                                                            )
+                                                                    <ChevronDown
+                                                                        className={`w-3.5 h-3.5 ms-1.5 transition-transform duration-200 ${
+                                                                            isMenuOpen
+                                                                                ? "rotate-180"
+                                                                                : ""
+                                                                        }`}
+                                                                    />
+                                                                </button>
+
+                                                                {isMenuOpen && (
+                                                                    <>
+                                                                        <div
+                                                                            className="fixed inset-0 z-40"
+                                                                            onClick={(
+                                                                                e
+                                                                            ) => {
+                                                                                e.stopPropagation();
+                                                                                setOpenGroupMenu(
+                                                                                    null
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                        <div
+                                                                            className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                                                                            onClick={(
+                                                                                e
+                                                                            ) =>
+                                                                                e.stopPropagation()
+                                                                            }>
+                                                                            <ul className="py-2">
+                                                                                {resultData?.fn
+                                                                                    ?.filter(
+                                                                                        (
+                                                                                            f: any
+                                                                                        ) =>
+                                                                                            f.context ===
+                                                                                            "grouptable"
+                                                                                    )
+                                                                                    .map(
+                                                                                        (
+                                                                                            fn: any
+                                                                                        ) => (
+                                                                                            <DynamicMenuItem
+                                                                                                key={
+                                                                                                    fn.title
+                                                                                                }
+                                                                                                fn={
+                                                                                                    fn
+                                                                                                }
+                                                                                                params={{
+                                                                                                    tableid:
+                                                                                                        tableid,
+                                                                                                    searchTerm:
+                                                                                                        searchTerm,
+                                                                                                    view: view,
+                                                                                                    context:
+                                                                                                        view,
+                                                                                                    order: order,
+                                                                                                    filtersList:
+                                                                                                        [
+                                                                                                            ...filtersList,
+                                                                                                            {
+                                                                                                                fieldid:
+                                                                                                                    selectedDimension.value,
+                                                                                                                type: group.type,
+                                                                                                                value: group.value,
+                                                                                                                conditions:
+                                                                                                                    [],
+                                                                                                            },
+                                                                                                        ],
+                                                                                                    masterTableid:
+                                                                                                        masterTableid,
+                                                                                                    masterRecordid:
+                                                                                                        masterRecordid,
+                                                                                                    limit: limit,
+                                                                                                }}
+                                                                                            />
+                                                                                        )
+                                                                                    )}
+                                                                            </ul>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>

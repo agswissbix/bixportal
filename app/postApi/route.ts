@@ -592,6 +592,10 @@ export async function POST(request: Request) {
         case "upload_markdown_image":
             djangoUrl = "/customapp_swissbix/upload_markdown_image/";
             break;
+        case "swissbix_create_timesheet_from_timetracking":
+            djangoUrl =
+                "/customapp_swissbix/swissbix_create_timesheet_from_timetracking/";
+            break;
 
         // TEMPORARY
         case "get_job_status":
