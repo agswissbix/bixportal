@@ -15,8 +15,6 @@ import {
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import WidgetBattery from './widgetBattery';
-import { set } from 'lodash';
-import { se } from 'date-fns/locale';
 
 const MINUTES_PER_HOUR = 60;
 const DAILY_GOAL_HOURS = 8.0;
@@ -511,12 +509,12 @@ export default function TimetrackingList() {
                                                 : "border-green-200 bg-green-50"
                                         }`}>
                                         <div className="flex justify-between items-center mb-1">
-                                            <div className="flex flex-col">
-                                                <span className="font-semibold text-gray-800">
+                                            <div className="flex flex-col min-w-0 flex-1">
+                                                <p className="font-semibold text-gray-800 line-clamp-2 overflow-hidden">
                                                     {activeTrack.description}
-                                                </span>
+                                                </p>
                                                 {activeTrack.client_name && (
-                                                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">
+                                                    <span className="text-[10px] text-blue-600 font-bold uppercase truncate block">
                                                         {
                                                             activeTrack.client_name
                                                         }
@@ -705,18 +703,18 @@ export default function TimetrackingList() {
                                             key={track.id || i}
                                             className="p-4 rounded-lg border transition-all border-gray-200 hover:bg-gray-50">
                                             <div className="flex justify-between items-center mb-1">
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-gray-800">
+                                                <div className="flex flex-col min-w-0 flex-1">
+                                                    <p className="font-semibold text-gray-800 line-clamp-2 overflow-hidden">
                                                         {track.description}
-                                                    </span>
+                                                    </p>
                                                     {track.client_name && (
-                                                        <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">
+                                                        <span className="text-[10px] text-blue-600 font-bold uppercase truncate block">
                                                             {track.client_name}
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                                                <span className="shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
                                                     {track.status}
                                                 </span>
                                             </div>
