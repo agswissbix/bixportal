@@ -24,6 +24,7 @@ const isDev = false;
           recordid: string;
           mastertableid?: string;
           masterrecordid?: string;
+          prefillData?: Record<string, any>;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -32,7 +33,7 @@ const isDev = false;
             activeTab: string;
         }
 
-export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid }: PropsInterface) {
+export default function CardTabs({ tableid,recordid,mastertableid, masterrecordid, prefillData = null}: PropsInterface) {
     const isNewRecord = !recordid;
 
     const tabsRef = React.useRef<HTMLDivElement>(null);
@@ -178,6 +179,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                               recordid={recordid}
                               mastertableid={mastertableid}
                               masterrecordid={masterrecordid}
+                              prefillData={prefillData}
                             />
                           )
                       )
@@ -205,6 +207,7 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                               recordid={recordid}
                               mastertableid={mastertableid}
                               masterrecordid={masterrecordid}
+                              prefillData={prefillData}
                             />
                           )
                         )}

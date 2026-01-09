@@ -327,19 +327,12 @@ export function useFrontendFunctions() {
   swissbix_create_timesheet_from_timetracking: async (params: object) => {
     console.info("dispatcher: swissbix_create_timesheet_from_timetracking");
 
-    const service = await openPopup("service", null);
-    if (service == null) {
-        toast.error("Operazione annullata");
-        return;
-    }
-
     try {
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "swissbix_create_timesheet_from_timetracking",
           params: params,
-          service: service,
         },
         {
           headers: {
@@ -347,7 +340,12 @@ export function useFrontendFunctions() {
           },
         },
       )
-      toast.success("Timesheet creato con successo: " + response.data.status)
+      toast.success("Dati timesheet creati con successo: " + response.data.status)
+
+      const ts = response.data?.timesheet
+
+      handleRowClick("linked", "", "timesheet", undefined, undefined, ts);
+
       return response.data
     } catch (error) {
       console.error("Errore durante la creazione del record", error)

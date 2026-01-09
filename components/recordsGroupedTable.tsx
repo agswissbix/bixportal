@@ -200,7 +200,7 @@ export default function RecordsGroupedTable({
                                                 key={idx}
                                                 className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm transition-all ${
                                                     isMenuOpen
-                                                        ? "relative z-50"
+                                                        ? "relative z-30"
                                                         : "relative z-10"
                                                 }`}>
                                                 <div

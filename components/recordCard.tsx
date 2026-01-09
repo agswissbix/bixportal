@@ -23,6 +23,7 @@ interface PropsInterface {
   recordid: string;
   mastertableid?: string;
   masterrecordid?: string;
+  prefillData?: Record<string, any>;
   type: string;
   index?: number;
   total?: number;
@@ -42,6 +43,7 @@ export default function RecordCard({
   recordid,
   mastertableid,
   masterrecordid,
+  prefillData = null,
   type,
   index = 0,
   total = 1,
@@ -429,6 +431,7 @@ export default function RecordCard({
                     recordid={recordid}
                     mastertableid={mastertableid}
                     masterrecordid={masterrecordid}
+                    prefillData={prefillData}
                     // mobileView={true} // child may use to disable collapse etc.
                   />
                 </div>
@@ -634,6 +637,7 @@ export default function RecordCard({
                   recordid={recordid}
                   mastertableid={mastertableid}
                   masterrecordid={masterrecordid}
+                  prefillData={prefillData}
                   // mobileView={false}
                 />
                 </div>

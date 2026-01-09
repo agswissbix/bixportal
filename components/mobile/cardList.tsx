@@ -8,12 +8,13 @@ import { ArrowUp } from "lucide-react";
 const isDev = false;
 
 interface PropsInterface {
-  tableid?: string;
-  searchTerm?: string;
-  view?: string;
-  context?: string;
-  masterTableid?: string;
-  masterRecordid?: string;
+    tableid?: string;
+    searchTerm?: string;
+    view?: string;
+    context?: string;
+    masterTableid?: string;
+    masterRecordid?: string;
+    prefillData?: Record<string, any>;
 }
 
 interface ResponseInterface {
@@ -34,7 +35,7 @@ interface ResponseInterface {
   }>;
 }
 
-export default function CardsList({ tableid, searchTerm, view, context, masterTableid, masterRecordid }: PropsInterface) {
+export default function CardsList({ tableid, searchTerm, view, context, masterTableid, masterRecordid, prefillData = null }: PropsInterface) {
   const responseDataDEFAULT: ResponseInterface = {
     rows: [],
     columns: []

@@ -87,6 +87,7 @@ useEffect(() => {
           recordid={card.recordid}
           mastertableid={card.mastertableid}
           masterrecordid={card.masterrecordid}
+          prefillData={card.prefillData}
           index={index}
           total={cardsList.length}
           type={card.type}

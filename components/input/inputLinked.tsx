@@ -32,31 +32,33 @@ interface LinkedMaster {
 
 // Simulate API call - replace with your actual API call
 const fetchLinkedItems = async (
-  searchTerm: string,
-  linkedmaster_tableid: string,
-  tableid: string,
-  fieldid: string,
-  formValues: Record<string, any>,
+    searchTerm: string,
+    linkedmaster_tableid: string,
+    tableid: string,
+    fieldid: string,
+    formValues: Record<string, any>,
+    recordid?: string,
 ): Promise<LinkedItem[]> => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const payload = {
-    apiRoute: "get_input_linked",
-    fieldid: fieldid,
-    tableid: tableid,
-    linkedmaster_tableid: linkedmaster_tableid,
-    searchTerm: searchTerm,
-    formValues: formValues,
-  }
-  const res = await axiosInstanceClient.post("/postApi/", payload, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    withCredentials: true,
-  })
-  // Mock data - replace with actual API call
-  return res.data
-}
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const payload = {
+        apiRoute: "get_input_linked",
+        fieldid: fieldid,
+        tableid: tableid,
+        linkedmaster_tableid: linkedmaster_tableid,
+        searchTerm: searchTerm,
+        formValues: formValues,
+        recordid: recordid,
+    };
+    const res = await axiosInstanceClient.post("/postApi/", payload, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        withCredentials: true,
+    });
+    // Mock data - replace with actual API call
+    return res.data;
+};
 
 export default function inputLinked({
   initialValue = "",
@@ -83,6 +85,45 @@ export default function inputLinked({
   useEffect(() => {
     formValuesRef.current = formValues
   }, [formValues])
+
+  const internalTableId = linkedmaster_tableid ? String(linkedmaster_tableid) : ""
+  useEffect(() => {
+      const resolveInitialValue = async () => {
+          if (initialValue && initialValue !== "") {
+              setLoading(true);
+              try {
+                  const results = await fetchLinkedItems(
+                      "",
+                      internalTableId,
+                      tableid || "",
+                      fieldid,
+                      formValuesRef.current,
+                      initialValue
+                  );
+
+                  if (results && results.length > 0) {
+                      const matchedItem = results.find(
+                          (item) => item.recordid === initialValue
+                      );
+                      if (matchedItem) {
+                          setValue(matchedItem.name);
+                      }
+                  }
+              } catch (err) {
+                  console.error(
+                      "Errore nel recupero del valore iniziale:",
+                      err
+                  );
+              } finally {
+                  setLoading(false);
+              }
+          } else if (initialValue === "") {
+              setValue("");
+          }
+      };
+
+      resolveInitialValue();
+  }, [initialValue, internalTableId, tableid, fieldid]);
 
   const debouncedSearch = useRef(
     _.debounce(async (searchTerm: string) => {

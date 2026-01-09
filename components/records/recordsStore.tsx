@@ -7,21 +7,36 @@ interface RecordsStore {
     isTableChanging: boolean;
     setTableChangeCompleted: () => void;
     cardsList: Array<{
+        tableid: string;
+        recordid: string;
+        type: string;
+        mastertableid?: string;
+        masterrecordid?: string;
+        prefillData?: Record<string, any>;
+    }>;
+    addCard: (
         tableid: string,
         recordid: string,
         type: string,
         mastertableid?: string,
-        masterrecordid?: string
-    }>;
-    addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => void;
+        masterrecordid?: string,
+        prefillData?: Record<string, any>
+    ) => void;
     removeCard: (tableid: string, recordid: string) => void;
     resetCardsList: () => void;
 
-    handleRowClick: (context: string, recordid: string, tableid: string,  mastertableid?: string, masterrecordid?: string) => Promise<void>;
+    handleRowClick: (
+        context: string,
+        recordid: string,
+        tableid: string,
+        mastertableid?: string,
+        masterrecordid?: string,
+        prefillData?: Record<string, any>
+    ) => Promise<void>;
 
     searchTerm: string;
     setSearchTerm: (searchTerm: string) => void;
-    
+
     selectedMenu: string;
     setSelectedMenu: (menuName: string) => void;
 
@@ -33,9 +48,12 @@ interface RecordsStore {
 
     columnOrder: {
         columnDesc: string | null;
-        direction: 'asc' | 'desc' | null;
-    }
-    setColumnOrder: (columnOrder: { columnDesc: string | null; direction: 'asc' | 'desc' | null }) => void;
+        direction: "asc" | "desc" | null;
+    };
+    setColumnOrder: (columnOrder: {
+        columnDesc: string | null;
+        direction: "asc" | "desc" | null;
+    }) => void;
 
     currentPage: number;
     setCurrentPage: (currentPage: number) => void;
@@ -56,9 +74,9 @@ interface RecordsStore {
         fieldid: string;
         type: string;
         label: string;
-        value: string 
+        value: string;
     }>;
-    setFiltersList: (filtersList: RecordsStore['filtersList']) => void;
+    setFiltersList: (filtersList: RecordsStore["filtersList"]) => void;
 
     popUpType: string;
     setPopUpType: (popUpType: string) => void;
@@ -81,30 +99,39 @@ interface RecordsStore {
     openPopup: (type: string, recordid?: string) => Promise<any>;
 
     dashboardFilters: {
-    selectedYears: string[]
-    showTotalAverage: boolean
-    averageExcludeNoSharing: boolean
-    numericFilters: Array<{
-      field: string
-      label: string
-      operator: ">=" | "<="
-      value: number
-    }>
-    demographicFilters: Array<{
-        field: string
-        label: string
-        type: "number" | "select" | "toggle" | "distance"
-        operator?: ">=" | "<=" // Solo per number e distance
-        value: string | number | boolean
-        options?: string[] // Solo per select
-    }>
-    selectedClubs: string[]
-  }
-  setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) => void;
+        selectedYears: string[];
+        showTotalAverage: boolean;
+        averageExcludeNoSharing: boolean;
+        numericFilters: Array<{
+            field: string;
+            label: string;
+            operator: ">=" | "<=";
+            value: number;
+        }>;
+        demographicFilters: Array<{
+            field: string;
+            label: string;
+            type: "number" | "select" | "toggle" | "distance";
+            operator?: ">=" | "<="; // Solo per number e distance
+            value: string | number | boolean;
+            options?: string[]; // Solo per select
+        }>;
+        selectedClubs: string[];
+    };
+    setDashboardFilters: (
+        dashboardFilters: RecordsStore["dashboardFilters"]
+    ) => void;
 
-  tableSettings: Record<string, Record<string, Setting>>;
-  setTableSettings: (tableid: string, tableSettings: Record<string, Setting>) => void;
-  getIsSettingAllowed: (tableid: string, settingName: string, recordid?: string) => boolean;
+    tableSettings: Record<string, Record<string, Setting>>;
+    setTableSettings: (
+        tableid: string,
+        tableSettings: Record<string, Setting>
+    ) => void;
+    getIsSettingAllowed: (
+        tableid: string,
+        settingName: string,
+        recordid?: string
+    ) => boolean;
 }
 
 interface Setting {
@@ -116,76 +143,129 @@ interface Setting {
 
 export const useRecordsStore = create<RecordsStore>((set, get) => ({
     popupResolver: null,
-    setPopupResolver: (resolver: ((data: any) => void) | null) => set({ popupResolver: resolver }),
+    setPopupResolver: (resolver: ((data: any) => void) | null) =>
+        set({ popupResolver: resolver }),
     openPopup: (type: string, recordid?: string) => {
         return new Promise((resolve) => {
-            set({ popupResolver: resolve, popupRecordId: recordid ?? '', popUpType: type, isPopupOpen: true });
+            set({
+                popupResolver: resolve,
+                popupRecordId: recordid ?? "",
+                popUpType: type,
+                isPopupOpen: true,
+            });
         });
     },
-    
+
     refreshTable: 0,
     setRefreshTable: (updater) =>
-        set(state => ({ refreshTable: updater(state.refreshTable) })),
-    
+        set((state) => ({ refreshTable: updater(state.refreshTable) })),
+
     isTableChanging: false,
     setTableChangeCompleted: () => set({ isTableChanging: false }),
 
     cardsList: [],
-    addCard: (tableid: string, recordid: string, type: string, mastertableid?: string, masterrecordid?: string) => 
+    addCard: (
+        tableid: string,
+        recordid: string,
+        type: string,
+        mastertableid?: string,
+        masterrecordid?: string,
+        prefillData?: Record<string, any>
+    ) =>
         set((state) => {
             const cardExists = state.cardsList.some(
-                (card) => card.tableid === tableid && card.recordid === recordid && card.mastertableid === mastertableid && card.masterrecordid === masterrecordid
+                (card) =>
+                    card.tableid === tableid &&
+                    card.recordid === recordid &&
+                    card.mastertableid === mastertableid &&
+                    card.masterrecordid === masterrecordid
             );
             if (!cardExists) {
-                return { cardsList: [...state.cardsList, { tableid, recordid, type, mastertableid, masterrecordid }] };
+                return {
+                    cardsList: [
+                        ...state.cardsList,
+                        {
+                            tableid,
+                            recordid,
+                            type,
+                            mastertableid,
+                            masterrecordid,
+                            prefillData,
+                        },
+                    ],
+                };
             }
             return state;
         }),
 
     removeCard: (tableid: string, recordid: string) =>
-        set((state) => ({ 
+        set((state) => ({
             cardsList: state.cardsList.filter(
                 (card) => card.tableid !== tableid || card.recordid !== recordid
-            )
+            ),
         })),
 
     resetCardsList: () => set({ cardsList: [] }),
 
-    handleRowClick: async (context: string, recordid: string, tableid: string, mastertableid?: string, masterrecordid?: string) => {
+    handleRowClick: async (
+        context: string,
+        recordid: string,
+        tableid: string,
+        mastertableid?: string,
+        masterrecordid?: string,
+        prefillData?: Record<string, any>
+    ) => {
         const tableType = context;
-        if (tableType === 'standard') {
+        if (tableType === "standard") {
             // reset + aggiunta nello stesso set
             set({ cardsList: [{ tableid, recordid, type: tableType }] });
         } else {
-            get().addCard(tableid, recordid, tableType, mastertableid, masterrecordid);
+            if (prefillData != null) {
+                get().addCard(
+                    tableid,
+                    recordid,
+                    tableType,
+                    mastertableid,
+                    masterrecordid,
+                    prefillData
+                );
+            } else {
+                get().addCard(
+                    tableid,
+                    recordid,
+                    tableType,
+                    mastertableid,
+                    masterrecordid
+                );
+            }
         }
     },
 
-    searchTerm: '',
+    searchTerm: "",
     setSearchTerm: (searchTerm: string) => set({ searchTerm }),
 
-    selectedMenu: 'Dashboard',
+    selectedMenu: "Dashboard",
     setSelectedMenu: (menuName: string) => {
         set({
             isTableChanging: true,
             selectedMenu: menuName,
-            tableView: '', 
+            tableView: "",
         });
     },
 
-    activeServer: '',
+    activeServer: "",
     setActiveServer: (activeServer: string) => set({ activeServer }),
 
-    tableView: '',
+    tableView: "",
     setTableView: (view) =>
-        set(state => ({
+        set((state) => ({
             tableView: view,
-            refreshTable: state.refreshTable + 1
+            refreshTable: state.refreshTable + 1,
         })),
 
     columnOrder: {
         columnDesc: null,
-        direction: "asc"
+        direction: "asc",
     },
     setColumnOrder: (columnOrder) => set({ columnOrder }),
 
@@ -194,12 +274,12 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     pageLimit: 10,
     setPageLimit: (pageLimit: number) => set({ pageLimit }),
-    
-    tableid: '',
+
+    tableid: "",
     setTableid: (tableid: string) =>
         set({
             tableid,
-            cardsList: [] // reset diretto, senza doppio set
+            cardsList: [], // reset diretto, senza doppio set
         }),
 
     isPopupOpen: false,
@@ -211,60 +291,60 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     filtersList: [],
     setFiltersList: (filtersList) => {
         set({ filtersList });
-        get().setRefreshTable(v => v + 1);
+        get().setRefreshTable((v) => v + 1);
     },
 
-    popUpType: '',
+    popUpType: "",
     setPopUpType: (popUpType: string) => set({ popUpType }),
 
-    popupRecordId: '',
+    popupRecordId: "",
     setPopupRecordId: (recordid: string) => set({ popupRecordId: recordid }),
 
-    userid: '',
+    userid: "",
     setUserid: (userid: string) => set({ userid }),
 
-    theme: 'default',
+    theme: "default",
     setTheme: (theme: string) => set({ theme }),
 
     timestamp: Date.now(),
     setTimestamp: (timestamp: number) => set({ timestamp }),
 
     dashboardFilters: {
-    selectedYears: ["2022", "2023", "2024"],
-    showTotalAverage: true,
-    averageExcludeNoSharing: false,
-    numericFilters: [],
-    demographicFilters: [],
-    selectedClubs: [],
-  },
-  setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) =>
-    set({ dashboardFilters }),
+        selectedYears: ["2022", "2023", "2024"],
+        showTotalAverage: true,
+        averageExcludeNoSharing: false,
+        numericFilters: [],
+        demographicFilters: [],
+        selectedClubs: [],
+    },
+    setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) =>
+        set({ dashboardFilters }),
 
-  tableSettings: {},
-  setTableSettings: (tableid, tableSettings) => {
-    set((state) => ({
-      tableSettings: {
-        ...state.tableSettings,
-        [tableid]: tableSettings,
-      },
-    }));
-  },
+    tableSettings: {},
+    setTableSettings: (tableid, tableSettings) => {
+        set((state) => ({
+            tableSettings: {
+                ...state.tableSettings,
+                [tableid]: tableSettings,
+            },
+        }));
+    },
 
-  getIsSettingAllowed: (tableid, settingName, recordid) => {
-    const table = get().tableSettings[tableid];
-    if (!table) return false;
+    getIsSettingAllowed: (tableid, settingName, recordid) => {
+        const table = get().tableSettings[tableid];
+        if (!table) return false;
 
-    const setting = table[settingName];
-    if (!setting) return false;
+        const setting = table[settingName];
+        if (!setting) return false;
 
-    const value = setting.value === "true";
-    const validRecords = setting.valid_records ?? [];
-    const hasConditions = Boolean(setting.conditions ?? false);
+        const value = setting.value === "true";
+        const validRecords = setting.valid_records ?? [];
+        const hasConditions = Boolean(setting.conditions ?? false);
 
-    if (!hasConditions) return value;
-    if (!recordid) return false;
+        if (!hasConditions) return value;
+        if (!recordid) return false;
 
-    const match = validRecords.includes(String(recordid));
-    return match ? value : !value;
-  },
+        const match = validRecords.includes(String(recordid));
+        return match ? value : !value;
+    },
 }));

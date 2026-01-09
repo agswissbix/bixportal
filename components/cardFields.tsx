@@ -39,6 +39,7 @@ interface PropsInterface {
   recordid: string
   mastertableid?: string
   masterrecordid?: string
+  prefillData?: Record<string, any>
   fields?: Array<FieldInterface> // Optional: if provided, use these fields instead of fetching
   onSave?: (updatedFields: { [key: string]: string | string[] | File }) => Promise<void> // Optional: custom save handler
   onFieldChange?: (fieldid: string, value: any) => void // New prop to notify parent of field changes
@@ -87,6 +88,7 @@ export default function CardFields({
   recordid,
   mastertableid,
   masterrecordid,
+  prefillData = null,
   fields: externalFields, // Accept fields from parent
   onSave: externalOnSave, // Accept custom save handler
   onFieldChange: externalOnFieldChange, // Accept field change callback
@@ -221,17 +223,20 @@ export default function CardFields({
         const defaultValue = settings?.default
         const backendValue =
           typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
-        
+
         if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
           initialFields[field.fieldid] = defaultValue
         } 
           if (backendValue !== undefined && backendValue !== null) {
           initialFields[field.fieldid] = backendValue
         }
+        if (prefillData && prefillData[field.fieldid] !== undefined) {
+          initialFields[field.fieldid] = prefillData[field.fieldid]
+        }
       })
       setUpdatedFields(initialFields)
     }
-  }, [response, isDev, responseData])
+  }, [response, isDev, responseData, prefillData])
 
   useEffect(() => {
     if (externalFields && externalFields.length > 0) {
@@ -249,10 +254,13 @@ export default function CardFields({
         if (backendValue !== undefined && backendValue !== null) {
           initialFields[field.fieldid] = backendValue
         }
+        if (prefillData && prefillData[field.fieldid] !== undefined) {
+            initialFields[field.fieldid] = prefillData[field.fieldid];
+        }
       })
       setUpdatedFields(initialFields)
     }
-  }, [externalFields])
+  }, [externalFields, prefillData])
 
   useEffect(() => {
     if (!loading) {
