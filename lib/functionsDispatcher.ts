@@ -90,7 +90,6 @@ export function useFrontendFunctions() {
   swissbixPrintTimesheet: async ({ recordid }: { recordid: string }) => {
     try {
       //download a file from the response
-      //const response = await axiosInstance.post('/customapp_pitservice/stampa_bollettino_test/', { recordid }, {responseType: 'blob'});
       const response = await axiosInstanceClient.post(
         "/postApi",
         {

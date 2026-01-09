@@ -21,7 +21,8 @@ export default function SignatureDialogWrapper({ recordid, openSignatureDialog, 
         "/postApi",
         {
           apiRoute: "print_timesheet",
-          recordid: recordidAttachment,
+          recordid: recordid,
+          with_signature: true
         },
         {
           headers: {
