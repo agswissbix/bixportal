@@ -221,6 +221,7 @@ export default function GenericChart({ chartType, chartData, view, showDataLabel
                     colors:
                         chartData.colors ||
                         safeLabels.map(() => getRandomColorFromPalette()),
+                        
                 };
                 break;
             case "polarchart":
