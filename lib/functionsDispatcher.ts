@@ -327,6 +327,7 @@ export function useFrontendFunctions() {
     console.info("dispatcher: swissbix_create_timesheet_from_timetracking");
 
     var useAI = false;
+    var instructions = ""
 
     try {
       const response = await axiosInstanceClient.post(
@@ -348,7 +349,7 @@ export function useFrontendFunctions() {
             return;
         }
       }
-      
+
     } catch (error) {
       console.error("Errore durante la creazione del record", error)
       toast.error("Errore durante la creazione del record")

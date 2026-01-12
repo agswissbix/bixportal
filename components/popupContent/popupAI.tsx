@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useRecordsStore } from "../records/recordsStore";
-import { Bot, User } from "lucide-react";
+import { Bot, User, AlertTriangle, MessageSquare } from "lucide-react";
 
 interface PropsInterface {
     tableid?: string;
@@ -15,13 +15,20 @@ export default function PopupAI({
     onClose,
 }: PropsInterface) {
     const [useAI, setuseAI] = useState<boolean>(true);
+    const [instructions, setInstructions] = useState<string>("");
 
     const { popupResolver, setPopupResolver, setIsPopupOpen } =
         useRecordsStore();
 
     const save = () => {
         if (popupResolver) {
-            popupResolver({ useAI });
+            popupResolver({
+                use_ai: {
+                    useAI: useAI,
+                    instructions: useAI ? instructions : "",
+                },
+            });
+
             setPopupResolver(null);
             setIsPopupOpen(false);
         }
@@ -47,10 +54,11 @@ export default function PopupAI({
 
                 <div className="grid grid-cols-2 gap-4">
                     <button
+                        type="button"
                         onClick={() => setuseAI(true)}
                         className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                             useAI
-                                ? "border-primary bg-primary/5 text-primary"
+                                ? "border-primary bg-primary/5 text-primary shadow-sm"
                                 : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
                         }`}>
                         <Bot size={32} />
@@ -58,17 +66,46 @@ export default function PopupAI({
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => setuseAI(false)}
                         className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                             !useAI
-                                ? "border-primary bg-primary/5 text-primary"
+                                ? "border-primary bg-primary/5 text-primary shadow-sm"
                                 : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
                         }`}>
                         <User size={32} />
-                        <span className="font-bold text-sm">Manuale</span>
+                        <span className="font-bold text-sm">Manualmente</span>
                     </button>
                 </div>
             </div>
+
+            {useAI && (
+                <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-2 tracking-wider">
+                            <MessageSquare size={14} />
+                            Istruzioni per l'AI (opzionale)
+                        </label>
+                        <textarea
+                            value={instructions}
+                            onChange={(e) => setInstructions(e.target.value)}
+                            placeholder="Es: 'Parla come Yoda', 'Sii molto sintetico'..."
+                            className="w-full p-3 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all min-h-[90px] resize-none"
+                        />
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-xl">
+                        <AlertTriangle
+                            className="text-amber-600 dark:text-amber-500 shrink-0"
+                            size={18}
+                        />
+                        <p className="text-[12px] text-amber-800 dark:text-amber-200 leading-tight">
+                            L'AI può generare testi imprecisi. Controlla sempre
+                            il risultato prima di salvare.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             <div className="flex gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                 <button
