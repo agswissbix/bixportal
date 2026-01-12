@@ -326,12 +326,41 @@ export function useFrontendFunctions() {
   swissbix_create_timesheet_from_timetracking: async (params: object) => {
     console.info("dispatcher: swissbix_create_timesheet_from_timetracking");
 
+    var useAI = false;
+
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "check_ai_status",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+
+      if (response.data?.status) {
+        useAI = await openPopup("useAI");
+        if (useAI == null) {
+            toast.error("Operazione annullata");
+            return;
+        }
+      }
+      
+    } catch (error) {
+      console.error("Errore durante la creazione del record", error)
+      toast.error("Errore durante la creazione del record")
+    }
+
     try {
       const response = await axiosInstanceClient.post(
         "/postApi",
         {
           apiRoute: "swissbix_create_timesheet_from_timetracking",
           params: params,
+          use_ai: useAI,
         },
         {
           headers: {

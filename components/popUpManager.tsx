@@ -9,6 +9,7 @@ import PopupInvoiceNo from './popupContent/popupInvoiceNo';
 import { TemplateSelectionDialog } from './templateProjectDialog';
 import SignatureDialogWrapper from './dialogs/signatureTimesheetDialog';
 import PopupService from './popupContent/popupService';
+import PopupAI from './popupContent/popupAI';
 
 
 // INTERFACCIA PROPS
@@ -45,6 +46,7 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid }
                 {type === 'startDate' && <PopupStartDate tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'invoiceno' && <PopupInvoiceNo tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'service' && <PopupService tableid={tableid} recordid={recordid} onClose={onClose} />}
+                {type === 'useAI' && <PopupAI tableid={tableid} recordid={recordid} onClose={onClose} />}
 
             </div>
         </div>

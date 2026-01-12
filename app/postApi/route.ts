@@ -599,7 +599,9 @@ export async function POST(request: Request) {
         case "start_timetracking_from_task":
             djangoUrl = "/customapp_swissbix/start_timetracking_from_task/";
             break;
-        
+        case "check_ai_status":
+            djangoUrl = "/customapp_swissbix/check_ai_status/";
+            break;
 
         // TEMPORARY
         case "get_job_status":
