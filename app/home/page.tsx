@@ -26,7 +26,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import RecordCard from '@/components/recordCard';
 
 export default function Home() {
-  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme} = useRecordsStore();
+  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme, infoData} = useRecordsStore();
   const router = useRouter();
 
 useEffect(() => {
@@ -78,6 +78,7 @@ useEffect(() => {
           type={popUpType}
           tableid={selectedMenu}
           recordid={popupRecordId}
+          infoData={infoData}
           />
 
         {cardsList.map((card, index) => (

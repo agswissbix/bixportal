@@ -5,7 +5,7 @@ import { se } from "date-fns/locale"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, isPopupOpen, setIsPopupOpen, setPopUpType, openPopup } = useRecordsStore()
+  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, isPopupOpen, setIsPopupOpen, setPopUpType, openPopup, setInfoData } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -636,6 +636,42 @@ export function useFrontendFunctions() {
     } catch (error) {
       console.error('Errore durante il rinnovo del contratto', error);
       toast.error('Errore durante il rinnovo del contratto');
+    }
+  },
+  
+  swissbix_summarize_day: async (params: object) => {
+    console.info("dispatcher: swissbix_summarize_day");
+
+    try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "swissbix_summarize_day",
+          params: params,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Riassunto generato correttamente")
+
+      const summary = response.data?.summary;
+    
+      if (summary) {
+          const store = useRecordsStore.getState();
+          store.setInfoData({
+              title: "Riassunto AI",
+              message: summary,
+              type: "success",
+          });
+          store.setPopUpType("info");
+          store.setIsPopupOpen(true);
+      }
+    } catch (error) {
+      console.error('Errore durante la creazione del riassunto')
+      toast.error('Errore durante la creazione del riassunto')
     }
   },
 }

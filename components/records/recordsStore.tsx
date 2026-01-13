@@ -84,6 +84,13 @@ interface RecordsStore {
     popupRecordId: string;
     setPopupRecordId: (recordid: string) => void;
 
+    infoData: {
+        title?: string;
+        message: string;
+        type?: "info" | "success" | "warning";
+    };
+    setInfoData: (infoData: RecordsStore["infoData"]) => void;
+
     userid: string;
     setUserid: (userid: string) => void;
 
@@ -287,6 +294,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     isFiltersOpen: false,
     setIsFiltersOpen: (isFiltersOpen: boolean) => set({ isFiltersOpen }),
+
+    infoData: { title: "", message: "", type: "info" },
+    setInfoData: (infoData) => set({ infoData }),
 
     filtersList: [],
     setFiltersList: (filtersList) => {

@@ -602,6 +602,9 @@ export async function POST(request: Request) {
         case "check_ai_status":
             djangoUrl = "/customapp_swissbix/check_ai_status/";
             break;
+        case "swissbix_summarize_day":
+            djangoUrl = "/customapp_swissbix/swissbix_summarize_day/";
+            break;
 
         // TEMPORARY
         case "get_job_status":

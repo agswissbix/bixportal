@@ -10,6 +10,7 @@ import { TemplateSelectionDialog } from './templateProjectDialog';
 import SignatureDialogWrapper from './dialogs/signatureTimesheetDialog';
 import PopupService from './popupContent/popupService';
 import PopupAI from './popupContent/popupAI';
+import PopupInfo from './popupContent/popupInfo';
 
 
 // INTERFACCIA PROPS
@@ -19,9 +20,14 @@ interface PropsInterface {
     type: string;
     tableid?: string;
     recordid?: string;
+    infoData?: {
+        title?: string;
+        message: string;
+        type?: "info" | "success" | "warning";
+    };
 }
 
-export default function PopUpManager({isOpen, onClose, type, tableid, recordid }: PropsInterface) {
+export default function PopUpManager({isOpen, onClose, type, tableid, recordid, infoData}: PropsInterface) {
 
     if (!isOpen) return null;
     const [popupContent, setPopupContent] = useState<React.ReactNode>(null);
@@ -47,7 +53,14 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid }
                 {type === 'invoiceno' && <PopupInvoiceNo tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'service' && <PopupService tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'useAI' && <PopupAI tableid={tableid} recordid={recordid} onClose={onClose} />}
-
+                {type === 'info' && (
+                    <PopupInfo 
+                        title={infoData?.title} 
+                        message={infoData?.message || ""} 
+                        type={infoData?.type}
+                        onClose={onClose} 
+                    />
+                )}
             </div>
         </div>
         )}
