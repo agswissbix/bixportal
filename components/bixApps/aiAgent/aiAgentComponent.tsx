@@ -1,11 +1,14 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
+import { useApi } from "@/utils/useApi";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "sonner";
 import * as Icons from "@heroicons/react/24/outline";
+
+const isDev = false;
 
 interface Message {
     role: "user" | "assistant";
@@ -13,20 +16,51 @@ interface Message {
     timestamp: Date;
 }
 
+interface StatusResponse {
+    status: boolean;
+}
+
 export default function AiAgentChatComponent() {
+    // --- LOGICA STATUS ---
+    const [systemStatus, setSystemStatus] = useState<StatusResponse>(
+        isDev ? { status: true } : { status: false }
+    );
+
+    const statusPayload = useMemo(
+        () => ({ apiRoute: "check_ai_chat_status" }),
+        []
+    );
+    const { response: statusRes, loading: statusLoading } = !isDev
+        ? useApi<StatusResponse>(statusPayload)
+        : { response: null, loading: false };
+
+    useEffect(() => {
+        if (!isDev && statusRes) setSystemStatus(statusRes);
+    }, [statusRes]);
+
+    // --- LOGICA CHAT ---
     const [messages, setMessages] = useState<Message[]>([
         {
             role: "assistant",
             content:
-                "Benvenuto in **BixData Neural**. Il sistema è collegato alla Lenovo PGX. Come posso aiutarti?",
+                "Sistemi **BixAI** online. Sono pronto ad assisterti. Come posso aiutarti oggi?",
             timestamp: new Date(),
         },
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Auto-scroll all'ultimo messaggio
+    const suggestions = ["Analizza log", "Stato infrastruttura", "Supporto AI"];
+
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [input]);
+
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTo({
@@ -38,12 +72,15 @@ export default function AiAgentChatComponent() {
 
     const handleSendMessage = async (queryText: string) => {
         if (!queryText.trim() || isLoading) return;
+        if (!systemStatus.status && !isDev) {
+            toast.error("SISTEMA OFFLINE");
+            return;
+        }
 
         const userQuery = queryText.trim();
         setInput("");
         setIsLoading(true);
 
-        // Aggiungi il messaggio dell'utente immediatamente
         const userMsg: Message = {
             role: "user",
             content: userQuery,
@@ -78,147 +115,219 @@ export default function AiAgentChatComponent() {
                             : new Date(),
                     },
                 ]);
-            } else {
-                toast.error(response.data.message || "Errore dal server");
             }
-        } catch (err: any) {
-            console.error("Chat Error:", err);
-            toast.error("Errore di connessione. Riprova più tardi.");
+        } catch (err) {
+            toast.error("Errore di connessione");
         } finally {
             setIsLoading(false);
         }
     };
 
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success("Copiato");
+    };
+
     return (
-        <div className="flex flex-col h-[100dvh] bg-[#F9FAFB] text-zinc-900 font-sans overflow-hidden">
+        <div className="flex flex-col h-[100dvh] bg-white text-slate-900 font-sans overflow-hidden">
             <Toaster
                 richColors
                 position="top-right"
             />
 
             {/* HEADER */}
-            <header className="px-8 py-5 bg-white border-b border-zinc-200 flex items-center justify-between z-20 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <div className="p-2.5 bg-zinc-900 rounded-2xl shadow-xl">
-                            <Icons.CpuChipIcon className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full"></span>
+            <header className="flex-none px-4 md:px-10 py-3 md:py-5 border-b border-slate-100 flex items-center justify-between bg-white/95 backdrop-blur-sm z-30">
+                <div className="flex items-center gap-3 md:gap-5">
+                    <div className="p-2 md:p-2.5 bg-slate-900 rounded-xl shadow-sm">
+                        <Icons.SparklesIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-sm font-black tracking-tighter text-zinc-800 uppercase leading-none italic">
-                            BixData Neural Agent
+                        <h1 className="text-xs md:text-xl font-black text-slate-900 tracking-tight uppercase">
+                            Agente BixAI
                         </h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-none">
-                                Lenovo PGX Workstation
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            <span
+                                className={`h-2 w-2 rounded-full ${
+                                    systemStatus.status
+                                        ? "bg-emerald-500 animate-pulse"
+                                        : "bg-red-500"
+                                }`}></span>
+                            <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-widest">
+                                {statusLoading
+                                    ? "..."
+                                    : systemStatus.status
+                                    ? "Online"
+                                    : "Offline"}
                             </span>
                         </div>
                     </div>
                 </div>
+
                 <button
                     onClick={() => setMessages([messages[0]])}
-                    className="p-2.5 hover:bg-zinc-100 rounded-xl text-zinc-400 hover:text-red-600 transition-all active:scale-95">
-                    <Icons.TrashIcon className="w-5 h-5" />
+                    className="p-2 text-slate-300 hover:text-red-500 transition-all">
+                    <Icons.TrashIcon className="w-6 h-6 md:w-7 md:h-7" />
                 </button>
             </header>
 
             {/* CHAT AREA */}
-            <main className="flex-1 overflow-y-auto px-6 py-8 space-y-8 custom-scrollbar bg-gradient-to-b from-white to-[#F3F4F6]">
-                <AnimatePresence initial={false}>
-                    {messages.map((msg, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`flex ${
-                                msg.role === "user"
-                                    ? "justify-end"
-                                    : "justify-start"
-                            }`}>
-                            <div
-                                className={`max-w-[85%] md:max-w-[75%] ${
+            <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#FDFDFD]">
+                <div className="max-w-4xl mx-auto px-4 md:px-10 py-6 md:py-12">
+                    <AnimatePresence initial={false}>
+                        {messages.map((msg, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`mb-8 md:mb-16 flex gap-3 md:gap-8 ${
                                     msg.role === "user"
-                                        ? "items-end"
-                                        : "items-start"
+                                        ? "flex-row-reverse"
+                                        : "flex-row"
                                 }`}>
                                 <div
-                                    className={`px-5 py-4 rounded-[1.8rem] shadow-sm leading-relaxed ${
+                                    className={`flex-none w-9 h-9 md:w-14 md:h-14 rounded-xl md:rounded-[1.2rem] flex items-center justify-center text-[10px] font-black border-2 transition-all ${
                                         msg.role === "user"
-                                            ? "bg-zinc-900 text-zinc-50 rounded-tr-none shadow-zinc-200"
-                                            : "bg-white border border-zinc-200 text-zinc-800 rounded-tl-none shadow-zinc-100"
+                                            ? "bg-white border-slate-200 text-slate-400"
+                                            : "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-100"
                                     }`}>
+                                    {msg.role === "user" ? (
+                                        <Icons.UserIcon className="w-5 h-5 md:w-6 md:h-6" />
+                                    ) : (
+                                        "BIX"
+                                    )}
+                                </div>
+
+                                <div
+                                    className={`flex flex-col ${
+                                        msg.role === "user"
+                                            ? "items-end text-right"
+                                            : "items-start"
+                                    } max-w-[85%] md:max-w-[80%]`}>
+                                    <div className="flex items-center gap-2 mb-1.5 text-[9px] md:text-sm font-bold text-slate-400 uppercase tracking-[0.1em]">
+                                        <span>
+                                            {msg.role === "user"
+                                                ? "Tu"
+                                                : "BixAI"}
+                                        </span>
+                                        <span className="h-0.5 w-0.5 bg-slate-200 rounded-full"></span>
+                                        <span>
+                                            {msg.timestamp.toLocaleTimeString(
+                                                [],
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                }
+                                            )}
+                                        </span>
+                                    </div>
+
                                     <div
-                                        className={`prose prose-sm max-w-none ${
+                                        className={`relative group p-4 md:p-7 rounded-2xl md:rounded-[2rem] text-sm md:text-xl leading-relaxed ${
                                             msg.role === "user"
-                                                ? "prose-invert"
-                                                : "prose-zinc"
-                                        } prose-p:my-1`}>
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm]}>
-                                            {msg.content}
-                                        </ReactMarkdown>
+                                                ? "bg-white border border-slate-200 text-slate-700 rounded-tr-none"
+                                                : "bg-slate-50 text-slate-800 rounded-tl-none"
+                                        }`}>
+                                        <div className="prose prose-sm md:prose-xl max-w-none prose-slate prose-strong:text-emerald-700 prose-code:text-emerald-600">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}>
+                                                {msg.content}
+                                            </ReactMarkdown>
+                                        </div>
+
+                                        {msg.role === "assistant" && (
+                                            <button
+                                                onClick={() =>
+                                                    copyToClipboard(msg.content)
+                                                }
+                                                className="absolute -bottom-8 left-0 p-2 text-slate-300 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                <Icons.DocumentDuplicateIcon className="w-3 h-3 md:w-4 md:h-4" />{" "}
+                                                Copia
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
-                                <span className="text-[9px] font-bold text-zinc-400 mt-2 block px-2 uppercase tracking-tighter opacity-70 italic">
-                                    {msg.timestamp.toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </span>
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
 
-                {/* LOADING INDICATOR */}
-                {isLoading && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-3">
-                        <div className="px-5 py-4 bg-white border border-zinc-200 rounded-[2rem] rounded-tl-none shadow-sm flex items-center gap-4 animate-pulse">
-                            <Icons.ArrowPathIcon className="w-4 h-4 animate-spin text-orange-600" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                                Elaborazione risposta...
-                            </span>
+                    {isLoading && (
+                        <div className="flex items-center gap-3 py-4">
+                            <div className="flex gap-1">
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></span>
+                            </div>
                         </div>
-                    </motion.div>
-                )}
+                    )}
+                </div>
                 <div
                     ref={scrollRef}
-                    className="h-4"
+                    className="h-10"
                 />
             </main>
 
-            {/* INPUT FOOTER */}
-            <footer className="p-6 bg-white border-t border-zinc-200 relative shadow-2xl">
+            {/* FOOTER */}
+            <footer className="flex-none p-3 md:p-10 bg-white border-t border-slate-100 shadow-xl">
                 <div className="max-w-4xl mx-auto">
+                    {!isLoading && messages.length < 3 && (
+                        <div className="flex gap-2 mb-3 md:mb-6 overflow-x-auto no-scrollbar pb-1">
+                            {suggestions.map((s, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleSendMessage(s)}
+                                    className="whitespace-nowrap px-4 py-2 bg-slate-50 text-[10px] md:text-sm font-bold text-slate-500 rounded-xl border border-slate-100 transition-all">
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             handleSendMessage(input);
                         }}
-                        className="relative flex items-center gap-3">
+                        className="relative flex items-end gap-2">
                         <div className="relative flex-1">
-                            <input
-                                type="text"
+                            <textarea
+                                ref={textareaRef}
+                                rows={1}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="Chiedi qualcosa alla workstation..."
-                                disabled={isLoading}
-                                className="w-full h-16 pl-6 pr-16 bg-zinc-100 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-zinc-900/10 transition-all font-medium text-zinc-800"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendMessage(input);
+                                    }
+                                }}
+                                placeholder={
+                                    systemStatus.status || isDev
+                                        ? "Messaggio..."
+                                        : "Offline"
+                                }
+                                disabled={
+                                    isLoading ||
+                                    (!systemStatus.status && !isDev)
+                                }
+                                className="w-full min-h-[48px] md:min-h-[64px] max-h-[150px] py-3 md:py-4 pl-4 md:pl-6 pr-12 bg-slate-100/50 border border-slate-100 rounded-2xl md:rounded-[1.8rem] outline-none focus:bg-white focus:border-emerald-500 transition-all text-sm md:text-xl font-medium placeholder:text-slate-400 disabled:opacity-50 resize-none"
                             />
-                            <div className="absolute right-3 top-3">
-                                <button
-                                    type="submit"
-                                    disabled={!input.trim() || isLoading}
-                                    className="h-10 w-10 bg-zinc-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 disabled:opacity-20 transition-all">
-                                    <Icons.PaperAirplaneIcon className="w-5 h-5" />
-                                </button>
-                            </div>
+                            <button
+                                type="submit"
+                                disabled={
+                                    !input.trim() ||
+                                    isLoading ||
+                                    (!systemStatus.status && !isDev)
+                                }
+                                className="absolute right-2 bottom-2 h-8 w-8 md:h-12 md:w-12 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 disabled:bg-slate-200 transition-all">
+                                <Icons.PaperAirplaneIcon className="w-4 h-4 md:w-6 md:h-6" />
+                            </button>
                         </div>
                     </form>
+
+                    <div className="mt-3 md:mt-6 flex justify-between items-center text-[8px] md:text-xs font-bold text-slate-300 uppercase tracking-widest px-2">
+                        <span>BixAI System</span>
+                        <span>© {new Date().getFullYear()}</span>
+                    </div>
                 </div>
             </footer>
 
@@ -229,8 +338,24 @@ export default function AiAgentChatComponent() {
                     width: 4px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #e5e7eb;
+                    background: #e2e8f0;
                     border-radius: 10px;
+                }
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .prose pre {
+                    background: #0f172a !important;
+                    padding: 1rem !important;
+                    border-radius: 1rem !important;
+                    font-size: 0.85rem !important;
+                }
+                @media (min-width: 768px) {
+                    .prose pre {
+                        font-size: 1.1rem !important;
+                        padding: 2rem !important;
+                    }
                 }
             `}</style>
         </div>
