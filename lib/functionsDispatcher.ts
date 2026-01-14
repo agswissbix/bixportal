@@ -674,5 +674,39 @@ export function useFrontendFunctions() {
       toast.error('Errore durante la creazione del riassunto')
     }
   },
+  open_ask_ai: async ({url } : {url: string}) => {
+    console.info("dispatcher: ask_ai");
+
+    try {
+        const response = await axiosInstanceClient.post(
+            "/postApi",
+            {
+                apiRoute: "check_ai_chat_status",
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+        );
+
+        if (response.data?.status) {
+            window.open(url, "_blank");
+        } else {
+            const store = useRecordsStore.getState();
+            store.setInfoData({
+                title: "Funzione Chat Interattiva BixAI",
+                message: "La funzione non è stata ancora implementata",
+                type: "success",
+            });
+            store.setPopUpType("info");
+            store.setIsPopupOpen(true);
+        }
+    } catch (error) {
+        console.error("Errore durante la creazione del record", error);
+        toast.error("Errore durante la creazione del record");
+    }
+
+  },
 }
 }
