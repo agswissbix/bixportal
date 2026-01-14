@@ -24,6 +24,7 @@ import UserSettings from '@/components/userSettings';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import RecordCard from '@/components/recordCard';
+import AiAgentFloatingChat from '@/components/bixApps/aiAgent/aiAgentFloatingChat';
 
 export default function Home() {
   const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme, infoData} = useRecordsStore();
@@ -135,6 +136,8 @@ useEffect(() => {
           )}
         </div>
       </div>
+      
+    {/* <AiAgentFloatingChat /> */}
     </div>
     </TooltipProvider>
   );

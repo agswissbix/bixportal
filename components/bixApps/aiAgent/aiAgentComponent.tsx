@@ -34,16 +34,11 @@ export default function AiAgentChatComponent() {
         ? useApi<StatusResponse>(statusPayload)
         : { response: null, loading: false };
 
-    useEffect(() => {
-        if (!isDev && statusRes) setSystemStatus(statusRes);
-    }, [statusRes]);
-
     // --- LOGICA CHAT ---
     const [messages, setMessages] = useState<Message[]>([
         {
             role: "assistant",
-            content:
-                "Sistemi **BixAI** online. Sono pronto ad assisterti. Come posso aiutarti oggi?",
+            content: "Inizializzazione sistemi **BixAI** in corso...",
             timestamp: new Date(),
         },
     ]);
@@ -54,6 +49,30 @@ export default function AiAgentChatComponent() {
 
     const suggestions = ["Analizza log", "Stato infrastruttura", "Supporto AI"];
 
+    // Sincronizza il messaggio iniziale con lo stato reale e i colori
+    useEffect(() => {
+        if (!statusLoading) {
+            const isOnline = isDev || (statusRes && statusRes.status);
+            setSystemStatus({ status: isOnline });
+
+            setMessages((prev) => {
+                if (prev.length === 1) {
+                    return [
+                        {
+                            role: "assistant",
+                            content: isOnline
+                                ? "Sistemi **BixAI** **online**. Sono pronto ad assisterti. Come posso aiutarti?"
+                                : "Sistemi **BixAI** **offline**. Al momento non è possibile stabilire una connessione con il server.",
+                            timestamp: new Date(),
+                        },
+                    ];
+                }
+                return prev;
+            });
+        }
+    }, [statusRes, statusLoading]);
+
+    // Auto-resize della textarea
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.style.height = "auto";
@@ -152,7 +171,12 @@ export default function AiAgentChatComponent() {
                                         ? "bg-emerald-500 animate-pulse"
                                         : "bg-red-500"
                                 }`}></span>
-                            <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-widest">
+                            <span
+                                className={`text-[10px] md:text-sm font-bold uppercase tracking-widest ${
+                                    systemStatus.status
+                                        ? "text-slate-400"
+                                        : "text-red-500"
+                                }`}>
                                 {statusLoading
                                     ? "..."
                                     : systemStatus.status
@@ -227,9 +251,37 @@ export default function AiAgentChatComponent() {
                                                 ? "bg-white border border-slate-200 text-slate-700 rounded-tr-none"
                                                 : "bg-slate-50 text-slate-800 rounded-tl-none"
                                         }`}>
-                                        <div className="prose prose-sm md:prose-xl max-w-none prose-slate prose-strong:text-emerald-700 prose-code:text-emerald-600">
+                                        <div className="prose prose-sm md:prose-xl max-w-none prose-slate">
                                             <ReactMarkdown
-                                                remarkPlugins={[remarkGfm]}>
+                                                remarkPlugins={[remarkGfm]}
+                                                components={{
+                                                    // Logica per colorare parole specifiche se in grassetto
+                                                    strong: ({
+                                                        node,
+                                                        children,
+                                                        ...props
+                                                    }) => {
+                                                        const isOffline =
+                                                            children ===
+                                                            "offline";
+                                                        const isOnline =
+                                                            children ===
+                                                            "online";
+                                                        return (
+                                                            <strong
+                                                                className={`${
+                                                                    isOffline
+                                                                        ? "text-red-500"
+                                                                        : isOnline
+                                                                        ? "text-emerald-600"
+                                                                        : ""
+                                                                } font-black`}
+                                                                {...props}>
+                                                                {children}
+                                                            </strong>
+                                                        );
+                                                    },
+                                                }}>
                                                 {msg.content}
                                             </ReactMarkdown>
                                         </div>
@@ -269,18 +321,20 @@ export default function AiAgentChatComponent() {
             {/* FOOTER */}
             <footer className="flex-none p-3 md:p-10 bg-white border-t border-slate-100 shadow-xl">
                 <div className="max-w-4xl mx-auto">
-                    {!isLoading && messages.length < 3 && (
-                        <div className="flex gap-2 mb-3 md:mb-6 overflow-x-auto no-scrollbar pb-1">
-                            {suggestions.map((s, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => handleSendMessage(s)}
-                                    className="whitespace-nowrap px-4 py-2 bg-slate-50 text-[10px] md:text-sm font-bold text-slate-500 rounded-xl border border-slate-100 transition-all">
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                    {!isLoading &&
+                        messages.length < 3 &&
+                        systemStatus.status && (
+                            <div className="flex gap-2 mb-3 md:mb-6 overflow-x-auto no-scrollbar pb-1">
+                                {suggestions.map((s, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleSendMessage(s)}
+                                        className="whitespace-nowrap px-4 py-2 bg-slate-50 text-[10px] md:text-sm font-bold text-slate-500 rounded-xl border border-slate-100 transition-all">
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                     <form
                         onSubmit={(e) => {
@@ -301,12 +355,15 @@ export default function AiAgentChatComponent() {
                                     }
                                 }}
                                 placeholder={
-                                    systemStatus.status || isDev
+                                    statusLoading
+                                        ? "In attesa..."
+                                        : systemStatus.status || isDev
                                         ? "Messaggio..."
-                                        : "Offline"
+                                        : "Sistema Offline"
                                 }
                                 disabled={
                                     isLoading ||
+                                    statusLoading ||
                                     (!systemStatus.status && !isDev)
                                 }
                                 className="w-full min-h-[48px] md:min-h-[64px] max-h-[150px] py-3 md:py-4 pl-4 md:pl-6 pr-12 bg-slate-100/50 border border-slate-100 rounded-2xl md:rounded-[1.8rem] outline-none focus:bg-white focus:border-emerald-500 transition-all text-sm md:text-xl font-medium placeholder:text-slate-400 disabled:opacity-50 resize-none"
@@ -316,6 +373,7 @@ export default function AiAgentChatComponent() {
                                 disabled={
                                     !input.trim() ||
                                     isLoading ||
+                                    statusLoading ||
                                     (!systemStatus.status && !isDev)
                                 }
                                 className="absolute right-2 bottom-2 h-8 w-8 md:h-12 md:w-12 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 disabled:bg-slate-200 transition-all">
@@ -325,8 +383,8 @@ export default function AiAgentChatComponent() {
                     </form>
 
                     <div className="mt-3 md:mt-6 flex justify-between items-center text-[8px] md:text-xs font-bold text-slate-300 uppercase tracking-widest px-2">
-                        <span>BixAI System</span>
-                        <span>© {new Date().getFullYear()}</span>
+                        <span>BixAI Intelligence Unit</span>
+                        <span>© {new Date().getFullYear()} BixData</span>
                     </div>
                 </div>
             </footer>
