@@ -1,8 +1,12 @@
+version: '3.8'
+
 services:
   bixportal:
     container_name: bixportal
-    image: ghcr.io/<tuo-utente>/bixportal-${CLIENT_ID}:latest
+    image: ghcr.io/${GITHUB_USER}/bixportal-${CLIENT_ID}:latest
     restart: unless-stopped
+    networks:
+      - bix-network
     ports:
       - "3000:3000"
     environment:
@@ -11,3 +15,7 @@ services:
       - HOSTNAME=0.0.0.0
     env_file:
       - .env.production
+
+networks:
+  bix-network:
+    external: true

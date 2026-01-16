@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       client_id:
-        description: 'ID Cliente'
+        description: 'ID Cliente (es. CLIENTE1)'
         required: true
       tag:
         description: 'Tag versione'
@@ -31,19 +31,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare image name
+      - name: Prepare Variables
         id: prep
         run: |
           OWNER="${{ github.repository_owner }}"
           CLIENT="${{ github.event.inputs.client_id }}"
-          # Trasforma in minuscolo per il tag dell'immagine
+          # Nome immagine tutto minuscolo
           IMAGE_PATH=$(echo "${{ env.REGISTRY }}/${OWNER}/bixportal-${CLIENT}" | tr '[:upper:]' '[:lower:]')
+          # ID Cliente tutto maiuscolo per i secrets
+          CLIENT_UPPER=$(echo "${CLIENT}" | tr '[:lower:]' '[:upper:]')
           echo "IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV
+          echo "CLIENT_UPPER=${CLIENT_UPPER}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile.frontend # Assicurati che il nome sia corretto nel repo
           push: true
           target: runner
           tags: |
@@ -54,5 +58,3 @@ jobs:
             NEXT_PUBLIC_API_BASE_URL=${{ secrets[format('{0}_NEXT_PUBLIC_API_BASE_URL', env.CLIENT_UPPER)] }}
             NEXT_PUBLIC_CORS_ORIGIN=${{ secrets[format('{0}_NEXT_PUBLIC_CORS_ORIGIN', env.CLIENT_UPPER)] }}
             NEXT_PUBLIC_MODE=${{ secrets[format('{0}_NEXT_PUBLIC_MODE', env.CLIENT_UPPER)] }}
-        env:
-          CLIENT_UPPER: ${{ github.event.inputs.client_id }}
