@@ -47,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.frontend # Assicurati che il nome sia corretto nel repo
+          file: ./Dockerfile
           push: true
           target: runner
           tags: |
