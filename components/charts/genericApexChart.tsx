@@ -53,11 +53,8 @@ const getRandomColorFromPalette = () => {
  * Unifica il parsing e il rendering di diversi tipi di grafici.
  */
 export default function GenericChart({ chartType, chartData, view, showDataLabels, hideMeta = false }: Props) {
-    if (chartData?.error) {
-        if (chartData.error === "$empty$") {
-            return <div className="p-4 text-gray-400"><i>Nessun dato disponibile.</i></div>;
-        }
-        return <div className="p-4 text-red-500">Errore: {chartData.error}</div>;
+    if (chartData?.error == "$empty$") {
+        return <div className="p-4 text-gray-400"><i>Nessun dato disponibile.</i></div>;
     }
     if (!chartData || !chartData.labels) {
         return <div className="p-4 text-red-500">Dati del grafico non validi</div>;

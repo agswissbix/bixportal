@@ -18,7 +18,7 @@ interface Club {
 }
 
 // INTERFACCIA STATO FILTRI
-interface FilterState {
+export interface FilterState {
   selectedYears: string[]
   showTotalAverage: boolean
   averageExcludeNoSharing: boolean
@@ -28,7 +28,7 @@ interface FilterState {
 }
 
 // FILTRO NUMERICO SINGOLO
-interface NumericFilter {
+export interface NumericFilter {
   field: string
   label: string
   operator: ">=" | "<="
@@ -36,7 +36,7 @@ interface NumericFilter {
 }
 
 // FILTRO DEMOGRAFICO SINGOLO
-interface DemographicFilter {
+export interface DemographicFilter {
   field: string
   label: string
   type: "number" | "select" | "toggle" | "distance"
@@ -52,7 +52,7 @@ interface FilterOption {
 }
 
 // INTERFACCIA FILTRI VISIBILI
-interface VisibleFilters {
+export interface VisibleFilters {
   years?: boolean
   average?: boolean
   numericFilters?: boolean
