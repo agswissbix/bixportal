@@ -56,7 +56,7 @@ export const SignatureDialog = ({
         onOpenChange(open);
       }}
     >
-      <DialogContent className="z-[9999] bg-card-background border-2 border-accent/20 shadow-2xl max-w-2xl">
+      <DialogContent className="z-[9999] bg-white bg-[color:var(--card-background,white)] border-2 border-accent/20 shadow-2xl max-w-2xl">
         <DialogHeader className="border-b border-accent/10 pb-4">
           <DialogTitle className="text-2xl font-bold text-primary flex items-center gap-2">
             <svg
@@ -103,7 +103,7 @@ export const SignatureDialog = ({
                 <button
                   onClick={handleSaveSignature}
                   disabled={loading}
-                  className="px-6 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors duration-200 font-medium shadow-md hover:shadow-lg disabled:opacity-60"
+                  className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors duration-200 font-medium shadow-md hover:shadow-lg disabled:opacity-60"
                 >
                   {loading ? 'Salvataggio...' : 'Salva Firma'}
                 </button>

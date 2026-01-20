@@ -4,7 +4,10 @@ import { useApi } from "@/utils/useApi";
 import GenericComponent from "@/components/genericComponent";
 import { AppContext } from "@/context/appContext";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
+import { useFrontendFunctions } from "@/lib/functionsDispatcher";
 import { toast, Toaster } from "sonner";
+import PopUpManager from "@/components/popUpManager";
+import { useRecordsStore } from "@/components/records/recordsStore";
 
 // HeroIcons v2 (Open Source)
 import * as Icons from "@heroicons/react/24/outline";
@@ -90,6 +93,11 @@ export default function ProfessionalTimesheet() {
 
     // ID RITORNATO DAL BACKEND DOPO IL SALVATAGGIO DELLA TESTATA
     const [timesheetId, setTimesheetId] = useState<number | null>(null);
+
+    const { handleSignTimesheet, swissbixPrintTimesheet } =
+        useFrontendFunctions();
+    const { isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, infoData } =
+        useRecordsStore();
 
     // STATO DEL FORM
     const [formData, setFormData] = useState({
@@ -1001,6 +1009,52 @@ export default function ProfessionalTimesheet() {
                                                 </div>
                                             </button>
                                             <button
+                                                onClick={() => {
+                                                    if (timesheetId) {
+                                                        handleSignTimesheet({
+                                                            recordid:
+                                                                timesheetId.toString(),
+                                                        });
+                                                    } else {
+                                                        toast.error(
+                                                            "Salva prima il timesheet per poterlo firmare"
+                                                        );
+                                                    }
+                                                }}
+                                                className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
+                                                <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl">
+                                                    <Icons.PencilSquareIcon className="w-6 h-6" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="font-bold text-zinc-800">
+                                                        Firma e scarica
+                                                    </p>
+                                                </div>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (timesheetId) {
+                                                        swissbixPrintTimesheet({
+                                                            recordid:
+                                                                timesheetId.toString(),
+                                                        });
+                                                    } else {
+                                                        toast.error(
+                                                            "Salva prima il timesheet per poterlo firmare"
+                                                        );
+                                                    }
+                                                }}
+                                                className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
+                                                <div className="p-3 bg-pink-50 text-pink-600 rounded-2xl">
+                                                    <Icons.PrinterIcon className="w-6 h-6" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="font-bold text-zinc-800">
+                                                        Stampa
+                                                    </p>
+                                                </div>
+                                            </button>
+                                            <button
                                                 onClick={() =>
                                                     setIsSuccess(true)
                                                 }
@@ -1217,6 +1271,14 @@ export default function ProfessionalTimesheet() {
                                     </div>
                                 )}
                             </main>
+
+                            <PopUpManager
+                                isOpen={isPopupOpen}
+                                onClose={() => setIsPopupOpen(false)}
+                                type={popUpType}
+                                recordid={popupRecordId}
+                                infoData={infoData}
+                            />
 
                             {/* FOOTER NAVIGAZIONE (SOLO STEP < 9) */}
                             <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex gap-3 z-[100]">
