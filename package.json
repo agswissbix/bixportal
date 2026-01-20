@@ -82,7 +82,7 @@
         "gridstack": "^11.5.1",
         "html-to-image": "^1.11.13",
         "html2canvas": "^1.4.1",
-        "html2pdf.js": "^0.13.0",
+        "html2pdf.js": "^0.14.0",
         "html5-qrcode": "^2.3.8",
         "js-cookie": "3.0.5",
         "jspdf": "^4.0.0",

@@ -391,8 +391,8 @@ export default function SchedulerPage() {
           error={error}>
           {(response: SchedulerResponse) => (
               <>
-                  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
-                      <div className="max-w-[90%] mx-auto">
+                  <div className="w-full max-h-[calc(100vh-80px)] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6 pb-20 overflow-y-auto">
+                      <div className="max-w-7xl mx-auto space-y-8">
                           {/* Header */}
                           <div className="mb-8">
                               <div className="flex items-center justify-between">
@@ -569,8 +569,8 @@ export default function SchedulerPage() {
                                       Scheduled Tasks
                                   </CardTitle>
                               </CardHeader>
-                              <CardContent className="p-0">
-                                  <div className="overflow-x-auto max-w-full">
+                              <CardContent className="p-0 overflow-x-auto">
+                                  <div className="overflow-y-auto w-full max-h-[600px]">
                                       {/* INIZIO CORREZIONE WHITESPACE */}
                                       <table className="w-full min-w-[1000px]">
                                           <thead className="bg-slate-50 border-b sticky top-0 z-10">
