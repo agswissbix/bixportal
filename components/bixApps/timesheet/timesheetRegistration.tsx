@@ -375,25 +375,66 @@ export default function ProfessionalTimesheet() {
 
     if (isSuccess)
         return (
-            <div className="flex flex-col min-h-[100dvh] bg-white items-center justify-center p-8 text-center animate-in fade-in duration-500">
-                <Icons.CheckCircleIcon className="w-20 h-20 text-teal-500 mb-6" />
-                <h2 className="text-3xl font-black uppercase tracking-tighter">
-                    Attività Inviata
-                </h2>
-                <div className="w-full max-w-xs mt-10 space-y-4">
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="w-full h-16 bg-orange-500 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <Icons.ArrowPathIcon className="w-5 h-5" /> Nuovo
-                        Timesheet
-                    </button>
-                    <button
-                        onClick={() => (window.location.href = "/home")}
-                        className="w-full h-16 bg-zinc-100 text-zinc-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
-                        <Icons.HomeIcon className="w-5 h-5" /> Home
-                    </button>
+            <>
+                <div className="flex flex-col min-h-[100dvh] bg-white items-center justify-center p-8 text-center animate-in fade-in duration-500">
+                    <Icons.CheckCircleIcon className="w-20 h-20 text-teal-500 mb-6" />
+                    <h2 className="text-3xl font-black uppercase tracking-tighter">
+                        Attività Inviata
+                    </h2>
+                    <div className="w-full max-w-xs mt-10 space-y-4">
+                        <button
+                            onClick={() => {
+                                if (timesheetId) {
+                                    handleSignTimesheet({
+                                        recordid: timesheetId.toString(),
+                                    });
+                                } else {
+                                    toast.error(
+                                        "Salva prima il timesheet per poterlo firmare"
+                                    );
+                                }
+                            }}
+                            className="w-full p-4 bg-purple-50 text-purple-700 border border-purple-100 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
+                            <Icons.PencilSquareIcon className="w-5 h-5" /> Firma
+                            e scarica
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                if (timesheetId) {
+                                    swissbixPrintTimesheet({
+                                        recordid: timesheetId.toString(),
+                                    });
+                                } else {
+                                    toast.error("ID non trovato");
+                                }
+                            }}
+                            className="w-full p-4 bg-pink-50 text-pink-700 border border-pink-100 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
+                            <Icons.PrinterIcon className="w-5 h-5" /> Stampa PDF
+                        </button>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="w-full h-16 bg-orange-500 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <Icons.ArrowPathIcon className="w-5 h-5" /> Nuovo
+                            Timesheet
+                        </button>
+                        <button
+                            onClick={() => (window.location.href = "/home")}
+                            className="w-full h-16 bg-zinc-100 text-zinc-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                            <Icons.HomeIcon className="w-5 h-5" /> Home
+                        </button>
+                    </div>
                 </div>
-            </div>
+
+                {/* AGGIUNGI QUESTA PARTE QUI SOTTO */}
+                <PopUpManager
+                    isOpen={isPopupOpen}
+                    onClose={() => setIsPopupOpen(false)}
+                    type={popUpType}
+                    recordid={popupRecordId}
+                    infoData={infoData}
+                />
+            </>
         );
 
     return (
@@ -1008,7 +1049,7 @@ export default function ProfessionalTimesheet() {
                                                     </p>
                                                 </div>
                                             </button>
-                                            <button
+                                            {/* <button
                                                 onClick={() => {
                                                     if (timesheetId) {
                                                         handleSignTimesheet({
@@ -1053,7 +1094,7 @@ export default function ProfessionalTimesheet() {
                                                         Stampa
                                                     </p>
                                                 </div>
-                                            </button>
+                                            </button> */}
                                             <button
                                                 onClick={() =>
                                                     setIsSuccess(true)
@@ -1270,15 +1311,15 @@ export default function ProfessionalTimesheet() {
                                         </div>
                                     </div>
                                 )}
-                            </main>
 
-                            <PopUpManager
-                                isOpen={isPopupOpen}
-                                onClose={() => setIsPopupOpen(false)}
-                                type={popUpType}
-                                recordid={popupRecordId}
-                                infoData={infoData}
-                            />
+                                <PopUpManager
+                                    isOpen={isPopupOpen}
+                                    onClose={() => setIsPopupOpen(false)}
+                                    type={popUpType}
+                                    recordid={popupRecordId}
+                                    infoData={infoData}
+                                />
+                            </main>
 
                             {/* FOOTER NAVIGAZIONE (SOLO STEP < 9) */}
                             <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex gap-3 z-[100]">
