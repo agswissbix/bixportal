@@ -16,7 +16,7 @@ import { Dispatch, SetStateAction } from 'react';
 import BlockChart from './blockChart';
 import { useReactToPrint } from 'react-to-print';
 import { PrinterIcon } from 'lucide-react';
-import DashboardFilters from './dashboardFilters';
+import DashboardFilters, { FilterState, VisibleFilters } from './dashboardFilters';
 import { sanitizeHtml } from '@/utils/htmlPurify';
 
 
@@ -34,15 +34,7 @@ const isDev = false;
           selectedYears?: string[]; // Anni selezionati, opzionale per test
           refreshDashboard?: number; // Stato per forzare il refresh della dashboard
           setRefreshDashboard?: Dispatch<SetStateAction<number>>; // Funzione opzionale per
-          showFilters?: showFiltersTypes;
-        }
-
-        interface showFiltersTypes {
-          years?: boolean;
-          average?: boolean;
-          numericFilters?: boolean;
-          demographicFilters?: boolean | { [key: string]: boolean };
-          clubs?: boolean;
+          showFilters?: VisibleFilters;
         }
 
         // INTERFACCIA RISPOSTA DAL BACKEND
@@ -627,8 +619,8 @@ useEffect(() => {
 
           {Object.values(showFilters).some(value => value) && (
               <DashboardFilters
-                filters={filters}
-                onFiltersChange={setFilters}
+                filters={filters as unknown as FilterState}
+                onFiltersChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
                 visibleFilters={showFilters}
               />
           )}
