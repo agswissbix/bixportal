@@ -121,9 +121,10 @@ interface RecordsStore {
             type: "number" | "select" | "toggle" | "distance";
             operator?: ">=" | "<="; // Solo per number e distance
             value: string | number | boolean;
-            options?: string[]; // Solo per select
+            options?: (string | { label: string; value: string })[]; // Solo per select
         }>;
         selectedClubs: string[];
+        subgroupBy: "year" | "club";
     };
     setDashboardFilters: (
         dashboardFilters: RecordsStore["dashboardFilters"]
@@ -326,6 +327,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         numericFilters: [],
         demographicFilters: [],
         selectedClubs: [],
+        subgroupBy: "club",
     },
     setDashboardFilters: (dashboardFilters: RecordsStore["dashboardFilters"]) =>
         set({ dashboardFilters }),
