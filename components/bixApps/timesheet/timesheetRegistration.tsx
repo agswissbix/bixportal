@@ -806,43 +806,27 @@ export default function ProfessionalTimesheet() {
                                                 />
                                             </div>
                                             <div className="p-6 flex items-center justify-between">
-                                                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                                                    Lavoro
-                                                </span>
+                                                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Lavoro</span>
                                                 <input
                                                     type="time"
                                                     step="900"
-                                                    className="font-bold text-4xl outline-none text-orange-600 text-right bg-transparent"
+                                                    className="font-bold text-4xl outline-none text-orange-600 text-right bg-transparent w-fit ml-auto"
                                                     value={formData.tempoLavoro}
                                                     min="00:00"
                                                     max="12:00"
-                                                    onChange={(e) =>
-                                                        update(
-                                                            "tempoLavoro",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => update("tempoLavoro", e.target.value)}
                                                 />
                                             </div>
                                             <div className="p-6 flex items-center justify-between">
-                                                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                                                    Trasferta
-                                                </span>
+                                                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Trasferta</span>
                                                 <input
                                                     type="time"
                                                     step="900"
+                                                    className="font-bold text-xl outline-none text-zinc-400 text-right bg-transparent w-fit ml-auto"
+                                                    value={formData.tempoTrasferta}
                                                     min="00:00"
                                                     max="12:00"
-                                                    className="font-bold text-xl outline-none text-zinc-400 text-right bg-transparent"
-                                                    value={
-                                                        formData.tempoTrasferta
-                                                    }
-                                                    onChange={(e) =>
-                                                        update(
-                                                            "tempoTrasferta",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => update("tempoTrasferta", e.target.value)}
                                                 />
                                             </div>
                                         </div>
