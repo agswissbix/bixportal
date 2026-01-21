@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Calendar, LayoutGrid } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar, LayoutGrid, Printer } from "lucide-react"
 
 interface CalendarHeaderProps {
   title: string
@@ -14,6 +14,7 @@ interface CalendarHeaderProps {
   extraEventTables?: Array<{ id: string; name: string }>
   selectedExtraTable?: string
   onExtraTableChange?: (tableId: string) => void
+  onPrint?: () => void
 }
 
 export default function CalendarHeader({
@@ -28,6 +29,7 @@ export default function CalendarHeader({
   extraEventTables = [],
   selectedExtraTable,
   onExtraTableChange,
+  onPrint,
 }: CalendarHeaderProps) {
   return (
     <header className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
@@ -62,6 +64,14 @@ export default function CalendarHeader({
             <LayoutGrid className="w-4 h-4" />
           </button>
         </div>
+
+        <button
+          onClick={onPrint}
+          className="mr-2 p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors print:hidden"
+          title="Stampa"
+        >
+          <Printer className="w-5 h-5" />
+        </button>
 
         <button
           onClick={onToday}
