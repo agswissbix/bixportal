@@ -1,5 +1,6 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
+import { useReactToPrint } from "react-to-print"
 import type { CalendarChildProps } from "./calendarBase"
 import {
   getEventDurationHours,
@@ -36,6 +37,54 @@ export default function RecordsView({
   const [currentDate, setCurrentDate] = useState(new Date())
   const { handleRowClick } = useRecordsStore()
   const [selectedExtraTable, setSelectedExtraTable] = useState<string>("")
+  const calendarRef = useRef<HTMLDivElement>(null)
+
+  const handlePrintFn = useReactToPrint({
+    pageStyle: `
+      @page {
+        size: landscape;
+        margin: 5mm;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          transform: scale(0.65);
+          transform-origin: top left;
+          width: 153.8%; /* Compensate for 0.65 scale (100/0.65 ≈ 153.8) */
+        }
+        /* Override global layout constraints */
+        html, body {
+          height: auto !important;
+          overflow: visible !important;
+        }
+        /* Ensure the container expands */
+        #calendar-records-view {
+          height: auto !important;
+          overflow: visible !important;
+          display: block !important;
+        }
+        /* Reset internal scroll containers */
+        .overflow-auto {
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+        .h-full {
+          height: auto !important;
+        }
+        /* Hide scrollbars */
+        ::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    `,
+  })
+
+  // Wrapper to pass the content ref to the print function
+  const handlePrint = () => {
+    handlePrintFn(() => calendarRef.current)
+  }
 
   const handleExtraTableChange = (tableId: string) => {
     setSelectedExtraTable(tableId)
@@ -757,7 +806,7 @@ export default function RecordsView({
   return (
     <GenericComponent loading={loading} error={error}>
       {(response) => (
-      <div className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+      <div ref={calendarRef} id="calendar-records-view" className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
         <CalendarHeader
           title={renderHeaderTitle()}
           viewMode={viewMode}
@@ -770,6 +819,7 @@ export default function RecordsView({
           extraEventTables={data.extraEventTables}
           selectedExtraTable={selectedExtraTable}
           onExtraTableChange={handleExtraTableChange}
+          onPrint={handlePrint}
         />
 
         <main className="flex-grow overflow-auto">
