@@ -45,7 +45,7 @@ const isDev = false;
             name: string;
             labels: string[];
             id: number;
-            type: "value" | "barchart" | "piechart" | "linechart" |"donutchart" |"heatchart" |"orizbarchart" |"polarchart" |"radarchart" |"scatterchart"  | "multibarlinechart" | "multibarchart" | "text" | "chart" | "widget" ;
+            type: "value" | "barchart" | "piechart" | "linechart" |"donutchart" |"heatchart" |"orizbarchart" |"polarchart" |"radarchart" |"scatterchart"  | "multibarlinechart" | "multibarchart" | "text" | "chart" | "widget" | "overlappedbarchart";
             content?: string;
             gsw?: number;
             gsh?: number;

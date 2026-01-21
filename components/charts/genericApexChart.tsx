@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactApexChart, { Props as ReactApexChartProps } from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import OverlappingBarChart from './overlappingChart';
 
 // Estendo Props di ReactApexChart per includere tutti i tipi di series possibili
 interface ExtendedApexOptions extends ApexOptions {
@@ -119,6 +120,8 @@ export default function GenericChart({ chartType, chartData, view, showDataLabel
         const safeLabels = chartData.labels.map(label =>
             label ?? "N/A"
         );
+
+
 
         // Opzioni di base comuni a tutti i grafici
         let finalOptions: ExtendedApexOptions = { 
@@ -585,6 +588,43 @@ export default function GenericChart({ chartType, chartData, view, showDataLabel
                         allBarStackedDatasetsorizpercent.map(() => getRandomColorFromPalette()),
                 };
                 break;
+
+            case "overlappedbarchart":
+                const transformedData = safeLabels.map((label, i) => {
+                    const targetVal = chartData.datasets[0]?.data[i];
+                    const actualVal = chartData.datasets[1]?.data[i];
+                    return {
+                        name: label,
+                        target: typeof targetVal === 'number' ? targetVal : 0,
+                        actual: typeof actualVal === 'number' ? actualVal : 0,
+                    };
+                });
+                
+                const overlapColors = chartData.colors && chartData.colors.length >= 2
+                    ? chartData.colors
+                    : [
+                        chartData.colors?.[0] || PLEASANT_COLORS[0],
+                        chartData.colors?.[1] || '#334155'
+                      ];
+                
+                // Nomi delle serie per la legenda
+                const seriesNames: [string, string] = [
+                    chartData.datasets[0]?.label || 'Target',
+                    chartData.datasets[1]?.label || 'Actual'
+                ];
+
+                return (
+                    <div style={{ width: '100%', height: '100%' }}>
+                       <OverlappingBarChart 
+                            data={transformedData} 
+                            colors={overlapColors} 
+                            formatter={fmt}
+                            showDataLabels={showDataLabels}
+                            hideMeta={hideMeta}
+                            seriesNames={seriesNames}
+                       />
+                    </div>
+                );
 
             default:
                 console.warn(`Tipo di grafico non supportato: ${chartType}`);
