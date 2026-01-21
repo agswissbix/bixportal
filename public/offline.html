@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - Bixdata</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+      }
+
+      .offline-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 500px;
+        text-align: center;
+      }
+
+      .offline-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 32px;
+      }
+
+      p {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .offline-status {
+        background: #f0f0f0;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #666;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      button:hover {
+        transform: scale(1.05);
+      }
+
+      button:active {
+        transform: scale(0.95);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="offline-container">
+      <div class="offline-icon">📡</div>
+      <h1>Sei Offline</h1>
+      <p>La connessione a Internet non è disponibile al momento.</p>
+      <div class="offline-status">
+        <strong>Stato:</strong> In attesa di connessione...
+      </div>
+      <button onclick="window.location.reload()">Ricarica Pagina</button>
+    </div>
+
+    <script>
+      // Verifica la connessione a intervalli regolari
+      setInterval(() => {
+        fetch('/manifest.json', { method: 'HEAD' })
+          .then(() => {
+            // Se la fetch ha successo, siamo online
+            console.log('Connessione ripristinata');
+            window.location.reload();
+          })
+          .catch(() => {
+            console.log('Ancora offline');
+          });
+      }, 3000);
+    </script>
+  </body>
+</html>

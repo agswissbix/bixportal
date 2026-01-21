@@ -1,4 +1,15 @@
 import type { NextConfig } from "next";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    skipWaiting: true,
+    clientsClaim: true,
+  },
+});
 
 const isDockerBuild =
     process.env.DOCKER_BUILD === "true" || process.env.DOCKER_BUILD === "1";
@@ -11,6 +22,8 @@ const nextConfig: NextConfig = {
     poweredByHeader: false,
 
     reactStrictMode: true,
+
+    turbopack: {},
 
     devIndicators: {
         // buildActivity is now handled automatically or removed; just set the position
@@ -46,4 +59,4 @@ const nextConfig: NextConfig = {
     },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);
