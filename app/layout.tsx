@@ -1,6 +1,30 @@
 import './globals.css';
 import { AppProvider } from '@/context/appContext';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  manifest: '/manifest.json',
+  title: 'Swissbix',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Swissbix',
+  },
+  icons: {
+    apple: '/icons/icon-192x192.png',
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+};
 
 export default function RootLayout({
   children,
@@ -11,29 +35,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Swissbix" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <style>
-          {`
-            .toastui-editor-defaultUI, 
-            .toastui-editor-popup-wrapper,
-            .toastui-editor-ww-popup {
-              z-index: 0 !important;
-            }
-          `}
-        </style>
-      </head>
-      <body>
+      <body className={inter.className}>
         <AppProvider>
           {children}
           <PWAInstallPrompt />
