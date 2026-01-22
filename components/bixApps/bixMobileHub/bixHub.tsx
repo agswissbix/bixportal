@@ -172,12 +172,6 @@ export default function BixHub() {
                 const timesheets = safeResponse.timesheets || [];
 
                 const timesheetApp = safeResponse.timesheet_fn;
-                console.log("1. Dati ricevuti dal backend:", safeResponse);
-console.log("2. Oggetto timesheetApp trovato?", timesheetApp);
-if (timesheetApp) {
-    console.log("3. Nome funzione da eseguire:", timesheetApp.function);
-    console.log("4. La funzione esiste nel dispatcher?", !!frontendFunctions[timesheetApp.function]);
-}
 
                 const today = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
 
