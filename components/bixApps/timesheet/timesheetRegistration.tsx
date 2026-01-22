@@ -74,9 +74,29 @@ interface ResponseInterface {
     aziendeRecenti: ListItem[];
     progettiRecenti: ListItem[];
     utenteCorrente: ListItem;
+    timesheet?: {
+        id: string;
+        data: string;
+        descrizione: string;
+        tempoLavoro: string;
+        tempoTrasferta: string;
+        noteInterne: string;
+        notaRifiuto: string;
+        azienda: ListItem | null;
+        progetto: ListItem | null;
+        ticket: ListItem | null;
+        servizio: ListItem | null;
+        opzioni: ListItem | null;
+        materiali: Materiale[];
+        allegati: AllegatoDettagliato[];
+    };
 }
 
-export default function ProfessionalTimesheet() {
+    interface TimesheetRegistrationProps {
+    recordid?: string | null;
+}
+
+export default function ProfessionalTimesheet({ recordid }: TimesheetRegistrationProps) {
     const { user: contextUser } = useContext(AppContext);
 
     const MAX_DESC_LENGTH = 500;
@@ -92,7 +112,7 @@ export default function ProfessionalTimesheet() {
     const [showAddAllegato, setShowAddAllegato] = useState(false);
 
     // ID RITORNATO DAL BACKEND DOPO IL SALVATAGGIO DELLA TESTATA
-    const [timesheetId, setTimesheetId] = useState<number | null>(null);
+    const [timesheetId, setTimesheetId] = useState<string | null>(recordid || null);
 
     const { handleSignTimesheet, swissbixPrintTimesheet } =
         useFrontendFunctions();
@@ -101,6 +121,7 @@ export default function ProfessionalTimesheet() {
 
     // STATO DEL FORM
     const [formData, setFormData] = useState({
+        recordid: "",
         data: new Date().toISOString().split("T")[0],
         servizio: null as ListItem | null,
         opzioni: null as ListItem | null,
@@ -138,10 +159,17 @@ export default function ProfessionalTimesheet() {
     // --- CARICAMENTO DATI ---
      const payload = useMemo(() => {
          if (isDev) return null;
-         return {
-             apiRoute: "get_timesheet_initial_data",
-         };
-     }, []);
+         if (timesheetId) {
+            return {
+                apiRoute: "get_timesheet_initial_data",
+                recordid: timesheetId,
+            };
+        }
+
+        return {
+            apiRoute: "get_timesheet_initial_data",
+        };
+     }, [timesheetId]);
 
     const { response, loading, error } = useApi<ResponseInterface>(payload);
     const [responseData, setResponseData] = useState<ResponseInterface | null>(
@@ -151,13 +179,58 @@ export default function ProfessionalTimesheet() {
     useEffect(() => {
         if (response) {
             setResponseData(response);
-            if (response.utenteCorrente)
+            if (response.utenteCorrente) {
                 setFormData((prev) => ({
                     ...prev,
                     utente: response.utenteCorrente,
                 }));
+            }
+
+            if (response.timesheet) {
+                const ts = response.timesheet;
+                
+                setFormData((prev) => ({
+                    ...prev,
+                    recordid: timesheetId,
+                    data: ts.data || new Date().toISOString().split("T")[0],
+                    descrizione: ts.descrizione || "",
+                    tempoLavoro: ts.tempoLavoro || "00:00",
+                    tempoTrasferta: ts.tempoTrasferta || "00:00",
+                    noteInterne: ts.noteInterne || "",
+                    notaRifiuto: ts.notaRifiuto || "",
+                    
+                    azienda: ts.azienda || null,
+                    progetto: ts.progetto || null,
+                    ticket: ts.ticket || null,
+                    servizio: ts.servizio || null,
+                    opzioni: ts.opzioni || null,
+                    
+                    materiali: ts.materiali || [],
+                    allegati: ts.allegati || [],
+                }));
+            }
         }
     }, [response]);
+
+    useEffect(() => {
+        if (error) {
+            toast.error("Errore nel caricamento dati");
+        }
+
+        if (response) {
+            if ((response as any).not_authorized) {
+                toast.error("Non hai i permessi per questo Timesheet!");
+                setTimeout(() => {
+                    window.location.href = "/bixApps/timesheet";
+                }, 2000);
+                return;
+            }
+
+            setResponseData(response);
+            
+            // ... (Resto del codice di popolamento form: utente, timesheet, etc.)
+        }
+    }, [response, error]);
 
     const [searchResults, setSearchResults] = useState<ListItem[]>([]);
     const [searchLoading, setSearchLoading] = useState(false);
@@ -219,6 +292,7 @@ export default function ProfessionalTimesheet() {
             body.append(
                 "fields",
                 JSON.stringify({
+                    recordid: timesheetId,
                     data: formData.data,
                     descrizione: formData.descrizione,
                     tempo_lavoro: formData.tempoLavoro,
@@ -413,7 +487,7 @@ export default function ProfessionalTimesheet() {
                             <Icons.PrinterIcon className="w-5 h-5" /> Stampa PDF
                         </button>
                         <button
-                            onClick={() => window.location.reload()}
+                            onClick={() => window.location.href = "/bixApps/timesheet"}
                             className="w-full h-16 bg-orange-500 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
                             <Icons.ArrowPathIcon className="w-5 h-5" /> Nuovo
                             Timesheet
