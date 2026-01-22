@@ -480,6 +480,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
     if (isSuccess)
         return (
             <>
+                <Toaster richColors position="top-right" />
                 <div className="flex flex-col min-h-[100dvh] bg-white items-center justify-center p-8 text-center animate-in fade-in duration-500">
                     <Icons.CheckCircleIcon className="w-20 h-20 text-teal-500 mb-6" />
                     <h2 className="text-3xl font-black uppercase tracking-tighter">
@@ -506,6 +507,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                         <button
                             onClick={() => {
                                 if (timesheetId) {
+                                    toast.info("Sto generando il PDF");
                                     swissbixPrintTimesheet({
                                         recordid: timesheetId.toString(),
                                     });

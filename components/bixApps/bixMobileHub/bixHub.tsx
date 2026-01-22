@@ -247,7 +247,7 @@ export default function BixHub() {
 
                                 <div className="w-full lg:w-1/3 animate-in fade-in slide-in-from-right-4 duration-700 delay-200">
                                     <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
-                                        <ExclamationCircleIcon className="w-5 h-5 text-amber-500" /> Da Completare
+                                        <ExclamationCircleIcon className="w-5 h-5 text-amber-500" /> Timesheets Da Completare
                                     </h2>
                                     
                                     <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
