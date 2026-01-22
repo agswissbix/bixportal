@@ -59,5 +59,12 @@ export const bixAppsConfigs: Record<string, Partial<BixAppConfig>> = {
     description: "Assistente AI BixData",
     start_url: "/bixApps/aiAgent",
     theme_color: "#9333ea", // Example purple
+  },
+  bixMobileHub: {
+    name: "BixData Mobile Hub",
+    short_name: "Mobile Hub",
+    description: "Hub mobile BixData",
+    start_url: "/bixApps/bixMobileHub",
+    theme_color: "red", // Example red
   }
 };
