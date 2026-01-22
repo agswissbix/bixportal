@@ -114,6 +114,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
     // ID RITORNATO DAL BACKEND DOPO IL SALVATAGGIO DELLA TESTATA
     const [timesheetId, setTimesheetId] = useState<string | null>(recordid || null);
 
+    const [suggestedProjects, setSuggestedProjects] = useState<ListItem[]>([]);
+
     const { handleSignTimesheet, swissbixPrintTimesheet } =
         useFrontendFunctions();
     const { isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, infoData } =
@@ -227,8 +229,6 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
             }
 
             setResponseData(response);
-            
-            // ... (Resto del codice di popolamento form: utente, timesheet, etc.)
         }
     }, [response, error]);
 
@@ -244,6 +244,10 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
             body.append("target", target);
             body.append("q", query);
 
+            if (target === "progetto" && formData.azienda?.id) {
+                body.append("azienda_id", formData.azienda.id);
+            }
+
             const res = await axiosInstanceClient.post("/postApi", body);
             setSearchResults(res.data.results || []);
         } catch (err) {
@@ -251,11 +255,37 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         } finally {
             setSearchLoading(false);
         }
-    }, []);
+    }, [formData.azienda]);
 
     useEffect(() => {
         if (activeSearch) fetchResults(activeSearch, debouncedSearch);
     }, [activeSearch, debouncedSearch, fetchResults]);
+
+    useEffect(() => {
+        const fetchCompanyProjects = async () => {
+            if (!formData.azienda) {
+                setSuggestedProjects(responseData?.progettiRecenti || []);
+                return;
+            }
+
+            try {
+                const body = new FormData();
+                body.append("apiRoute", "search_timesheet_entities");
+                body.append("target", "progetto");
+                body.append("q", "");
+                body.append("azienda_id", formData.azienda.id);
+
+                const res = await axiosInstanceClient.post("/postApi", body);
+                setSuggestedProjects(res.data.results || []);
+            } catch (err) {
+                console.error("Errore fetch progetti azienda", err);
+            }
+        };
+
+        if (step === 2) {
+            fetchCompanyProjects();
+        }
+    }, [formData.azienda, responseData?.progettiRecenti, step]);
 
     const update = (field: string, val: any) =>
         setFormData((p) => ({ ...p, [field]: val }));
@@ -669,17 +699,19 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             />
                                         </button>
 
-                                        {res.progettiRecenti?.length > 0 &&
+                                        {suggestedProjects.length > 0 &&
                                             !formData.progetto && (
                                                 <div className="mt-10 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
                                                     <div className="flex items-center gap-2 mb-4 px-2">
                                                         <Icons.ClockIcon className="w-4 h-4 text-zinc-400" />
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                                                            Progetti Recenti
+                                                            {formData.azienda
+                                                                ? `Progetti per ${formData.azienda.name}`
+                                                                : "Progetti Recenti"}
                                                         </span>
                                                     </div>
                                                     <div className="grid gap-2">
-                                                        {res.progettiRecenti.map(
+                                                        {suggestedProjects.map(
                                                             (prj) => (
                                                                 <button
                                                                     key={prj.id}
