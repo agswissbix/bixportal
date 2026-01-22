@@ -520,6 +520,10 @@ export function useFrontendFunctions() {
     window.open(url, '_blank')
   },
 
+  renderToBixMobileHub: ({url } : {url: string}) => {
+    window.open(url, '_blank')
+  },
+
   printDeal: async ({ recordid }: { recordid: string }) => {
      try {
       const response = await axiosInstanceClient.post(

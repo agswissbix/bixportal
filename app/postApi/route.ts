@@ -611,6 +611,9 @@ export async function POST(request: Request) {
         case "check_ai_chat_status":
             djangoUrl = "/customapp_swissbix/check_ai_chat_status/";
             break;
+        case "get_bixhub_initial_data":
+            djangoUrl = "/customapp_swissbix/get_bixhub_initial_data/";
+            break;
 
         // TEMPORARY
         case "get_job_status":
