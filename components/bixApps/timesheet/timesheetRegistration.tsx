@@ -570,7 +570,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                 <div className="flex flex-col min-h-[100dvh] bg-white items-center justify-center p-8 text-center animate-in fade-in duration-500">
                     <Icons.CheckCircleIcon className="w-20 h-20 text-teal-500 mb-6" />
                     <h2 className="text-3xl font-black uppercase tracking-tighter">
-                        Attività Inviata
+                        Timesheet Salvato
                     </h2>
                     <div className="w-full max-w-xs mt-10 space-y-4">
                         <button
@@ -1150,7 +1150,6 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 }
                                                 className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
                                                 Salva e Chiudi{" "}
-                                                <Icons.PaperAirplaneIcon className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() =>
@@ -1161,7 +1160,6 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 }
                                                 className="w-full h-16 bg-orange-600 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
                                                 Salva e aggiungi materiali e/o allegati{" "}
-                                                <Icons.ChevronRightIcon className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </div>
