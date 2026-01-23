@@ -110,8 +110,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
     const [searchQuery, setSearchQuery] = useState("");
     const [showAddMaterial, setShowAddMaterial] = useState(false);
     const [showAddAllegato, setShowAddAllegato] = useState(false);
+    
+    const [isOpzioniPrefilled, setIsOpzioniPrefilled] = useState(false);
 
-    // ID RITORNATO DAL BACKEND DOPO IL SALVATAGGIO DELLA TESTATA
     const [timesheetId, setTimesheetId] = useState<string | null>(recordid || null);
 
     const [suggestedProjects, setSuggestedProjects] = useState<ListItem[]>([]);
@@ -205,6 +206,10 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
             if (response.timesheet) {
                 const ts = response.timesheet;
                 
+                if (ts.opzioni) {
+                    setIsOpzioniPrefilled(true);
+                }
+
                 setFormData((prev) => ({
                     ...prev,
                     recordid: timesheetId,
@@ -930,29 +935,35 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                     <div>
                                         <StepTitle
                                             title="Opzioni"
-                                            sub="Contratto."
+                                            sub=""
                                             completed={!!formData.opzioni}
                                         />
                                         <div className="grid grid-cols-2 gap-3">
                                             {res.opzioni.map((o) => (
                                                 <button
                                                     key={o.id}
-                                                    onClick={() =>
-                                                        update("opzioni", o)
-                                                    }
+                                                    disabled={isOpzioniPrefilled}
+                                                    onClick={() => {
+                                                        if (!isOpzioniPrefilled) {
+                                                            update("opzioni", o);
+                                                        }
+                                                    }}
                                                     className={`p-4 min-h-[80px] rounded-2xl border transition-all flex items-center justify-center text-center ${
                                                         formData.opzioni?.id ===
                                                         o.id
                                                             ? "border-orange-500 bg-orange-50 text-orange-800 font-bold"
                                                             : "border-zinc-200 bg-white text-zinc-500"
-                                                    }`}>
+                                                    } ${isOpzioniPrefilled ? "opacity-60 cursor-not-allowed" : "hover:border-orange-300"}`}>
                                                     <span className="text-[10px] font-black uppercase">
                                                         {o.name}
                                                     </span>
+                                                    {isOpzioniPrefilled && formData.opzioni?.id === o.id && (
+                                                        <Icons.LockClosedIcon className="w-3 h-3 ml-2 text-zinc-400" />
+                                                    )}
                                                 </button>
                                             ))}
                                         </div>
-                                        {formData.opzioni && (
+                                        {formData.opzioni && !isOpzioniPrefilled && (
                                             <button
                                                 onClick={() =>
                                                     update("opzioni", null)
