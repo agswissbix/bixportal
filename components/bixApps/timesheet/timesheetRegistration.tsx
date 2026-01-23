@@ -59,7 +59,7 @@ interface Materiale {
 
 interface AllegatoDettagliato {
     id: number;
-    tipo: "Allegato generico" | "Signature";
+    tipo: "Allegato generico";
     file: File | null;
     filename: string;
     data: string;
@@ -355,7 +355,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         }
     };
 
-    const handleSaveAllMaterials = async (mode: "finish" | "hub") => {
+    const handleSaveMaterial = async () => {
         if (!timesheetId) return;
         setIsSaving(true);
         try {
@@ -364,30 +364,67 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
             body.append("timesheet_id", timesheetId.toString());
             body.append(
                 "materiali",
-                JSON.stringify(
-                    formData.materiali.map((m) => ({
-                        prodotto_id: m.prodotto?.id,
-                        expectedquantity: m.qtaPrevista,
-                        actualquantity: m.qtaEffettiva,
-                        note: m.note,
-                    }))
-                )
+                JSON.stringify([
+                    {
+                        prodotto_id: tempMaterial.prodotto?.id,
+                        expectedquantity: tempMaterial.qtaPrevista,
+                        actualquantity: tempMaterial.qtaEffettiva,
+                        note: tempMaterial.note,
+                    },
+                ])
             );
 
             const res = await axiosInstanceClient.post("/postApi", body);
-            if (res.status === 200) {
-                toast.success("Materiali registrati");
-                if (mode === "finish") setIsSuccess(true);
-                else setStep(10);
+            if (res.status === 200 && res.data.ids) {
+                toast.success("Materiale aggiunto");
+                const newId = res.data.ids[0];
+                update("materiali", [
+                    ...formData.materiali,
+                    { ...tempMaterial, id: newId },
+                ]);
+                setShowAddMaterial(false);
+                setTempMaterial({
+                    id: 0,
+                    prodotto: null,
+                    note: "",
+                    qtaPrevista: "1",
+                    qtaEffettiva: "1",
+                });
             }
         } catch (err) {
-            toast.error("Errore salvataggio materiali");
+            toast.error("Errore salvataggio materiale");
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleSaveAllAttachments = async (mode: "finish" | "hub") => {
+    const handleDeleteMaterial = async (id: number) => {
+        setIsSaving(true);
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "remove_timesheet_material");
+            body.append("timesheet_id", timesheetId?.toString() || "");
+            body.append(
+                "materiali",
+                JSON.stringify([{ id: id }])
+            );
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            if (res.status === 200) {
+                toast.success("Materiale rimosso");
+                update(
+                    "materiali",
+                    formData.materiali.filter((m) => m.id !== id)
+                );
+            }
+        } catch (err) {
+            toast.error("Errore eliminazione materiale");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSaveAttachment = async () => {
         if (!timesheetId) return;
         setIsSaving(true);
         try {
@@ -395,33 +432,68 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
             body.append("apiRoute", "save_timesheet_attachment");
             body.append("timesheet_id", timesheetId.toString());
 
-            formData.allegati.forEach((a, i) => {
-                if (a.file) {
-                    body.append(`file_${i}`, a.file);
-                    body.append(
-                        `metadata_${i}`,
-                        JSON.stringify({
-                            tipo: a.tipo,
-                            note: a.note,
-                            filename: a.filename,
-                            data: a.data,
-                            rapporto_id: a.rapportiLavoro?.id,
-                            progetto_id: a.progetto?.id,
-                        })
-                    );
-                }
-            });
+            if (tempAllegato.file) {
+                body.append(`file_0`, tempAllegato.file);
+                body.append(
+                    `metadata_0`,
+                    JSON.stringify({
+                        tipo: tempAllegato.tipo,
+                        note: tempAllegato.note,
+                        filename: tempAllegato.filename || tempAllegato.file.name,
+                        data: tempAllegato.data,
+                        rapporto_id: tempAllegato.rapportiLavoro?.id,
+                        progetto_id: tempAllegato.progetto?.id,
+                    })
+                );
+            }
 
             const res = await axiosInstanceClient.post("/postApi", body);
-            if (res.status === 200) {
-                toast.success("Allegati caricati correttamente");
-                if (mode === "finish") setIsSuccess(true);
-                else setStep(10);
+            if (res.status === 200 && res.data.ids) {
+                toast.success("Allegato caricato");
+                const newId = res.data.ids[0];
+                 update("allegati", [
+                    ...formData.allegati,
+                    { ...tempAllegato, id: newId },
+                ]);
+                setShowAddAllegato(false);
+                 setTempAllegato({
+                    id: 0,
+                    tipo: "Allegato generico",
+                    file: null,
+                    filename: "",
+                    data: new Date().toISOString().split("T")[0],
+                    note: "",
+                    rapportiLavoro: null,
+                    progetto: null,
+                });
             }
         } catch (err) {
             toast.error("Errore caricamento file");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDeleteAttachment = async (id: number) => {
+         setIsSaving(true);
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "remove_timesheet_attachment");
+            body.append("timesheet_id", timesheetId?.toString() || "");
+            body.append("attachment_id", id.toString());
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            if (res.status === 200) {
+                 toast.success("Allegato rimosso");
+                 update(
+                    "allegati",
+                    formData.allegati.filter((a) => a.id !== id)
+                );
+            }
+        } catch (err) {
+             toast.error("Errore rimozione allegato");
+        } finally {
+             setIsSaving(false);
         }
     };
 
@@ -526,7 +598,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                         </button>
                         <button
                             onClick={() => (window.location.href = "/home")}
-                            className="w-full h-16 bg-zinc-100 text-zinc-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                            className="w-full h-16 bg-blue-100 text-blue-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
                             <Icons.HomeIcon className="w-5 h-5" /> Home
                         </button>
                     </div>
@@ -974,8 +1046,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                 {step === 8 && (
                                     <div className="space-y-4">
                                         <StepTitle
-                                            title="Note Extra"
-                                            sub="Note aggiuntive."
+                                            title="Note Interne"
+                                            sub="Aggiungi note interne"
                                         />
                                         <input
                                             className="w-full p-5 bg-white border border-zinc-200 rounded-2xl font-semibold outline-none focus:border-zinc-400"
@@ -984,17 +1056,6 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             onChange={(e) =>
                                                 update(
                                                     "noteInterne",
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                        <input
-                                            className="w-full p-5 bg-red-50 border border-red-100 rounded-2xl text-red-700 font-semibold outline-none focus:border-red-300"
-                                            placeholder="Nota rifiuto..."
-                                            value={formData.notaRifiuto}
-                                            onChange={(e) =>
-                                                update(
-                                                    "notaRifiuto",
                                                     e.target.value
                                                 )
                                             }
@@ -1077,7 +1138,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     isSaving || !isStepValid
                                                 }
                                                 className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
-                                                Invia e Chiudi{" "}
+                                                Salva e Chiudi{" "}
                                                 <Icons.PaperAirplaneIcon className="w-5 h-5" />
                                             </button>
                                             <button
@@ -1088,7 +1149,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     isSaving || !isStepValid
                                                 }
                                                 className="w-full h-16 bg-orange-600 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
-                                                Invia e Aggiungi Extra{" "}
+                                                Salva e aggiungi materiali e/o allegati{" "}
                                                 <Icons.ChevronRightIcon className="w-5 h-5" />
                                             </button>
                                         </div>
@@ -1103,44 +1164,46 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             Cosa vuoi aggiungere?
                                         </h2>
                                         <div className="grid gap-4 mt-10">
-                                            <button
-                                                onClick={() => setStep(11)}
-                                                className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
-                                                <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
-                                                    <Icons.InboxStackIcon className="w-6 h-6" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="font-bold text-zinc-800">
-                                                        Aggiungi Materiali
-                                                    </p>
-                                                    <p className="text-xs text-zinc-400 font-medium">
-                                                        {
-                                                            formData.materiali
-                                                                .length
-                                                        }{" "}
-                                                        prodotti in lista
-                                                    </p>
-                                                </div>
-                                            </button>
-                                            <button
-                                                onClick={() => setStep(13)}
-                                                className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
-                                                <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
-                                                    <Icons.PaperClipIcon className="w-6 h-6" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="font-bold text-zinc-800">
-                                                        Carica Allegati
-                                                    </p>
-                                                    <p className="text-xs text-zinc-400 font-medium">
-                                                        {
-                                                            formData.allegati
-                                                                .length
-                                                        }{" "}
-                                                        file pronti
-                                                    </p>
-                                                </div>
-                                            </button>
+                                        <button
+                                            disabled={!timesheetId}
+                                            onClick={() => setStep(11)}
+                                            className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
+                                            <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
+                                                <Icons.InboxStackIcon className="w-6 h-6" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold text-zinc-800">
+                                                    Gestisci Materiali
+                                                </p>
+                                                <p className="text-xs text-zinc-400 font-medium">
+                                                    {
+                                                        formData.materiali
+                                                            .length
+                                                    }{" "}
+                                                    prodotti in lista
+                                                </p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            disabled={!timesheetId}
+                                            onClick={() => setStep(13)}
+                                            className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
+                                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                                                <Icons.PaperClipIcon className="w-6 h-6" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold text-zinc-800">
+                                                    Gestisci Allegati
+                                                </p>
+                                                <p className="text-xs text-zinc-400 font-medium">
+                                                    {
+                                                        formData.allegati
+                                                            .length
+                                                    }{" "}
+                                                    file caricati
+                                                </p>
+                                            </div>
+                                        </button>
                                             {/* <button
                                                 onClick={() => {
                                                     if (timesheetId) {
@@ -1215,18 +1278,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     {m.qtaEffettiva})
                                                 </span>
                                                 <button
-                                                    onClick={() =>
-                                                        update(
-                                                            "materiali",
-                                                            formData.materiali.filter(
-                                                                (x) =>
-                                                                    x.id !==
-                                                                    m.id
-                                                            )
-                                                        )
-                                                    }
+                                                    onClick={() => handleDeleteMaterial(m.id)}
                                                     className="text-red-300 hover:text-red-500 transition-colors">
-                                                    <Icons.TrashIcon className="w-5 h-5" />
+                                                    {isSaving ? <Icons.ArrowPathIcon className="w-5 h-5 animate-spin" /> : <Icons.TrashIcon className="w-5 h-5" />}
                                                 </button>
                                             </div>
                                         ))}
@@ -1238,13 +1292,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             <Icons.PlusIcon className="w-6 h-6" />{" "}
                                             Nuovo Materiale
                                         </button>
-                                        {formData.materiali.length > 0 && (
-                                            <button
-                                                onClick={() => setStep(12)}
-                                                className="w-full mt-8 h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg">
-                                                Vai al Riepilogo Invio
-                                            </button>
-                                        )}
+    
                                         <button
                                             onClick={() => setStep(10)}
                                             className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-800 uppercase tracking-widest transition-all">
@@ -1252,54 +1300,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 className="w-4 h-4"
                                                 strokeWidth={3}
                                             />{" "}
-                                            <span>Torna alla Scelta</span>
+                                            <span>Torna Indietro</span>
                                         </button>
-                                    </div>
-                                )}
-
-                                {step === 12 && (
-                                    <div className="animate-in zoom-in-95">
-                                        <StepTitle
-                                            title="Conferma Materiali"
-                                            sub="Verifica ed invia in blocco."
-                                            completed
-                                        />
-                                        <div className="bg-zinc-900 text-white p-8 rounded-[2.5rem] space-y-3 mb-8 shadow-xl">
-                                            {formData.materiali.map((m) => (
-                                                <div
-                                                    key={m.id}
-                                                    className="flex justify-between border-b border-zinc-800 pb-2 text-sm font-semibold last:border-0">
-                                                    <span className="truncate pr-4">
-                                                        {m.prodotto?.name}
-                                                    </span>
-                                                    <span className="text-orange-400 font-mono shrink-0">
-                                                        x{m.qtaEffettiva}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="space-y-4">
-                                            <button
-                                                onClick={() =>
-                                                    handleSaveAllMaterials(
-                                                        "finish"
-                                                    )
-                                                }
-                                                disabled={isSaving}
-                                                className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
-                                                Invia e Termina
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleSaveAllMaterials(
-                                                        "hub"
-                                                    )
-                                                }
-                                                disabled={isSaving}
-                                                className="w-full h-16 bg-orange-600 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
-                                                Invia e Torna alla Scelta
-                                            </button>
-                                        </div>
                                     </div>
                                 )}
 
@@ -1321,17 +1323,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     </p>
                                                 </div>
                                                 <button
-                                                    onClick={() =>
-                                                        update(
-                                                            "allegati",
-                                                            formData.allegati.filter(
-                                                                (_, idx) =>
-                                                                    idx !== i
-                                                            )
-                                                        )
-                                                    }
+                                                    onClick={() => handleDeleteAttachment(a.id)}
                                                     className="text-red-300 hover:text-red-500 transition-colors">
-                                                    <Icons.TrashIcon className="w-5 h-5" />
+                                                    {isSaving ? <Icons.ArrowPathIcon className="w-5 h-5 animate-spin" /> : <Icons.TrashIcon className="w-5 h-5" />}
                                                 </button>
                                             </div>
                                         ))}
@@ -1343,13 +1337,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             <Icons.PlusIcon className="w-6 h-6" />{" "}
                                             Scegli File
                                         </button>
-                                        {formData.allegati.length > 0 && (
-                                            <button
-                                                onClick={() => setStep(14)}
-                                                className="w-full mt-8 h-16 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">
-                                                Vai al Riepilogo File
-                                            </button>
-                                        )}
+                                        
                                         <button
                                             onClick={() => setStep(10)}
                                             className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-800 uppercase tracking-widest transition-all">
@@ -1357,50 +1345,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 className="w-4 h-4"
                                                 strokeWidth={3}
                                             />{" "}
-                                            <span>Torna alla Scelta</span>
+                                            <span>Torna Indietro</span>
                                         </button>
-                                    </div>
-                                )}
-
-                                {step === 14 && (
-                                    <div className="animate-in zoom-in-95">
-                                        <StepTitle
-                                            title="Invia Allegati"
-                                            sub="Riepilogo caricamento file."
-                                            completed
-                                        />
-                                        <div className="bg-white border p-8 rounded-[2.5rem] space-y-3 mb-8 shadow-sm">
-                                            {formData.allegati.map((a, i) => (
-                                                <div
-                                                    key={i}
-                                                    className="flex items-center gap-4 text-sm font-semibold text-zinc-600 border-b border-zinc-50 pb-2 last:border-0">
-                                                    <Icons.PaperClipIcon className="w-4 h-4 text-blue-500" />
-                                                    {a.filename}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="space-y-4">
-                                            <button
-                                                onClick={() =>
-                                                    handleSaveAllAttachments(
-                                                        "finish"
-                                                    )
-                                                }
-                                                disabled={isSaving}
-                                                className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
-                                                Carica e Chiudi
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleSaveAllAttachments(
-                                                        "hub"
-                                                    )
-                                                }
-                                                disabled={isSaving}
-                                                className="w-full h-16 bg-blue-700 text-white rounded-3xl font-bold active:scale-95 shadow-lg">
-                                                Carica e Torna alla Scelta
-                                            </button>
-                                        </div>
                                     </div>
                                 )}
 
@@ -1415,7 +1361,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
 
                             {/* FOOTER NAVIGAZIONE (SOLO STEP < 9) */}
                             <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex gap-3 z-[100]">
-                                {step > 1 && step < 10 && (
+
+                                 {step > 1 && step < 10 && (
                                     <button
                                         onClick={() => setStep((s) => s - 1)}
                                         className="p-4 rounded-2xl border border-zinc-200 text-zinc-400 active:scale-90 transition-all">
@@ -1657,25 +1604,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 disabled={
                                                     !tempMaterial.prodotto
                                                 }
-                                                onClick={() => {
-                                                    update("materiali", [
-                                                        ...formData.materiali,
-                                                        {
-                                                            ...tempMaterial,
-                                                            id: Date.now(),
-                                                        },
-                                                    ]);
-                                                    setShowAddMaterial(false);
-                                                    setTempMaterial({
-                                                        id: 0,
-                                                        prodotto: null,
-                                                        note: "",
-                                                        qtaPrevista: "1",
-                                                        qtaEffettiva: "1",
-                                                    });
-                                                }}
+                                                onClick={handleSaveMaterial}
                                                 className="flex-[2] h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
-                                                Aggiungi
+                                                {isSaving ? "Salvataggio..." : "Aggiungi"}
                                             </button>
                                         </div>
                                     </div>
@@ -1687,29 +1618,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                 <div className="fixed inset-0 z-[200] bg-zinc-900/60 backdrop-blur-sm flex items-end">
                                     <div className="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom max-w-lg mx-auto overflow-y-auto max-h-[95dvh]">
                                         <div className="space-y-6 mb-10 text-left">
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {[
-                                                    "Allegato generico",
-                                                    "Signature",
-                                                ].map((t) => (
-                                                    <button
-                                                        key={t}
-                                                        onClick={() =>
-                                                            setTempAllegato({
-                                                                ...tempAllegato,
-                                                                tipo: t as any,
-                                                            })
-                                                        }
-                                                        className={`p-3 rounded-xl border-2 text-[10px] font-black uppercase ${
-                                                            tempAllegato.tipo ===
-                                                            t
-                                                                ? "border-orange-500 bg-orange-50 text-orange-700"
-                                                                : "border-zinc-100 text-zinc-400"
-                                                        }`}>
-                                                        {t}
-                                                    </button>
-                                                ))}
-                                            </div>
+
                                             <div className="bg-zinc-50 p-8 rounded-3xl border-2 border-dashed border-zinc-200 text-center relative">
                                                 <Icons.ArrowUpTrayIcon className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
                                                 <span className="text-[10px] font-black text-zinc-400 block uppercase mb-4 truncate px-4">
@@ -1737,44 +1646,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     Sfoglia
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() =>
-                                                    setActiveSearch(
-                                                        "rapportiLavoro"
-                                                    )
-                                                }
-                                                className="w-full p-4 bg-zinc-50 border rounded-2xl text-left flex justify-between items-center group">
-                                                <span
-                                                    className={
-                                                        tempAllegato.rapportiLavoro
-                                                            ? "font-bold text-zinc-800"
-                                                            : "text-zinc-400 text-xs"
-                                                    }>
-                                                    {tempAllegato.rapportiLavoro
-                                                        ?.name ||
-                                                        "Associa Rapporto di Lavoro"}
-                                                </span>
-                                                <Icons.MagnifyingGlassIcon className="w-4 h-4 text-zinc-300 group-active:text-orange-500" />
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    setActiveSearch(
-                                                        "progettoAllegato"
-                                                    )
-                                                }
-                                                className="w-full p-4 bg-zinc-50 border rounded-2xl text-left flex justify-between items-center group">
-                                                <span
-                                                    className={
-                                                        tempAllegato.progetto
-                                                            ? "font-bold text-zinc-800"
-                                                            : "text-zinc-400 text-xs"
-                                                    }>
-                                                    {tempAllegato.progetto
-                                                        ?.name ||
-                                                        "Associa Progetto"}
-                                                </span>
-                                                <Icons.MagnifyingGlassIcon className="w-4 h-4 text-zinc-300 group-active:text-orange-500" />
-                                            </button>
+
                                             <input
                                                 className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-blue-300"
                                                 placeholder="Note allegato..."
@@ -1786,18 +1658,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     })
                                                 }
                                             />
-                                            <input
-                                                className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-blue-300"
-                                                placeholder="Nome visualizzato file..."
-                                                value={tempAllegato.filename}
-                                                onChange={(e) =>
-                                                    setTempAllegato({
-                                                        ...tempAllegato,
-                                                        filename:
-                                                            e.target.value,
-                                                    })
-                                                }
-                                            />
+
                                         </div>
                                         <div className="flex gap-4">
                                             <button
@@ -1809,30 +1670,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             </button>
                                             <button
                                                 disabled={!tempAllegato.file}
-                                                onClick={() => {
-                                                    update("allegati", [
-                                                        ...formData.allegati,
-                                                        {
-                                                            ...tempAllegato,
-                                                            id: Date.now(),
-                                                        },
-                                                    ]);
-                                                    setShowAddAllegato(false);
-                                                    setTempAllegato({
-                                                        id: 0,
-                                                        tipo: "Allegato generico",
-                                                        file: null,
-                                                        filename: "",
-                                                        data: new Date()
-                                                            .toISOString()
-                                                            .split("T")[0],
-                                                        note: "",
-                                                        rapportiLavoro: null,
-                                                        progetto: null,
-                                                    });
-                                                }}
+                                                onClick={handleSaveAttachment}
                                                 className="flex-[2] h-16 bg-blue-600 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
-                                                Pronto
+                                                {isSaving ? "Caricamento..." : "Salva"}
                                             </button>
                                         </div>
                                     </div>

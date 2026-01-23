@@ -614,6 +614,12 @@ export async function POST(request: Request) {
         case "get_bixhub_initial_data":
             djangoUrl = "/customapp_swissbix/get_bixhub_initial_data/";
             break;
+        case "remove_timesheet_material":
+            djangoUrl = "/customapp_swissbix/remove_timesheet_material/";
+            break;
+        case "remove_timesheet_attachment":
+            djangoUrl = "/customapp_swissbix/remove_timesheet_attachment/";
+            break;
 
         // TEMPORARY
         case "get_job_status":
