@@ -158,6 +158,20 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         progetto: null,
     });
 
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!tempAllegato.file) {
+            setPreviewUrl(null);
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(tempAllegato.file);
+        setPreviewUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [tempAllegato.file]);
+
     // --- CARICAMENTO DATI ---
      const payload = useMemo(() => {
          if (isDev) return null;
@@ -618,11 +632,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
             {(res: ResponseInterface) => {
-                
-                // --- AGGIUNGI QUESTE DUE RIGHE ---
                 console.log("DEBUG - Response dal server:", res);
                 if (!res) return null; 
-                // ---------------------------------
 
                 return (
                     <>
@@ -1618,16 +1629,42 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                 <div className="fixed inset-0 z-[200] bg-zinc-900/60 backdrop-blur-sm flex items-end">
                                     <div className="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom max-w-lg mx-auto overflow-y-auto max-h-[95dvh]">
                                         <div className="space-y-6 mb-10 text-left">
-
-                                            <div className="bg-zinc-50 p-8 rounded-3xl border-2 border-dashed border-zinc-200 text-center relative">
-                                                <Icons.ArrowUpTrayIcon className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
-                                                <span className="text-[10px] font-black text-zinc-400 block uppercase mb-4 truncate px-4">
-                                                    {tempAllegato.file
-                                                        ? tempAllegato.file.name
-                                                        : "Scegli un file"}
-                                                </span>
+                                            <div className="bg-zinc-50 p-8 rounded-3xl border-2 border-dashed border-zinc-200 text-center relative overflow-hidden group">
+                                                {previewUrl ? (
+                                                    <div className="relative w-full h-48 mx-auto rounded-2xl overflow-hidden mb-4">
+                                                        <img
+                                                            src={previewUrl}
+                                                            alt="Preview"
+                                                            className="w-full h-full object-contain bg-zinc-100"
+                                                        />
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                setTempAllegato({
+                                                                    ...tempAllegato,
+                                                                    file: null,
+                                                                    filename: "",
+                                                                });
+                                                            }}
+                                                            className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-sm transition-all">
+                                                            <Icons.XMarkIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <Icons.ArrowUpTrayIcon className="w-8 h-8 text-zinc-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" />
+                                                        <span className="text-[10px] font-black text-zinc-400 block uppercase mb-4 truncate px-4">
+                                                            {tempAllegato.file
+                                                                ? tempAllegato.file.name
+                                                                : "Scegli un file o scatta una foto"}
+                                                        </span>
+                                                    </>
+                                                )}
+                                                
                                                 <input
                                                     type="file"
+                                                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                                     onChange={(e) =>
                                                         e.target.files &&
@@ -1642,13 +1679,15 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                         })
                                                     }
                                                 />
-                                                <button className="bg-white px-6 py-2 rounded-xl text-[10px] font-black border uppercase shadow-sm cursor-pointer transition-all active:scale-95">
-                                                    Sfoglia
-                                                </button>
+                                                {!previewUrl && (
+                                                    <button className="bg-white px-6 py-2 rounded-xl text-[10px] font-black border uppercase shadow-sm cursor-pointer transition-all active:scale-95 group-hover:border-blue-300 group-hover:text-blue-500">
+                                                        Sfoglia
+                                                    </button>
+                                                )}
                                             </div>
 
                                             <input
-                                                className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-blue-300"
+                                                className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-blue-300 transition-colors"
                                                 placeholder="Note allegato..."
                                                 value={tempAllegato.note}
                                                 onChange={(e) =>
