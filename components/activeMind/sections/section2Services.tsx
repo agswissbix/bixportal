@@ -110,14 +110,19 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
     const service = responseData.services.find((s) => s.id === serviceId)
     if (!service) return
 
-    const total = quantity * service.unitPrice
+    let total = quantity * service.unitPrice
+
+    if (serviceId === 'clientPC' && quantity > 1) {
+      const discount = 1 - (quantity - 1) / 100
+      total = total * discount
+    }
 
     onUpdate({
       [serviceId]: {
         title: service.title,
         quantity,
         unitPrice: service.unitPrice,
-        total,
+        total: Number(total.toFixed(0)),
         features: service.features || []
       },
     })
