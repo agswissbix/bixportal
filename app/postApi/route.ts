@@ -571,8 +571,17 @@ export async function POST(request: Request) {
         case "save_timetracking":
             djangoUrl = "/customapp_swissbix/save_timetracking/";
             break;
+        case "resume_timetracking":
+            djangoUrl = "/customapp_swissbix/resume_timetracking/";
+            break;
         case "stop_timetracking":
             djangoUrl = "/customapp_swissbix/stop_timetracking/";
+            break;
+        case "delete_timetracking":
+            djangoUrl = "/customapp_swissbix/delete_timetracking/";
+            break;
+        case "update_timetracking":
+            djangoUrl = "/customapp_swissbix/update_timetracking/";
             break;
         case "get_timesheet_initial_data":
             djangoUrl = "/customapp_swissbix/get_timesheet_initial_data/";
