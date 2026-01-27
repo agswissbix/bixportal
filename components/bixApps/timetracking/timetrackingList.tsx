@@ -10,7 +10,10 @@ import {
     XMarkIcon, 
     ClockIcon, 
     ExclamationTriangleIcon,
-    MagnifyingGlassIcon
+    MagnifyingGlassIcon,
+    PlayCircleIcon,
+    PencilSquareIcon,
+    TrashIcon
 } from '@heroicons/react/24/solid';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
@@ -30,6 +33,8 @@ interface Timetracking {
     end: string;
     worktime: number;
     worktime_string: string;
+    pausetime: number;
+    pausetime_string: string;
     status: string; // "Attivo" | "Terminato"
     clientid?: string;
     client_name?: string;
@@ -72,6 +77,8 @@ export default function TimetrackingList() {
                 end: "12:00",
                 worktime: 4.0,
                 worktime_string: "04:00",
+                pausetime: 1.0,
+                pausetime_string: "01:00",
                 status: "Terminato",
             },
             {
@@ -82,6 +89,8 @@ export default function TimetrackingList() {
                 end: "",
                 worktime: 0,
                 worktime_string: "00:00",
+                pausetime: 0,
+                pausetime_string: "00:00",
                 status: "Attivo",
             },
         ],
@@ -130,6 +139,17 @@ export default function TimetrackingList() {
     const [searchQuery, setSearchQuery] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+    // STATO PER LA MODALE DI MODIFICA
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingTrack, setEditingTrack] = useState<Timetracking | null>(null);
+    const [editDescription, setEditDescription] = useState("");
+    const [editStart, setEditStart] = useState("");
+    const [editEnd, setEditEnd] = useState("");
+
+    // STATO PER LA CONFERMA ELIMINAZIONE
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [trackToDelete, setTrackToDelete] = useState<Timetracking | null>(null);
+
     // PAYLOAD
     const payload = useMemo(() => {
         if (isDev) return null;
@@ -140,10 +160,7 @@ export default function TimetrackingList() {
     }, [refreshTrigger]);
 
     // CHIAMATA AL BACKEND
-    const { response, loading, error } =
-        !isDev && payload
-            ? useApi<ResponseInterface>(payload)
-            : { response: null, loading: false, error: null };
+    const { response, loading, error } = useApi<ResponseInterface>(payload);
 
     // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND
     useEffect(() => {
@@ -252,22 +269,55 @@ export default function TimetrackingList() {
                 continue;
             }
 
-            const [startHours, startMinutes] = time.start
-                .split(":")
-                .map(Number);
+            const [startHours, startMinutes] = time.start.split(":").map(Number);
 
             const startTotalMinutes =
                 startHours * MINUTES_PER_HOUR + startMinutes;
-            const endTotalMinutes = endHours * MINUTES_PER_HOUR + endMinutes;
+            const endTotalMinutes =
+                endHours * MINUTES_PER_HOUR + endMinutes;
 
-            let diff = endTotalMinutes - startTotalMinutes;
-            if (diff < 0) diff += 24 * 60;
+            let diffMinutes = endTotalMinutes - startTotalMinutes;
+            if (diffMinutes < 0) diffMinutes += 24 * 60;
 
-            totalMinutesSum += diff;
+            // --- sottrazione pausa ---
+            let pauseMinutes = 0;
+            if (time.pausetime_string) {
+                const [ph, pm] = time.pausetime_string.split(":").map(Number);
+                pauseMinutes = ph * 60 + pm;
+            }
+
+            const netMinutes = Math.max(diffMinutes - pauseMinutes, 0);
+
+            totalMinutesSum += netMinutes;
         }
 
         return totalMinutesSum / MINUTES_PER_HOUR;
     };
+
+    const calculateNetDurationString = (
+        worktimeString?: string,
+        pausetimeString?: string
+    ): string => {
+        if (!worktimeString) return "00:00";
+
+        const [wh, wm] = worktimeString.split(":").map(Number);
+        const workMinutes = wh * 60 + wm;
+
+        let pauseMinutes = 0;
+        if (pausetimeString) {
+            const [ph, pm] = pausetimeString.split(":").map(Number);
+            pauseMinutes = ph * 60 + pm;
+        }
+
+        const netMinutes = Math.max(workMinutes - pauseMinutes, 0);
+        const h = Math.floor(netMinutes / 60);
+        const m = netMinutes % 60;
+
+        return `${h.toString().padStart(2, "0")}:${m
+            .toString()
+            .padStart(2, "0")}`;
+    };
+
 
     const totalWorkedHoursString = (numericHours: number): string => {
         const hours = Math.floor(numericHours);
@@ -430,6 +480,35 @@ export default function TimetrackingList() {
 
         setRefreshTrigger((prev) => prev + 1);
     };
+    
+    const resumeTracking = async (timetracking: Timetracking) => {
+        try {
+            const response = await axiosInstanceClient.post(
+                "/postApi",
+                {
+                    apiRoute: "resume_timetracking",
+                    timetracking: timetracking.id,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+
+            if (!response.data.success) {
+                toast.error("Errore nel riprendere il tracking");
+            } else {
+                toast.success("Il timetracking è stato ripreso correttamente!");
+            }
+        } catch (e) {
+            console.error("Errore nel riprendere il timetracking:" + e);
+        }
+
+        setRefreshTrigger((prev) => prev + 1);
+    };
 
     const openModal = () => {
         setNewDescription("");
@@ -442,6 +521,133 @@ export default function TimetrackingList() {
         setSelectedClientId("");
         setSearchQuery("");
         setIsDropdownOpen(false);
+    };
+
+    // FUNZIONI PER RIPRENDERE L'ULTIMO TRACKER
+    const handleResumeTracking = async (track: Timetracking) => {
+        if (activeTrack) {
+            await handleStopActivity(activeTrack);
+        }
+        await resumeTracking(track);
+    };
+
+    // FUNZIONI PER MODIFICARE UN TRACKER
+    const openEditModal = (track: Timetracking) => {
+        setEditingTrack(track);
+        setEditDescription(track.description);
+        setEditStart(track.start);
+        setEditEnd(track.end || "");
+        setIsEditModalOpen(true);
+    };
+
+    const closeEditModal = () => {
+        setIsEditModalOpen(false);
+        setEditingTrack(null);
+        setEditDescription("");
+        setEditStart("");
+        setEditEnd("");
+    };
+
+    const handleUpdateTracking = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!editingTrack || !editDescription.trim() || !editStart.trim()) {
+            toast.error("Compila tutti i campi obbligatori");
+            return;
+        }
+
+        if (isDev) {
+            const updatedList = responseData.timetracking.map((t) => {
+                if (t.id === editingTrack.id) {
+                    return {
+                        ...t,
+                        description: editDescription,
+                        start: editStart,
+                        end: editEnd,
+                    };
+                }
+                return t;
+            });
+            setResponseData({ ...responseData, timetracking: updatedList });
+            toast.success("Tracking aggiornato!");
+        } else {
+            try {
+                const response = await axiosInstanceClient.post(
+                    "/postApi",
+                    {
+                        apiRoute: "update_timetracking",
+                        timetracking_id: editingTrack.id,
+                        description: editDescription,
+                        start: editStart,
+                        end: editEnd,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                );
+
+                if (!response.data.success) {
+                    toast.error("Errore nell'aggiornare il tracking");
+                } else {
+                    toast.success("Tracking aggiornato correttamente!");
+                }
+            } catch (e) {
+                console.error("Errore nell'aggiornare il tracking:" + e);
+                toast.error("Errore nell'aggiornare il tracking");
+            }
+        }
+        setRefreshTrigger((prev) => prev + 1);
+        closeEditModal();
+    };
+
+    // FUNZIONI PER ELIMINARE UN TRACKER
+    const openDeleteConfirm = (track: Timetracking) => {
+        setTrackToDelete(track);
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const closeDeleteConfirm = () => {
+        setIsDeleteConfirmOpen(false);
+        setTrackToDelete(null);
+    };
+
+    const handleDeleteTracking = async () => {
+        if (!trackToDelete) return;
+
+        if (isDev) {
+            const updatedList = responseData.timetracking.filter(
+                (t) => t.id !== trackToDelete.id
+            );
+            setResponseData({ ...responseData, timetracking: updatedList });
+            toast.success("Tracking eliminato!");
+        } else {
+            try {
+                const response = await axiosInstanceClient.post(
+                    "/postApi",
+                    {
+                        apiRoute: "delete_timetracking",
+                        timetracking: trackToDelete.id,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                );
+
+                if (!response.data.success) {
+                    toast.error("Errore nell'eliminare il tracking");
+                } else {
+                    toast.success("Tracking eliminato correttamente!");
+                }
+            } catch (e) {
+                console.error("Errore nell'eliminare il tracking:" + e);
+                toast.error("Errore nell'eliminare il tracking");
+            }
+        }
+        setRefreshTrigger((prev) => prev + 1);
+        closeDeleteConfirm();
     };
 
     const submitNewTracking = async (e?: React.FormEvent) => {
@@ -613,8 +819,7 @@ export default function TimetrackingList() {
                                 <div className="bg-amber-50 border-b border-amber-100 p-3 flex items-center justify-center space-x-2 text-amber-700 animate-pulse">
                                     <ExclamationTriangleIcon className="w-5 h-5" />
                                     <span className="font-medium">
-                                        Attenzione: È ora di pranzo (12:00 -
-                                        13:00). Metti in pausa!
+                                        Attenzione: È ora di pranzo (12:00 - 13:00). Metti in pausa!
                                     </span>
                                 </div>
                             )}
@@ -697,7 +902,7 @@ export default function TimetrackingList() {
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                                {finishedTracks.length > 0 ? (
+{finishedTracks.length > 0 ? (
                                     finishedTracks.map((track, i) => (
                                         <div
                                             key={track.id || i}
@@ -714,9 +919,34 @@ export default function TimetrackingList() {
                                                     )}
                                                 </div>
 
-                                                <span className="shrink-0 text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-                                                    {track.status}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    {/* Pulsante Riprendi - solo per l'ultimo tracker terminato */}
+                                                    {i === 0 && (
+                                                        <button
+                                                            onClick={() => handleResumeTracking(track)}
+                                                            className="flex items-center space-x-1 px-2 py-1 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors cursor-pointer"
+                                                            title="Riprendi questo tracking">
+                                                            <PlayCircleIcon className="w-4 h-4" />
+                                                            <span className="text-xs font-bold uppercase">Riprendi</span>
+                                                        </button>
+                                                    )}
+                                                    
+                                                    {/* Pulsante Modifica */}
+                                                    <button
+                                                        onClick={() => openEditModal(track)}
+                                                        className="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors cursor-pointer"
+                                                        title="Modifica tracking">
+                                                        <PencilSquareIcon className="w-4 h-4" />
+                                                    </button>
+                                                    
+                                                    {/* Pulsante Elimina */}
+                                                    <button
+                                                        onClick={() => openDeleteConfirm(track)}
+                                                        className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer"
+                                                        title="Elimina tracking">
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <div className="flex justify-between text-sm text-gray-500 mt-2 items-end">
@@ -730,14 +960,34 @@ export default function TimetrackingList() {
                                                     </span>
                                                 </div>
 
-                                                <div className="flex flex-col items-end">
+                                                <div className='flex flex-row items-center gap-4'>
+                                                    <div className="flex flex-col items-end">
                                                     <span className="text-xs text-gray-400">
-                                                        Durata
+                                                        Pausa
                                                     </span>
                                                     <span className="font-mono font-medium text-gray-700">
-                                                        {track.worktime_string}{" "}
-                                                        h
+                                                        {track.pausetime_string || "00:00"}
                                                     </span>
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-xs text-gray-400">
+                                                            Durata
+                                                        </span>
+                                                        <span className="font-mono font-medium text-gray-700">
+                                                            {track.worktime_string}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-xs text-gray-400">
+                                                            Durata effettiva
+                                                        </span>
+                                                        <span className="font-mono font-medium text-gray-700">
+                                                            {calculateNetDurationString(
+                                                                track.worktime_string,
+                                                                track.pausetime_string
+                                                            )}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -755,6 +1005,23 @@ export default function TimetrackingList() {
                                                     }
                                                 />
                                             </div>
+
+                                            {/* Note di avviso per il pulsante Riprendi */}
+                                            {i === 0 && (activeTrack || isLunchTime) && (
+                                                <div className="mt-3 space-y-2">
+                                                    {activeTrack && (
+                                                        <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                                                            Nota: Cliccando "Riprendi", l'attività attuale "{activeTrack.description}" verrà terminata automaticamente.
+                                                        </p>
+                                                    )}
+                                                    {isLunchTime && (
+                                                        <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded-lg border border-blue-100 flex items-center">
+                                                            <ExclamationTriangleIcon className="w-3 h-3 mr-1 shrink-0" />
+                                                            Riprenderesti l'attività durante la pausa pranzo (12:00-13:00).
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
@@ -913,6 +1180,135 @@ export default function TimetrackingList() {
                                         </button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODALE MODIFICA */}
+                    {isEditModalOpen && editingTrack && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-visible animate-in fade-in zoom-in duration-200">
+                                <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                    <h3 className="font-semibold text-gray-800">
+                                        Modifica Tracking
+                                    </h3>
+                                    <button
+                                        onClick={closeEditModal}
+                                        className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200">
+                                        <XMarkIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleUpdateTracking} className="p-6">
+                                    <div className="mb-4">
+                                        <label
+                                            htmlFor="edit-description"
+                                            className="block text-sm font-medium text-gray-700 mb-2">
+                                            Descrizione attività
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="edit-description"
+                                            autoFocus
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                            placeholder="Es: Sviluppo Homepage..."
+                                            value={editDescription}
+                                            onChange={(e) => setEditDescription(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                        <div>
+                                            <label
+                                                htmlFor="edit-start"
+                                                className="block text-sm font-medium text-gray-700 mb-2">
+                                                Orario Inizio
+                                            </label>
+                                            <input
+                                                type="time"
+                                                id="edit-start"
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                                value={editStart}
+                                                onChange={(e) => setEditStart(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                htmlFor="edit-end"
+                                                className="block text-sm font-medium text-gray-700 mb-2">
+                                                Orario Fine
+                                            </label>
+                                            <input
+                                                type="time"
+                                                id="edit-end"
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                                value={editEnd}
+                                                onChange={(e) => setEditEnd(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex space-x-3">
+                                        <button
+                                            type="button"
+                                            onClick={closeEditModal}
+                                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium">
+                                            Annulla
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!editDescription.trim() || !editStart.trim()}
+                                            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Salva Modifiche
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODALE CONFERMA ELIMINAZIONE */}
+                    {isDeleteConfirmOpen && trackToDelete && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-visible animate-in fade-in zoom-in duration-200">
+                                <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-red-50">
+                                    <h3 className="font-semibold text-red-800">
+                                        Conferma Eliminazione
+                                    </h3>
+                                    <button
+                                        onClick={closeDeleteConfirm}
+                                        className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200">
+                                        <XMarkIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="p-6">
+                                    <p className="text-gray-700 mb-2">
+                                        Sei sicuro di voler eliminare questo tracking?
+                                    </p>
+                                    <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100 mb-6">
+                                        <span className="font-semibold">{trackToDelete.description}</span>
+                                        <br />
+                                        <span className="text-xs">
+                                            {trackToDelete.start} - {trackToDelete.end}
+                                        </span>
+                                    </p>
+
+                                    <div className="flex space-x-3">
+                                        <button
+                                            type="button"
+                                            onClick={closeDeleteConfirm}
+                                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium">
+                                            Annulla
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleDeleteTracking}
+                                            className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors shadow-lg shadow-red-200 font-medium">
+                                            Elimina
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
