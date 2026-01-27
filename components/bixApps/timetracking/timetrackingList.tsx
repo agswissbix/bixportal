@@ -145,6 +145,7 @@ export default function TimetrackingList() {
     const [editDescription, setEditDescription] = useState("");
     const [editStart, setEditStart] = useState("");
     const [editEnd, setEditEnd] = useState("");
+    const [editPause, setEditPause] = useState("");
 
     // STATO PER LA CONFERMA ELIMINAZIONE
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -537,6 +538,7 @@ export default function TimetrackingList() {
         setEditDescription(track.description);
         setEditStart(track.start);
         setEditEnd(track.end || "");
+        setEditPause(track.pausetime_string || "");
         setIsEditModalOpen(true);
     };
 
@@ -545,6 +547,7 @@ export default function TimetrackingList() {
         setEditingTrack(null);
         setEditDescription("");
         setEditStart("");
+        setEditPause("");
         setEditEnd("");
     };
 
@@ -563,6 +566,7 @@ export default function TimetrackingList() {
                         description: editDescription,
                         start: editStart,
                         end: editEnd,
+                        pausetime_string: editPause,
                     };
                 }
                 return t;
@@ -579,6 +583,7 @@ export default function TimetrackingList() {
                         description: editDescription,
                         start: editStart,
                         end: editEnd,
+                        pausetime_string: editPause,
                     },
                     {
                         headers: {
@@ -728,19 +733,34 @@ export default function TimetrackingList() {
                                                 )}
                                             </div>
 
-                                            <button
-                                                onClick={() =>
-                                                    handleStopActivity(
-                                                        activeTrack
-                                                    )
-                                                }
-                                                className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer group"
-                                                title="Ferma tracking">
-                                                <StopCircleIcon className="w-4 h-4 animate-pulse group-hover:animate-none" />
-                                                <span className="text-xs font-bold uppercase">
-                                                    Stop
-                                                </span>
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() =>
+                                                        handleStopActivity(
+                                                            activeTrack
+                                                        )
+                                                    }
+                                                    className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer group"
+                                                    title="Ferma tracking">
+                                                    <StopCircleIcon className="w-4 h-4 animate-pulse group-hover:animate-none" />
+                                                    <span className="text-xs font-bold uppercase">
+                                                        Stop
+                                                    </span>
+                                                </button>
+                                                <button
+                                                    onClick={() => openEditModal(activeTrack)}
+                                                    className="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors cursor-pointer"
+                                                    title="Modifica tracking">
+                                                    <PencilSquareIcon className="w-4 h-4" />
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => openDeleteConfirm(activeTrack)}
+                                                    className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors cursor-pointer"
+                                                    title="Elimina tracking">
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="flex justify-between text-sm text-gray-500 mt-2 items-end">
@@ -1217,7 +1237,7 @@ export default function TimetrackingList() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="grid grid-cols-3 gap-4 mb-6">
                                         <div>
                                             <label
                                                 htmlFor="edit-start"
@@ -1244,6 +1264,21 @@ export default function TimetrackingList() {
                                                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                                                 value={editEnd}
                                                 onChange={(e) => setEditEnd(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                htmlFor="edit-pausa"
+                                                className="block text-sm font-medium text-gray-700 mb-2">
+                                                Pausa
+                                            </label>
+                                            <input
+                                                type="time"
+                                                id="edit-pausa"
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                                value={editPause}
+                                                onChange={(e) => setEditPause(e.target.value)}
+                                                placeholder="00:00"
                                             />
                                         </div>
                                     </div>
