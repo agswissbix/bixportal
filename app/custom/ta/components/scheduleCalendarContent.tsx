@@ -527,7 +527,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
     const baseClasses = 'py-2 px-4 border '+borderClass+' cursor-pointer';
     if (!slot) return baseClasses;
 
-    const matchesVolunteer = !selectedVolunteer || slot.name === selectedVolunteer;
+    const matchesVolunteer = !selectedVolunteer || (slot.name && slot.name.toLowerCase() === selectedVolunteer.trim().toLowerCase());
     const matchesShift = !selectedShift || slot.shift === selectedShift;
 
     if (!matchesVolunteer || !matchesShift) {
@@ -678,7 +678,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                   {scheduleData
                     .filter((day) => {
                       if (!selectedVolunteer) return true;
-                      return day.slots.some((slot) => slot && slot.name === selectedVolunteer);
+                      return day.slots.some((slot) => slot && slot.name && slot.name.toLowerCase() === selectedVolunteer.trim().toLowerCase());
                     })
                     .map((day, dayIndex) => {
                       // Calcolo se il giorno rientra nelle prossime 2 settimane
