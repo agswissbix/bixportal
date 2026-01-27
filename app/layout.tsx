@@ -38,7 +38,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <AppProvider>
           {children}
-          <PWAInstallPrompt />
         </AppProvider>
       </body>
     </html>
