@@ -92,7 +92,7 @@ interface ResponseInterface {
     };
 }
 
-    interface TimesheetRegistrationProps {
+interface TimesheetRegistrationProps {
     recordid?: string | null;
 }
 
@@ -308,6 +308,21 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
 
     const update = (field: string, val: any) =>
         setFormData((p) => ({ ...p, [field]: val }));
+
+    const getFileIcon = (extension) => {
+        if (!extension) return "📎";
+        
+        switch(extension.toLowerCase()) {
+        case 'pdf': return "📄";
+        case 'doc': case 'docx': return "📝";
+        case 'xls': case 'xlsx': return "📊";
+        case 'ppt': case 'pptx': return "📑";
+        case 'txt': return "📃";
+        case 'zip': case 'rar': return "🗜️";
+        case 'jpg': case 'jpeg': case 'png': case 'gif': return "🖼️";
+        default: return "📎";
+        }
+    };
 
     // --- VALIDAZIONE CAMPI OBBLIGATORI ---
     const isStepValid = useMemo(() => {
@@ -593,21 +608,6 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                             className="w-full p-4 bg-purple-50 text-purple-700 border border-purple-100 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
                             <Icons.PencilSquareIcon className="w-5 h-5" /> Firma
                             e scarica
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                if (timesheetId) {
-                                    toast.info("Sto generando il PDF");
-                                    swissbixPrintTimesheet({
-                                        recordid: timesheetId.toString(),
-                                    });
-                                } else {
-                                    toast.error("ID non trovato");
-                                }
-                            }}
-                            className="w-full p-4 bg-pink-50 text-pink-700 border border-pink-100 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
-                            <Icons.PrinterIcon className="w-5 h-5" /> Stampa PDF
                         </button>
                         <button
                             onClick={() => window.location.href = "/bixApps/timesheet"}
@@ -1293,10 +1293,18 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             <div
                                                 key={m.id}
                                                 className="bg-white p-5 rounded-2xl border mb-3 flex justify-between items-center shadow-sm">
+                                                <div className="flex flex-col gap-3">
+
                                                 <span className="font-bold text-sm text-zinc-800">
                                                     {m.prodotto?.name} (x
                                                     {m.qtaEffettiva})
                                                 </span>
+                                                {m.note && m.note.length > 0 && (
+                                                <span className="text-xs text-zinc-400">
+                                                    {m.note}
+                                                </span>
+                                                )}
+                                                </div>
                                                 <button
                                                     onClick={() => handleDeleteMaterial(m.id)}
                                                     className="text-red-300 hover:text-red-500 transition-colors">
@@ -1332,23 +1340,64 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             title="Allegati"
                                             sub="Seleziona i file da caricare."
                                         />
-                                        {formData.allegati.map((a, i) => (
+                                        {formData.allegati.map((a, i) => {
+                                            const extension = a.filename?.split('.').pop()?.toLowerCase() || '';
+                                            const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension);
+                                            
+                                            // Determina la sorgente dell'immagine
+                                            const getImageSrc = () => {
+                                                if (!a.file) return null;
+                                                // Se è un oggetto File (caricamento locale)
+                                                if (a.file instanceof File) {
+                                                    return URL.createObjectURL(a.file);
+                                                }
+                                                // Se è una stringa (path dal backend)
+                                                if (typeof a.file === 'string') {
+                                                    return `/api/media-proxy?url=${a.file}`;
+                                                }
+                                                return null;
+                                            };
+                                            
+                                            const imageSrc = isImage ? getImageSrc() : null;
+                                            
+                                            return (
                                             <div
                                                 key={i}
-                                                className="bg-white p-5 rounded-2xl border mb-3 flex justify-between items-center shadow-sm">
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <Icons.DocumentIcon className="w-5 h-5 text-blue-500" />
-                                                    <p className="font-bold text-sm truncate">
+                                                className="bg-white p-5 rounded-2xl border mb-3 flex gap-4 items-center shadow-sm">
+
+                                                <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-zinc-50 border border-zinc-100">
+                                                    {imageSrc ? (
+                                                    <img
+                                                        src={imageSrc || "/placeholder.svg"}
+                                                        alt={a.filename}
+                                                        className="max-h-full max-w-full object-contain rounded-lg"
+                                                    />
+                                                    ) : (
+                                                    <div className="text-2xl">{getFileIcon(extension)}</div>
+                                                    )}
+                                                </div>
+
+                                                {/* FILENAME */}
+                                                <div className="flex-1 overflow-hidden">
+                                                    <p className="font-bold text-sm truncate text-zinc-800">
                                                         {a.filename}
                                                     </p>
+                                                    <p className="text-xs text-zinc-400 uppercase">{extension || 'file'}</p>
                                                 </div>
+
+                                                {/* DELETE */}
                                                 <button
                                                     onClick={() => handleDeleteAttachment(a.id)}
                                                     className="text-red-300 hover:text-red-500 transition-colors">
-                                                    {isSaving ? <Icons.ArrowPathIcon className="w-5 h-5 animate-spin" /> : <Icons.TrashIcon className="w-5 h-5" />}
+                                                    {isSaving ? (
+                                                        <Icons.ArrowPathIcon className="w-5 h-5 animate-spin" />
+                                                    ) : (
+                                                        <Icons.TrashIcon className="w-5 h-5" />
+                                                    )}
                                                 </button>
                                             </div>
-                                        ))}
+                                        );
+                                        })}
                                         <button
                                             onClick={() =>
                                                 setShowAddAllegato(true)
@@ -1393,6 +1442,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                     </button>
                                 )}
                                 {step < 9 && (
+                                    <>
                                     <button
                                         disabled={!isStepValid || isSaving}
                                         onClick={() => setStep((s) => s + 1)}
@@ -1407,6 +1457,14 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             strokeWidth={3}
                                         />
                                     </button>
+
+                                    {/* <button
+                                        onClick={() => setStep(9)}
+                                        className="p-4 rounded-2xl border border-zinc-200 text-zinc-400 active:scale-90 transition-all flex items-center gap-2">
+                                        Salta al riepilogo
+                                        <Icons.ArrowRightEndOnRectangleIcon className="w-5 h-5" strokeWidth={2.5} />
+                                    </button> */}
+                                    </>
                                 )}
                             </footer>
 
@@ -1642,7 +1700,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 {previewUrl ? (
                                                     <div className="relative w-full h-48 mx-auto rounded-2xl overflow-hidden mb-4">
                                                         <img
-                                                            src={previewUrl}
+                                                            src={previewUrl || "/placeholder.svg"}
                                                             alt="Preview"
                                                             className="w-full h-full object-contain bg-zinc-100"
                                                         />
@@ -1666,7 +1724,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                         <span className="text-[10px] font-black text-zinc-400 block uppercase mb-4 truncate px-4">
                                                             {tempAllegato.file
                                                                 ? tempAllegato.file.name
-                                                                : "Scegli un file o scatta una foto"}
+                                                                : "Scegli un file o una foto"}
                                                         </span>
                                                     </>
                                                 )}
