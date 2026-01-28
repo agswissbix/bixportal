@@ -213,6 +213,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
               headers: {
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
+              responseType: "blob",
           }
       );
 
