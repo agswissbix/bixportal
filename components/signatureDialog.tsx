@@ -77,7 +77,7 @@ export const SignatureDialog = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {!signatureSaved && (
+          {true && (
             <>
               <div className="bg-accent/5 border-l-4 border-accent p-4 rounded-r-lg">
                 <p className="text-sm text-gray-600">
