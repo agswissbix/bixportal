@@ -440,6 +440,7 @@ export default function TimetrackingList() {
                     {
                         apiRoute: "stop_timetracking",
                         timetracking: timetracking.id,
+                        total_task: responseData.task_totals[timetracking.task_id],
                     },
                     {
                         headers: {
