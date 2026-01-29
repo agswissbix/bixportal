@@ -116,7 +116,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
                                 view={tableView}
                                 searchTerm={searchTerm}
                                 filtersList={filtersList}
-                                limit={100}
+                                limit={20}
                             />
                       )}
                       {activeTab === "Kanban" && (

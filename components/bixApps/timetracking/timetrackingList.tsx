@@ -205,6 +205,17 @@ export default function TimetrackingList() {
         );
     }, [responseData.clients, searchQuery]);
 
+    const calculateNetDurationHours = (
+        workHours?: number,
+        pauseHours?: number
+    ): number => {
+        if (!workHours) return 0;
+
+        const netHours = workHours - (pauseHours ?? 0);
+
+        return Math.max(netHours, 0);
+    };
+
     const taskLiveTotals = useMemo(() => {
         const totals = { ...(responseData.task_totals || {}) };
 
@@ -223,7 +234,12 @@ export default function TimetrackingList() {
                 (now.getTime() - start.getTime()) / (1000 * 60 * 60)
             );
 
-            totals[taskId] = (totals[taskId] || 0) + currentSessionHours;
+            const netSessionHours = calculateNetDurationHours(
+                currentSessionHours,
+                active.pausetime
+            );
+
+            totals[taskId] = (totals[taskId] || 0) + netSessionHours;
         }
 
         return totals;
@@ -295,28 +311,22 @@ export default function TimetrackingList() {
         return totalMinutesSum / MINUTES_PER_HOUR;
     };
 
-    const calculateNetDurationString = (
-        worktimeString?: string,
-        pausetimeString?: string
-    ): string => {
-        if (!worktimeString) return "00:00";
-
-        const [wh, wm] = worktimeString.split(":").map(Number);
-        const workMinutes = wh * 60 + wm;
-
-        let pauseMinutes = 0;
-        if (pausetimeString) {
-            const [ph, pm] = pausetimeString.split(":").map(Number);
-            pauseMinutes = ph * 60 + pm;
-        }
-
-        const netMinutes = Math.max(workMinutes - pauseMinutes, 0);
-        const h = Math.floor(netMinutes / 60);
-        const m = netMinutes % 60;
+    const formatHoursToHHmm = (hours: number): string => {
+        const totalMinutes = Math.round(hours * 60);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
 
         return `${h.toString().padStart(2, "0")}:${m
             .toString()
             .padStart(2, "0")}`;
+    };
+
+    const calculateNetDurationString = (
+        workHours?: number,
+        pauseHours?: number
+    ): string => {
+        const netHours = calculateNetDurationHours(workHours, pauseHours);
+        return formatHoursToHHmm(netHours);
     };
 
 
@@ -1003,8 +1013,8 @@ export default function TimetrackingList() {
                                                         </span>
                                                         <span className="font-mono font-medium text-gray-700">
                                                             {calculateNetDurationString(
-                                                                track.worktime_string,
-                                                                track.pausetime_string
+                                                                track.worktime,
+                                                                track.pausetime
                                                             )}
                                                         </span>
                                                     </div>
