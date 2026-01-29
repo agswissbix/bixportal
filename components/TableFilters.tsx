@@ -8,6 +8,7 @@ import { MoreVertical, X, Plus } from 'lucide-react';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SelectUser from './selectUser';
 import SelectStandard from './selectStandard';
+import InputLinked from './input/inputLinked';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -28,6 +29,8 @@ interface ResponseInterface {
         label: string;
         lookupitemsuser?: Array<{ userid: string; firstname: string; lastname: string; }>;
         lookups?: Array<LookupItem>
+        tablelink?: string;
+        keyfieldlink?: string;
     }>;
 }
 
@@ -205,6 +208,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 // Se la selezione multipla è usata, `value` è un array di ID
                 return { ...prev, [fieldid]: value };
             }
+
+            console.log("updateFilter", value);
+            filterValues
 
             // Per gli altri tipi
             return { ...prev, [fieldid]: newArray };
@@ -509,6 +515,58 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                         >
                                             <Plus className="w-4 h-4 inline-block mr-1" />
                                             Aggiungi range
+                                        </button>
+                                    </div>
+                                )}
+                                {filter.type === 'linkedmaster' && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        {(filterValues[filter.fieldid] || ['']).map((val, idx) => (
+                                            <div key={idx} className="flex flex-col gap-1 relative">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-full">
+                                                        <InputLinked
+                                                            initialValue={val}
+                                                            valuecode={undefined}
+                                                            onChange={(v) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, v, idx)
+                                                            }
+                                                            tableid={tableid}
+                                                            linkedmaster_tableid={filter.tablelink}
+                                                            linkedmaster_recordid={""}
+                                                            fieldid={filter.fieldid}
+                                                            formValues={filterValues}
+                                                        />
+                                                    </div>
+                                                    <div className="relative flex items-center">
+                                                        <button type="button" onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
+                                                            <MoreVertical className="text-gray-500 hover:text-gray-700" />
+                                                        </button>
+                                                        {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
+                                                    </div>
+                                                    {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
+                                                        <button
+                                                            onClick={() => removeInputForFilter(filter.fieldid, idx)}
+                                                            className="text-red-500 hover:text-red-700 text-sm flex items-center"
+                                                            title="Rimuovi questo campo"
+                                                        >
+                                                            <X className="w-4 h-4 text-red-500 hover:text-red-600" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {filterConditions[`${filter.fieldid}_${idx}`] && (
+                                                    <span className="text-xs text-gray-500 ml-1 mt-1">
+                                                        Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => addInputForFilter(filter.fieldid, filter.type)}
+                                            className="text-indigo-600 text-sm mt-1 hover:underline"
+                                        >
+                                            <Plus className="w-4 h-4 inline-block mr-1" />
+                                            Aggiungi filtro
                                         </button>
                                     </div>
                                 )}
