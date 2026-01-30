@@ -291,6 +291,14 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
         
         onBeforePrint: async () => {
             if (gridRef.current && gridInstanceRef.current) {
+                // Nascondi temporaneamente i blocchi di tipo 'table'
+                responseData.blocks?.forEach(block => {
+                     if (block.type?.toLowerCase() === 'table') {
+                        const el = gridRef.current?.querySelector(`.grid-stack-item[gs-id="${block.id}"]`) as HTMLElement;
+                        if (el) el.style.display = 'none';
+                     }
+                });
+
                 gridRef.current.style.width = '1200px'; 
                 gridInstanceRef.current.onResize(); 
                 void gridRef.current.offsetHeight;
@@ -300,6 +308,14 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
         },
         onAfterPrint: () => {
             if (gridRef.current && gridInstanceRef.current) {
+                 // Ripristina i blocchi di tipo 'table'
+                 responseData.blocks?.forEach(block => {
+                     if (block.type?.toLowerCase() === 'table') {
+                        const el = gridRef.current?.querySelector(`.grid-stack-item[gs-id="${block.id}"]`) as HTMLElement;
+                        if (el) el.style.display = '';
+                     }
+                });
+
                 gridRef.current.style.width = '100%'; 
                 gridInstanceRef.current.onResize(); 
             }
