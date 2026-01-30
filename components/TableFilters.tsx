@@ -532,7 +532,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                             }
                                                             tableid={tableid}
                                                             linkedmaster_tableid={filter.tablelink}
-                                                            linkedmaster_recordid={""}
+                                                            linkedmaster_recordid={filterValues[filter.fieldid]?.[idx] || undefined}
                                                             fieldid={filter.fieldid}
                                                             formValues={filterValues}
                                                         />

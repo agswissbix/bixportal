@@ -220,7 +220,7 @@ export default function inputLinked({
           <button
             type="button"
             onClick={() => {
-              if (linkedmaster_tableid) {
+              if (linkedmaster_tableid && linkedmaster_recordid) {
                 handleRowClick("linked", linkedmaster_recordid, linkedmaster_tableid)
               } else {
                 toast.error("Nessun dato collegato selezionato.")
