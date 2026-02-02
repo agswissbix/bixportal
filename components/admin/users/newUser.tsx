@@ -47,7 +47,7 @@ const NewUserForm = () => {
       }
     } catch (error) {
       console.error('Errore API:', error);
-      toast.error('Si è verificato un errore durante la richiesta.');
+      toast.error('Si è verificato un errore durante la richiesta: ' + error.response.data.error);
     } finally {
       setIsLoading(false);
     }
