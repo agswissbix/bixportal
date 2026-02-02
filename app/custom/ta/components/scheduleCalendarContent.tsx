@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo , useContext } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { useApi } from '@/utils/useApi';
 import axios from 'axios';
@@ -16,11 +16,11 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const realCurrentYear = now.getFullYear();
   const realCurrentMonth = now.getMonth(); // 0 = Gennaio, 11 = Dicembre
 
-  
+
   const { user, role, userName } = useContext(AppContext);
   const [viewMode, setViewMode] = useState<"calendar" | "agenda">("calendar");
   const isAdmin = role && role.toLowerCase() === 'amministratore';
-    // All’interno del componente, aggiungi lo state per i filtri dell'agenda:
+  // All’interno del componente, aggiungi lo state per i filtri dell'agenda:
   const [agendaFilters, setAgendaFilters] = useState({
     startDate: '',
     endDate: '',
@@ -137,13 +137,13 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const months = useMemo(() => {
     // Se l'anno è 2026 E l'utente NON è admin, mostra solo Gennaio
     if (currentYear === 2026 && !isAdmin) {
-      return ['Gennaio', 'Febbraio', 'Marzo'];
+      return ['Gennaio', 'Febbraio', 'Marzo', 'Aprile'];
     }
-    
+
     // In tutti gli altri casi (2025 per tutti, o 2026 per admin), mostra tutti i mesi
     return allMonths;
   }, [currentYear, isAdmin]); // Assicurati che le dipendenze siano [currentYear, isAdmin]
-  
+
 
 
   const volunteersDEV = [
@@ -166,13 +166,13 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const isDev = false;
   const payload = useMemo(() => (!isDev ? { apiRoute: `get_shifts_and_volunteers_${tipologia}` } : null), [isDev, tipologia]);
 
-  const { response, loading } = !isDev && payload 
-    ? useApi<{ 
-        shifts: { value: string; label: string }[]; 
-        volunteers: string[]; 
-        slots: { date: string; timeSlot: string; name: string; shift: string; dev: string; access: string }[];
-        timeSlots: string[];
-      }>(payload) 
+  const { response, loading } = !isDev && payload
+    ? useApi<{
+      shifts: { value: string; label: string }[];
+      volunteers: string[];
+      slots: { date: string; timeSlot: string; name: string; shift: string; dev: string; access: string }[];
+      timeSlots: string[];
+    }>(payload)
     : { response: null, loading: false };
 
   useEffect(() => {
@@ -193,7 +193,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
           // 1. Normalizziamo l'accesso in minuscolo per sicurezza
           // Gestisce casi null, undefined o misti (es: "Edit", "EDIT")
           const rawAccess = slot.access ? slot.access.toLowerCase() : "view";
-          
+
           // 2. Verifichiamo se il valore è valido, altrimenti default a "view"
           const validAccess = ["edit", "view", "delete"].includes(rawAccess)
             ? (rawAccess as "edit" | "view" | "delete")
@@ -231,7 +231,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
     dayType: string;
     slots: (Slot | null)[];
   }
-  
+
   const [scheduleData, setScheduleData] = useState<Day[]>([]);
 
   useEffect(() => {
@@ -296,18 +296,18 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
     setScheduleData(newScheduleData);
   };
 
-	const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		const newYear = parseInt(e.target.value);
-		setCurrentYear(newYear);
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newYear = parseInt(e.target.value);
+    setCurrentYear(newYear);
 
-		// Se il nuovo anno è 2026, l'utente NON è admin
-		// e il mese attualmente selezionato è > 0 (non Gennaio),
-		// reimposta il mese a 0 (Gennaio) per evitare errori.
-		if (newYear === 2026 && !isAdmin && currentMonth > 0) {
-		  setCurrentMonth(0);
-		}
-	  };
-  
+    // Se il nuovo anno è 2026, l'utente NON è admin
+    // e il mese attualmente selezionato è > 0 (non Gennaio),
+    // reimposta il mese a 0 (Gennaio) per evitare errori.
+    if (newYear === 2026 && !isAdmin && currentMonth > 0) {
+      setCurrentMonth(0);
+    }
+  };
+
   // Funzione per aprire il modal
   const openModal = (slot: Slot | null, dayIndex: number, slotIndex: number) => {
     setActiveSlot({ dayIndex, slotIndex, slot, timeSlot: timeSlots[slotIndex] });
@@ -323,7 +323,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   // Funzione chiamata al click sulla cella: gestisce i permessi
   const handleCellClick = (dayIndex: number, slotIndex: number) => {
     console.log("--- CLICK RILEVATO ---");
-    
+
     // Recupero dati dello slot e del giorno
     const dayInfo = scheduleData[dayIndex];
     if (!dayInfo) return;
@@ -333,7 +333,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
     // Normalizzazione date (reset ore a 00:00:00 per confronti corretti)
     dayDate.setHours(0, 0, 0, 0);
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -345,7 +345,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
     // 1. FIX IMPORTANTE: Normalizziamo il ruolo in minuscolo
     // Gestisce casi come "Amministratore", "amministratore", "AMMINISTRATORE"
     const userRole = role ? role.toLowerCase() : '';
-    
+
     console.log(`Ruolo: ${userRole} | Utente: ${userName} | Data Click: ${dayDate.toLocaleDateString()}`);
 
     // --- LOGICA AMMINISTRATORE ---
@@ -357,7 +357,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
     // --- LOGICA UTENTE ---
     if (userRole === 'utente') {
-      
+
       // Caso A: Data passata o odierna -> Nessuna azione
       if (dayDate <= today) {
         console.warn("Data passata o odierna: modifica bloccata.");
@@ -524,7 +524,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
   // Classe base per le celle
   const getCellClassName = (slot: Slot | null) => {
-    const baseClasses = 'py-2 px-4 border '+borderClass+' cursor-pointer';
+    const baseClasses = 'py-2 px-4 border ' + borderClass + ' cursor-pointer';
     if (!slot) return baseClasses;
 
     const matchesVolunteer = !selectedVolunteer || (slot.name && slot.name.toLowerCase() === selectedVolunteer.trim().toLowerCase());
@@ -571,19 +571,19 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                   <Phone size={30} />
                 </div>
                 <select
-                  className="border rounded px-2 py-1 bg-white"
-                  value={currentYear}
-                  onChange={handleYearChange} // Usa la nuova funzione handler
-                >
-                  {availableYears.map((year) => ( // Usa la costante availableYears
-                    <option key={year} value={year}>
-					  {year}
-					</option>
-                  ))}
-                </select>
+                  className="border rounded px-2 py-1 bg-white"
+                  value={currentYear}
+                  onChange={handleYearChange} // Usa la nuova funzione handler
+                >
+                  {availableYears.map((year) => ( // Usa la costante availableYears
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
 
                 <div className="flex items-center gap-2">
-                 
+
 
                   <select
                     className="border rounded px-2 py-1 bg-white"
@@ -597,31 +597,31 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                     ))}
                   </select>
 
-                
+
                 </div>
               </div>
 
-              
+
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium">Filtra per Volontario:</label>
                   <select
-                  className="border rounded px-2 py-1 bg-white min-w-[200px]"
-                  value={selectedVolunteer}
-                  onChange={(e) => setSelectedVolunteer(e.target.value)}
-                >
-                  <option value="">Tutti</option>
-                  {isAdmin ? (
-                    volunteers.map((volunteer) => (
-                      <option key={volunteer} value={volunteer}>
-                        {volunteer}
-                      </option>
-                    ))
-                  ) : (
-                    <option value={userName || ''}>{userName || ''}</option>
-                  )}
-                </select>
+                    className="border rounded px-2 py-1 bg-white min-w-[200px]"
+                    value={selectedVolunteer}
+                    onChange={(e) => setSelectedVolunteer(e.target.value)}
+                  >
+                    <option value="">Tutti</option>
+                    {isAdmin ? (
+                      volunteers.map((volunteer) => (
+                        <option key={volunteer} value={volunteer}>
+                          {volunteer}
+                        </option>
+                      ))
+                    ) : (
+                      <option value={userName || ''}>{userName || ''}</option>
+                    )}
+                  </select>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium">Filtra per Sede:</label>
@@ -661,7 +661,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                     {timeSlots.map((slot, index) => (
                       <React.Fragment key={`header-${index}`}>
                         <th className={`py-1 px-1 w-8 text-center ${borderClass} w-12 bg-yellow-50 `}>
-                          
+
                         </th>
                         <th className={`py-2 px-4 text-center ${borderClass} `}>
                           {slot}
@@ -683,30 +683,30 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                     .map((day, dayIndex) => {
                       // Calcolo se il giorno rientra nelle prossime 2 settimane
                       const today = new Date();
-                      today.setHours(0,0,0,0);
+                      today.setHours(0, 0, 0, 0);
 
                       const twoWeeksFromToday = new Date();
                       twoWeeksFromToday.setDate(twoWeeksFromToday.getDate() + 21);
-                      twoWeeksFromToday.setHours(0,0,0,0);
+                      twoWeeksFromToday.setHours(0, 0, 0, 0);
 
                       const dayDate = new Date(currentYear, currentMonth, day.day);
-                      dayDate.setHours(0,0,0,0);
+                      dayDate.setHours(0, 0, 0, 0);
 
                       const isInNextTwoWeeks = (dayDate >= today && dayDate <= twoWeeksFromToday);
 
                       // Scegliamo il colore di sfondo per la cella del giorno
                       let dayBackground = '';
-        
+
                       dayBackground = day.dayType === "weekend"
                         ? "bg-yellow-100"
                         : isFullyBooked(day.slots)
-                        ? "bg-green-100"
-                        : "bg-blue-100";
-                      
+                          ? "bg-green-100"
+                          : "bg-blue-100";
+
 
                       return (
                         <tr key={day.day} className="border-t bg-white">
-                          <td  className={`py-2 px-2 ${borderClass} text-center w-8 ${isFullyBooked(day.slots) ? "bg-green-100" : "bg-red-100"}`}>
+                          <td className={`py-2 px-2 ${borderClass} text-center w-8 ${isFullyBooked(day.slots) ? "bg-green-100" : "bg-red-100"}`}>
 
                           </td>
                           <td className={`py-2 px-4 ${borderClass} font-bold ${dayBackground}`}>
@@ -718,23 +718,20 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                             <React.Fragment key={`slot-${dayIndex}-${slotIndex}`}>
                               {/* Colonna "Dev" (shift) */}
                               <td
-                                className={`${borderClass} text-center font-bold ${
-                                  isInNextTwoWeeks ? "bg-yellow-50" : "bg-yellow-50"
-                                } ${
-                                  (!selectedVolunteer || slot?.name === selectedVolunteer) &&
-                                  (!selectedShift || slot?.shift === selectedShift)
+                                className={`${borderClass} text-center font-bold ${isInNextTwoWeeks ? "bg-yellow-50" : "bg-yellow-50"
+                                  } ${(!selectedVolunteer || slot?.name === selectedVolunteer) &&
+                                    (!selectedShift || slot?.shift === selectedShift)
                                     ? ""
                                     : "opacity-25"
-                                }`}
+                                  }`}
                               >
                                 {slot?.shift}
                               </td>
 
                               {/* Colonna "Volontario" */}
                               <td
-                                className={`${getCellClassName(slot)} ${
-                                  isInNextTwoWeeks ? "bg-red-100" : ""
-                                }`}
+                                className={`${getCellClassName(slot)} ${isInNextTwoWeeks ? "bg-red-100" : ""
+                                  }`}
                                 onClick={() => handleCellClick(dayIndex, slotIndex)}
                               >
                                 {slot && (
@@ -757,7 +754,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                 <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
                   <h2 className="text-lg font-bold mb-4">TURNO</h2>
                   <div className="mb-4 text-sm text-gray-600">
-                    Fascia oraria: {activeSlot ? activeSlot.timeSlot + " Giorno: " +scheduleData[activeSlot.dayIndex].day : ""}
+                    Fascia oraria: {activeSlot ? activeSlot.timeSlot + " Giorno: " + scheduleData[activeSlot.dayIndex].day : ""}
                   </div>
 
                   {/* Nome Volontario */}
@@ -785,9 +782,8 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                     <label className="block mb-2">Sede</label>
                     <select
                       name="shift"
-                      className={`border rounded px-3 py-2 w-full ${
-                        shiftError ? "border-red-500" : ""
-                      }`}
+                      className={`border rounded px-3 py-2 w-full ${shiftError ? "border-red-500" : ""
+                        }`}
                       value={formData.shift}
                       onChange={handleInputChange}
                       disabled={activeSlot?.slot?.access === "view"}
@@ -821,11 +817,10 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
                     )}
 
                     <button
-                      className={`px-4 py-2 rounded ${
-                        formData.shift
+                      className={`px-4 py-2 rounded ${formData.shift
                           ? "bg-blue-500 text-white hover:bg-blue-600"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
+                        }`}
                       onClick={handleFormSubmit}
                       disabled={!formData.shift}
                     >
