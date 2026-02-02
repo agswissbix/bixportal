@@ -27,7 +27,7 @@ import RecordCard from '@/components/recordCard';
 import AiAgentFloatingChat from '@/components/bixApps/aiAgent/aiAgentFloatingChat';
 
 export default function Home() {
-  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme, infoData} = useRecordsStore();
+  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme, infoData, toggleMinimizeCard} = useRecordsStore();
   const router = useRouter();
 
 useEffect(() => {
@@ -59,6 +59,8 @@ useEffect(() => {
   }
 }, [theme]);
 
+const minimizedCards = cardsList.filter(c => c.minimized);
+
   return (
     <TooltipProvider>
 
@@ -70,7 +72,7 @@ useEffect(() => {
       <Sidebar />
 
       {/* Contenitore principale con Navbar e contenuto */}
-      <div className=" flex flex-col w-full xl:w-10/12 2xl:w-10/12 3xl:w-[88%] h-full">
+      <div className=" flex flex-col w-full xl:w-10/12 2xl:w-10/12 3xl:w-[88%] h-full relative">
 
         {/* Contenuto principale */}
         <PopUpManager 
@@ -93,8 +95,28 @@ useEffect(() => {
           index={index}
           total={cardsList.length}
           type={card.type}
+          minimized={card.minimized}
           />
         ))}
+
+        {/* DOCK FOR MINIMIZED CARDS */}
+        {minimizedCards.length > 0 && (
+          <div className="fixed bottom-0 right-0 p-4 flex gap-2 z-[100] overflow-x-auto max-w-full">
+            {minimizedCards.map((card) => (
+              <button
+                key={`${card.tableid}-${card.recordid}`}
+                onClick={() => toggleMinimizeCard(card.tableid, card.recordid)}
+                className="bg-white border border-gray-300 shadow-lg rounded-t-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 flex items-center gap-2 transform transition-transform hover:-translate-y-1"
+              >
+                <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                <span className="truncate max-w-[150px]">
+                  {card.tableid} #{card.prefillData ? Object.values(card.prefillData)[0] : card.recordid}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 bg-gray-100 p-4 h-5/6">
 
           {selectedMenu === 'TelAmicoCalendario' ? (

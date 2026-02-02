@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext, useCallback, useLayoutEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
-import { CircleX, Maximize2, Info, Trash2, Copy, Minimize2 } from 'lucide-react';
+import { CircleX, Maximize2, Info, Trash2, Copy, Minimize2, Minus } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardBadgeStabile from './customBadges/cardBadgeStabile';
 import CardTabs from './cardTabs';
@@ -27,6 +27,7 @@ interface PropsInterface {
   type: string;
   index?: number;
   total?: number;
+  minimized?: boolean;
 }
 interface ResponseInterface {
   fn: CustomFunction[];
@@ -38,7 +39,7 @@ interface TableSetting {
 
 const WIDTH_WINDOW_MOBILE = 1280; // XL breakpoint
 
-export default function RecordCard({
+const RecordCard = React.memo(({
   tableid,
   recordid,
   mastertableid,
@@ -47,14 +48,27 @@ export default function RecordCard({
   type,
   index = 0,
   total = 1,
-}: PropsInterface) {
+  minimized = false,
+}: PropsInterface) => {
   const isNewRecord = !recordid;
 
   const headerRef = React.useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // store + context
-  const { removeCard, setRefreshTable, handleRowClick, tableSettings, getIsSettingAllowed, setTableSettings } = useRecordsStore();
+  // Selectors for performance optimization
+  const removeCard = useRecordsStore((state) => state.removeCard);
+  const setRefreshTable = useRecordsStore((state) => state.setRefreshTable);
+  const handleRowClick = useRecordsStore((state) => state.handleRowClick);
+  const setTableSettings = useRecordsStore((state) => state.setTableSettings);
+  const toggleMinimizeCard = useRecordsStore((state) => state.toggleMinimizeCard);
+  const getIsSettingAllowed = useRecordsStore((state) => state.getIsSettingAllowed);
+  
+  // Select only relevant table settings to avoid re-renders on other tables' changes
+  // Note: we need to handle the case where tableSettings might be updated
+  const allTableSettings = useRecordsStore((state) => state.tableSettings);
+  const tableSettings = useMemo(() => allTableSettings, [allTableSettings]); // Kept compatible with existing code structure but subscribed via selector
+  
   const { activeServer, user } = useContext(AppContext);
 
   // layout / animation state
@@ -268,7 +282,6 @@ export default function RecordCard({
   };
 }, []);
 
-  // render: two main modes (mobile centered modal-like vs desktop right-side card)
   // COMMON: keep header (info, funzioni, maximize, trash, close) and CardTabs below
   // Pass mobileView to CardTabs to allow child to adapt (if implemented)
   const containerStyleDesktop: React.CSSProperties = {
@@ -276,6 +289,7 @@ export default function RecordCard({
     top: `${8}vh`,
     marginTop: `${getOffset()}px`,
     zIndex: 40 + index,
+    display: minimized ? 'none' : 'block',
   };
 
   return (
@@ -285,7 +299,7 @@ export default function RecordCard({
           {/* Mobile mode: centered almost-fullscreen card */}
           {isMobile ? (
             <div
-              className={`fixed inset-x-0 mx-auto shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 rounded-xl border-2 border-gray-50 p-3 ${animationClassMobile} w-11/12 h-5/6 max-w-4xl transition-all duration-300`}
+              className={`fixed inset-x-0 mx-auto shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-gray-50 rounded-xl border-2 border-gray-50 p-3 ${animationClassMobile} w-11/12 h-5/6 max-w-4xl transition-all duration-300 ${minimized ? 'hidden' : ''}`}
               style={{ top: '6vh', zIndex: 20 + index }}
             >
               {/* Header */}
@@ -300,6 +314,14 @@ export default function RecordCard({
                     >
                       <CircleX className="w-5 h-5 text-gray-500 hover:text-gray-700" />
                     </button>
+
+                     <button
+                        onClick={() => toggleMinimizeCard(tableid, recordid)}
+                        title="Riduci a icona"
+                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
+                      >
+                       <Minus className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+                     </button>
 
                     {/* Optional info button */}
                     <button
@@ -471,6 +493,13 @@ export default function RecordCard({
                       title="Chiudi"
                     >
                       <CircleX className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                    </button>
+                    <button
+                        onClick={() => toggleMinimizeCard(tableid, recordid)}
+                        title="Riduci a icona"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors hover:scale-110"
+                      >
+                       <Minus className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                     </button>
                     <button
                       onClick={() => setIsMaximized(!isMaximized)}
@@ -647,4 +676,7 @@ export default function RecordCard({
       )}
     </GenericComponent>
   );
-}
+});
+
+RecordCard.displayName = "RecordCard";
+export default RecordCard;

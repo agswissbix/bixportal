@@ -13,6 +13,7 @@ interface RecordsStore {
         mastertableid?: string;
         masterrecordid?: string;
         prefillData?: Record<string, any>;
+        minimized?: boolean;
     }>;
     addCard: (
         tableid: string,
@@ -23,6 +24,7 @@ interface RecordsStore {
         prefillData?: Record<string, any>
     ) => void;
     removeCard: (tableid: string, recordid: string) => void;
+    toggleMinimizeCard: (tableid: string, recordid: string) => void;
     resetCardsList: () => void;
 
     handleRowClick: (
@@ -213,7 +215,20 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
             ),
         })),
 
-    resetCardsList: () => set({ cardsList: [] }),
+    toggleMinimizeCard: (tableid: string, recordid: string) =>
+        set((state) => ({
+            cardsList: state.cardsList.map((card) => {
+                if (card.tableid === tableid && card.recordid === recordid) {
+                    return { ...card, minimized: !card.minimized };
+                }
+                return card;
+            }),
+        })),
+
+    resetCardsList: () =>
+        set((state) => ({
+            cardsList: state.cardsList.filter((card) => card.minimized),
+        })),
 
     handleRowClick: async (
         context: string,
@@ -225,8 +240,41 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     ) => {
         const tableType = context;
         if (tableType === "standard") {
-            // reset + aggiunta nello stesso set
-            set({ cardsList: [{ tableid, recordid, type: tableType }] });
+            set((state) => {
+                // Keep only minimized cards from the current list (effectively resetting non-minimized ones)
+                // But we also need to handle the NEW card we want to open.
+                
+                // 1. Find if the card we want to open is already in the list (minimized or not)
+                const existingCardIndex = state.cardsList.findIndex(
+                    (c) => c.tableid === tableid && c.recordid === recordid
+                );
+
+                if (existingCardIndex !== -1) {
+                     // The card exists. 
+                     // We want to keep all OTHER minimized cards, AND this card (ensuring it's visible).
+                     // Since we represent "Reset" behavior, we typically clear other non-minimized cards.
+                     // So: Result = (All Minimized Cards) + (This Card, forced visible)
+                     // Deduplicated.
+                     
+                     const otherMinimized = state.cardsList.filter(c => c.minimized && (c.tableid !== tableid || c.recordid !== recordid));
+                     const targetCard = { ...state.cardsList[existingCardIndex], minimized: false };
+                     
+                     return { cardsList: [...otherMinimized, targetCard] };
+                } else {
+                    // Card does not exist.
+                    // Result = (All Minimized Cards) + (New Card)
+                     const minimizedCards = state.cardsList.filter(c => c.minimized);
+                     const newCard = {
+                        tableid,
+                        recordid,
+                        type: tableType,
+                        mastertableid,
+                        masterrecordid,
+                        prefillData
+                     };
+                     return { cardsList: [...minimizedCards, newCard] };
+                }
+            });
         } else {
             if (prefillData != null) {
                 get().addCard(
