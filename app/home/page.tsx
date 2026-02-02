@@ -25,9 +25,10 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import RecordCard from '@/components/recordCard';
 import AiAgentFloatingChat from '@/components/bixApps/aiAgent/aiAgentFloatingChat';
+import { XIcon } from 'lucide-react';
 
 export default function Home() {
-  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme, infoData, toggleMinimizeCard} = useRecordsStore();
+  const {cardsList, selectedMenu, setTableid, isPopupOpen, setIsPopupOpen, popUpType, popupRecordId, theme, setTheme, infoData, removeCard, toggleMinimizeCard} = useRecordsStore();
   const router = useRouter();
 
 useEffect(() => {
@@ -103,16 +104,26 @@ const minimizedCards = cardsList.filter(c => c.minimized);
         {minimizedCards.length > 0 && (
           <div className="fixed bottom-0 right-0 p-4 flex gap-2 z-[100] overflow-x-auto max-w-full">
             {minimizedCards.map((card) => (
+              <div className='flex bg-white border border-gray-300 shadow-lg rounded-t-lg text-sm font-medium hover:bg-gray-50 transform transition-transform hover:-translate-y-1' key={`${card.tableid}-${card.recordid}`}>
               <button
-                key={`${card.tableid}-${card.recordid}`}
                 onClick={() => toggleMinimizeCard(card.tableid, card.recordid)}
-                className="bg-white border border-gray-300 shadow-lg rounded-t-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 flex items-center gap-2 transform transition-transform hover:-translate-y-1"
+                className="flex items-center gap-2 px-3 py-2"
               >
                 <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
                 <span className="truncate max-w-[150px]">
-                  {card.tableid} #{card.prefillData ? Object.values(card.prefillData)[0] : card.recordid}
+                  {card.tableid} #{card.prefillData ? Object.values(card.prefillData)[0] : card.recordid.replace(/^0+/, '')}
                 </span>
               </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeCard(card.tableid, card.recordid);
+                }}
+                className="p-1.5 hover:bg-gray-300 px-3 py-2"
+              >
+                <XIcon className="w-4 h-4" />
+              </button>
+              </div>
             ))}
           </div>
         )}
