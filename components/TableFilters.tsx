@@ -9,6 +9,7 @@ import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SelectUser from './selectUser';
 import SelectStandard from './selectStandard';
 import InputLinked from './input/inputLinked';
+import InputDate from './input/inputDate';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
@@ -111,7 +112,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
             const prevArray = prev[fieldid] || [];
             let newValue;
 
-            if (type === "Numero") {
+            if (type === "Numero" || type === "Ora") {
                 newValue = { min: '', max: '' };
             } else if (type === "Data") {
                 newValue = { from: '', to: '' };
@@ -155,11 +156,11 @@ export default function TableFilters({ tableid }: PropsInterface) {
         const filters = responseData.filters.map(filter => {
             const valuesArray = filterValues[filter.fieldid] || [];
             const conditionsArray = valuesArray.map((_, idx) =>
-                filterConditions[`${filter.fieldid}_${idx}`] 
-            )|| "Valore esatto"
+                filterConditions[`${filter.fieldid}_${idx}`] || (filter.type === 'Ora' ? 'Tra' : 'Valore esatto')
+            )
             
             let combinedValue;
-            if (filter.type === "Numero" || filter.type === "Data") {
+            if (filter.type === "Numero" || filter.type === "Data" || filter.type === "Ora") {
                 combinedValue = JSON.stringify(valuesArray);
             } else if (filter.type === "Parola" || filter.type === "text") {
                 combinedValue = valuesArray.join('|');
@@ -247,7 +248,14 @@ export default function TableFilters({ tableid }: PropsInterface) {
         if (openMenuFieldId !== fieldid) return null;
         const baseConditions = ['Valore esatto', 'Diverso da', 'Nessun valore', 'Almeno un valore'];
         const dateExtraConditions = ['Oggi', 'Questa settimana', 'Questo mese', 'Passato', 'Futuro'];
-        const allConditions = type === 'Data' ? [...baseConditions, ...dateExtraConditions] : baseConditions;
+        const timeConditions = ['Tra', 'Maggiore di', 'Minore di', 'Valore esatto', 'Diverso da', 'Nessun valore', 'Almeno un valore'];
+        
+        let allConditions = baseConditions;
+        if (type === 'Data') {
+            allConditions = [...baseConditions, ...dateExtraConditions];
+        } else if (type === 'Ora') {
+            allConditions = timeConditions;
+        }
 
         return (
             <div
@@ -466,6 +474,18 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                             <div key={idx} className="flex flex-col gap-1">
                                                 <div className="flex gap-4 items-center">
                                                     <div className="flex gap-2 items-center w-full">
+                                                        {/* <InputDate
+                                                            initialValue={range?.from || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...range, from: e.target.value }, idx)
+                                                            }
+                                                        />
+                                                        <InputDate
+                                                            initialValue={range?.to || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...range, to: e.target.value }, idx)
+                                                            }
+                                                        /> */}
                                                         <input
                                                             type="date"
                                                             placeholder="Dal"
@@ -487,6 +507,64 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                                     </div>
                                                     <div className="relative flex items-center">
                                                         <button onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
+                                                            <MoreVertical className="text-gray-500 hover:text-gray-700" />
+                                                        </button>
+                                                        {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}
+                                                    </div>
+                                                    {(filterValues[filter.fieldid]?.length ?? 1) > 1 && (
+                                                        <button
+                                                            onClick={() => removeInputForFilter(filter.fieldid, idx)}
+                                                            className="text-red-500 hover:text-red-700 flex items-center"
+                                                            title="Rimuovi questo campo"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {filterConditions[`${filter.fieldid}_${idx}`] && (
+                                                    <span className="text-xs text-gray-500 ml-1 mt-1">
+                                                        Condizione: <strong>{filterConditions[`${filter.fieldid}_${idx}`]}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => addInputForFilter(filter.fieldid, filter.type)}
+                                            className="text-indigo-600 text-sm hover:underline"
+                                        >
+                                            <Plus className="w-4 h-4 inline-block mr-1" />
+                                            Aggiungi range
+                                        </button>
+                                    </div>
+                                )}
+                                {filter.type === "Ora" && (
+                                    <div className="flex flex-col gap-4 relative">
+                                        {(filterValues[filter.fieldid] || [{ min: '', max: '' }]).map((range, idx) => (
+                                            <div key={idx} className="flex flex-col gap-1">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="flex gap-2 items-center w-full">
+                                                        <input
+                                                            type="time"
+                                                            placeholder="Dal"
+                                                            value={range?.min || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...range, min: e.target.value }, idx)
+                                                            }
+                                                            className="w-1/2 rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                        />
+                                                        <input
+                                                            type="time"
+                                                            placeholder="Al"
+                                                            value={range?.max || ''}
+                                                            onChange={(e) =>
+                                                                updateFilter(filter.fieldid, filter.type, filter.label, { ...range, max: e.target.value }, idx)
+                                                            }
+                                                            className="w-1/2 rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                                        />
+                                                    </div>
+                                                    <div className="relative flex items-center">
+                                                        <button type="button" onClick={() => toggleConditionMenu(`${filter.fieldid}_${idx}`)}>
                                                             <MoreVertical className="text-gray-500 hover:text-gray-700" />
                                                         </button>
                                                         {renderConditionMenu(`${filter.fieldid}_${idx}`, filter.type)}

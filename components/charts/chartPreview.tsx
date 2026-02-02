@@ -32,6 +32,7 @@ const ChartPreview: React.FC<ChartPreviewProps> = ({ chartId,viewId }) => {
       {(response: ChartResponse) => (
         <div className="bg-white border rounded-lg shadow-sm p-6 h-[35rem]">
 
+        {response?.type !== "table" && (
         <BlockChart
             id={response.id}
             name={response.name}
@@ -40,6 +41,7 @@ const ChartPreview: React.FC<ChartPreviewProps> = ({ chartId,viewId }) => {
             onDelete={() => {}}
             onExport={() => {}}
         />
+        )}
         </div>
       )}
       </GenericComponent>

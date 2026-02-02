@@ -20,7 +20,7 @@ export default function RecordsGroupedTable({
     limit = 100,
 }: any) {
     const { refreshTable } = useRecordsStore();
-    const [selectedDimension, setSelectedDimension] = useState<any>(null);
+    const [selectedDimensions, setSelectedDimensions] = useState<any[]>([]);
     const [expandedGroups, setExpandedGroups] = useState<
         Record<string, boolean>
     >({});
@@ -36,19 +36,19 @@ export default function RecordsGroupedTable({
 
     useEffect(() => {
         console.log(resultData);
-        if (resultData?.groups?.length > 0 && !selectedDimension) {
-            setSelectedDimension(resultData.groups[0]);
+        if (resultData?.groups?.length > 0 && selectedDimensions.length === 0) {
+            setSelectedDimensions([resultData.groups[0]]);
         }
         console.log("Data: " + JSON.stringify(resultData))
-    }, [resultData, selectedDimension]);
+    }, [resultData, selectedDimensions]);
 
     const payloadInstances = useMemo(() => {
-        if (!selectedDimension) return null;
+        if (!selectedDimensions || selectedDimensions.length === 0) return null;
         return {
             apiRoute: "get_grouped_table_records",
             tableid,
-            fieldid: selectedDimension.value,
-            type: selectedDimension.type,
+            fieldid: selectedDimensions.map(d => d.value),
+            type: selectedDimensions[0]?.type,
             searchTerm,
             view,
             filtersList,
@@ -58,7 +58,7 @@ export default function RecordsGroupedTable({
         };
     }, [
         tableid,
-        selectedDimension,
+        selectedDimensions,
         searchTerm,
         view,
         filtersList,
@@ -70,16 +70,64 @@ export default function RecordsGroupedTable({
 
     useEffect(() => {
         setExpandedGroups({});
-    }, [selectedDimension]);
+    }, [selectedDimensions]);
 
     const toggleGroup = (val: string) => {
         setExpandedGroups((prev) => ({ ...prev, [val]: !prev[val] }));
+    };
+
+    const toggleDimension = (dim: any) => {
+        setSelectedDimensions(prev => {
+            const exists = prev.find(d => d.value === dim.value);
+            if (exists) {
+                if (prev.length === 1) return prev; 
+                return prev.filter(d => d.value !== dim.value);
+            }
+            return [...prev, dim];
+        });
     };
 
     const formatNumber = (val: any) => {
         const num = parseFloat(val);
         if (isNaN(num)) return "0";
         return new Intl.NumberFormat("it-IT").format(num);
+    };
+
+    const getDrillDownFilters = (group: any) => {
+        const baseFilters = [...filtersList];
+
+        if (group.fieldids && Array.isArray(group.fieldids) && group.fieldids.length > 0) {
+             let values: any[] = [];
+             try {
+                 values = JSON.parse(group.value) as any[];
+                 if (!Array.isArray(values)) {
+                    values = [group.value];
+                 }
+             } catch (e) {
+                 values = [group.value];
+             }
+
+             group.fieldids.forEach((fid: string, idx: number) => {
+                 const dimDef = resultData?.groups?.find((g: any) => g.value === fid);
+                 const fType = dimDef?.type || 'Text'; 
+                 
+                 baseFilters.push({
+                     fieldid: fid,
+                     type: fType,
+                     value: values[idx],
+                     conditions: []
+                 });
+             });
+
+        } else if (selectedDimensions.length > 0) {
+            baseFilters.push({
+                fieldid: selectedDimensions[0].value,
+                type: selectedDimensions[0].type,
+                value: group.value,
+                conditions: [],
+            });
+        }
+        return baseFilters;
     };
 
     return (
@@ -113,9 +161,10 @@ export default function RecordsGroupedTable({
                                             setIsMenuOpen(!isMenuOpen)
                                         }
                                         className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:border-primary/50 transition-all active:scale-95">
-                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                                            {selectedDimension?.label ||
-                                                "Seleziona dimensione"}
+                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-200 max-w-[200px] truncate">
+                                            {selectedDimensions.length > 0 
+                                                ? selectedDimensions.map(d => d.label).join(", ") 
+                                                : "Seleziona dimensione"}
                                         </span>
                                         <ChevronDown
                                             className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${
@@ -136,33 +185,30 @@ export default function RecordsGroupedTable({
                                             <div className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                                 <div className="p-2 max-h-[300px] overflow-y-auto custom-scrollbar">
                                                     {resultData?.groups?.map(
-                                                        (dim: any) => (
-                                                            <button
-                                                                key={dim.value}
-                                                                onClick={() => {
-                                                                    setSelectedDimension(
-                                                                        dim
-                                                                    );
-                                                                    setIsMenuOpen(
-                                                                        false
-                                                                    );
-                                                                }}
-                                                                className={`
-                                                                    w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors
-                                                                    ${
-                                                                        selectedDimension?.value ===
-                                                                        dim.value
-                                                                            ? "bg-primary/10 text-primary"
-                                                                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                                                                    }
-                                                                `}>
-                                                                {dim.label}
-                                                                {selectedDimension?.value ===
-                                                                    dim.value && (
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                                                )}
-                                                            </button>
-                                                        )
+                                                        (dim: any) => {
+                                                            const isSelected = selectedDimensions.some(d => d.value === dim.value);
+                                                            return (
+                                                                <button
+                                                                    key={dim.value}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleDimension(dim);
+                                                                    }}
+                                                                    className={`
+                                                                        w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors
+                                                                        ${
+                                                                            isSelected
+                                                                                ? "bg-primary/10 text-primary"
+                                                                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                                                        }
+                                                                    `}>
+                                                                    <span>{dim.label}</span>
+                                                                    {isSelected && (
+                                                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        }
                                                     )}
                                                 </div>
                                             </div>
@@ -174,8 +220,7 @@ export default function RecordsGroupedTable({
                             <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-gray-50 dark:bg-gray-800/50 rounded-full border border-gray-100 dark:border-gray-800">
                                 <div className="w-2 h-2 rounded-full bg-green-500" />
                                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
-                                    {resInst?.groups?.length || 0} Tabelle
-                                    caricate
+                                    {resInst?.groups?.length || 0} Gruppi
                                 </span>
                             </div>
                         </div>
@@ -191,9 +236,9 @@ export default function RecordsGroupedTable({
                                 resInst.groups.map(
                                     (group: any, idx: number) => {
                                         const isExpanded =
-                                            !!expandedGroups[group.value];
+                                            !!expandedGroups[group.value]; // This value might be a composite key "val1||val2" or similar
                                         const isMenuOpen =
-                                            openGroupMenu === group.value;
+                                            openGroupMenu === (group.value as any); // cast for safety
 
                                         return (
                                             <div
@@ -343,18 +388,7 @@ export default function RecordsGroupedTable({
                                                                                                     context:
                                                                                                         view,
                                                                                                     order: order,
-                                                                                                    filtersList:
-                                                                                                        [
-                                                                                                            ...filtersList,
-                                                                                                            {
-                                                                                                                fieldid:
-                                                                                                                    selectedDimension.value,
-                                                                                                                type: group.type,
-                                                                                                                value: group.value,
-                                                                                                                conditions:
-                                                                                                                    [],
-                                                                                                            },
-                                                                                                        ],
+                                                                                                    filtersList: getDrillDownFilters(group),
                                                                                                     masterTableid:
                                                                                                         masterTableid,
                                                                                                     masterRecordid:
@@ -383,17 +417,7 @@ export default function RecordsGroupedTable({
                                                             view={view}
                                                             context={view}
                                                             order={order}
-                                                            filtersList={[
-                                                                ...filtersList,
-                                                                {
-                                                                    fieldid:
-                                                                        selectedDimension.value,
-                                                                    type: group.type,
-                                                                    value: group.value,
-                                                                    conditions:
-                                                                        [],
-                                                                },
-                                                            ]}
+                                                            filtersList={getDrillDownFilters(group)}
                                                             masterTableid={
                                                                 masterTableid
                                                             }
