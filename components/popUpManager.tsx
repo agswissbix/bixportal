@@ -6,11 +6,12 @@ import PopupContractHours from './popupContent/popupContractHours';
 import PopupStartDate from './popupContent/popupStartDate';
 import { CircleX } from 'lucide-react';
 import PopupInvoiceNo from './popupContent/popupInvoiceNo';
-import { TemplateSelectionDialog } from './templateProjectDialog';
+import { TemplateSelectionDialog } from './dialogs/templateProjectDialog';
 import SignatureDialogWrapper from './dialogs/signatureTimesheetDialog';
 import PopupService from './popupContent/popupService';
 import PopupAI from './popupContent/popupAI';
 import PopupInfo from './popupContent/popupInfo';
+import PopupImportCsv from './popupContent/popupImportCsv';
 
 
 // INTERFACCIA PROPS
@@ -53,6 +54,7 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid, 
                 {type === 'invoiceno' && <PopupInvoiceNo tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'service' && <PopupService tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'useAI' && <PopupAI tableid={tableid} recordid={recordid} onClose={onClose} />}
+                {type === 'importCsv' && <PopupImportCsv tableid={tableid} onClose={onClose} />}
                 {type === 'info' && (
                     <PopupInfo 
                         title={infoData?.title} 

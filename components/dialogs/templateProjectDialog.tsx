@@ -15,8 +15,8 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useApi } from "@/utils/useApi"
-import GenericComponent from "./genericComponent"
-import { useRecordsStore } from "./records/recordsStore"
+import GenericComponent from "../genericComponent"
+import { useRecordsStore } from "../records/recordsStore"
 
 const isDev = false
 

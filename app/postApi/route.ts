@@ -423,6 +423,12 @@ export async function POST(request: Request) {
         case "fieldsupdate":
             djangoUrl = "/commonapp/fieldsupdate/";
             break;
+        case "check_csv_compatibility":
+            djangoUrl = "/commonapp/check_csv_compatibility/";
+            break;
+        case "import_csv_data":
+            djangoUrl = "/commonapp/import_csv_data/";
+            break;
 
         case "get_fields_swissbix_deal":
             djangoUrl = "/customapp_swissbix/get_fields_swissbix_deal/";

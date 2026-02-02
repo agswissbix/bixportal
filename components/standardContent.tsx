@@ -203,9 +203,34 @@ export default function StandardContent({ tableid }: PropsInterface) {
                           >
                             Esporta excel
                           </li>
-                          {response?.fn?.map(
-                            (fn, index) => fn.context === "results" && <DynamicMenuItem key={fn.title} fn={fn} />,
-                          )}
+                          {response?.fn
+                              .filter((fn) => fn.context === 'results' || fn.context === 'resultsAll')
+                              .map((originalFn) => {
+                              if (originalFn.context !== 'results' && originalFn.context !== 'resultsAll') return null;
+
+                              // Crea una copia di fn per non modificare lo stato originale
+                              const fn = { ...originalFn };
+
+                              // Tenta di convertire fn.params da stringa JSON a oggetto
+                              try {
+                                if (fn.params && typeof fn.params === 'string') {
+                                  fn.params = JSON.parse(fn.params);
+                                }
+                              } catch (error) {
+                                console.error("Errore nel parsing di fn.params:", fn.params, error);
+                                // Se il parsing fallisce, lo lasciamo come stringa o lo impostiamo a null
+                                fn.params = null; 
+                              }
+                              return (
+                                <DynamicMenuItem
+                                  key={fn.title}
+                                  fn={fn}
+                                  params={{
+                                    ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                                  }}
+                                />
+                              )                         
+                            })}
                         </ul>
                       </div>
                     )}

@@ -49,6 +49,14 @@ export function useFrontendFunctions() {
     setPopupRecordId(recordid)
     setIsPopupOpen(true)
   },
+
+  openPopup: ({recordid, popupType} : {recordid: string, popupType: string}) => {
+    setPopUpType(popupType)
+    setPopupRecordId(recordid)
+    setIsPopupOpen(true)
+  },
+
+
   stampaBollettino: async ({ recordid }: { recordid: string }) => {
     try {
       //download a file from the response
