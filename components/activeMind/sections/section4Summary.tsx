@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calculator, FileText, Phone, Mail, Clock, Package, Settings, Calendar } from "lucide-react"
@@ -30,6 +29,7 @@ interface SummarySectionProps {
         monthlyPrice?: number
         yearlyPrice?: number
         description?: string
+        billingType?: string
       }
     }
     section2Services: {
@@ -46,6 +46,12 @@ interface SummarySectionProps {
       exponentPrice?: number
       price?: number
       operationsPerYear?: number
+    }
+    sectionHours: {
+      selectedOption: string
+      label: string
+      price: number
+      hours?: number
     }
   }
   onUpdate: (data: any) => void
@@ -99,6 +105,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
       const total = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
       return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
     })() : 0
+  
   const productsTotal = Object.values(serviceData.section2Products).reduce((sum, product) => sum + product.total, 0)
   const annualTotal = Object.values(serviceData.section2Products)
     .reduce((sum, product: any) => 
@@ -107,12 +114,36 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
         : 0), 
     0)
 
-  const monthlyTotal = Object.values(serviceData.section2Products)
-    .reduce((sum, product: any) => 
-      sum + (product.billingType === "monthly" && product.monthlyPrice 
-        ? product.monthlyPrice * product.quantity 
-        : 0), 
-    0)
+  // Calculate equivalent totals for products
+  let productsYearlyTotal = 0;
+  
+  Object.values(serviceData.section2Products).forEach((product: any) => {
+      let productYearly = 0;
+      if (product.billingType === 'yearly' && product.yearlyPrice) {
+          productYearly = product.yearlyPrice;
+      } else if (product.billingType === 'monthly' && product.monthlyPrice) {
+          productYearly = product.monthlyPrice * 12;
+      } else if (product.unitPrice) {
+          if (product.billingType === 'yearly') {
+             productYearly = product.unitPrice;
+          } else {
+             productYearly = product.unitPrice * 12;
+          }
+      }
+      productsYearlyTotal += productYearly * product.quantity;
+  });
+
+  const productsMonthlyTotal = productsYearlyTotal / 12;
+  
+  // Calculations for Monte Ore
+  // const totalProducts = Object.values(serviceData.section2Products || {}).reduce((acc, curr) => acc + curr.quantity, 0); // Not used for price calc anymore
+  const monteOreTotal = serviceData.sectionHours?.price || 0; // Flat price
+  // Monte Ore is one-shot, so not part of monthly/yearly recurring flow in the same way, but displayed separately.
+  
+  // Calculations for Services
+  const servicesYearly = servicesTotal * 12;
+  const servicesMonthly = servicesTotal;
+  
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const nome = e.target.value
@@ -223,16 +254,16 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                               <CardTitle className="text-lg">{product.title}</CardTitle>
                               <div className="flex items-center space-x-2 mt-1">
                                 <p className="text-sm text-gray-600">
-                                  {product.quantity} × CHF {product.unitPrice}
+                                  {product.quantity} × CHF {product.unitPrice.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </p>
                                 {product.monthlyPrice && (
                                   <Badge variant="outline" className="text-xs">
-                                    {product.monthlyPrice}/mese
+                                    {product.monthlyPrice.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}/mese
                                   </Badge>
                                 )}
                                 {product.yearlyPrice && (
                                   <Badge variant="outline" className="text-xs">
-                                    {product.yearlyPrice}/anno
+                                    {product.yearlyPrice.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}/anno
                                   </Badge>
                                 )}
                               </div>
@@ -243,7 +274,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           </div>
 
                           <div className="text-right">
-                            <div className="font-bold text-gray-900">CHF {product.total.toFixed(0)}.-</div>
+                            <div className="font-bold text-gray-900">CHF {product.total.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}.-</div>
                             <div className="text-xs text-gray-600">Totale</div>
                           </div>
                         </div>
@@ -279,23 +310,22 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
                     <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
                       <div className="text-right">
-                          {monthlyTotal > 0 && (
+                          {productsMonthlyTotal > 0 && (
                             <>
                               <h3 className="text-2xl font-bold text-gray-900">
-                                    <div className="text-2xl font-bold text-indigo-900">CHF {monthlyTotal.toFixed(0)}.-</div>
+                                    <div className="text-2xl font-bold text-indigo-900">CHF {productsMonthlyTotal.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-</div>
                               </h3>
-                        <p className="text-sm text-gray-600">totale mensile</p>
+                        <p className="text-sm text-gray-600">totale mensile equivalente</p>
                             </>
                           )}
                       </div>
                       <div className="text-right border-t pt-2">
-                          {annualTotal > 0 && (
+                          {productsYearlyTotal > 0 && (
                             <>
                         <h3 className="text-xl font-semibold text-amber-700">
-                          
-                              <div className="text-2xl font-bold text-indigo-900">CHF {annualTotal.toFixed(0)}.-</div>
+                              <div className="text-2xl font-bold text-indigo-900">CHF {productsYearlyTotal.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-</div>
                         </h3>
-                        <p className="text-sm text-gray-600">totale annuo</p>
+                        <p className="text-sm text-gray-600">totale annuo equivalente</p>
                             </>
                           )}
                       </div>
@@ -342,7 +372,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
                       <div className="text-right">
                         <div className="font-bold text-gray-900">
-                          CHF {service.id == "clientPC" ? (service.total * (1 - (service.quantity - 1) / 100)).toFixed(0) : service.total.toFixed(0)} .-
+                          CHF {service.id == "clientPC" ? (service.total * (1 - (service.quantity - 1) / 100)).toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : service.total.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} .-
                         </div>
                       </div>
                     </div>
@@ -365,50 +395,97 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                   )}
                 </Card>
               ))}
+              
+              {/* Subtotale Servizi */}
+              <div className="border-t-2 border-amber-200 pt-4 mt-4">
+                <div className="p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl shadow-inner">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-base mb-2">
+                        Subtotale servizi
+                      </h4>
+
+                      {/* Label condizioni */}
+                      <p className="text-gray-700 text-lg font-medium">
+                        {frequencyLabels[serviceData.section3.selectedFrequency] || "Non selezionata"}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
+                      
+                      <div className="text-right">
+                        {servicesMonthly > 0 && (
+                          <>
+                            <h3 className="text-2xl font-bold text-gray-900">
+                              <div className="text-2xl font-bold text-orange-900">
+                                CHF {servicesMonthly.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-
+                              </div>
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              totale mensile equivalente
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="text-right border-t pt-2">
+                        {servicesYearly > 0 && (
+                          <>
+                            <h3 className="text-xl font-semibold text-amber-700">
+                              <div className="text-2xl font-bold text-orange-900">
+                                CHF {servicesYearly.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-
+                              </div>
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              totale annuo equivalente
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Section 3 Summary - Planning */}
-      {serviceData.section3.selectedFrequency && selectedServices.length > 0 && (
+
+
+      {/* Section Hours - Monte Ore */}
+      {serviceData.sectionHours?.selectedOption && (
         <Card className="shadow-md">
-          <CardHeader className="bg-gradient-to-r from-orange-100 to-orange-50 rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-green-100 to-green-50 rounded-t-lg">
             <CardTitle className="text-lg flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-orange-700" />
-              Pianificazione
+              <Clock className="w-5 h-5 mr-2 text-green-700" />
+              Monte Ore Selezionato
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl shadow-inner">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-base mb-2">Frequenza interventi selezionata</h4>
-                  <p className="text-gray-700 text-lg font-medium">{frequencyLabels[serviceData.section3.selectedFrequency]}</p>
-                </div>
+             <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl shadow-inner">
+               <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                 <div>
+                   <h4 className="font-semibold text-gray-900 text-base mb-2">Pacchetto ore</h4>
+                   <p className="text-gray-700 text-lg font-medium">
+                    {serviceData.sectionHours.label ? serviceData.sectionHours.label : serviceData.sectionHours.selectedOption}
+                   </p>
+                   {/* <p className="text-sm text-gray-600 mt-1">Calcolato su {totalProducts} prodotti</p> */}
+                 </div>
 
-                <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
-                  <div className="text-right">
-                    <h3 className="text-2xl font-bold text-gray-900">
-                      CHF {(servicesTotal + (serviceData.section3.price || 1)).toFixed(0)} .-
-                    </h3>
-                    <p className="text-sm text-gray-600">per uscita</p>
-                  </div>
-                  <div className="text-right border-t pt-2">
-                    <h3 className="text-xl font-semibold text-amber-700">
-                      CHF{" "}
-                      {(
-                        (servicesTotal +
-                        (serviceData.section3.price || 1)) *
-                        (serviceData.section3.operationsPerYear || 12)
-                      ).toFixed(0)}{" "}
-                      .-
-                    </h3>
-                    <p className="text-sm text-gray-600">totale annuo</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                 <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
+                    <div className="text-right">
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        CHF {monteOreTotal.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-
+                      </h3>
+                      <p className="text-sm text-gray-600">Una Tantum</p>
+                    </div>
+                 </div>
+               </div>
+             </div>
           </CardContent>
         </Card>
       )}

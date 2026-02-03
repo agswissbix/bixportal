@@ -13,7 +13,7 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900">Proposta soluzioni IT per gli studi medici</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Proposta soluzioni IT</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Scegli il percorso più adatto alle tue esigenze per configurare la tua soluzione IT personalizzata
         </p>

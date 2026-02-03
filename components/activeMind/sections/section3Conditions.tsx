@@ -116,7 +116,7 @@ export default function Section3Conditions({ data, onUpdate, dealid }: Section3P
                   onUpdate({
                     selectedFrequency: selectedFreq.id,
                     exponentPrice: selectedFreq.exponentPrice,
-                    price: selectedFreq.price,
+                    price: 0, // Price is explicitly 0
                     operationsPerYear: selectedFreq.operationsInOneYear,
                   });
                   console.log("Selected frequency from response:", selectedFreq);
@@ -125,12 +125,8 @@ export default function Section3Conditions({ data, onUpdate, dealid }: Section3P
         }, [response]);
 
 
-  const section3Total = data.section2['clientPC'] 
-    ? (() => {
-      const clientPC = data.section2['clientPC'];
-      const total = Object.values(data.section2).reduce((sum, service) => sum + service.total, 0)
-      return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
-    })() : 0
+  // Removed section3Total calculation as per requirement
+
   const handleFrequencySelect = (frequencyId: string, exponentPrice: number) => {
     if (data.section3.selectedFrequency === frequencyId) {
       onUpdate({
@@ -144,7 +140,7 @@ export default function Section3Conditions({ data, onUpdate, dealid }: Section3P
     onUpdate({
       selectedFrequency: frequencyId,
       exponentPrice: exponentPrice,
-      price: responseData.frequencies.find(freq => freq.id === frequencyId)?.price || 0,
+      price: 0, // Price is explicitly 0
       operationsPerYear: responseData.frequencies.find(freq => freq.id === frequencyId)?.operationsInOneYear || 0
     })
   }
@@ -241,7 +237,7 @@ export default function Section3Conditions({ data, onUpdate, dealid }: Section3P
                   className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                     isSelected ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200" : "hover:border-gray-300"
                   }`}
-                  onClick={() => handleFrequencySelect(frequency.id, frequency.price)}
+                  onClick={() => handleFrequencySelect(frequency.id, frequency.price || 0)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start space-x-3">
@@ -250,20 +246,9 @@ export default function Section3Conditions({ data, onUpdate, dealid }: Section3P
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900 mb-1">{frequency.label}</h3>
-                        <div className="flex flex-wrap items-center">
-                          <h3 className="font-semibold text-lg text-gray-900 mb-1 mr-5">
-                            <span>
-                              CHF { (section3Total + frequency.price).toFixed(0) }.-
-                            </span>
-                            <span className="text-sm font-normal text-gray-600"> / uscita</span>
-                          </h3>
-                          <h3 className="font-normal text-md text-gray-900 mb-1">
-                            <span>
-                              { ((section3Total + frequency.price) * frequency.operationsInOneYear).toFixed(0) }.-
-                            </span>
-                            <span className="font-normal text-sm text-gray-600"> / anno</span>
-                          </h3>
-                        </div>
+                        
+                         {/* Price removed */}
+                        
                         <p className="text-sm text-gray-600">{frequency.description}</p>
                         {isSelected && <Badge className="mt-2 bg-blue-600 text-white">Selezionato</Badge>}
                       </div>

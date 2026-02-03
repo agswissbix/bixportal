@@ -13,6 +13,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import CompanyHeader from "./companyHeader"
 import Section1SystemAssurance from "./sections/section1SystemAssurance"
 import Section3Conditions from "./sections/section3Conditions"
+import SectionHours from "./sections/sectionHours"
 import Section2Services from "./sections/section2Services"
 import Section4Summary from "./sections/section4Summary"
 
@@ -60,6 +61,13 @@ interface ServiceData {
     price?: number
     operationsPerYear?: number
   }
+  sectionHours: {
+    selectedOption: string
+    label: string
+    price: number
+    cost: number
+    hours?: number
+  }
 }
 
 const systemAssuranceSteps = [
@@ -67,13 +75,15 @@ const systemAssuranceSteps = [
   { id: 2, title: "Prodotti", description: "Scelta prodotti" },
   { id: 3, title: "Servizi", description: "Scelta Servizi" },
   { id: 4, title: "Condizioni", description: "Pianificazione interventi" },
-  { id: 5, title: "Riepilogo", description: "Definizione economica" },
+  { id: 5, title: "Monte Ore", description: "Scelta monte ore" },
+  { id: 6, title: "Riepilogo", description: "Definizione economica" },
 ]
 
 const servicesSteps = [
   { id: 1, title: "Selezione Servizi", description: "Scelta servizi" },
   { id: 2, title: "Condizioni", description: "Pianificazione interventi" },
-  { id: 3, title: "Riepilogo", description: "Definizione economica" },
+  { id: 3, title: "Monte Ore", description: "Scelta monte ore" },
+  { id: 4, title: "Riepilogo", description: "Definizione economica" },
 ]
 
 interface ActiveMindServicesProps {
@@ -91,6 +101,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     section2Products: {},
     section2Services: {},
     section3: { selectedFrequency: "Mensile", exponentPrice: 1, price: 300, operationsPerYear: 12 },
+    sectionHours: { selectedOption: "", label: "", price: 0, cost: 0, hours: 0 },
   })
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
 
@@ -121,6 +132,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       section2Services: {},
       section2Products: {},
       section3: { selectedFrequency: "monthly", exponentPrice: 1, operationsPerYear: 12 },
+      sectionHours: { selectedOption: "", label: "", price: 0, cost: 0, hours: 0 },
     })
   }
 
@@ -198,6 +210,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           quantity: service.quantity,
         })),
         conditions: serviceData.section3.selectedFrequency,
+        hours: serviceData.sectionHours,
       }
 
       const response = await axiosInstanceClient.post(
@@ -258,6 +271,8 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
         case 4:
           return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
         case 5:
+          return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} />
+        case 6:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
         default:
           return null
@@ -271,6 +286,8 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
         case 2:
           return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
         case 3:
+          return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} />
+        case 4:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
         default:
           return null
@@ -287,6 +304,8 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       </div>
     )
   }
+
+  const compact = steps.length > 5
 
 
   return (
@@ -311,7 +330,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
               {/* Current step - full size */}
               <div className="flex items-center justify-between space-x-3 p-5">
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center items-end w-10 h-10 rounded-full bg-blue-600 text-white">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white">
                     <span className="text-md font-medium">{currentStep}</span>
                   </div>
                   <div>
@@ -361,7 +380,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           </div>
 
           {/* Desktop: Horizontal stepper */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-2">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-shrink-0">
                 <div
@@ -387,7 +406,11 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
                   <p className={`text-sm font-medium ${currentStep === step.id ? "text-blue-600" : "text-gray-500"}`}>
                     {step.title}
                   </p>
-                  <p className="text-xs text-gray-400">{step.description}</p>
+                  {!compact && (
+                    <p className="text-xs text-gray-400">
+                      {step.description}
+                    </p>
+                  )}
                 </div>
                 {index < steps.length - 1 && (
                   <div className={`w-12 h-0.5 mx-4 ${currentStep > step.id ? "bg-green-600" : "bg-gray-300"}`} />

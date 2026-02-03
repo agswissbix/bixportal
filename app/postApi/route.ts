@@ -442,6 +442,9 @@ export async function POST(request: Request) {
         case "get_products_activemind":
             djangoUrl = "/customapp_swissbix/get_products_activemind/";
             break;
+        case "get_monte_ore_activemind":
+            djangoUrl = "/customapp_swissbix/get_monte_ore_activemind/";
+            break;
         case "get_system_assurance_activemind":
             djangoUrl = "/customapp_swissbix/get_system_assurance_activemind/";
             break;
