@@ -461,6 +461,11 @@ export async function POST(request: Request) {
             djangoUrl = "/customapp_swissbix/save_project_as_template/";
             break;
 
+        // HEENERGY
+        case "heenergy_print_pdf":
+            djangoUrl = "/customapp_heenergy/print_pdf_heenergy/";
+            break;
+
         // SETTINGS
         case "settings_table_usertables":
             djangoUrl = "/commonapp/settings_table_usertables/";

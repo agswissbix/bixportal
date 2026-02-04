@@ -33,6 +33,47 @@ export function useFrontendFunctions() {
   // ----------------------- recordCards functions ------------------------
 
   // -----------------------------------------------------------------------
+  //                                 HEENERGY
+  // -----------------------------------------------------------------------
+  heenergyPrintPdf: async ({ recordid }: { recordid: string }) => {
+    try {
+      //download a file from the response
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "heenergy_print_pdf",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'heenergy.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('Pdf stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del pdf', error);
+      toast.error('Errore durante la stampa del pdf');
+    }
+  },
+
+  // -----------------------------------------------------------------------
   //                                 SWISSBIX
   // -----------------------------------------------------------------------
   applyProjectTemplate: async ({ recordid }: { recordid: string }) => {
