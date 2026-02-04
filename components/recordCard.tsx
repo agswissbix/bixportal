@@ -463,7 +463,7 @@ const RecordCard = React.memo(({
             /* DESKTOP MODE: right-side stacked card (original desktop behavior preserved) */
             <div
               className={`absolute shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-card-background z-10 rounded-xl border-2 border-card-border p-3 ${animationClass} ${
-                isMaximized ? 'right-0 w-5/6 h-5/6' : 'w-2/6 h-5/6'
+                isMaximized ? 'right-0 w-full h-5/6' : 'w-5/12 h-5/6'
               } transition-all duration-300`}
               style={containerStyleDesktop}
             >
