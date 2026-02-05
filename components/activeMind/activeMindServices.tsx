@@ -72,18 +72,19 @@ interface ServiceData {
 
 const systemAssuranceSteps = [
   { id: 1, title: "System Assurance", description: "Analisi infrastruttura IT" },
-  { id: 2, title: "Prodotti", description: "Scelta prodotti" },
-  { id: 3, title: "Servizi", description: "Scelta Servizi" },
-  { id: 4, title: "Condizioni", description: "Pianificazione interventi" },
-  { id: 5, title: "Monte Ore", description: "Scelta monte ore" },
-  { id: 6, title: "Riepilogo", description: "Definizione economica" },
+  // { id: 2, title: "Prodotti", description: "Scelta prodotti" },
+  // { id: 3, title: "Servizi", description: "Scelta Servizi" },
+  // { id: 4, title: "Condizioni", description: "Pianificazione interventi" },
+  // { id: 5, title: "Monte Ore", description: "Scelta monte ore" },
+  { id: 2, title: "Riepilogo", description: "Definizione economica" },
 ]
 
 const servicesSteps = [
-  { id: 1, title: "Selezione Servizi", description: "Scelta servizi" },
-  { id: 2, title: "Condizioni", description: "Pianificazione interventi" },
-  { id: 3, title: "Monte Ore", description: "Scelta monte ore" },
-  { id: 4, title: "Riepilogo", description: "Definizione economica" },
+  { id: 1, title: "Soluzioni", description: "Scelta soluzioni" },
+  { id: 2, title: "Selezione Servizi", description: "Scelta servizi" },
+  { id: 3, title: "Condizioni", description: "Pianificazione interventi" },
+  { id: 4, title: "Monte Ore", description: "Scelta monte ore" },
+  { id: 5, title: "Riepilogo", description: "Definizione economica" },
 ]
 
 interface ActiveMindServicesProps {
@@ -261,18 +262,6 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
             <Section1SystemAssurance data={serviceData.section1} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section1", data)} />
           )
         case 2:
-          return (
-            <ProductSelection data={serviceData.section2Products} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Products", data)} />
-          )
-        case 3:
-          return (
-            <Section2Services data={serviceData.section2Services} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Services", data)} />
-          )
-        case 4:
-          return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
-        case 5:
-          return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} />
-        case 6:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
         default:
           return null
@@ -281,13 +270,17 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       switch (currentStep) {
         case 1:
           return (
-            <Section2Services data={serviceData.section2Services} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Services", data)} />
+            <ProductSelection data={serviceData.section2Products} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Products", data)} />
           )
         case 2:
-          return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
+          return (
+            <Section2Services data={serviceData.section2Services} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Services", data)} />
+          )
         case 3:
-          return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} />
+          return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
         case 4:
+          return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} />
+        case 5:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
         default:
           return null
