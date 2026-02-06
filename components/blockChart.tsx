@@ -9,6 +9,7 @@ import OverlayBarChart, {ChartDataInterface as IMultiChartData} from "./charts/m
 import ApexCharts from "apexcharts";
 import ButtonChart, {ChartDataInterface as IButtonChartData} from "./charts/buttonChart";
 import TableChart, {ChartDataInterface as ITableChartData} from "./charts/tableChart";
+import UserChart, {ChartDataInterface as IUserChartData} from "./charts/userChart";
 import { AppContext } from "@/context/appContext"
 
 interface Props {
@@ -73,6 +74,8 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
     switch (chartType.toLowerCase()) {
       case "value":
         return <ValueChart chartType={chartType} chartData={chartData as IValueChartData} hideData={hideMeta} />
+      case "user":
+        return <UserChart chartType={chartType} chartData={chartData as IUserChartData} />
       case 'button':
         return <ButtonChart chartType={chartType} chartData={chartData as IButtonChartData} activeServer={activeServer} view="chart" />;
       case 'table':
@@ -227,7 +230,7 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
               </div>
 
               
-              { type != "button" && (
+              { type != "button" && type != "user" && (
                 /* Riga 2 — titolo su una o più righe */
                 <div className="px-4 py-2 bg-white">
                     <h4 className="text-base sm:text-lg font-semibold text-gray-700 leading-snug break-words">
@@ -241,7 +244,7 @@ export default function BlockChart({ id, name, type, chart_data, onDelete, onExp
           <div className="chart-container flex-grow relative">
               <div
                   className={`flipper ${view === "table" ? "is-flipped" : ""}`}>
-                  <div className="front p-4">
+                  <div className={`front ${type == "user" ? "p-0" : "p-4"}`}>
                       {renderChartComponent(type, parsed)}
                   </div>
                   <div className="back p-4">

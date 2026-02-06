@@ -12,6 +12,7 @@ import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useRecordsStore } from "../records/recordsStore"
 import InputFile from "@/components/input/inputFile"
+import SelectUser from "@/components/selectUser"
 
 interface ChartConfig {
   nomeInterno: string
@@ -558,6 +559,13 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                   initialValue={currentValue ? `/api/media-proxy?url=${currentValue}` : null}
                   onChange={(v) => handleInputChange(field.fieldid, v)}
                 />
+              ) : field.fieldtype === "Utente" && field.lookupitemsuser ? (
+                <SelectUser
+                  lookupItems={field.lookupitemsuser}
+                  initialValue={currentValue || ""}
+                  onChange={(v) => handleInputChange(field.fieldid, v)}
+                  isMulti={false}
+                />
               ) : null}
             </div>
           </div>
@@ -568,7 +576,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
 
   const fieldsByStep = useMemo(() => {
     const step1Fields = backendFields.filter((f) => ["name", "title", "description", "icon", "status"].includes(f.fieldid))
-    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "category_dashboard", "function_button"].includes(f.fieldid))
+    const step2Fields = backendFields.filter((f) => ["type", "dashboards", "category_dashboard", "function_button", "user"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) =>
       ["table_name", "views", "fields", "colors", "operation", "dynamic_field_1", "dynamic_field_1_label"].includes(f.fieldid),
     )
@@ -622,6 +630,16 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     })()
 
     return fields.filter((field) => {
+      if (field.fieldid === "user") {
+        const typeValue = formData.type
+        const isUserType =
+          typeValue === "user" ||
+          (typeof typeValue === "object" && typeValue?.code === "user") ||
+          (typeof typeValue === "object" && typeValue?.value === "user")
+
+        return isUserType && field.fieldtype === "Utente"
+      }
+
       if (field.fieldid === "pivot_total_field") {
         const tipoRaggruppamento = formData.grouping_type
         const isPivot =
