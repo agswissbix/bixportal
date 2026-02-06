@@ -35,7 +35,7 @@ const iconMap: Record<string, React.ElementType> = {
     formazione: Icons.AcademicCapIcon,
     test: Icons.BeakerIcon,
     interno: Icons.HomeModernIcon,
-    lenovo: Icons.CpuChipIcon,
+    lenovo: Icons.ComputerDesktopIcon,
     printing: Icons.PrinterIcon,
     riunione: Icons.UsersIcon,
     default: Icons.CommandLineIcon,
@@ -901,7 +901,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             completed={!!formData.servizio}
                                         />
                                         <div className="grid grid-cols-2 gap-3">
-                                            {res.servizi.map((s) => (
+                                            {res.servizi.map((s) => {
+                                                const Icon = iconMap[s.icon_slug?.toLowerCase() || "default"] || Icons.CommandLineIcon;
+                                                return (
                                                 <button
                                                     key={s.id}
                                                     onClick={() =>
@@ -920,13 +922,14 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                                 ? "bg-orange-500 text-white"
                                                                 : "bg-zinc-50 text-zinc-400"
                                                         }`}>
-                                                        <Icons.CommandLineIcon className="w-5 h-5" />
+                                                        <Icon className="w-5 h-5" />
                                                     </div>
                                                     <span className="text-[10px] font-black uppercase text-left leading-tight">
                                                         {s.name}
                                                     </span>
                                                 </button>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
