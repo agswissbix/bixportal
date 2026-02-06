@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
     reactStrictMode: true,
 
     turbopack: {},
+    // webpack: (config, { isServer }) => {
+    //     // Forza l'uso di webpack anche se Next vorrebbe altro
+    //     return config;
+    // },
 
     devIndicators: {
         // buildActivity is now handled automatically or removed; just set the position
