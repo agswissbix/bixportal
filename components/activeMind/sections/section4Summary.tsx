@@ -99,12 +99,15 @@ const serviceLabels: { [key: string]: string } = {
 }
 
 export default function SummarySection({ serviceData, onUpdate, onSignatureChange }: SummarySectionProps) {
-  const servicesTotal = serviceData.section2Services['clientPC'] 
-    ? (() => {
+  const servicesTotal = (() => {
       const clientPC = serviceData.section2Services['clientPC'];
       const total = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
-      return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
-    })() : 0
+      if (clientPC) {
+        return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
+      } else {
+        return total
+      }
+    })()
   
   const productsTotal = Object.values(serviceData.section2Products).reduce((sum, product) => sum + product.total, 0)
   const annualTotal = Object.values(serviceData.section2Products)
