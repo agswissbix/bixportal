@@ -316,7 +316,7 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                                     {/* Info / Link Actions on Hover */}
                                     <div className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center bg-white/90 backdrop-blur-sm rounded-md shadow-sm border border-gray-100 p-0.5 z-20">
                                         <button 
-                                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                                            className="p-1 text-gray-800 hover:text-white hover:bg-accent rounded"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleRowClick('linked', service.id, 'serviceandasset');
