@@ -16,6 +16,7 @@ import Section3Conditions from "./sections/section3Conditions"
 import SectionHours from "./sections/sectionHours"
 import Section2Services from "./sections/section2Services"
 import Section4Summary from "./sections/section4Summary"
+import SectionServiceAsset from "./sections/sectionServiceAsset"
 
 interface ServiceData {
   clientInfo?: {
@@ -55,6 +56,9 @@ interface ServiceData {
       features?: string[]
     }
   }
+  sectionServiceAsset: {
+    [key: string]: any // We treat this as read-only pass-through data
+  }
   section3: {
     selectedFrequency: string
     exponentPrice?: number
@@ -72,10 +76,6 @@ interface ServiceData {
 
 const systemAssuranceSteps = [
   { id: 1, title: "System Assurance", description: "Analisi infrastruttura IT" },
-  // { id: 2, title: "Prodotti", description: "Scelta prodotti" },
-  // { id: 3, title: "Servizi", description: "Scelta Servizi" },
-  // { id: 4, title: "Condizioni", description: "Pianificazione interventi" },
-  // { id: 5, title: "Monte Ore", description: "Scelta monte ore" },
   { id: 2, title: "Riepilogo", description: "Definizione economica" },
 ]
 
@@ -87,6 +87,11 @@ const servicesSteps = [
   { id: 5, title: "Riepilogo", description: "Definizione economica" },
 ]
 
+const serviceAssetSteps = [
+  { id: 1, title: "Service & Asset", description: "Visualizzazione Asset" },
+  { id: 2, title: "Riepilogo", description: "Definizione economica" },
+]
+
 interface ActiveMindServicesProps {
   recordIdTrattativa?: string
 }
@@ -95,18 +100,24 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
   const [isSaving, setIsSaving] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
 
-  const [chosenPath, setChosenPath] = useState<"system_assurance" | "services" | null>(null)
+  const [chosenPath, setChosenPath] = useState<"system_assurance" | "services" | "service_asset" | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [serviceData, setServiceData] = useState<ServiceData>({
     section1: { selectedTier: "", price: 0 },
     section2Products: {},
     section2Services: {},
+    sectionServiceAsset: {},
     section3: { selectedFrequency: "Mensile", exponentPrice: 1, price: 300, operationsPerYear: 12 },
     sectionHours: { selectedOption: "", label: "", price: 0, cost: 0, hours: 0 },
   })
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null)
 
-  const steps = chosenPath === "system_assurance" ? systemAssuranceSteps : servicesSteps
+  let steps = servicesSteps
+  if (chosenPath === "system_assurance") {
+    steps = systemAssuranceSteps
+  } else if (chosenPath === "service_asset") {
+    steps = serviceAssetSteps
+  }
 
   const updateServiceData = useCallback((section: keyof ServiceData, data: any) => {
     console.log(`Updating ${section} with data:`, data)
@@ -120,7 +131,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     setDigitalSignature(signature)
   }, [])
 
-  const handleInitialChoice = (choice: "system_assurance" | "services") => {
+  const handleInitialChoice = (choice: "system_assurance" | "services" | "service_asset") => {
     setChosenPath(choice)
     setCurrentStep(1)
   }
@@ -132,6 +143,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       section1: { selectedTier: "", price: 0 },
       section2Services: {},
       section2Products: {},
+      sectionServiceAsset: { ...serviceData.sectionServiceAsset },
       section3: { selectedFrequency: "monthly", exponentPrice: 1, operationsPerYear: 12 },
       sectionHours: { selectedOption: "", label: "", price: 0, cost: 0, hours: 0 },
     })
@@ -212,6 +224,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
         })),
         conditions: serviceData.section3.selectedFrequency,
         hours: serviceData.sectionHours,
+        serviceAssets: Object.values(serviceData.sectionServiceAsset || {}),
       }
 
       const response = await axiosInstanceClient.post(
@@ -285,6 +298,17 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
         default:
           return null
       }
+    } else if (chosenPath === "service_asset") {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <SectionServiceAsset dealid={recordIdTrattativa} data={serviceData.sectionServiceAsset} onUpdate={(data) => updateServiceData("sectionServiceAsset", data)} />
+                )
+            case 2:
+                return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
+            default:
+                return null
+        }
     }
     return null
   }
@@ -446,7 +470,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
               <ChevronLeft className="w-5 h-5 mr-2" />
               Precedente
             </Button>
-            { (currentStep === 1 || currentStep === 2) && (
+            { (currentStep === 1) && (
               <Button
                   onClick={() => {setCurrentStep(steps.length)}}
                   className="bg-white text-blue-700 hover:bg-gray-100 border border-blue-700 h-12 text-base font-medium"
@@ -554,7 +578,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
               </Button>
               </div>
             )}
-            { (currentStep === 1 || currentStep === 2) && (
+            { (currentStep === 1) && (
               <Button
                   onClick={() => {setCurrentStep(steps.length)}}
                   className="bg-white text-blue-700 hover:bg-gray-100 border border-blue-700"
@@ -575,3 +599,4 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     </div>
   )
 }
+

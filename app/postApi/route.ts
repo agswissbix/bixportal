@@ -463,6 +463,9 @@ export async function POST(request: Request) {
         case "get_widget_employee":
             djangoUrl = "/customapp_swissbix/get_widget_employee/";
             break;
+        case "get_service_and_asset_activemind":
+            djangoUrl = "/customapp_swissbix/get_service_and_asset_activemind/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":

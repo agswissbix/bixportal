@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Settings, ShoppingCart, ArrowRight, CheckCircle } from "lucide-react"
 
 interface InitialChoiceProps {
-  onChoice: (choice: "system_assurance" | "services") => void
+  onChoice: (choice: "system_assurance" | "services" | "service_asset") => void
 }
 
 export default function InitialChoice({ onChoice }: InitialChoiceProps) {
@@ -19,7 +19,7 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+      <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
         {/* System Assurance Option */}
         <Card
           className="bg-blue-50 border-blue-200 hover:bg-blue-100 transition-all duration-200 cursor-pointer group flex flex-col"
@@ -108,10 +108,10 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
               <h4 className="font-medium text-gray-900">Servizi disponibili:</h4>
               <div className="space-y-1">
                 {[
-                  "Monitoraggio e gestione remota (RMM)",
-                  "Backup automatici e disaster recovery",
-                  "Protezione antivirus e anti-ransomware",
-                  "Sicurezza email e formazione phishing",
+                  "Fornitura prodotti Hardware & Software",
+                  "Servizi gestiti di continuità e sicurezza",
+                  "Protezione dati e Cyber Security",
+                  "Supporto tecnico e Monte ore dedicato",
                 ].map((category, index) => (
                   <div key={index} className="flex items-start space-x-2">
                     <CheckCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -139,6 +139,67 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Service & Asset Option */}
+        <div className="md:col-span-2 flex justify-center">
+          <Card
+            className="w-full md:w-[49%] bg-purple-50 border-purple-200 hover:bg-purple-100 transition-all duration-200 cursor-pointer group flex flex-col"
+            onClick={() => onChoice("service_asset")}
+          >
+            <CardHeader className="pb-4">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="p-3 bg-purple-600 rounded-lg">
+                  <Settings className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl text-purple-900">Service & Asset</CardTitle>
+                  <Badge variant="secondary" className="mt-1">
+                    Visualizzazione Asset
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 flex-1 flex flex-col">
+              <p className="text-gray-700">
+                Visualizza l'elenco dei servizi e asset attualmente in possesso e attivi.
+              </p>
+
+              <div className="space-y-2 flex-1">
+                <h4 className="font-medium text-gray-900">Include:</h4>
+                <div className="space-y-1">
+                  {[
+                    "Elenco Hardware/Software",
+                    "Stato servizi attivi",
+                    "Dettagli fornitori",
+                    "Reportistica asset",
+                  ].map((feature, index) => (
+                    <div key={index} className="flex items-start space-x-2">
+                      <CheckCircle className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-purple-100 rounded-lg p-3">
+                <p className="text-sm text-purple-800 font-medium">
+                  Solo visualizzazione
+                </p>
+              </div>
+
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white group-hover:bg-purple-700"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChoice("service_asset")
+                }}
+              >
+                Visualizza Service & Asset
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="text-center">

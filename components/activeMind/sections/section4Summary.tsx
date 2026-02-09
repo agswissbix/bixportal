@@ -3,7 +3,7 @@
 import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calculator, FileText, Phone, Mail, Clock, Package, Settings, Calendar } from "lucide-react"
+import { Calculator, FileText, Phone, Mail, Clock, Package, Settings, Calendar, Database } from "lucide-react"
 import DigitalSignature from "@/components/activeMind/DigitalSignature"
 
 interface SummarySectionProps {
@@ -39,6 +39,19 @@ interface SummarySectionProps {
         unitPrice: number
         total: number
         features?: string[]
+      }
+    }
+    sectionServiceAsset: {
+      [key: string]: {
+        id: string
+        label: string
+        note: string
+        provider: string
+        quantity: number
+        sector: string
+        type: string
+        status: string
+        product_name: string
       }
     }
     section3: {
@@ -193,6 +206,41 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
           <p className="text-gray-800">Riepilogo completo dei servizi selezionati e calcolo del totale finale.</p>
         </CardContent>
       </Card>
+
+      {/* Section Service & Asset - Read Only Summary */}
+      {serviceData.sectionServiceAsset && Object.keys(serviceData.sectionServiceAsset).length > 0 && (
+        <Card className="shadow-md">
+           <CardHeader className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-t-lg">
+            <CardTitle className="text-lg flex items-center">
+              <Database className="w-5 h-5 mr-2 text-purple-700" />
+              Service & Asset in possesso
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+                {Object.values(serviceData.sectionServiceAsset).map((item) => (
+                    <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div>
+                             <h4 className="font-semibold text-gray-900">{item.label}</h4>
+                             <p className="text-sm text-gray-500 mt-1">
+                                {item.type} • {item.sector} • {item.status}
+                             </p>
+                             {item.note && (
+                                <p className="text-xs text-gray-400 mt-2 italic">{item.note}</p>
+                             )}
+                        </div>
+                        <div className="mt-4 md:mt-0 flex items-center">
+                            <Badge variant="outline" className="bg-white">Qta: {item.quantity}</Badge>
+                        </div>
+                    </div>
+                ))}
+            </div>
+             <div className="mt-4 p-4 bg-purple-50 rounded-lg text-sm text-purple-800 text-center">
+                Questi elementi sono visualizzati a solo scopo informativo e non incidono sul totale.
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Section 1 Summary - System Assurance */}
       {serviceData.section1.selectedTier && (
@@ -456,8 +504,6 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
           </CardContent>
         </Card>
       )}
-
-
 
       {/* Section Hours - Monte Ore */}
       {serviceData.sectionHours?.selectedOption && (
