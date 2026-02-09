@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useContext, useMemo } from "react"
+import { useState, useEffect, useContext, useMemo, useRef } from "react"
+import { useReactToPrint } from "react-to-print"
 import { useRecordsStore } from "./records/recordsStore"
 import QuickFilters from "./quickFilters"
 import TableFilters from "./TableFilters"
@@ -14,6 +15,7 @@ import { AppContext } from "@/context/appContext"
 import type { CustomFunction } from "./dynamicMenuItem"
 import DynamicMenuItem from "./dynamicMenuItem"
 import { useApi } from "@/utils/useApi"
+import { PrinterIcon } from "lucide-react"
 
 const isDev = false
 
@@ -29,6 +31,7 @@ interface ResponseInterface {
 export default function StandardContent({ tableid }: PropsInterface) {
   const [recordid, setRecordid] = useState("")
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showExportDropdown, setShowExportDropdown] = useState(false)
 
   const { refreshTable, setIsFiltersOpen, isFiltersOpen } = useRecordsStore() // Stato per il valore di ricerca
 
@@ -160,6 +163,53 @@ export default function StandardContent({ tableid }: PropsInterface) {
     setFiltersList([])
   }, [tableid])
 
+  const componentRef = useRef<HTMLDivElement>(null)
+
+  const handlePrintFn = useReactToPrint({
+    pageStyle: `
+      @page {
+        size: landscape;
+        margin: 5mm;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          zoom: 0.65;
+        }
+        /* Override global layout constraints */
+        html, body {
+          height: auto !important;
+          overflow: visible !important;
+        }
+        /* Ensure the container expands and is visible */
+        #printable-records-content {
+          display: block !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+        /* Reset internal scroll containers */
+        .overflow-auto {
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+        .h-full {
+          height: auto !important;
+        }
+        /* Hide scrollbars */
+        ::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    `,
+  })
+
+  // Wrapper to pass the content ref to the print function
+  const handlePrint = () => {
+    handlePrintFn(() => componentRef.current)
+  }
+
   return (
     <GenericComponent title="standardContent" response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
@@ -201,12 +251,6 @@ export default function StandardContent({ tableid }: PropsInterface) {
                     {showDropdown && (
                       <div className="absolute left-0 mt-2 w-48 theme-card border rounded-lg shadow-lg z-50">
                         <ul className="py-2">
-                          <li
-                            className="px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer transition-colors duration-150"
-                            onClick={() => exportExcel()}
-                          >
-                            Esporta excel
-                          </li>
                           {response?.fn
                               .filter((fn) => fn.context === 'results' || fn.context === 'resultsAll')
                               .map((originalFn) => {
@@ -267,16 +311,66 @@ export default function StandardContent({ tableid }: PropsInterface) {
                 <span>Ricarica</span>
               </button>
 
-              <button
-                type="button"
-                className="flex-1 theme-primary inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold rounded-lg 
-                          focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200 
-                          shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
-                onClick={() => exportExcel()}
-              >
-                <ArrowDownTrayIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
-                <span>Esporta</span>
-              </button>
+              <div className="flex-1 relative">
+                <button
+                  type="button"
+                  className="w-full theme-primary inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold rounded-lg 
+                            focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200 
+                            shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                  onClick={() => setShowExportDropdown(!showExportDropdown)}
+                >
+                  <ArrowDownTrayIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
+                  <span>Esporta</span>
+                  <svg
+                    className="w-2.5 h-2.5 ms-2 sm:ms-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 10 6"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="m1 1 4 4 4-4"
+                    />
+                  </svg>
+                </button>
+
+                {showExportDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 theme-card border rounded-lg shadow-lg z-50">
+                    <ul className="py-2">
+                      <li>
+                        <button
+                          type="button"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors flex items-center"
+                          onClick={() => {
+                            exportExcel()
+                            setShowExportDropdown(false)
+                          }}
+                        >
+                          <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                          Excel
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors flex items-center"
+                          onClick={() => {
+                            handlePrint()
+                            setShowExportDropdown(false)
+                          }}
+                        >
+                          <PrinterIcon className="w-4 h-4 mr-2" />
+                          Stampa
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -301,7 +395,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
             )}
             <div className="w-full h-full flex flex-nowrap overflow-x-auto overflow-y-hidden theme-card border rounded-lg p-0 lg:p-4">
               <div className="w-full h-full">
-                <RecordTabs tableid={tableid}></RecordTabs>
+                <RecordTabs tableid={tableid} contentRef={componentRef}></RecordTabs>
               </div>
             </div>
           </div>

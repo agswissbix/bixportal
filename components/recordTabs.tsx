@@ -23,6 +23,7 @@ const isDev = false;
 
 interface PropsInterface {
   tableid?: string;
+  contentRef?: React.MutableRefObject<HTMLDivElement | null>;
 }
 
 interface ResponseInterface {
@@ -30,7 +31,7 @@ interface ResponseInterface {
   activeTab: string;
 }
 
-export default function RecordTabs({ tableid }: PropsInterface) {
+export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
   const { user } = useContext(AppContext);
   const [calendarType, setCalendarType] = useState<"calendar" | "planner">(
       "calendar"
@@ -99,7 +100,7 @@ export default function RecordTabs({ tableid }: PropsInterface) {
                   </div>
 
                   {/* Tab Content */}
-                  <div className="flex-1 p-4 overflow-auto xl:inline hidden">
+                  <div id="printable-records-content" ref={contentRef} className="flex-1 p-4 overflow-auto xl:inline hidden">
                       {activeTab === "Tabella" && (
                           <RecordsTable
                               tableid={tableid}
