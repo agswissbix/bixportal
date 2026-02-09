@@ -75,7 +75,11 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
 
     const [openCards, setOpenCards] = useState<boolean[]>(responseDataDEV.linkedTables.map(table => !!table.isOpen) || []);
 
-    const {handleRowClick} = useRecordsStore();
+    const {handleRowClick, getIsSettingAllowed} = useRecordsStore();
+
+    const canAdd = useMemo(() => {
+        return getIsSettingAllowed(tableid, 'add_linked', recordid);
+    }, [tableid, recordid]);
 
     const handleCollapse = (index: number) => {
         setOpenCards(prev => {
@@ -182,15 +186,18 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                     ${openCards[index] ? 'animate-cardslide-in' : 'animate-cardslide-out'}
                                     ${!openCards[index] && 'hidden'}`}
                             >
-                                <Button variant="outline" size="sm"
-                                    className="font-semibold flex items-center bg-transparent text-accent border border-gray-200 px-4 py-2 rounded-lg 
-                                                hover:border-accent hover:bg-transparent hover:text-accent transition-all duration-300 transform 
-                                                hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
-                                    onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}
-                                >
-                                    <SquarePlus name="Plus" className="mr-2 h-5 w-5" /> 
-                                    Aggiungi
-                                </Button>
+                                {handleRowClick && (
+                                    <Button variant="outline" size="sm"
+                                        className="font-semibold flex items-center bg-transparent text-accent border border-gray-200 px-4 py-2 rounded-lg 
+                                                    hover:border-accent hover:bg-transparent hover:text-accent transition-all duration-300 transform 
+                                                    hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
+                                        onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}
+                                        disabled={!canAdd}
+                                    >
+                                        <SquarePlus name="Plus" className="mr-2 h-5 w-5" /> 
+                                        Aggiungi
+                                    </Button>
+                                )}
 
                                 <Button variant="outline" size="sm"
                                     className="font-semibold flex items-center bg-transparent text-secondary border border-gray-200 px-4 py-2 rounded-lg 

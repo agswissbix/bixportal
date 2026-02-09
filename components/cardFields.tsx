@@ -121,7 +121,8 @@ export default function CardFields({
 
   // 2) Calcola l'editabilità quando cambia tableSettings o recordid
   useEffect(() => {
-    setIsEditable(getIsSettingAllowed(tableid, 'edit', recordid));
+    const setting_name = mastertableid && masterrecordid ? getIsSettingAllowed(mastertableid, 'edit_linked', masterrecordid) : getIsSettingAllowed(tableid, 'edit', recordid)
+    setIsEditable(setting_name);
   }, [tableSettings, recordid]);
 
 
@@ -606,6 +607,8 @@ export default function CardFields({
       const formData = new FormData()
       formData.append("tableid", tableid || "")
       formData.append("recordid", recordid || "")
+      formData.append("mastertableid", mastertableid || "")
+      formData.append("masterrecordid", masterrecordid || "")
 
       const standardFields: { [key: string]: any } = {}
       Object.entries(updatedFields).forEach(([fieldId, value]) => {

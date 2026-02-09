@@ -36,7 +36,11 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
   const { activeServer } = useContext(AppContext)
 
-  const { setRefreshTable, setFiltersList } = useRecordsStore()
+  const { setRefreshTable, setFiltersList, getIsSettingAllowed } = useRecordsStore()
+
+  const canAdd = useMemo(() => {
+    return getIsSettingAllowed(tableid, 'add', '')
+  }, [tableid])
 
   const refreshTableFunc = () => setRefreshTable((v) => v + 1)
 
@@ -242,8 +246,10 @@ export default function StandardContent({ tableid }: PropsInterface) {
                 type="button"
                 className="flex-1 theme-accent inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold rounded-lg 
                           focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 
-                          shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                          shadow-sm hover:shadow-md transform hover:-translate-y-0.5
+                          disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleRowClick("", "", tableid)}
+                disabled={!canAdd}
               >
                 <PlusIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
                 <span>Nuovo</span>

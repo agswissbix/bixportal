@@ -1,4 +1,5 @@
 // src/store.ts
+import { toast } from 'sonner';
 import { create } from 'zustand'
 
 interface RecordsStore {
@@ -402,7 +403,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         const hasConditions = Boolean(setting.conditions ?? false);
 
         if (!hasConditions) return value;
-        if (!recordid) return false;
+        if (!recordid) return value;
 
         const match = validRecords.includes(String(recordid));
         return match ? value : !value;
