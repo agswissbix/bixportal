@@ -33,9 +33,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
   const [showDropdown, setShowDropdown] = useState(false)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
 
-  const { refreshTable, setIsFiltersOpen, isFiltersOpen } = useRecordsStore() // Stato per il valore di ricerca
-
-  const { cardsList, addCard, removeCard, resetCardsList, handleRowClick, searchTerm, filtersList, tableView } = useRecordsStore() // Stato per il valore di ricerca
+  const { tableSettings, handleRowClick, searchTerm, filtersList, tableView, isFiltersOpen } = useRecordsStore() // Stato per il valore di ricerca
 
   const { activeServer } = useContext(AppContext)
 
@@ -43,7 +41,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
 
   const canAdd = useMemo(() => {
     return getIsSettingAllowed(tableid, 'add', '')
-  }, [tableid])
+  }, [tableSettings, tableid])
 
   const refreshTableFunc = () => setRefreshTable((v) => v + 1)
 
