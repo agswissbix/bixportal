@@ -49,9 +49,7 @@ export default function RecordsView({
         body {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
-          transform: scale(0.65);
-          transform-origin: top left;
-          width: 153.8%; /* Compensate for 0.65 scale (100/0.65 ≈ 153.8) */
+          zoom: 0.65;
         }
         /* Override global layout constraints */
         html, body {
@@ -190,7 +188,7 @@ export default function RecordsView({
       return (
         <div
           key={dayNumber}
-          className="relative border-t border-r border-gray-200 dark:border-gray-700 p-1 min-h-[120px] flex flex-col"
+          className="relative border-t border-r border-gray-200 dark:border-gray-700 p-1 min-h-[120px] print:min-h-0 print:max-h-[200px] flex flex-col"
           onDragOver={(e) => {
             e.preventDefault()
             e.currentTarget.classList.add("bg-blue-50")
@@ -225,7 +223,7 @@ export default function RecordsView({
                   draggable={!resizingEvent && !event.disabled}
                   onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
                   onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
-                  className="relative group p-1.5 text-xs cursor-pointer select-none hover:opacity-80 transition-opacity"
+                  className="relative group p-1.5 text-xs cursor-pointer select-none hover:opacity-80 transition-opacity print:max-h-[100px]"
                   style={{
                     height: `${eventHeight}px`,
                     ...positionStyles,
