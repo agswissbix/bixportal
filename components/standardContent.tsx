@@ -8,14 +8,14 @@ import TableFilters from "./TableFilters"
 import RecordTabs from "./recordTabs"
 import RecordCard from "./recordCard"
 import GenericComponent from "./genericComponent"
-import { PlusIcon, ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline"
+import { PlusIcon, ArrowPathIcon, ArrowDownTrayIcon, ArrowLeftEndOnRectangleIcon } from "@heroicons/react/24/outline"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
 import { AppContext } from "@/context/appContext"
 import type { CustomFunction } from "./dynamicMenuItem"
 import DynamicMenuItem from "./dynamicMenuItem"
 import { useApi } from "@/utils/useApi"
-import { PrinterIcon } from "lucide-react"
+import { BarChart2, FileSpreadsheet, PrinterIcon, Upload } from "lucide-react"
 
 const isDev = false
 
@@ -163,6 +163,24 @@ export default function StandardContent({ tableid }: PropsInterface) {
     setFiltersList([])
   }, [tableid])
 
+  const functionsDropdownRef = useRef<HTMLDivElement>(null)
+  const exportDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (functionsDropdownRef.current && !functionsDropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false)
+      }
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
+        setShowExportDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
   const componentRef = useRef<HTMLDivElement>(null)
 
   const handlePrintFn = useReactToPrint({
@@ -222,7 +240,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {activeServer !== "belotti" && (
                 <>
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative" ref={functionsDropdownRef}>
                     <button
                       className="w-full theme-secondary inline-flex items-center px-3 sm:px-4 py-2.5 text-sm font-medium rounded-lg 
                                 focus:ring-2 focus:outline-none focus:ring-primary/20 transition-all duration-200 
@@ -311,7 +329,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                 <span>Ricarica</span>
               </button>
 
-              <div className="flex-1 relative">
+              <div className="flex-1 relative" ref={exportDropdownRef}>
                 <button
                   type="button"
                   className="w-full theme-primary inline-flex items-center px-3 sm:px-5 py-2.5 text-sm font-semibold rounded-lg 
@@ -319,7 +337,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                             shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                   onClick={() => setShowExportDropdown(!showExportDropdown)}
                 >
-                  <ArrowDownTrayIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
+                  <Upload className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
                   <span>Esporta</span>
                   <svg
                     className="w-2.5 h-2.5 ms-2 sm:ms-3"
@@ -344,20 +362,20 @@ export default function StandardContent({ tableid }: PropsInterface) {
                       <li>
                         <button
                           type="button"
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors flex items-center"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-green-50 hover:text-green-600 transition-colors flex items-center"
                           onClick={() => {
                             exportExcel()
                             setShowExportDropdown(false)
                           }}
                         >
-                          <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
                           Excel
                         </button>
                       </li>
                       <li>
                         <button
                           type="button"
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors flex items-center"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 hover:text-red-600 transition-colors flex items-center"
                           onClick={() => {
                             handlePrint()
                             setShowExportDropdown(false)
