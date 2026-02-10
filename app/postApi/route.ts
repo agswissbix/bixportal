@@ -466,6 +466,24 @@ export async function POST(request: Request) {
         case "get_service_and_asset_activemind":
             djangoUrl = "/customapp_swissbix/get_service_and_asset_activemind/";
             break;
+        case "get_lenovo_intake_context":
+            djangoUrl = "/customapp_swissbix/get_lenovo_intake_context/";
+            break;
+        case "get_lenovo_ticket":
+            djangoUrl = "/customapp_swissbix/get_lenovo_ticket/";
+            break;
+        case "save_lenovo_ticket":
+            djangoUrl = "/customapp_swissbix/save_lenovo_ticket/";
+            break;
+        case "upload_lenovo_photo":
+            djangoUrl = "/customapp_swissbix/upload_lenovo_photo/";
+            break;
+        case "upload_lenovo_attachment":
+            djangoUrl = "/customapp_swissbix/upload_lenovo_attachment/";
+            break;
+        case "get_lenovo_attachments":
+            djangoUrl = "/customapp_swissbix/get_lenovo_attachments/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":
