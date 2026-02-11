@@ -13,6 +13,9 @@ export default function LenovoIntake() {
     const [step, setStep] = useState(1);
     const [loadingMethod, setLoadingMethod] = useState(false);
     
+    // Signature State
+    const [showSignatureModal, setShowSignatureModal] = useState(false);
+    
     // Search State
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showResults, setShowResults] = useState(false);
@@ -43,6 +46,23 @@ export default function LenovoIntake() {
 
         // Assistance
         problem_description: "",
+        
+        // New Fields
+        address: "",
+        place: "",
+        brand: "",
+        model: "",
+        username: "",
+        password: "",
+        warranty: "No", // 'Si' | 'No'
+        warranty_type: "",
+        
+        // Authorization
+        auth_factory_reset: "No",
+        request_quote: "No",
+        direct_repair: "No",
+        direct_repair_limit: "",
+        auth_formatting: "No",
     });
 
     // Field Settings
@@ -64,19 +84,6 @@ export default function LenovoIntake() {
           console.log("Custom functions loaded:", response)
         }
       }, [response])
-
-    // useEffect(() => {
-    //     // Fetch Context
-    //     axiosInstanceClient.post("/postApi", {
-    //         apiRoute: "get_lenovo_intake_context"
-    //     })
-    //         .then(res => {
-    //             if(res.data.success && res.data.field_settings) {
-    //                 setFieldSettings(res.data.field_settings);
-    //             }
-    //         })
-    //         .catch(console.error);
-    // }, []);
 
     // Polling for photo and attachments update
     useEffect(() => {
@@ -156,6 +163,10 @@ export default function LenovoIntake() {
             ...prev,
             company_name: company.name,
             recordidcompany_: company.id,
+            address: company.address || "",
+            place: company.city || "",
+            email: company.email || prev.email,
+            phone: company.phonenumber || prev.phone,
         }));
         setShowResults(false);
     };
@@ -350,7 +361,7 @@ export default function LenovoIntake() {
                     toast.success("Draft saved");
                 } else {
                     toast.success("Ticket registered successfully!");
-                    setTimeout(() => window.location.reload(), 1500);
+                    // setTimeout(() => window.location.reload(), 1500);
                 }
                 return newId;
             } else {
@@ -363,6 +374,50 @@ export default function LenovoIntake() {
             return null;
         } finally {
             setLoadingMethod(false);
+        }
+    };
+
+    const handleSignAndPrint = async (signatureBase64: string) => {
+        setLoadingMethod(true);
+        setShowSignatureModal(false);
+        try {
+            // 1. Save Signature
+            const body = new FormData();
+            body.append("apiRoute", "save_lenovo_signature");
+            body.append("recordid", formData.recordid);
+            body.append("img_base64", signatureBase64.split(',')[1]);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            
+            if (res.data.success) {
+                toast.success("Signature saved! Generating PDF...");
+                
+                // 2. Download PDF
+                const pdfRes = await axiosInstanceClient.post("/postApi", {
+                    apiRoute: "print_lenovo_ticket",
+                    recordid: formData.recordid
+                }, { responseType: 'blob' });
+                
+                const url = window.URL.createObjectURL(new Blob([pdfRes.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `lenovo_ticket_${formData.recordid}.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                
+                // setTimeout(() => window.location.reload(), 2000);
+
+            } else {
+                toast.error("Error saving signature");
+            }
+
+        } catch (err) {
+            console.error(err);
+            toast.error("Error signing/printing");
+        } finally {
+            setLoadingMethod(false);
+            setShowSignatureModal(false);
         }
     };
     
@@ -462,6 +517,28 @@ export default function LenovoIntake() {
                                         placeholder="Surname"
                                     />
                                 </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                <div>
+                                    <Label field="address" text="Address" />
+                                    <input 
+                                        type="text" 
+                                        value={formData.address}
+                                        onChange={e => setFormData({...formData, address: e.target.value})}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                        placeholder="Street Address"
+                                    />
+                                </div>
+                                <div>
+                                    <Label field="place" text="City/Place" />
+                                    <input 
+                                        type="text" 
+                                        value={formData.place}
+                                        onChange={e => setFormData({...formData, place: e.target.value})}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                        placeholder="Lugano"
+                                    />
+                                </div>
+                            </div>
                                 <div>
                                     <Label field="email" text="Email" />
                                     <input 
@@ -483,6 +560,33 @@ export default function LenovoIntake() {
                                     />
                                 </div>
                             </div>
+                            
+                            {/* Credentials */}
+                            <div className="mt-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-4">Access Credentials</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <Label field="username" text="Username" />
+                                        <input 
+                                            type="text" 
+                                            value={formData.username}
+                                            onChange={e => setFormData({...formData, username: e.target.value})}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                            placeholder="User"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label field="password" text="Password/PIN" />
+                                        <input 
+                                            type="text" 
+                                            value={formData.password}
+                                            onChange={e => setFormData({...formData, password: e.target.value})}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                            placeholder="********"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -490,6 +594,28 @@ export default function LenovoIntake() {
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold mb-4">Product Details</h2>
                             <div className="grid grid-cols-1 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <Label field="brand" text="Brand" />
+                                        <input 
+                                            type="text" 
+                                            value={formData.brand}
+                                            onChange={e => setFormData({...formData, brand: e.target.value})}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                            placeholder="Lenovo, HP, Apple..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label field="model" text="Model" />
+                                        <input 
+                                            type="text" 
+                                            value={formData.model}
+                                            onChange={e => setFormData({...formData, model: e.target.value})}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                            placeholder="ThinkPad X1..."
+                                        />
+                                    </div>
+                                </div>
                                 <div>
                                     <Label field="serial" text="Serial Number" />
                                     <div className="flex gap-2">
@@ -687,6 +813,98 @@ export default function LenovoIntake() {
                                 />
                              </div>
 
+                             {/* Warranty & Authorization */}
+                             <div className="space-y-4 pt-6 border-t border-gray-100">
+                                <h3 className="text-lg font-bold">Warranty & Authorization</h3>
+                                
+                                {/* Warranty */}
+                                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <div className="flex items-center gap-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="warranty"
+                                            checked={formData.warranty === 'Si'}
+                                            onChange={e => setFormData({...formData, warranty: e.target.checked ? 'Si' : 'No'})}
+                                            className="w-5 h-5 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                        />
+                                        <label htmlFor="warranty" className="font-medium text-gray-700">Under Warranty?</label>
+                                    </div>
+                                    {formData.warranty === 'Si' && (
+                                        <input 
+                                            type="text" 
+                                            value={formData.warranty_type}
+                                            onChange={e => setFormData({...formData, warranty_type: e.target.value})}
+                                            placeholder="Warranty Type (e.g. OnSite, Depot)"
+                                            className="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Auth Checks */}
+                                <div className="space-y-3">
+                                    <label className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={formData.auth_factory_reset === 'Si'}
+                                            onChange={e => setFormData({...formData, auth_factory_reset: e.target.checked ? 'Si' : 'No'})}
+                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                        />
+                                        <span className="text-sm text-gray-600">
+                                            Authorize Factory Reset (Data may be lost).
+                                        </span>
+                                    </label>
+
+                                    <label className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={formData.request_quote === 'Si'}
+                                            onChange={e => setFormData({...formData, request_quote: e.target.checked ? 'Si' : 'No'})}
+                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                        />
+                                        <span className="text-sm text-gray-600">
+                                            Request Quote (Evaluation cost max 50 CHF if rejected).
+                                        </span>
+                                    </label>
+
+                                    <div className="p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={formData.direct_repair === 'Si'}
+                                                onChange={e => setFormData({...formData, direct_repair: e.target.checked ? 'Si' : 'No'})}
+                                                className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                            />
+                                            <span className="text-sm text-gray-600">
+                                                Authorize Direct Repair if cost is below limit.
+                                            </span>
+                                        </label>
+                                        {formData.direct_repair === 'Si' && (
+                                            <div className="ml-8 mt-2 flex items-center gap-2">
+                                                <span className="text-sm text-gray-500">Limit (CHF):</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={formData.direct_repair_limit}
+                                                    onChange={e => setFormData({...formData, direct_repair_limit: e.target.value})}
+                                                    className="w-32 p-2 border border-gray-300 rounded-lg text-sm"
+                                                    placeholder="e.g. 200"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <label className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={formData.auth_formatting === 'Si'}
+                                            onChange={e => setFormData({...formData, auth_formatting: e.target.checked ? 'Si' : 'No'})}
+                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                        />
+                                        <span className="text-sm text-gray-600">
+                                            Authorize Full Formatting (Data WILL be lost).
+                                        </span>
+                                    </label>
+                                </div>
+                             </div>
 
                         </div>
                     )}
@@ -714,15 +932,180 @@ export default function LenovoIntake() {
                                 disabled={loadingMethod}
                                 className="px-8 py-3 bg-[#E2231A] text-white rounded-xl font-bold shadow-lg shadow-red-200 hover:bg-red-700 transition-all flex items-center gap-2 disabled:opacity-50"
                             >
-                                {loadingMethod ? 'Saving...' : 'Complete Intake'} <Icons.CheckIcon className="w-5 h-5" />
+                                {loadingMethod ? 'Saving...' : 'Save Ticket'} <Icons.CheckIcon className="w-5 h-5" />
                             </button>
                         )}
                     </div>
                 </div>
+                
+                {/* Sign & Print Button (Visible if saved) */}
+                {formData.recordid && step === 3 && (
+                    <div className="mt-8 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <button
+                            onClick={() => setShowSignatureModal(true)}
+                            className="bg-zinc-900 text-white px-8 py-4 rounded-2xl font-bold shadow-xl flex items-center gap-3 hover:bg-black transition-all transform hover:scale-105"
+                        >
+                            <Icons.PencilSquareIcon className="w-6 h-6" />
+                            Sign & Print Ticket
+                        </button>
+                    </div>
+                )}
 
             </main>
+            
+            {/* Signature Modal */}
+            {showSignatureModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-xl">Sign Ticket</h3>
+                            <button onClick={() => setShowSignatureModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                                <Icons.XMarkIcon className="w-6 h-6 text-gray-500" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6">
+                            <p className="text-sm text-gray-500 mb-4 text-center">Please sign below to authorize the repair.</p>
+                            <SignaturePad 
+                                onSave={handleSignAndPrint} 
+                                onCancel={() => setShowSignatureModal(false)} 
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
       )}
     </GenericComponent>
     );
 }
+
+// Simple Signature Pad Component using HTML5 Canvas
+const SignaturePad = ({ onSave, onCancel }: { onSave: (data: string) => void, onCancel: () => void }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [hasSignature, setHasSignature] = useState(false);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'black';
+
+        // Resize
+        const resize = () => {
+            const parent = canvas.parentElement;
+            if(parent) {
+                canvas.width = parent.clientWidth;
+                canvas.height = 200;
+            }
+        };
+        resize();
+        window.addEventListener('resize', resize);
+        return () => window.removeEventListener('resize', resize);
+    }, []);
+
+    const startDrawing = (e: any) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        setIsDrawing(true);
+        const { offsetX, offsetY } = getCoordinates(e, canvas);
+        ctx.beginPath();
+        ctx.moveTo(offsetX, offsetY);
+    };
+
+    const draw = (e: any) => {
+        if (!isDrawing) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const { offsetX, offsetY } = getCoordinates(e, canvas);
+        ctx.lineTo(offsetX, offsetY);
+        ctx.stroke();
+        setHasSignature(true);
+    };
+
+    const stopDrawing = () => {
+        setIsDrawing(false);
+    };
+
+    const getCoordinates = (e: any, canvas: HTMLCanvasElement) => {
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        
+        const rect = canvas.getBoundingClientRect();
+        return {
+            offsetX: clientX - rect.left,
+            offsetY: clientY - rect.top
+        };
+    };
+
+    const clear = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setHasSignature(false);
+    };
+
+    const handleSave = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const data = canvas.toDataURL('image/png');
+        onSave(data);
+    };
+
+    return (
+        <div className="w-full">
+            <div className="border-2 border-dashed border-gray-300 rounded-xl bg-white touch-none cursor-crosshair overflow-hidden">
+                <canvas 
+                    ref={canvasRef}
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    style={{ width: '100%', height: '200px' }}
+                />
+            </div>
+            <div className="flex justify-between mt-2">
+                <button onClick={clear} className="text-sm text-gray-500 hover:text-red-500 underline px-2">Clear Signature</button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mt-6">
+                <button 
+                    onClick={onCancel}
+                    className="p-3 rounded-xl border border-gray-200 font-bold text-gray-600 hover:bg-gray-50"
+                >
+                    Cancel
+                </button>
+                <button 
+                    onClick={handleSave}
+                    disabled={!hasSignature}
+                    className="p-3 rounded-xl bg-[#E2231A] text-white font-bold shadow-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Confirm & Print
+                </button>
+            </div>
+        </div>
+    );
+};

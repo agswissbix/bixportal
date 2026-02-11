@@ -484,6 +484,12 @@ export async function POST(request: Request) {
         case "get_lenovo_attachments":
             djangoUrl = "/customapp_swissbix/get_lenovo_attachments/";
             break;
+        case "print_lenovo_ticket":
+            djangoUrl = "/customapp_swissbix/print_lenovo_ticket/";
+            break;
+        case "save_lenovo_signature":
+            djangoUrl = "/customapp_swissbix/save_lenovo_signature/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":

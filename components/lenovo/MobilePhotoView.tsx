@@ -108,7 +108,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
     if (!ticket) return <div className="flex items-center justify-center h-screen bg-black text-white">Ticket not found or invalid link.</div>;
 
     return (
-        <div className="min-h-screen bg-black text-white flex flex-col font-sans">
+        <div className="h-screen bg-black text-white flex flex-col font-sans overflow-auto pb-20">
             <Toaster richColors position="top-center" />
             
             {/* Header */}
