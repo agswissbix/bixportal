@@ -73,6 +73,43 @@ export function useFrontendFunctions() {
     }
   },
 
+  heenergyPrintDeal: async ({ recordid }: { recordid: string }) => {
+     try {
+      const response = await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "heenergy_print_deal",
+          recordid: recordid,
+        },
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const contentDisposition = response.headers['content-disposition'] || '';
+      let filename = 'pdftest.pdf';
+
+      const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('PDF stampato con successo');
+
+    } catch (error) {
+      console.error('Errore durante la stampa del PDF', error);
+      toast.error('Errore durante la stampa del PDF');
+    }
+  },
+
   // -----------------------------------------------------------------------
   //                                 SWISSBIX
   // -----------------------------------------------------------------------
