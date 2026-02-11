@@ -217,6 +217,13 @@ export default function LenovoIntake() {
                 toast.error(`Please fill in required field: ${fieldSettings[field]?.label || 'Problem Description'}`);
                 return false;
             }
+            const requiredFields = ['auth_factory_reset', 'request_quote', 'direct_repair', 'auth_formatting'];
+            for (const field of requiredFields) {
+                 if (fieldSettings[field]?.required && (!formData[field as keyof typeof formData] || formData[field as keyof typeof formData] !== 'Si')) {
+                    toast.error(`Please fill in required field: ${fieldSettings[field]?.label || field}`);
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -319,8 +326,8 @@ export default function LenovoIntake() {
     };
 
     // Helper for labels with required asterisk
-    const Label = ({ field, text }: { field: string, text: string }) => (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+    const Label = ({ field, text, className }: { field: string, text: string, className?: string }) => (
+        <label className={className || "block text-sm font-medium text-gray-700 mb-1"}>
             {text} {fieldSettings[field]?.required && <span className="text-red-500">*</span>}
         </label>
     );
@@ -842,42 +849,57 @@ export default function LenovoIntake() {
 
                                 {/* Auth Checks */}
                                 <div className="space-y-3">
-                                    <label className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                    <div 
+                                        className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                                        onClick={() => setFormData(prev => ({...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si'}))}
+                                    >
                                         <input 
                                             type="checkbox" 
                                             checked={formData.auth_factory_reset === 'Si'}
-                                            onChange={e => setFormData({...formData, auth_factory_reset: e.target.checked ? 'Si' : 'No'})}
-                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                            readOnly
+                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
                                         />
-                                        <span className="text-sm text-gray-600">
-                                            Authorize Factory Reset (Data may be lost).
-                                        </span>
-                                    </label>
+                                        <Label 
+                                            field="auth_factory_reset" 
+                                            text="Authorize Factory Reset (Data may be lost)." 
+                                            className="text-sm text-gray-600 font-normal cursor-pointer"
+                                        />
+                                    </div>
 
-                                    <label className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                    <div 
+                                        className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                                        onClick={() => setFormData(prev => ({...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si'}))}
+                                    >
                                         <input 
                                             type="checkbox" 
                                             checked={formData.request_quote === 'Si'}
-                                            onChange={e => setFormData({...formData, request_quote: e.target.checked ? 'Si' : 'No'})}
-                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                            readOnly
+                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
                                         />
-                                        <span className="text-sm text-gray-600">
-                                            Request Quote (Evaluation cost max 50 CHF if rejected).
-                                        </span>
-                                    </label>
+                                        <Label 
+                                            field="request_quote" 
+                                            text="Request Quote (Evaluation cost max 50 CHF if rejected)." 
+                                            className="text-sm text-gray-600 font-normal cursor-pointer"
+                                        />
+                                    </div>
 
                                     <div className="p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                        <label className="flex items-start gap-3 cursor-pointer">
+                                        <div 
+                                            className="flex items-start gap-3 cursor-pointer"
+                                            onClick={() => setFormData(prev => ({...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si'}))}
+                                        >
                                             <input 
                                                 type="checkbox" 
                                                 checked={formData.direct_repair === 'Si'}
-                                                onChange={e => setFormData({...formData, direct_repair: e.target.checked ? 'Si' : 'No'})}
-                                                className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                                readOnly
+                                                className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
                                             />
-                                            <span className="text-sm text-gray-600">
-                                                Authorize Direct Repair if cost is below limit.
-                                            </span>
-                                        </label>
+                                            <Label 
+                                                field="direct_repair" 
+                                                text="Authorize Direct Repair if cost is below limit." 
+                                                className="text-sm text-gray-600 font-normal cursor-pointer"
+                                            />
+                                        </div>
                                         {formData.direct_repair === 'Si' && (
                                             <div className="ml-8 mt-2 flex items-center gap-2">
                                                 <span className="text-sm text-gray-500">Limit (CHF):</span>
@@ -892,17 +914,22 @@ export default function LenovoIntake() {
                                         )}
                                     </div>
 
-                                    <label className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                    <div 
+                                        className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                                        onClick={() => setFormData(prev => ({...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si'}))}
+                                    >
                                         <input 
                                             type="checkbox" 
                                             checked={formData.auth_formatting === 'Si'}
-                                            onChange={e => setFormData({...formData, auth_formatting: e.target.checked ? 'Si' : 'No'})}
-                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A]"
+                                            readOnly
+                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
                                         />
-                                        <span className="text-sm text-gray-600">
-                                            Authorize Full Formatting (Data WILL be lost).
-                                        </span>
-                                    </label>
+                                        <Label 
+                                            field="auth_formatting" 
+                                            text="Authorize Full Formatting (Data WILL be lost)." 
+                                            className="text-sm text-gray-600 font-normal cursor-pointer"
+                                        />
+                                    </div>
                                 </div>
                              </div>
 
