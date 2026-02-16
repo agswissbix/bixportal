@@ -346,7 +346,7 @@ export default function Sidebar({}: PropsInterface) {
                           </button>
 
                           <div
-                            className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
+                            className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "opacity-100" : "max-h-0 opacity-0"}`}
                           >
                             <ul className="py-1 ml-3 mt-1 space-y-0.5">
                               {item.subItems
