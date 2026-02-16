@@ -17,30 +17,30 @@ const isDev = false;
 const AppContext = createContext({ user: { name: "" } });
 
 // INTERFACCIA PROPS
-  interface PropsInterface {
-    tableid?: string;
-    searchTerm?: string;
-    filters?: string;
-    view?: string;
-    order?: {
-      columnDesc: string | null;
-      direction: 'asc' | 'desc' | null;
-    };
-    context?: string;
-    pagination?: {
-      page: number;
-      limit: number;
-    };
-    level?: number;
-    filtersList?: Array<{
-      fieldid: string;
-      type: string;   
-      label: string;
-      value: string;
-      }>;
-    masterTableid?: string;
-    masterRecordid?: string;
-  }
+interface PropsInterface {
+  tableid?: string;
+  searchTerm?: string;
+  filters?: string;
+  view?: string;
+  order?: {
+    columnDesc: string | null;
+    direction: 'asc' | 'desc' | null;
+  };
+  context?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+  };
+  level?: number;
+  filtersList?: Array<{
+    fieldid: string;
+    type: string;
+    label: string;
+    value: string;
+  }>;
+  masterTableid?: string;
+  masterRecordid?: string;
+}
 
 interface FieldInterface {
   fieldid?: string;
@@ -106,7 +106,7 @@ const responseDataDEV: ResponseInterface = {
                 { value: "1000", css: "" }, { value: "500", css: "" }, { value: "525", css: "" }, { value: "1025", css: "" }
               ]
             },
-             {
+            {
               recordid: "1b", css: "", fields: [
                 { value: "Casa Sirio - Interno B", css: "text-xs" },
                 { value: "1000", css: "" }, { value: "500", css: "" }, { value: "500", css: "" }, { value: "1000", css: "" }
@@ -204,8 +204,8 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
                     ${group.css || ""}
                     ${isExpandable ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" : ""}
                     ${isExpanded && isExpandable
-                      ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                      : "bg-white dark:bg-gray-800"}`}
+            ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            : "bg-white dark:bg-gray-800"}`}
         onClick={isExpandable ? () => toggleGroup(group.groupKey) : undefined}
       >
         {Array.from({ length: requiredColumns }).map((_, idx) => {
@@ -224,9 +224,8 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
                   {isExpandable ? (
                     <span className="mr-2 inline-flex items-center justify-center text-gray-500 dark:text-gray-400">
                       <svg
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          isExpanded ? "rotate-90" : ""
-                        }`}
+                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""
+                          }`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -245,9 +244,8 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
 
                   {/* --------------------- CSS applicata anche allo span --------------------- */}
                   <span
-                    className={`truncate ${
-                      level === 0 ? "font-semibold" : "font-medium"
-                    } ${field?.css || ""}`}
+                    className={`truncate ${level === 0 ? "font-semibold" : "font-medium"
+                      } ${field?.css || ""}`}
                   >
                     {field?.value || ""}
                   </span>
@@ -288,13 +286,12 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
                   handleRowClick("standard", row.recordid, "rendicontolavanderia")
                 }
                 className={`w-full border-b border-gray-100 dark:border-gray-750 transition-colors duration-150 ease-in-out
-                            ${
-                              rIdx % 2 === 0
-                                ? "bg-white dark:bg-gray-800/90"
-                                : "bg-gray-50 dark:bg-gray-800/80"
-                            }
+                            ${rIdx % 2 === 0
+                    ? "bg-white dark:bg-gray-800/90"
+                    : "bg-gray-50 dark:bg-gray-800/80"
+                  }
                             hover:bg-blue-50/50 dark:hover:bg-gray-700/70 cursor-pointer
-                            ${row.css || ""}`}          
+                            ${row.css || ""}`}
               >
                 {Array.from({ length: requiredColumns }).map((_, cIdx) => {
                   const field = row.fields[cIdx];
@@ -306,9 +303,9 @@ const GroupRenderer: React.FC<GroupRowProps> = ({
                         ${field?.css || ""}
                         ${cIdx === 0 ? "sticky left-0 z-20" : ""}
                         ${cIdx === 1 ? "sticky left-[100px] z-20" : ""}
-                        ${rIdx % 2 === 0
-                                ? "bg-white dark:bg-gray-800/90"
-                                : "bg-gray-50 dark:bg-gray-800/80"}
+                        ${(cIdx === 0 || cIdx === 1) ? (rIdx % 2 === 0
+                          ? "bg-white dark:bg-gray-800/90"
+                          : "bg-gray-50 dark:bg-gray-800/80") : ""}
                       `}
                     >
                       {/* -------- CSS su contenuto -------- */}
@@ -406,22 +403,22 @@ export default function Pivot({ tableid, searchTerm, filters, view, order, conte
           <div className="w-full flex-grow relative overflow-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm text-left text-gray-700 dark:text-gray-300 table-auto">
               <thead className="text-xs sticky top-0 z-10 bg-gray-100 dark:bg-gray-800 shadow-sm">
-  <tr>
-    {finalColumns.map((c, i) => (
-      <th
-        key={`${c.desc}-${i}`}
-        scope="col"
-        className={`px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-200 uppercase
+                <tr>
+                  {finalColumns.map((c, i) => (
+                    <th
+                      key={`${c.desc}-${i}`}
+                      scope="col"
+                      className={`px-4 py-3 font-semibold tracking-wider text-gray-700 dark:text-gray-200 uppercase
           ${i === 0 ? "sticky left-0 z-20 bg-gray-100 dark:bg-gray-800" : ""}
           ${i === 1 ? "sticky left-[100px] z-20 bg-gray-100 dark:bg-gray-800" : ""}
         `}
-        style={i === 0 ? { minWidth: 200, maxWidth: 200 } : i === 1 ? { minWidth: 200, maxWidth: 200 } : {}}
-      >
-        {c.desc}
-      </th>
-    ))}
-  </tr>
-</thead>
+                      style={i === 0 ? { minWidth: 200, maxWidth: 200 } : i === 1 ? { minWidth: 200, maxWidth: 200 } : {}}
+                    >
+                      {c.desc}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
 
               <tbody>
