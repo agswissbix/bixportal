@@ -51,6 +51,7 @@ interface User {
 interface ResponseInterface {
     bixApps: BixApp[];
     timesheets?: TimesheetItem[];
+    closedTimesheets?: TimesheetItem[];
     user: User;
     timesheet_fn?: BixApp;
 }
@@ -83,6 +84,7 @@ export default function BixHub() {
     const [responseData, setResponseData] = useState<ResponseInterface>(
         isDev ? responseDataDEV : responseDataDEFAULT
     );
+    const [showHistory, setShowHistory] = useState(false);
 
     const payload = useMemo(() => {
         if (isDev) return null;
@@ -170,6 +172,7 @@ export default function BixHub() {
                 const safeResponse = dataResponse || responseData; 
                 const apps = safeResponse.bixApps || [];
                 const timesheets = safeResponse.timesheets || [];
+                const closedTimesheets = safeResponse.closedTimesheets || [];
 
                 const timesheetApp = safeResponse.timesheet_fn;
 
@@ -289,14 +292,52 @@ export default function BixHub() {
                                             </div>
                                         )}
                                         
-                                        {timesheets.length > 0 && timesheetApp && (
+                                        {timesheetApp && (
                                             <div className="p-3 bg-zinc-50 border-t border-zinc-100 text-center">
                                                  <button 
-                                                    onClick={() => handleTimesheetClick(timesheetApp, "")}
+                                                    onClick={() => setShowHistory(!showHistory)}
                                                     className="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
                                                  >
-                                                    Vedi storico completo
+                                                    {showHistory ? "Nascondi storico" : "Vedi storico completo"}
                                                  </button>
+                                            </div>
+                                        )}
+
+                                        {showHistory && closedTimesheets.length > 0 && (
+                                            <div className="border-t border-zinc-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="bg-emerald-50/50 p-2 text-xs font-bold text-emerald-700 uppercase tracking-wider text-center border-b border-emerald-100/50">
+                                                    Ultimi completati
+                                                </div>
+                                                <div className="divide-y divide-zinc-100">
+                                                    {closedTimesheets.map((ts) => (
+                                                        <div 
+                                                            key={ts.id}
+                                                            onClick={() => {
+                                                                if (timesheetApp) {
+                                                                    handleTimesheetClick(timesheetApp, ts.id);
+                                                                }
+                                                            }}
+                                                            className="group flex items-center justify-between p-4 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                                        >
+                                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200 group-hover:bg-emerald-500 group-hover:text-white group-hover:scale-110 transition-all duration-300">
+                                                                    <CheckCircleIcon className="w-5 h-5" />
+                                                                </div>
+                                                                <div className="flex flex-col truncate">
+                                                                    <span className="text-sm font-bold text-zinc-700 group-hover:text-emerald-800 transition-colors truncate">
+                                                                        {ts.company}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-emerald-600/70 font-medium uppercase tracking-wider">Completato</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col items-end shrink-0 pl-2">
+                                                                <span className="text-xs font-bold text-emerald-600 bg-emerald-100/50 px-2 py-1 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
+                                                                    {formatDate(ts.date)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

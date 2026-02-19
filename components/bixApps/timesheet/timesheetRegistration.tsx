@@ -8,6 +8,7 @@ import { useFrontendFunctions } from "@/lib/functionsDispatcher";
 import { toast, Toaster } from "sonner";
 import PopUpManager from "@/components/popUpManager";
 import { useRecordsStore } from "@/components/records/recordsStore";
+import { SaveIcon } from "lucide-react";
 
 // HeroIcons v2 (Open Source)
 import * as Icons from "@heroicons/react/24/outline";
@@ -52,6 +53,7 @@ interface ListItem {
 interface Materiale {
     id: number;
     prodotto: ListItem | null;
+    description: string;
     note: string;
     qtaPrevista: string;
     qtaEffettiva: string;
@@ -144,10 +146,30 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
     const [tempMaterial, setTempMaterial] = useState<Materiale>({
         id: 0,
         prodotto: null,
+        description: "",
         note: "",
         qtaPrevista: "1",
         qtaEffettiva: "1",
     });
+
+    useEffect(() => {
+        const fetchDefaultProduct = async () => {
+            try {
+                const body = new FormData();
+                body.append("apiRoute", "search_timesheet_entities");
+                body.append("target", "prodotto");
+                body.append("id", "00000000000000000000000000000174"); // ID Default
+
+                const res = await axiosInstanceClient.post("/postApi", body);
+                if (res.data.results && res.data.results.length > 0) {
+                     setTempMaterial(prev => ({ ...prev, prodotto: res.data.results[0] }));
+                }
+            } catch (err) {
+                console.error("Error fetching default product", err);
+            }
+        };
+        fetchDefaultProduct();
+    }, []);
     const [tempAllegato, setTempAllegato] = useState<AllegatoDettagliato>({
         id: 0,
         tipo: "Allegato generico",
@@ -378,7 +400,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                 setTimesheetId(res.data.id);
                 toast.success("Timesheet salvato correttamente");
                 if (mode === "finish") setIsSuccess(true);
-                else setStep(10);
+                else setStep(9);
             } else {
                 toast.error(res.data.error || "Errore nel salvataggio");
             }
@@ -403,6 +425,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                         prodotto_id: tempMaterial.prodotto?.id,
                         expectedquantity: tempMaterial.qtaPrevista,
                         actualquantity: tempMaterial.qtaEffettiva,
+                        description: tempMaterial.description,
                         note: tempMaterial.note,
                     },
                 ])
@@ -419,7 +442,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                 setShowAddMaterial(false);
                 setTempMaterial({
                     id: 0,
-                    prodotto: null,
+                    prodotto: tempMaterial.prodotto, // Mantieni il prodotto default
+                    description: "",
                     note: "",
                     qtaPrevista: "1",
                     qtaEffettiva: "1",
@@ -565,6 +589,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         value,
         icon: Icon,
         colorClass = "text-zinc-800",
+        onEdit,
     }: any) => {
         if (!value || value === "00:00") return null;
         return (
@@ -575,10 +600,17 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                         {label}
                     </span>
                 </div>
-                <span
-                    className={`text-sm font-semibold truncate max-w-[160px] ${colorClass}`}>
-                    {value}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`text-sm font-semibold truncate max-w-[160px] ${colorClass}`}>
+                        {value}
+                    </span>
+                    {onEdit && (
+                        <button onClick={onEdit} className="p-1 text-zinc-300 hover:text-orange-500 transition-colors">
+                             <Icons.PencilSquareIcon className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
             </div>
         );
     };
@@ -594,30 +626,14 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                     </h2>
                     <div className="w-full max-w-xs mt-10 space-y-4">
                         <button
-                            onClick={() => {
-                                if (timesheetId) {
-                                    handleSignTimesheet({
-                                        recordid: timesheetId.toString(),
-                                    });
-                                } else {
-                                    toast.error(
-                                        "Salva prima il timesheet per poterlo firmare"
-                                    );
-                                }
-                            }}
-                            className="w-full p-4 bg-purple-50 text-purple-700 border border-purple-100 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all">
-                            <Icons.PencilSquareIcon className="w-5 h-5" /> Firma
-                            e scarica
-                        </button>
-                        <button
                             onClick={() => window.location.href = "/bixApps/timesheet"}
                             className="w-full h-16 bg-orange-500 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
                             <Icons.ArrowPathIcon className="w-5 h-5" /> Nuovo
                             Timesheet
                         </button>
                         <button
-                            onClick={() => (window.location.href = "/home")}
-                            className="w-full h-16 bg-blue-100 text-blue-600 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                            onClick={() => (window.location.href = "/bixApps/bixMobileHub")}
+                            className="w-full h-16 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
                             <Icons.HomeIcon className="w-5 h-5" /> Home
                         </button>
                     </div>
@@ -1089,7 +1105,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                 )}
 
                                 {/* --- 9. RIEPILOGO RECAP --- */}
-                                {step === 9 && (
+                                {/* --- 10. RIEPILOGO RECAP (Moved from 9) --- */}
+                                {step === 10 && (
                                     <div className="animate-in zoom-in-95 duration-300">
                                         <StepTitle
                                             title="Riepilogo Totale"
@@ -1102,59 +1119,127 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 label="Utente"
                                                 value={formData.utente?.name}
                                                 icon={Icons.UserCircleIcon}
+                                                onEdit={() => setStep(1)}
                                             />
                                             <RecapRow
                                                 label="Cliente"
                                                 value={formData.azienda?.name}
                                                 icon={Icons.BuildingOffice2Icon}
+                                                onEdit={() => setStep(1)}
                                             />
                                             <RecapRow
                                                 label="Progetto"
                                                 value={formData.progetto?.name}
                                                 icon={Icons.FolderIcon}
+                                                onEdit={() => setStep(2)}
                                             />
                                             <RecapRow
                                                 label="Ticket"
                                                 value={formData.ticket?.name}
                                                 icon={Icons.TicketIcon}
+                                                onEdit={() => setStep(3)}
                                             />
                                             <RecapRow
                                                 label="Servizio"
                                                 value={formData.servizio?.name}
                                                 icon={Icons.CommandLineIcon}
                                                 colorClass="text-orange-600"
+                                                onEdit={() => setStep(4)}
                                             />
                                             <RecapRow
                                                 label="Contratto"
                                                 value={formData.opzioni?.name}
                                                 icon={Icons.ShieldCheckIcon}
+                                                onEdit={() => setStep(5)}
                                             />
                                             <RecapRow
                                                 label="Data"
                                                 value={formData.data}
                                                 icon={Icons.CalendarIcon}
+                                                onEdit={() => setStep(6)}
                                             />
                                             <RecapRow
                                                 label="Tempo Lavoro"
                                                 value={formData.tempoLavoro}
                                                 icon={Icons.ClockIcon}
                                                 colorClass="text-orange-600"
+                                                onEdit={() => setStep(6)}
                                             />
                                             <RecapRow
                                                 label="Tempo Trasferta"
                                                 value={formData.tempoTrasferta}
                                                 icon={Icons.ClockIcon}
+                                                onEdit={() => setStep(6)}
                                             />
-                                            <div className="pt-4 mt-4 border-t border-zinc-100">
+                                            <div className="pt-4 mt-4 border-t border-zinc-100 relative">
+                                                <button 
+                                                    onClick={() => setStep(7)} 
+                                                    className="absolute top-4 right-0 p-1 text-zinc-300 hover:text-orange-500 transition-colors">
+                                                    <Icons.PencilSquareIcon className="w-4 h-4" />
+                                                </button>
                                                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                                                     Descrizione Attività
                                                 </span>
-                                                <p className="text-sm font-medium italic text-zinc-600 leading-relaxed">
+                                                <p className="text-sm font-medium italic text-zinc-600 leading-relaxed pr-6">
                                                     "{formData.descrizione}"
                                                 </p>
                                             </div>
+
+                                            {formData.materiali.length > 0 && (
+                                                <div className="pt-4 mt-4 border-t border-zinc-100 relative">
+                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
+                                                        Materiali Utilizzati
+                                                        <button 
+                                                            onClick={() => setStep(9)} 
+                                                            className="absolute top-0 right-0 p-1 pt-4 text-zinc-300 hover:text-orange-500 transition-colors">
+                                                            <Icons.PencilSquareIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </span>
+                                                    {formData.materiali.map(m => (
+                                                        <div key={m.id} className="flex justify-between items-center py-2">
+                                                            <div>
+                                                               <span className="text-sm font-semibold text-zinc-800 block">{m.prodotto?.name}</span>
+                                                               {m.description && <span className="text-xs text-zinc-500">{m.description}</span>}
+                                                            </div>
+                                                            <span className="text-sm font-bold text-zinc-800">x{m.qtaEffettiva}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {formData.allegati.length > 0 && (
+                                                <div className="pt-4 mt-4 border-t border-zinc-100 relative">
+                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
+                                                        Allegati
+                                                        <button 
+                                                            onClick={() => setStep(9)} 
+                                                            className="absolute top-0 right-0 p-1 pt-4 text-zinc-300 hover:text-orange-500 transition-colors">
+                                                            <Icons.PencilSquareIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </span>
+                                                    {formData.allegati.map(a => (
+                                                        <div key={a.id} className="flex items-center gap-2 py-1">
+                                                            <Icons.PaperClipIcon className="w-3 h-3 text-zinc-400" />
+                                                            <span className="text-sm font-medium text-zinc-600 truncate">{a.filename}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="space-y-4">
+                                            <button
+                                                onClick={() => {
+                                                    if (timesheetId) {
+                                                        handleSignTimesheet({ recordid: timesheetId.toString() });
+                                                    } else {
+                                                        toast.error("Salva prima il timesheet per poterlo firmare");
+                                                    }
+                                                }}
+                                                disabled={isSaving || !timesheetId}
+                                                className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all mb-4">
+                                                <Icons.PencilSquareIcon className="w-5 h-5" />
+                                                Firma Timesheet
+                                            </button>
                                             <button
                                                 onClick={() =>
                                                     handleSaveBase("finish")
@@ -1162,25 +1247,17 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 disabled={
                                                     isSaving || !isStepValid
                                                 }
-                                                className="w-full h-16 bg-zinc-900 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
+                                                className="w-full h-16 bg-zinc-900 hover:bg-zinc-800 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
+                                                <SaveIcon className="w-5 h-5" />
                                                 Salva e Chiudi{" "}
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleSaveBase("continue")
-                                                }
-                                                disabled={
-                                                    isSaving || !isStepValid
-                                                }
-                                                className="w-full h-16 bg-orange-600 text-white rounded-3xl font-bold flex items-center justify-center gap-2 active:scale-95 shadow-lg transition-all">
-                                                Salva e aggiungi materiali e/o allegati{" "}
                                             </button>
                                         </div>
                                     </div>
                                 )}
 
                                 {/* --- 10. HUB DECISIONALE --- */}
-                                {step === 10 && (
+                                {/* --- 9. HUB DECISIONALE (Moved from 10) --- */}
+                                {step === 9 && (
                                     <div className="animate-in slide-in-from-bottom duration-500 text-center">
                                         <Icons.CheckCircleIcon className="w-16 h-16 text-teal-500 mx-auto mb-6" />
                                         <h2 className="text-2xl font-black uppercase tracking-tight">
@@ -1273,14 +1350,14 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     </p>
                                                 </div>
                                             </button> */}
-                                            <button
+                                            {/* <button
                                                 onClick={() =>
-                                                    setIsSuccess(true)
+                                                    setStep(10)
                                                 }
                                                 className="mt-10 p-6 bg-zinc-900 text-white rounded-[2rem] font-bold flex items-center justify-center gap-3 w-full active:scale-95 transition-all shadow-lg">
                                                 <Icons.FlagIcon className="w-5 h-5" />
-                                                <span>Ho finito tutto</span>
-                                            </button>
+                                                <span>Vai al Riepilogo</span>
+                                            </button> */}
                                         </div>
                                     </div>
                                 )}
@@ -1302,9 +1379,9 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     {m.prodotto?.name} (x
                                                     {m.qtaEffettiva})
                                                 </span>
-                                                {m.note && m.note.length > 0 && (
+                                                {m.description && m.description.length > 0 && (
                                                 <span className="text-xs text-zinc-400">
-                                                    {m.note}
+                                                    {m.description}
                                                 </span>
                                                 )}
                                                 </div>
@@ -1325,13 +1402,13 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         </button>
     
                                         <button
-                                            onClick={() => setStep(10)}
+                                            onClick={() => setStep(9)}
                                             className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-800 uppercase tracking-widest transition-all">
                                             <Icons.ChevronLeftIcon
                                                 className="w-4 h-4"
                                                 strokeWidth={3}
                                             />{" "}
-                                            <span>Torna Indietro</span>
+                                            <span>Torna all'Hub</span>
                                         </button>
                                     </div>
                                 )}
@@ -1411,13 +1488,13 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         </button>
                                         
                                         <button
-                                            onClick={() => setStep(10)}
+                                            onClick={() => setStep(9)}
                                             className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-800 uppercase tracking-widest transition-all">
                                             <Icons.ChevronLeftIcon
                                                 className="w-4 h-4"
                                                 strokeWidth={3}
                                             />{" "}
-                                            <span>Torna Indietro</span>
+                                            <span>Torna all'Hub</span>
                                         </button>
                                     </div>
                                 )}
@@ -1434,25 +1511,36 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                             {/* FOOTER NAVIGAZIONE (SOLO STEP < 9) */}
                             <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex gap-3 z-[100]">
 
-                                 {step > 1 && step < 10 && (
+                                 {(step > 1 && step < 11) ? (
                                     <button
-                                        onClick={() => setStep((s) => s - 1)}
-                                        className="p-4 rounded-2xl border border-zinc-200 text-zinc-400 active:scale-90 transition-all">
+                                        onClick={() => {
+                                            if (step === 11) setStep(9);
+                                            else setStep((s) => s - 1);
+                                        }}
+                                        className="p-4 rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 active:scale-90 transition-all">
                                         <Icons.ChevronLeftIcon
                                             className="w-6 h-6"
                                             strokeWidth={2.5}
                                         />
                                     </button>
-                                )}
-                                {step < 9 && (
+                                ) : null}
+                                {step < 9 || step < 10 ? (
                                     <>
                                     <button
                                         disabled={!isStepValid || isSaving}
-                                        onClick={() => setStep((s) => s + 1)}
+                                        onClick={() => {
+                                            if (step === 8) {
+                                                handleSaveBase("continue");
+                                            } else if (step === 11) {
+                                                setStep(9);
+                                            } else {
+                                                setStep((s) => s + 1);
+                                            }
+                                        }}
                                         className={`flex-1 h-14 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all ${
                                             !isStepValid
                                                 ? "bg-zinc-100 text-zinc-400 shadow-none"
-                                                : "bg-orange-600 text-white active:scale-95"
+                                                : "bg-orange-600 hover:bg-orange-700 text-white active:scale-95"
                                         }`}>
                                         Prosegui{" "}
                                         <Icons.ChevronRightIcon
@@ -1460,15 +1548,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             strokeWidth={3}
                                         />
                                     </button>
-
-                                    {/* <button
-                                        onClick={() => setStep(9)}
-                                        className="p-4 rounded-2xl border border-zinc-200 text-zinc-400 active:scale-90 transition-all flex items-center gap-2">
-                                        Salta al riepilogo
-                                        <Icons.ArrowRightEndOnRectangleIcon className="w-5 h-5" strokeWidth={2.5} />
-                                    </button> */}
                                     </>
-                                )}
+                                ) : null}
                             </footer>
 
                             {/* --- MODALE RICERCA --- */}
@@ -1602,68 +1683,82 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             Dettaglio Materiale
                                         </h3>
                                         <div className="space-y-6 mb-10 text-left">
-                                            <button
-                                                onClick={() =>
-                                                    setActiveSearch("prodotto")
-                                                }
-                                                className="w-full p-5 bg-zinc-50 border rounded-2xl text-left flex justify-between active:bg-zinc-100 group transition-all">
-                                                <span
-                                                    className={
-                                                        tempMaterial.prodotto
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block mb-1.5 flex items-center gap-1.5">
+                                                    Prodotto
+                                                </label>
+                                                <button
+                                                    onClick={() =>
+                                                        setActiveSearch("prodotto")
+                                                    }
+                                                    className="w-full p-5 bg-zinc-50 border rounded-2xl text-left flex justify-between active:bg-zinc-100 group transition-all">
+                                                    <span
+                                                        className={
+                                                            tempMaterial.prodotto
                                                             ? "font-bold text-zinc-800"
                                                             : "text-zinc-400"
-                                                    }>
-                                                    {tempMaterial.prodotto
-                                                        ?.name ||
-                                                        "Seleziona Prodotto"}
-                                                </span>
-                                                <Icons.MagnifyingGlassIcon className="w-5 h-5 text-zinc-300 group-active:text-orange-500" />
-                                            </button>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="bg-zinc-50 p-4 rounded-2xl border">
-                                                    <span className="text-[10px] font-black uppercase block text-zinc-400">
-                                                        Prevista
+                                                        }>
+                                                        {tempMaterial.prodotto
+                                                            ?.name ||
+                                                            "Seleziona Prodotto"}
                                                     </span>
-                                                    <input
-                                                        type="number"
-                                                        className="bg-transparent font-bold outline-none w-full"
-                                                        value={
-                                                            tempMaterial.qtaPrevista
+                                                    <Icons.MagnifyingGlassIcon className="w-5 h-5 text-zinc-300 group-active:text-orange-500" />
+                                                </button>
+                                            </div>
+                                            {/* DESCRIZIONE */}
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block mb-1.5">
+                                                    Descrizione
+                                                </label>
+                                                <textarea
+                                                    rows={2}
+                                                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none font-medium text-sm text-zinc-800 placeholder:text-zinc-300 focus:border-orange-300 focus:bg-white transition-colors resize-none"
+                                                    placeholder="Descrizione del materiale…"
+                                                    value={tempMaterial.description}
+                                                    onChange={(e) => setTempMaterial({ ...tempMaterial, description: e.target.value })}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block mb-1.5">
+                                                    Quantità
+                                                </label>
+                                                <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3">
+                                                    <button
+                                                        onClick={() =>
+                                                            setTempMaterial((prev) => ({
+                                                                ...prev,
+                                                                qtaEffettiva: String(Math.max(0, Number(prev.qtaEffettiva) - 1)),
+                                                            }))
                                                         }
-                                                        onChange={(e) =>
-                                                            setTempMaterial({
-                                                                ...tempMaterial,
-                                                                qtaPrevista:
-                                                                    e.target
-                                                                        .value,
-                                                            })
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                                                    <span className="text-[10px] font-black uppercase block text-orange-400">
-                                                        Effettiva
+                                                        className="w-9 h-9 rounded-lg bg-zinc-200 text-zinc-600 flex items-center justify-center font-bold active:scale-90 transition-all hover:bg-zinc-300"
+                                                    >
+                                                        <Icons.MinusIcon className="w-4 h-4" strokeWidth={2.5} />
+                                                    </button>
+
+                                                    <span className="text-2xl font-black text-zinc-800 tabular-nums w-12 text-center">
+                                                        {tempMaterial.qtaEffettiva}
                                                     </span>
-                                                    <input
-                                                        type="number"
-                                                        className="bg-transparent font-bold outline-none w-full text-orange-600"
-                                                        value={
-                                                            tempMaterial.qtaEffettiva
+
+                                                    <button
+                                                        onClick={() =>
+                                                            setTempMaterial((prev) => ({
+                                                                ...prev,
+                                                                qtaEffettiva: String(Number(prev.qtaEffettiva) + 1),
+                                                            }))
                                                         }
-                                                        onChange={(e) =>
-                                                            setTempMaterial({
-                                                                ...tempMaterial,
-                                                                qtaEffettiva:
-                                                                    e.target
-                                                                        .value,
-                                                            })
-                                                        }
-                                                    />
+                                                        className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center font-bold active:scale-90 transition-all hover:bg-orange-600 shadow-sm shadow-orange-200"
+                                                    >
+                                                        <Icons.PlusIcon className="w-4 h-4" strokeWidth={2.5} />
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <input
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block mb-1.5">
+                                                    Note
+                                                </label>
+                                            <textarea
                                                 className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl outline-none font-semibold text-sm focus:border-orange-300 transition-colors"
-                                                placeholder="Note aggiuntive..."
+                                                placeholder="Note..."
                                                 value={tempMaterial.note}
                                                 onChange={(e) =>
                                                     setTempMaterial({
@@ -1671,14 +1766,14 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                         note: e.target.value,
                                                     })
                                                 }
-                                            />
+                                            /> 
+                                            </div>
                                         </div>
                                         <div className="flex gap-4">
                                             <button
-                                                onClick={() =>
-                                                    setShowAddMaterial(false)
-                                                }
-                                                className="flex-1 p-5 rounded-2xl font-bold text-zinc-400 text-xs uppercase">
+                                                onClick={() => setShowAddMaterial(false)}
+                                                className="flex-1 py-3.5 rounded-xl border border-zinc-200 font-semibold text-zinc-500 text-sm hover:bg-zinc-50 transition-colors active:scale-95"
+                                            >
                                                 Annulla
                                             </button>
                                             <button
@@ -1686,7 +1781,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     !tempMaterial.prodotto
                                                 }
                                                 onClick={handleSaveMaterial}
-                                                className="flex-[2] h-16 bg-orange-600 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                                                className="flex-[2] h-16 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
                                                 {isSaving ? "Salvataggio..." : "Aggiungi"}
                                             </button>
                                         </div>
