@@ -7,8 +7,10 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast, Toaster } from "sonner";
 import * as Icons from "@heroicons/react/24/outline";
 import QRCode from "react-qr-code";
+import { useSearchParams } from "next/navigation";
+import SelectStandard from "../../selectStandard";
 
-export default function LenovoIntake() {
+export default function LenovoIntake({ initialRecordId }: { initialRecordId?: string }) {
     const { user, userName } = useContext(AppContext);
     const [step, setStep] = useState(1);
     const [loadingMethod, setLoadingMethod] = useState(false);
@@ -64,7 +66,11 @@ export default function LenovoIntake() {
         direct_repair_limit: "",
         auth_formatting: "No",
         signatureUrl: "",
+        accessories: [] as string | string[],
     });
+
+    // Lookup State
+    const [lookups, setLookups] = useState<{ itemcode: string; itemdesc: string; }[]>([]);
 
     // Field Settings
     const [fieldSettings, setFieldSettings] = useState<any>({});
@@ -82,9 +88,50 @@ export default function LenovoIntake() {
       useEffect(() => {
         if (response) {
           setFieldSettings(response.field_settings)
+          setLookups(response.lookups?.accessories || [])
           console.log("Custom functions loaded:", response)
         }
       }, [response])
+
+    // Params for Edit Mode
+    const searchParams = useSearchParams();
+    const recordId = initialRecordId || searchParams.get("recordid");
+
+    // Fetch existing ticket if recordId is present
+    useEffect(() => {
+        const fetchTicket = async () => {
+            if (!recordId) return;
+
+            try {
+                // setLoading(true); // Add loading state if needed
+                const res = await axiosInstanceClient.post("/postApi", {
+                    apiRoute: "get_lenovo_ticket",
+                    ticket_id: recordId
+                });
+
+                if (res.data.success) {
+                    const ticket = res.data.ticket;
+                    console.log("Loaded Ticket:", ticket);
+                    setFormData(prev => ({
+                        ...prev,
+                        ...ticket,
+                        // Ensure accessories is a string if it comes as array, or handle accordingly
+                        accessories: ticket.accessories || []
+                    }));
+                    // Optionally set step to 1 or allowing navigation
+                } else {
+                    toast.error("Errore nel caricamento del ticket: " + res.data.error);
+                }
+            } catch (error) {
+                console.error("Error loading ticket:", error);
+                toast.error("Errore di connessione nel caricamento del ticket.");
+            } finally {
+                // setLoading(false);
+            }
+        };
+
+        fetchTicket();
+    }, [recordId]);
 
     // Polling for photo, attachments and SIGNATURE update
     useEffect(() => {
@@ -459,7 +506,7 @@ export default function LenovoIntake() {
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto p-6">
+            <main className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col">
                 
                 <div className="mb-8 flex items-center justify-between relative">
                     <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-0"></div>
@@ -472,7 +519,9 @@ export default function LenovoIntake() {
                     ))}
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 min-h-[400px] max-h-[75vh] overflow-y-auto">
+                {/* Content Area - Scrollable */}
+                <div className="flex-1 overflow-y-auto px-1 py-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 min-h-[400px]">
                     {step === 1 && (
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold mb-4">Client Details</h2>
@@ -605,6 +654,17 @@ export default function LenovoIntake() {
                                         onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
                                         className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
                                         placeholder="PF..."
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label field="accessories" text="Accessories" />
+                                <div className="flex gap-2 w-full">
+                                    <SelectStandard
+                                        initialValue={formData.accessories}
+                                        onChange={e => setFormData({...formData, accessories: e})}
+                                        lookupItems={lookups ?? []}
+                                        isMulti={true}
                                     />
                                 </div>
                             </div>
@@ -787,9 +847,17 @@ export default function LenovoIntake() {
                                     <p className="text-xs text-gray-400">Click or drag file here</p>
                                 </div>
 
-                                {/* Mobile Handoff */}
+                                {/* Mobile Handoff & Direct Sign */}
                                 <div className="flex-1 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
-                                        onClick={async () => {
+                                     onClick={async () => {
+                                        // Detect mobile (simple check)
+                                        const isMobile = window.innerWidth < 768;
+
+                                        if (isMobile) {
+                                            setShowSignatureModal(true);
+                                            return;
+                                        }
+
                                         if (showQR) return setShowQR(false);
 
                                         let currentId = formData.recordid;
@@ -797,19 +865,44 @@ export default function LenovoIntake() {
                                             const newId = await handleSave('Draft');
                                             if (newId) currentId = newId;
                                         }
-                                        
+                                     
                                         if (currentId) {
-                                            const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${currentId}`;
-                                            setMobileUrl(url);
-                                            setShowQR(true);
-                                        }
-                                        }}
+                                             const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${currentId}`;
+                                             setMobileUrl(url);
+                                             setShowQR(true);
+                                         }
+                                     }}
                                 >
                                     <Icons.DevicePhoneMobileIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                    <p className="text-sm font-medium text-gray-600">Use Mobile</p>
-                                    <p className="text-xs text-gray-400">{showQR ? 'Hide QR' : 'Scan QR Code'}</p>
+                                    <p className="text-sm font-medium text-gray-600">
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Firma Ora" : "Usa Mobile"}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Firma direttamente qui" : (showQR ? 'Nascondi QR' : 'Scansiona QR Code')}
+                                    </p>
                                 </div>
                             </div>
+
+                            {/* Inline QR Code Section */}
+                            {showQR && (
+                                <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50">
+                                    <button 
+                                        onClick={() => setShowQR(false)}
+                                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                    >
+                                        <Icons.XMarkIcon className="w-6 h-6" />
+                                    </button>
+                                    <h3 className="text-xl font-bold mb-2 text-gray-900">Scan to Upload or Sign</h3>
+                                    <p className="text-gray-500 mb-4">Use your mobile device to take photos and sign the ticket.</p>
+                                    
+                                    <div className="bg-white p-3 rounded-xl border border-gray-200 inline-block shadow-sm">
+                                            <QRCode value={mobileUrl} size={180} />
+                                    </div>
+                                    <p className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
+                                        {mobileUrl}
+                                    </p>
+                                </div>
+                            )}
 
                             {formData.product_photo && (
                                 <div className="mt-4 border rounded-xl overflow-hidden bg-white shadow-sm">
@@ -825,27 +918,6 @@ export default function LenovoIntake() {
                                             className="max-h-64 object-contain rounded-lg"
                                         />
                                     </div>
-                                </div>
-                            )}
-
-                            {/* Inline QR Code Section */}
-                            {showQR && (
-                                <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50">
-                                    <button 
-                                        onClick={() => setShowQR(false)}
-                                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
-                                    >
-                                        <Icons.XMarkIcon className="w-6 h-6" />
-                                    </button>
-                                    <h3 className="text-xl font-bold mb-2 text-gray-900">Scan to Upload or Sign</h3>
-                                    <p className="text-gray-500 mb-4">Use your mobile device to take photos and sign the ticket.</p>
-                                    
-                                    <div className="bg-white p-3 rounded-xl border border-gray-200 inline-block shadow-sm">
-                                         <QRCode value={mobileUrl} size={180} />
-                                    </div>
-                                    <p className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
-                                        {mobileUrl}
-                                    </p>
                                 </div>
                             )}
 
@@ -947,6 +1019,7 @@ export default function LenovoIntake() {
                              </div>
                         </div>
                     )}
+                </div>
                 </div>
 
                 <div className="mt-8 flex items-center justify-between">

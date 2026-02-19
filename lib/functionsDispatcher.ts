@@ -602,8 +602,13 @@ export function useFrontendFunctions() {
     window.open(url, '_blank')
   }, 
 
-  renderToUrl: ({url } : {url: string}) => {
-    window.open(url, '_blank')
+  renderToUrl: ({ url, recordid }: { url: string; recordid?: string }) => {
+    if (recordid) {
+        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+        window.open(`${baseUrl}/${recordid}`, '_blank');
+    } else {
+        window.open(url, '_blank');
+    }
   },
 
   renderToTimesheet: ({ url, recordid }: { url: string; recordid?: string }) => {
