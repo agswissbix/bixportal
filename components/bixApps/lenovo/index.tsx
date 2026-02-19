@@ -9,6 +9,19 @@ import * as Icons from "@heroicons/react/24/outline";
 import QRCode from "react-qr-code";
 import { useSearchParams } from "next/navigation";
 import SelectStandard from "../../selectStandard";
+import { StepIndicator } from "./StepIndicator";
+import { AuthCard } from "./AuthCard";
+import { AccessorySelector } from "./AccessorySelector";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label as UiLabel } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function LenovoIntake({ initialRecordId }: { initialRecordId?: string }) {
     const { user, userName } = useContext(AppContext);
@@ -506,22 +519,22 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col">
+            <main className="max-w-4xl mx-auto pb-20 md:pb-0 h-[calc(100vh-140px)] flex flex-col">
                 
-                <div className="mb-8 flex items-center justify-between relative">
-                    <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-0"></div>
-                    <div className={`absolute left-0 top-1/2 h-1 bg-[#E2231A] -z-0 transition-all duration-300`} style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
-                    
-                    {[1, 2, 3, 4].map((s) => (
-                        <div key={s} className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors duration-300 ${step >= s ? 'bg-[#E2231A] text-white' : 'bg-gray-200 text-gray-500'}`}>
-                            {s}
-                        </div>
-                    ))}
+                <div className="mb-8 sticky top-[80px] z-20 bg-gray-50 p-4 md:p-0 pt-2 pb-4">
+                    <StepIndicator currentStep={step} onStepClick={(s) => {
+                        // Allow navigating back or to next step if valid
+                         if (s < step) {
+                            setStep(s)
+                          } else if (s === step + 1) {
+                            if(validateStep(step)) setStep(s);
+                          }
+                    }} />
                 </div>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto px-1 py-6">
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 min-h-[400px]">
+                <div className="flex-1 overflow-y-auto px-1">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                     {step === 1 && (
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold mb-4">Client Details</h2>
@@ -660,12 +673,22 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             <div>
                                 <Label field="accessories" text="Accessories" />
                                 <div className="flex gap-2 w-full">
-                                    <SelectStandard
-                                        initialValue={formData.accessories}
-                                        onChange={e => setFormData({...formData, accessories: e})}
-                                        lookupItems={lookups ?? []}
-                                        isMulti={true}
+                                <div className="flex gap-2 w-full">
+                                    <AccessorySelector
+                                        selectedItems={Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' ? (formData.accessories as string).split(',') : []}
+                                        onToggle={(item) => {
+                                            setFormData(prev => {
+                                                const current = Array.isArray(prev.accessories) ? prev.accessories : typeof prev.accessories === 'string' && prev.accessories ? (prev.accessories as string).split(',') : [];
+                                                const exists = current.includes(item);
+                                                const newAcc = exists 
+                                                    ? current.filter(i => i !== item)
+                                                    : [...current, item];
+                                                return { ...prev, accessories: newAcc };
+                                            });
+                                        }}
+                                        options={(lookups || []).map(l => ({ value: l.itemcode, label: l.itemdesc }))}
                                     />
+                                </div>
                                 </div>
                             </div>
 
@@ -717,111 +740,84 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 <h3 className="text-lg font-bold">Warranty & Authorization</h3>
                                 
                                 {/* Warranty */}
-                                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                <div className="flex items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
                                     <div className="flex items-center gap-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="warranty"
-                                            checked={formData.warranty === 'Si'}
-                                            onChange={e => setFormData({...formData, warranty: e.target.checked ? 'Si' : 'No'})}
-                                            className="w-5 h-5 text-[#E2231A] rounded focus:ring-[#E2231A]"
-                                        />
-                                        <label htmlFor="warranty" className="font-medium text-gray-700">Under Warranty?</label>
+                                        <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
+                                            <Icons.ShieldCheckIcon className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <label htmlFor="warranty" className="font-medium text-gray-700 cursor-pointer select-none">Under Warranty?</label>
                                     </div>
-                                    {formData.warranty === 'Si' && (
-                                        <input 
-                                            type="text" 
-                                            value={formData.warranty_type}
-                                            onChange={e => setFormData({...formData, warranty_type: e.target.value})}
-                                            placeholder="Warranty Type (e.g. OnSite, Depot)"
-                                            className="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
-                                        />
-                                    )}
+                                    <Switch 
+                                        id="warranty"
+                                        checked={formData.warranty === 'Si'}
+                                        onCheckedChange={(checked) => setFormData({...formData, warranty: checked ? 'Si' : 'No'})}
+                                        className="data-[state=checked]:bg-[#E2231A]
+                                                data-[state=unchecked]:bg-gray-300
+                                                focus-visible:ring-[#E2231A]
+                                                [&>span]:bg-white"
+                                    />
                                 </div>
+
+                                {formData.warranty === 'Si' && (
+                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <Label field="warranty_type" text="Warranty Type" />
+                                            <Select
+                                                value={formData.warranty_type}
+                                                onValueChange={(val) => setFormData({...formData, warranty_type: val})}
+                                            >
+                                            <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
+                                                <SelectValue placeholder="Select Warranty Type..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="OnSite">OnSite Support</SelectItem>
+                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Depot">Depot / Carry-in</SelectItem>
+                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Premium">Premium Care</SelectItem>
+                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="ADP">ADP (Accidental Damage)</SelectItem>
+                                            </SelectContent>
+                                            </Select>
+                                    </div>
+                                )}
 
                                 {/* Auth Checks */}
                                 <div className="space-y-3">
-                                    <div 
-                                        className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                                        onClick={() => setFormData(prev => ({...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si'}))}
-                                    >
-                                        <input 
-                                            type="checkbox" 
-                                            checked={formData.auth_factory_reset === 'Si'}
-                                            readOnly
-                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
-                                        />
-                                        <Label 
-                                            field="auth_factory_reset" 
-                                            text="Authorize Factory Reset (Data may be lost)." 
-                                            className="text-sm text-gray-600 font-normal cursor-pointer"
-                                        />
-                                    </div>
+                                    <AuthCard
+                                        checked={formData.auth_factory_reset === 'Si'}
+                                        onChange={() => setFormData(prev => ({...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si'}))}
+                                        title="Authorize Factory Reset"
+                                        description="Data may be lost during the reset process."
+                                    />
 
-                                    <div 
-                                        className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                                        onClick={() => setFormData(prev => ({...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si'}))}
-                                    >
-                                        <input 
-                                            type="checkbox" 
-                                            checked={formData.request_quote === 'Si'}
-                                            readOnly
-                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
-                                        />
-                                        <Label 
-                                            field="request_quote" 
-                                            text="Request Quote (Evaluation cost max 50 CHF if rejected)." 
-                                            className="text-sm text-gray-600 font-normal cursor-pointer"
-                                        />
-                                    </div>
+                                    <AuthCard
+                                        checked={formData.request_quote === 'Si'}
+                                        onChange={() => setFormData(prev => ({...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si'}))}
+                                        title="Request Quote"
+                                        description="Evaluation cost max 50 CHF if rejected."
+                                    />
 
-                                    <div className="p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                        <div 
-                                            className="flex items-start gap-3 cursor-pointer"
-                                            onClick={() => setFormData(prev => ({...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si'}))}
-                                        >
+                                    <AuthCard
+                                        checked={formData.direct_repair === 'Si'}
+                                        onChange={() => setFormData(prev => ({...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si'}))}
+                                        title="Direct Repair"
+                                        description="Authorize repair if cost is below limit."
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-500">Limit (CHF):</span>
                                             <input 
-                                                type="checkbox" 
-                                                checked={formData.direct_repair === 'Si'}
-                                                readOnly
-                                                className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
-                                            />
-                                            <Label 
-                                                field="direct_repair" 
-                                                text="Authorize Direct Repair if cost is below limit." 
-                                                className="text-sm text-gray-600 font-normal cursor-pointer"
+                                                type="number" 
+                                                value={formData.direct_repair_limit}
+                                                onChange={e => setFormData({...formData, direct_repair_limit: e.target.value})}
+                                                className="w-32 p-2 border border-gray-300 rounded-lg text-sm"
+                                                placeholder="e.g. 200"
                                             />
                                         </div>
-                                        {formData.direct_repair === 'Si' && (
-                                            <div className="ml-8 mt-2 flex items-center gap-2">
-                                                <span className="text-sm text-gray-500">Limit (CHF):</span>
-                                                <input 
-                                                    type="number" 
-                                                    value={formData.direct_repair_limit}
-                                                    onChange={e => setFormData({...formData, direct_repair_limit: e.target.value})}
-                                                    className="w-32 p-2 border border-gray-300 rounded-lg text-sm"
-                                                    placeholder="e.g. 200"
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
+                                    </AuthCard>
 
-                                    <div 
-                                        className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                                        onClick={() => setFormData(prev => ({...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si'}))}
-                                    >
-                                        <input 
-                                            type="checkbox" 
-                                            checked={formData.auth_formatting === 'Si'}
-                                            readOnly
-                                            className="w-5 h-5 mt-1 text-[#E2231A] rounded focus:ring-[#E2231A] pointer-events-none"
-                                        />
-                                        <Label 
-                                            field="auth_formatting" 
-                                            text="Authorize Full Formatting (Data WILL be lost)." 
-                                            className="text-sm text-gray-600 font-normal cursor-pointer"
-                                        />
-                                    </div>
+                                    <AuthCard
+                                        checked={formData.auth_formatting === 'Si'}
+                                        onChange={() => setFormData(prev => ({...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si'}))}
+                                        title="Authorize Full Formatting"
+                                        description="Data WILL be lost permanently."
+                                    />
                                 </div>
                              </div>
                         </div>
@@ -1017,6 +1013,60 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     </div>
                                 </div>
                              </div>
+                        
+                        {/* Summary Card */}
+                        {(formData.company_name || formData.name) && (
+                            <Card className="py-0 gap-0 border-red-100 bg-red-50/50 mt-6 shadow-sm">
+                            <CardContent className="p-4 md:p-6">
+                                <p className="text-sm font-bold text-gray-900 mb-3 border-b border-red-100 pb-2 flex items-center gap-2">
+                                    <Icons.ClipboardDocumentCheckIcon className="w-4 h-4 text-[#E2231A]" />
+                                    Ticket Summary
+                                </p>
+                                <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                                {formData.company_name && (
+                                    <>
+                                    <span className="text-gray-500">Client/Company</span>
+                                    <span className="font-bold text-gray-900">
+                                        {formData.company_name}
+                                    </span>
+                                    </>
+                                )}
+                                {(formData.name || formData.surname) && (
+                                    <>
+                                    <span className="text-gray-500">Contact</span>
+                                    <span className="font-bold text-gray-900">
+                                        {formData.name} {formData.surname}
+                                    </span>
+                                    </>
+                                )}
+                                {formData.brand && (
+                                    <>
+                                    <span className="text-gray-500">Device</span>
+                                    <span className="font-bold text-gray-900">
+                                        {formData.brand} {formData.model}
+                                    </span>
+                                    </>
+                                )}
+                                {formData.serial && (
+                                    <>
+                                    <span className="text-gray-500">Serial Number</span>
+                                    <span className="font-medium font-mono text-gray-900 bg-white px-1 rounded border border-gray-100 inline-block">
+                                        {formData.serial}
+                                    </span>
+                                    </>
+                                )}
+                                {formData.problem_description && (
+                                    <>
+                                    <span className="text-gray-500 overflow-hidden text-ellipsis">Problem</span>
+                                    <span className="font-medium text-gray-900 line-clamp-2 italic">
+                                        "{formData.problem_description}"
+                                    </span>
+                                    </>
+                                )}
+                                </div>
+                            </CardContent>
+                            </Card>
+                        )}
                         </div>
                     )}
                 </div>
