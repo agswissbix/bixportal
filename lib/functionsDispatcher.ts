@@ -598,30 +598,15 @@ export function useFrontendFunctions() {
     handleRowClick('linked', '', tableid)
   },
 
-  renderToTimeTracking: ({url } : {url: string}) => {
-    window.open(url, '_blank')
-  }, 
-
-  renderToUrl: ({ url, recordid }: { url: string; recordid?: string }) => {
+  renderToUrl: (params: { url: string; recordid?: string }) => {
+    if (!params) return;
+    const { url, recordid } = params;
     if (recordid) {
         const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
         window.open(`${baseUrl}/${recordid}`, '_blank');
-    } else {
+    } else if (url) {
         window.open(url, '_blank');
     }
-  },
-
-  renderToTimesheet: ({ url, recordid }: { url: string; recordid?: string }) => {
-    if (recordid) {
-        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
-        window.open(`${baseUrl}/${recordid}`, '_blank');
-    } else {
-        window.open(url, '_blank');
-    }
-  },
-
-  renderToBixMobileHub: ({url } : {url: string}) => {
-    window.open(url, '_blank')
   },
 
   printDeal: async ({ recordid }: { recordid: string }) => {
