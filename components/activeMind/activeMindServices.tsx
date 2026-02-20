@@ -199,12 +199,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     try {
       setIsPrinting(true)
 
-      toast.info("💾 Salvataggio in corso prima della stampa...")
-
-      // 🔹 1. Prima salva i dati
-      await handleSave()
-
-      toast.success("✅ Dati salvati! Generazione PDF in corso...")
+      toast.info("Generazione PDF e salvataggio in corso...")
 
       const dataToPrint = {
         ...serviceData,

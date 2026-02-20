@@ -158,8 +158,8 @@ export default function CompanyHeader({recordIdTrattativa}: PropsInterface) {
 						<div className="bg-white rounded-lg p-4 border border-blue-100">
 							<h3 className="font-semibold text-gray-900 mb-2">Cliente</h3>
 							<div className="text-sm text-gray-700">
-								<p className="font-medium">{response.cliente.nome}</p>
-								<p>{response.cliente.indirizzo}, {response.cliente.citta}</p>
+								<p className="font-medium">{response?.cliente?.nome}</p>
+								<p>{response?.cliente?.indirizzo}, {response?.cliente?.citta}</p>
 							</div>
 						</div>
 					</div>
