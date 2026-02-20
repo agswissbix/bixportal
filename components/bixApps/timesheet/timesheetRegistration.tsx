@@ -1408,7 +1408,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 className="w-4 h-4"
                                                 strokeWidth={3}
                                             />{" "}
-                                            <span>Torna all'Hub</span>
+                                            <span>Torna indietro</span>
                                         </button>
                                     </div>
                                 )}
@@ -1494,7 +1494,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 className="w-4 h-4"
                                                 strokeWidth={3}
                                             />{" "}
-                                            <span>Torna all'Hub</span>
+                                            <span>Torna indietro</span>
                                         </button>
                                     </div>
                                 )}
