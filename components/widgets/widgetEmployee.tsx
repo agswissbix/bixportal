@@ -190,7 +190,7 @@ export default function WidgetEmployee({ userid }: PropsInterface) {
                             <div className="flex flex-col items-center justify-center text-center text-white">
                                 <span className="text-3xl font-bold mb-1">{stats.today_count}</span>
                                 <span className="text-xs font-medium opacity-90 flex items-center">
-                                    <ClockIcon className="h-3.5 w-3.5 mr-1" /> Timesheets Oggi
+                                    <ClockIcon className="h-3.5 w-3.5 mr-1" /> Ore Oggi
                                 </span>
                             </div>
                         </div>
