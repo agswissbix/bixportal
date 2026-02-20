@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import SignaturePad from './SignaturePad';
 
 export default function LenovoIntake({ initialRecordId }: { initialRecordId?: string }) {
     const { user, userName } = useContext(AppContext);
@@ -148,6 +149,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
     // Polling for photo, attachments and SIGNATURE update
     useEffect(() => {
+        if (window.innerWidth < 768) return;
         let interval: NodeJS.Timeout;
         if ((step === 2 || step === 3 || step === 4) && formData.recordid) {
             interval = setInterval(async () => {
@@ -399,7 +401,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
     const handleComplete = () => {
         if (validateStep(step)) {
-            handleSave('Aperto');
+            handleSave('Presa in consegna');
         }
     };
 
@@ -446,13 +448,37 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const handleSaveAndSign = async () => {
         if (validateStep(step)) {
             // Save as 'Aperto' to trigger signature mode on mobile
-            const id = await handleSave('Aperto');
+            const id = await handleSave('Presa in consegna');
             if(id) {
                 const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${id}`;
                 setMobileUrl(url);
                 setShowQR(true); 
                 toast.info("Scansiona il QR con il mobile per firmare.");
             }
+        }
+    };
+
+    const handleSignatureSave = async (signatureData: string) => {
+        // set(true);
+        try {
+            const formDataLocal = new FormData();
+            formDataLocal.append("apiRoute", "save_lenovo_signature");
+            formDataLocal.append("recordid", formData.recordid);
+            formDataLocal.append("img_base64", signatureData);
+
+            const res = await axiosInstanceClient.post("/postApi", formDataLocal);
+            if (res.data.success) {
+                toast.success("Signature saved!");
+                // Reload to show signed state
+                // window.location.reload();
+            } else {
+                toast.error("Failed to save signature");
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error saving signature");
+        } finally {
+            // setUploading(false);
         }
     };
 
@@ -745,7 +771,9 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
                                             <Icons.ShieldCheckIcon className="w-5 h-5 text-gray-500" />
                                         </div>
-                                        <label htmlFor="warranty" className="font-medium text-gray-700 cursor-pointer select-none">Under Warranty?</label>
+                                        <label htmlFor="warranty" className="font-medium text-gray-700 cursor-pointer select-none">
+                                            Under Warranty? {fieldSettings['warranty']?.required && <span className="text-red-500">*</span>}
+                                        </label>
                                     </div>
                                     <Switch 
                                         id="warranty"
@@ -785,6 +813,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         onChange={() => setFormData(prev => ({...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si'}))}
                                         title="Authorize Factory Reset"
                                         description="Data may be lost during the reset process."
+                                        required={fieldSettings['auth_factory_reset']?.required}
                                     />
 
                                     <AuthCard
@@ -792,6 +821,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         onChange={() => setFormData(prev => ({...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si'}))}
                                         title="Request Quote"
                                         description="Evaluation cost max 50 CHF if rejected."
+                                        required={fieldSettings['request_quote']?.required}
                                     />
 
                                     <AuthCard
@@ -799,6 +829,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         onChange={() => setFormData(prev => ({...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si'}))}
                                         title="Direct Repair"
                                         description="Authorize repair if cost is below limit."
+                                        required={fieldSettings['direct_repair']?.required}
                                     >
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm text-gray-500">Limit (CHF):</span>
@@ -817,6 +848,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         onChange={() => setFormData(prev => ({...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si'}))}
                                         title="Authorize Full Formatting"
                                         description="Data WILL be lost permanently."
+                                        required={fieldSettings['auth_formatting']?.required}
                                     />
                                 </div>
                              </div>
@@ -839,11 +871,16 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     />
                                     <Icons.ComputerDesktopIcon className="w-10 h-10 text-gray-400 mb-2" />
-                                    <p className="text-sm font-medium text-gray-600">Upload from PC</p>
-                                    <p className="text-xs text-gray-400">Click or drag file here</p>
+                                    <p className="text-sm font-medium text-gray-600">
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Upload from Mobile" : "Upload from PC"}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Choose a file or take a photo" : "Click or drag file here"}
+                                    </p>
                                 </div>
 
                                 {/* Mobile Handoff & Direct Sign */}
+                                {/* {window.innerWidth >= 768 && ( */}
                                 <div className="flex-1 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
                                      onClick={async () => {
                                         // Detect mobile (simple check)
@@ -871,17 +908,18 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 >
                                     <Icons.DevicePhoneMobileIcon className="w-10 h-10 text-gray-400 mb-2" />
                                     <p className="text-sm font-medium text-gray-600">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Firma Ora" : "Usa Mobile"}
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Sign Now" : "Use Mobile"}
                                     </p>
                                     <p className="text-xs text-gray-400">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Firma direttamente qui" : (showQR ? 'Nascondi QR' : 'Scansiona QR Code')}
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Sign here" : (showQR ? 'Hide QR' : 'Scan QR Code')}
                                     </p>
                                 </div>
+                                {/* )} */}
                             </div>
 
                             {/* Inline QR Code Section */}
                             {showQR && (
-                                <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50">
+                                <div className="flex flex-col items-center justify-center mb-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50">
                                     <button 
                                         onClick={() => setShowQR(false)}
                                         className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
@@ -894,9 +932,9 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     <div className="bg-white p-3 rounded-xl border border-gray-200 inline-block shadow-sm">
                                             <QRCode value={mobileUrl} size={180} />
                                     </div>
-                                    <p className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
+                                    <a href={mobileUrl} target="_blank" className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
                                         {mobileUrl}
-                                    </p>
+                                    </a>
                                 </div>
                             )}
 
@@ -1125,6 +1163,17 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             </main>
             
             {/* QR Modal for Signature/Mobile */}
+            {showSignatureModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-bold mb-4 text-center">Sign Here</h3>
+                        <SignaturePad
+                            onSave={handleSignatureSave}
+                            onCancel={() => setShowSignatureModal(false)}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
       )}
     </GenericComponent>

@@ -122,6 +122,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
 
     const handleSignatureSave = async (signatureData: string) => {
         setUploading(true);
+        toast.loading("Saving signature...");
         try {
             const formData = new FormData();
             formData.append("apiRoute", "save_lenovo_signature");
@@ -141,6 +142,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
             toast.error("Error saving signature");
         } finally {
             setUploading(false);
+            toast.dismiss();
         }
     };
 

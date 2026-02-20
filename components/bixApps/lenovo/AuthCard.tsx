@@ -7,12 +7,14 @@ export function AuthCard({
   onChange,
   title,
   description,
+  required,
   children,
 }: {
   checked: boolean
   onChange: (v: boolean) => void
   title: string
   description?: string
+  required?: boolean
   children?: React.ReactNode
 }) {
   return (
@@ -35,7 +37,7 @@ export function AuthCard({
         checked={checked}
         onCheckedChange={onChange}
         onClick={(e) => e.stopPropagation()}
-        className="mt-0.5 shrink-0 data-[state=checked]:bg-[#E2231A] data-[state=checked]:border-[#E2231A]"
+        className="mt-0.5 shrink-0 data-[state=checked]:bg-[#E2231A] data-[state=checked]:border-[#E2231A] [&>span]:text-white"
       />
       <div className="flex-1 min-w-0">
         <p
@@ -43,7 +45,7 @@ export function AuthCard({
             checked ? "text-gray-900" : "text-gray-900"
           }`}
         >
-          {title}
+          {title} {required && <span className="text-red-500">*</span>}
         </p>
         {description && (
           <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
