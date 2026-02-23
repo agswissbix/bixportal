@@ -5,7 +5,7 @@ import { se } from "date-fns/locale"
 import { toast } from "sonner"
     
 export function useFrontendFunctions() {
-  const {removeCard, handleRowClick, setPopupRecordId, setRefreshTable, isPopupOpen, setIsPopupOpen, setPopUpType, openPopup, setInfoData } = useRecordsStore()
+  const {removeCard, handleRowClick, setPopupRecordId, resetCardsList, setRefreshTable, isPopupOpen, setIsPopupOpen, setPopUpType, openPopup, setInfoData } = useRecordsStore()
         
   return {
   // ----------------------- results functions ------------------------
@@ -686,21 +686,8 @@ export function useFrontendFunctions() {
   renewServiceContract: async ({ recordid }: { recordid: string}) => {
     try {
 
-      const invoiceno = await openPopup('invoiceno', recordid);
-      if (invoiceno == null) {
-        toast.error('Operazione annullata');
-        return;
-      }
-
-      const contracthours = await openPopup('contracthours', recordid);
-      if (contracthours == null) {
-        toast.error('Operazione annullata');
-        return;
-      }
-
-      const startdate = await openPopup('startDate', recordid);
-      if (startdate == null) {
-        toast.error('Operazione annullata');
+      const result: any = await openPopup('renewServiceContract', recordid);
+      if (result == null) {
         return;
       }
 
@@ -709,9 +696,9 @@ export function useFrontendFunctions() {
         {
           apiRoute: "renew_servicecontract",
           recordid: recordid,
-          invoiceno: invoiceno,
-          contracthours: contracthours,
-          startdate: startdate
+          invoiceno: result.invoiceno,
+          contracthours: result.contracthours,
+          startdate: result.startdate
         },
         {
           headers: {
@@ -725,6 +712,9 @@ export function useFrontendFunctions() {
     } catch (error) {
       console.error('Errore durante il rinnovo del contratto', error);
       toast.error('Errore durante il rinnovo del contratto');
+    } finally {
+      setRefreshTable((v) => v + 1);
+      removeCard('servicecontract', recordid)
     }
   },
   

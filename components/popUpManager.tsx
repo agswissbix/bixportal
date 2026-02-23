@@ -2,16 +2,14 @@ import React, { use, useMemo, useState } from 'react';
 import { useRecordsStore } from './records/recordsStore';
 import PopupEmail from './popupContent/popupEmail';
 import PopupReportGasolio from './popupContent/popupReportGasolio';
-import PopupContractHours from './popupContent/popupContractHours';
 import PopupStartDate from './popupContent/popupStartDate';
 import { CircleX } from 'lucide-react';
-import PopupInvoiceNo from './popupContent/popupInvoiceNo';
 import { TemplateSelectionDialog } from './dialogs/templateProjectDialog';
 import SignatureDialogWrapper from './dialogs/signatureTimesheetDialog';
-import PopupService from './popupContent/popupService';
 import PopupAI from './popupContent/popupAI';
 import PopupInfo from './popupContent/popupInfo';
 import PopupImportCsv from './popupContent/popupImportCsv';
+import PopupRenewServiceContract from './popupContent/popupRenewServiceContract';
 
 
 // INTERFACCIA PROPS
@@ -49,11 +47,9 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid, 
                 {type === 'emailLavanderia' && <PopupEmail tableid={tableid} recordid={recordid} onClose={onClose} type='emailLavanderia' />}
                 {type === 'emailGasolio' && <PopupEmail tableid={tableid} recordid={recordid} onClose={onClose} type='emailGasolio' />}
                 {type === 'reportGasolio' && <PopupReportGasolio tableid={tableid} recordid={recordid} />}
-                {type === 'contracthours' && <PopupContractHours tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'startDate' && <PopupStartDate tableid={tableid} recordid={recordid} onClose={onClose} />}
-                {type === 'invoiceno' && <PopupInvoiceNo tableid={tableid} recordid={recordid} onClose={onClose} />}
-                {type === 'service' && <PopupService tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'useAI' && <PopupAI tableid={tableid} recordid={recordid} onClose={onClose} />}
+                {type === 'renewServiceContract' && <PopupRenewServiceContract tableid={tableid} recordid={recordid} onClose={onClose} />}
                 {type === 'importCsv' && <PopupImportCsv tableid={tableid} onClose={onClose} />}
                 {type === 'info' && (
                     <PopupInfo 
