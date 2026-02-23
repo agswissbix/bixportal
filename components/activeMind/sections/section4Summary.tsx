@@ -116,7 +116,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
       const clientPC = serviceData.section2Services['clientPC'];
       const total = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
       if (clientPC) {
-        return clientPC.total * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
+        return clientPC.unitPrice * clientPC.quantity * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
       } else {
         return total
       }
@@ -423,7 +423,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
                       <div className="text-right">
                         <div className="font-bold text-gray-900">
-                          CHF {service.id == "clientPC" ? (service.total * (1 - (service.quantity - 1) / 100)).toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : service.total.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} .-
+                          CHF {service.id == "clientPC" ? (service.unitPrice * service.quantity * (1 - (service.quantity - 1) / 100)).toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : service.total.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} .-
                         </div>
                       </div>
                     </div>
