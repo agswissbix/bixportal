@@ -45,8 +45,8 @@ const assistanceConditions = [
   },
   {
     icon: Phone,
-    title: "Assistenza Remota",
-    description: "Le ore di attività, per ogni intervento, sono scalate dal numero di ore messo a disposizione con il presente contratto.",
+    title: "Monitoraggio e assistenza da remoto",
+    description: "I servizi scelti includono monitoraggio e assistenza da remoto con supporto tecnico illimitato tramite un ticket ad assistenza@swissbix.ch. Ogni richiesta prevede fino a 15 minuti di intervento; per problemi più complessi oltre questo tempo si potrà concordare un intervento in loco.",
   },
   {
     icon: Truck,
