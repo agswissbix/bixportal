@@ -150,6 +150,12 @@ export async function POST(request: Request) {
         case "changePassword":
             djangoUrl = "/commonapp/change_password/";
             break;
+        case "request_password_reset":
+            djangoUrl = "/commonapp/request_password_reset/";
+            break;
+        case "reset_password_with_token":
+            djangoUrl = "/commonapp/reset_password_with_token/";
+            break;
         case "get_shifts_and_volunteers_telefono":
             djangoUrl =
                 "/customapp_telefonoamico/get_shifts_and_volunteers_telefono/";

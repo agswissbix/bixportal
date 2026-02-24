@@ -62,7 +62,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const result = await checkAuth(pathname);
       console.info(result)
       if (!result.isAuthenticated || !result.username) {
-        if (pathname === '/login') {
+        if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password') {
           setLoadingAuth(false); 
           return; 
         }
@@ -77,14 +77,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUserName(result.name ?? null);
         var activeServer=result.activeServer ?? null
         setActiveServer(activeServer);
-        if (pathname === '/login') {
+        if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password') {
           //TODO CUSTOM TELEFONO AMICO
           if (activeServer!=='telefonoamico') {
             router.push('/home');
             return            
           }
-        
-           
         }
       }
       setLoadingAuth(false); // <--- Fine verifica

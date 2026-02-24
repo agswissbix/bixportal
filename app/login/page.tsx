@@ -114,16 +114,16 @@ export default function Login() {
                   >
                     Password
                   </label>
-                  {/*
                   <div className="text-sm">
-                    <a
-                      href="#"
-                      className="font-semibold text-primary hover:text-primary-hover transition-colors duration-200"
+                    <button
+                      type="button"
+                      onClick={() => router.push('/forgot-password')}
+                      disabled={isLoading}
+                      className="font-semibold text-primary hover:text-primary-hover transition-colors duration-200 disabled:opacity-50"
                     >
                       Password dimenticata?
-                    </a>
+                    </button>
                   </div>
-                  */}
                 </div>
                 <div className="relative mt-2">
                   <input
