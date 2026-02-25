@@ -101,6 +101,7 @@ export default function Login() {
                     required
                     placeholder='Inserisci il tuo username'
                     autoComplete="on"
+                    tabIndex={1}
                     className="block w-full rounded-md py-3 px-4 text-primary bg-transparent border shadow-sm ring-1 ring-inset ring-border placeholder:text-badge focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 transition-all duration-200"
                   />
                 </div>
@@ -119,6 +120,7 @@ export default function Login() {
                       type="button"
                       onClick={() => router.push('/forgot-password')}
                       disabled={isLoading}
+                      tabIndex={5}
                       className="font-semibold text-primary hover:text-primary-hover transition-colors duration-200 disabled:opacity-50"
                     >
                       Password dimenticata?
@@ -133,12 +135,14 @@ export default function Login() {
                     required
                     placeholder='Inserisci la tua password'
                     autoComplete="on"
+                    tabIndex={2}
                     className="block w-full rounded-md py-3 px-4 text-primary bg-transparent border shadow-sm ring-1 ring-inset ring-border placeholder:text-badge focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 transition-all duration-200"
                   />
                   <button
                     type="button"
                     onClick={() => setShow(!show)}
                     title={show ? "Nascondi password" : "Mostra password"}
+                    tabIndex={3}
                     className="absolute inset-y-0 right-3 flex items-center text-primary hover:text-primary-hover transition-colors duration-200"
                     >
                     {show ? <EyeClosed size={20} /> : <Eye size={20} />}
@@ -157,6 +161,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
+                  tabIndex={4}
                   className="flex w-full justify-center rounded-md bg-primary px-4 py-3 text-sm/6 font-semibold text-primary-foreground shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isLoading ? 'Accesso in corso...' : 'Accedi'}
