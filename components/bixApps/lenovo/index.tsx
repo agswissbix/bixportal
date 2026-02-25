@@ -151,7 +151,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     useEffect(() => {
         if (window.innerWidth < 768) return;
         let interval: NodeJS.Timeout;
-        if ((step === 2 || step === 3 || step === 4) && formData.recordid) {
+        if ((step === 2 || step === 3 || step === 4 || step === 5) && formData.recordid) {
             interval = setInterval(async () => {
                 try {
                     // 1. Check Ticket/Photo/Signature
@@ -287,13 +287,19 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             return true;
         }
 
-        // Step 4: Multimedia - no strict validation needed to proceed to save
+        // Step 4: Multimedia - no strict validation needed
+        if (currentStep === 4) {
+             return true;
+        }
+
+        // Step 5: Summary
         return true;
     };
 
     // Attachment State
     const [attachments, setAttachments] = useState<any[]>([]);
     const [attachmentNote, setAttachmentNote] = useState("");
+    const [attachmentType, setAttachmentType] = useState("pre-intervento");
     const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
 
     useEffect(() => {
@@ -333,6 +339,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             body.append("ticket_id", ticketId);
             body.append("file", file);
             body.append("note", attachmentNote);
+            body.append("attachment_type", attachmentType);
 
             try {
                 const res = await axiosInstanceClient.post("/postApi", body, {
@@ -653,6 +660,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     />
                                 </div>
                             </div>
+                            <div className="flex justify-end mt-4 border-t border-gray-100 pt-4">
+                                <button 
+                                    onClick={() => setStep(5)}
+                                    className="text-sm font-bold text-[#E2231A] hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    Vai alla Firma <Icons.PencilSquareIcon className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -969,6 +984,18 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                             placeholder="Note for attachment (optional)"
                                             className="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
                                         />
+                                        <Select
+                                            value={attachmentType}
+                                            onValueChange={(val) => setAttachmentType(val)}
+                                        >
+                                            <SelectTrigger className="w-40 bg-white border-gray-300 text-sm">
+                                                <SelectValue placeholder="Type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="pre-intervento">Pre-intervento</SelectItem>
+                                                <SelectItem value="post-intervento">Post-intervento</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <div className="relative">
                                             <input 
                                                 type="file" 
@@ -1021,6 +1048,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                         <p className="text-sm font-bold text-gray-900 truncate">{att.filename}</p>
                                                         <div className="flex items-center gap-2 text-xs text-gray-400">
                                                             <span className="uppercase font-semibold">{extension}</span>
+                                                            {att.type && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="font-medium px-2 py-0.5 bg-gray-100 rounded text-gray-600">{att.type}</span>
+                                                                </>
+                                                            )}
                                                             {att.note && (
                                                                 <>
                                                                     <span>•</span>
@@ -1051,60 +1084,146 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     </div>
                                 </div>
                              </div>
+                        </div>
+                    )}
                         
-                        {/* Summary Card */}
-                        {(formData.company_name || formData.name) && (
-                            <Card className="py-0 gap-0 border-red-100 bg-red-50/50 mt-6 shadow-sm">
-                            <CardContent className="p-4 md:p-6">
-                                <p className="text-sm font-bold text-gray-900 mb-3 border-b border-red-100 pb-2 flex items-center gap-2">
-                                    <Icons.ClipboardDocumentCheckIcon className="w-4 h-4 text-[#E2231A]" />
-                                    Ticket Summary
-                                </p>
-                                <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                                {formData.company_name && (
-                                    <>
-                                    <span className="text-gray-500">Client/Company</span>
-                                    <span className="font-bold text-gray-900">
-                                        {formData.company_name}
-                                    </span>
-                                    </>
-                                )}
-                                {(formData.name || formData.surname) && (
-                                    <>
-                                    <span className="text-gray-500">Contact</span>
-                                    <span className="font-bold text-gray-900">
-                                        {formData.name} {formData.surname}
-                                    </span>
-                                    </>
-                                )}
-                                {formData.brand && (
-                                    <>
-                                    <span className="text-gray-500">Device</span>
-                                    <span className="font-bold text-gray-900">
-                                        {formData.brand} {formData.model}
-                                    </span>
-                                    </>
-                                )}
-                                {formData.serial && (
-                                    <>
-                                    <span className="text-gray-500">Serial Number</span>
-                                    <span className="font-medium font-mono text-gray-900 bg-white px-1 rounded border border-gray-100 inline-block">
-                                        {formData.serial}
-                                    </span>
-                                    </>
-                                )}
-                                {formData.problem_description && (
-                                    <>
-                                    <span className="text-gray-500 overflow-hidden text-ellipsis">Problem</span>
-                                    <span className="font-medium text-gray-900 line-clamp-2 italic">
-                                        "{formData.problem_description}"
-                                    </span>
-                                    </>
-                                )}
+                         
+                    {/* Step 5: Sommario */}
+                    {step === 5 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                                <Icons.ClipboardDocumentCheckIcon className="w-8 h-8 text-[#E2231A]" />
+                                Sommario
+                            </h2>
+
+                            <div className="bg-red-50/50 border border-red-100 rounded-xl p-6 shadow-sm space-y-8">
+                                
+                                {/* Client Info */}
+                                <div>
+                                    <div className="flex items-center justify-between border-b border-red-200 pb-2 mb-3">
+                                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Icons.UserIcon className="w-4 h-4 text-[#E2231A]" /> Dati Cliente
+                                        </h3>
+                                        <button onClick={() => setStep(1)} className="text-xs text-[#E2231A] font-medium hover:underline flex items-center gap-1">Modifica <Icons.PencilIcon className="w-3 h-3"/></button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                                        {formData.company_name && <><span className="text-gray-500">Azienda</span><span className="font-bold">{formData.company_name}</span></>}
+                                        {(formData.name || formData.surname) && <><span className="text-gray-500">Contatto</span><span className="font-bold">{formData.name} {formData.surname}</span></>}
+                                        {formData.email && <><span className="text-gray-500">Email</span><span className="font-medium">{formData.email}</span></>}
+                                        {formData.phone && <><span className="text-gray-500">Telefono</span><span className="font-medium">{formData.phone}</span></>}
+                                        {formData.address && <><span className="text-gray-500">Indirizzo</span><span className="font-medium">{formData.address}, {formData.place}</span></>}
+                                    </div>
                                 </div>
-                            </CardContent>
-                            </Card>
-                        )}
+
+                                {/* Product Info */}
+                                <div>
+                                    <div className="flex items-center justify-between border-b border-red-200 pb-2 mb-3">
+                                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Icons.ComputerDesktopIcon className="w-4 h-4 text-[#E2231A]" /> Prodotto e Accesso
+                                        </h3>
+                                        <button onClick={() => setStep(2)} className="text-xs text-[#E2231A] font-medium hover:underline flex items-center gap-1">Modifica <Icons.PencilIcon className="w-3 h-3"/></button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                                        {formData.brand && <><span className="text-gray-500">Dispositivo</span><span className="font-bold">{formData.brand} {formData.model}</span></>}
+                                        {formData.serial && <><span className="text-gray-500">Seriale</span><span className="font-mono bg-white px-1 border border-gray-200 rounded">{formData.serial}</span></>}
+                                        {formData.username && <><span className="text-gray-500">Utente</span><span className="font-medium">{formData.username}</span></>}
+                                        {formData.password && <><span className="text-gray-500">Password/PIN</span><span className="font-medium font-mono bg-white px-1 border border-gray-200 rounded">{formData.password}</span></>}
+                                        {(formData.accessories && formData.accessories.length > 0) && <><span className="text-gray-500">Accessori</span><span className="font-medium">{Array.isArray(formData.accessories) ? formData.accessories.join(", ") : formData.accessories}</span></>}
+                                    </div>
+                                </div>
+
+                                {/* Assistance Info */}
+                                <div>
+                                    <div className="flex items-center justify-between border-b border-red-200 pb-2 mb-3">
+                                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Icons.WrenchScrewdriverIcon className="w-4 h-4 text-[#E2231A]" /> Assistenza
+                                        </h3>
+                                        <button onClick={() => setStep(3)} className="text-xs text-[#E2231A] font-medium hover:underline flex items-center gap-1">Modifica <Icons.PencilIcon className="w-3 h-3"/></button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                                        {formData.problem_description && <><span className="text-gray-500">Problema</span><span className="font-semibold text-gray-900">{formData.problem_description}</span></>}
+                                        <span className="text-gray-500">In Garanzia?</span><span className="font-bold">{formData.warranty} {formData.warranty === 'Si' ? `(${formData.warranty_type})` : ''}</span>
+                                        <span className="text-gray-500">Auth. Ripristino</span><span className="font-bold">{formData.auth_factory_reset}</span>
+                                        <span className="text-gray-500">Richiesta Preventivo</span><span className="font-bold">{formData.request_quote}</span>
+                                        <span className="text-gray-500">Riparazione Diretta</span><span className="font-bold">{formData.direct_repair} {formData.direct_repair === 'Si' ? `(Max ${formData.direct_repair_limit} CHF)` : ''}</span>
+                                        <span className="text-gray-500">Auth. Formattazione</span><span className="font-bold">{formData.auth_formatting}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="pt-8">
+                                {!formData.recordid ? (
+                                    <div className="flex flex-col items-center justify-center gap-4 text-center mt-6">
+                                        <p className="text-gray-500 font-medium pb-2 border-b border-gray-100 max-w-sm">
+                                            Salva il ticket per abilitare la firma per il ritiro.
+                                        </p>
+                                        <button 
+                                            onClick={handleComplete}
+                                            disabled={loadingMethod}
+                                            className="px-8 py-4 bg-[#333333] text-white rounded-xl font-bold shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 w-full max-w-sm active:scale-95 disabled:opacity-50"
+                                        >
+                                            {loadingMethod ? 'Salvataggio...' : 'Salva Ticket'} <Icons.BookmarkIcon className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h3 className="text-xl font-bold text-center text-red-600 mb-6 flex items-center justify-center gap-2">
+                                            <Icons.PencilSquareIcon className="w-6 h-6" /> Firma per ritiro del prodotto
+                                        </h3>
+                                        
+                                        <div className="flex flex-col md:flex-row gap-6 items-stretch justify-center">
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col justify-center gap-4 w-full md:w-auto min-w-[250px] animate-in slide-in-from-left-4">
+                                                
+                                                {!formData.signatureUrl ? (
+                                                    <button
+                                                        onClick={handleSaveAndSign}
+                                                        className="bg-[#E2231A] text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:bg-black transition-all flex items-center justify-center gap-3 w-full active:scale-95"
+                                                    >
+                                                        <Icons.QrCodeIcon className="w-6 h-6" />
+                                                        Firma su Mobile / QR
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={handlePrint}
+                                                        className="bg-green-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition-all flex items-center justify-center gap-3 w-full active:scale-95"
+                                                    >
+                                                        <Icons.PrinterIcon className="w-6 h-6" />
+                                                        Stampa / Scarica PDF
+                                                    </button>
+                                                )}
+
+                                                <button 
+                                                    onClick={handleComplete}
+                                                    disabled={loadingMethod}
+                                                    className="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold shadow-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2 w-full active:scale-95 disabled:opacity-50 text-sm mt-2"
+                                                >
+                                                    {loadingMethod ? 'Salvataggio...' : 'Salva Modifiche'} <Icons.ArrowPathIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            
+                                            {/* QR Display Area */}
+                                            {showQR && (
+                                                <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in zoom-in-95 shadow-lg relative min-w-[250px]">
+                                                    <button 
+                                                        onClick={() => setShowQR(false)}
+                                                        className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                                    >
+                                                        <Icons.XMarkIcon className="w-5 h-5" />
+                                                    </button>
+                                                    <p className="font-bold text-gray-800 mb-4 text-sm">Inquadra per firmare</p>
+                                                    <div className="bg-white p-2 rounded-xl border border-gray-100 shadow-sm inline-block">
+                                                        <QRCode value={mobileUrl} size={150} />
+                                                    </div>
+                                                    <a href={mobileUrl} target="_blank" className="text-[10px] text-gray-400 font-mono mt-3 break-all select-all">
+                                                        Apri link su PC
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -1119,45 +1238,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     </button>
 
                     <div className="flex gap-3">
-                        {step < 4 ? (
+                        {step < 5 ? (
                             <button 
                                 onClick={handleNext}
                                 className="px-8 py-3 bg-[#333333] text-white rounded-xl font-bold shadow-lg hover:bg-black transition-all flex items-center gap-2"
                             >
                                 Next <Icons.ArrowRightIcon className="w-4 h-4" />
                             </button>
-                        ) : (
-                            <div className="flex items-center justify-end gap-3">
-                            <button 
-                                onClick={handleComplete}
-                                disabled={loadingMethod}
-                                className="px-8 py-3 bg-[#E2231A] text-white rounded-xl font-bold shadow-lg shadow-red-200 hover:bg-red-700 transition-all flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {loadingMethod ? 'Saving...' : 'Save Ticket'} <Icons.CheckIcon className="w-5 h-5" />
-                            </button>
-                            {formData.recordid && step === 4 && (
-                                <div className="flex justify-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    {!formData.signatureUrl ? (
-                                        <button
-                                            onClick={handleSaveAndSign}
-                                            className="bg-[#E2231A] text-white px-8 py-3 rounded-2xl font-bold shadow-xl flex items-center gap-3 hover:bg-black transition-all transform hover:scale-105"
-                                        >
-                                            <Icons.QrCodeIcon className="w-6 h-6" />
-                                            Salva & Firma
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={handlePrint}
-                                            className="bg-green-600 text-white px-8 py-3 rounded-2xl font-bold shadow-xl flex items-center gap-3 hover:bg-green-700 transition-all transform hover:scale-105"
-                                        >
-                                            <Icons.PrinterIcon className="w-6 h-6" />
-                                            Stampa PDF
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                            </div>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </main>

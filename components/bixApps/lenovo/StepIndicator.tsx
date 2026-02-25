@@ -7,7 +7,9 @@ const STEPS = [
   { id: 2, label: "Prodotto", shortLabel: "Prodotto", icon: Laptop },
   { id: 3, label: "Assistenza", shortLabel: "Assist.", icon: Wrench },
   { id: 4, label: "Media", shortLabel: "Media", icon: Camera },
+  { id: 5, label: "Sommario", shortLabel: "Sommario", icon: Check },
 ] as const
+
 
 export function StepIndicator({
   currentStep,

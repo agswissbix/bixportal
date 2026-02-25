@@ -242,17 +242,34 @@ export default function MobilePhotoView({ ticketId }: Props) {
 
     const renderSignatureTab = () => (
         <div className="flex flex-col h-full justify-center pb-24">
-                {/* <div className="text-center p-8 bg-zinc-900 rounded-2xl border border-zinc-800">
-                    <Icons.CheckCircleIcon className="w-20 h-20 text-green-500 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold mb-2">Signed Successfully</h2>
-                    <p className="text-gray-400 text-sm mb-4">The ticket has been signed.</p>
-                    {/* Optionally show signature image if we had a way to preview it easily without auth issues */}
-                {/* </div> */}
             <div className="bg-white rounded-xl overflow-hidden text-black shadow-lg">
-                <div className="p-4 bg-gray-100 text-xs border-b border-gray-200">
-                    <strong>Authorization for:</strong><br/>
-                    {ticket.company_name || ticket.name}<br/>
-                    {ticket.brand} {ticket.model} ({ticket.serial})
+                <div className="bg-[#E2231A] text-white p-3 font-bold text-center text-sm">
+                    Firma per ritiro del prodotto
+                </div>
+                <div className="p-4 bg-gray-50 text-xs border-b border-gray-200 space-y-3">
+                    <div>
+                        <span className="text-gray-500 block mb-1">Cliente / Contatto</span>
+                        <strong className="text-sm">{ticket.company_name || `${ticket.name || ''} ${ticket.surname || ''}`.trim()}</strong>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <span className="text-gray-500 block mb-1">Prodotto</span>
+                            <strong>{ticket.brand} {ticket.model}</strong>
+                        </div>
+                        <div>
+                            <span className="text-gray-500 block mb-1">Seriale</span>
+                            <strong className="font-mono bg-gray-200 px-1 rounded">{ticket.serial}</strong>
+                        </div>
+                    </div>
+                    {ticket.problem_description && (
+                        <div>
+                            <span className="text-gray-500 block mb-1">Difetto / Problema</span>
+                            <p className="font-medium text-gray-800 line-clamp-3">{ticket.problem_description}</p>
+                        </div>
+                    )}
+                </div>
+                <div className="bg-white p-2 text-center text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                    Apponi la firma qui sotto
                 </div>
                 <SignaturePad onSave={handleSignatureSave} />
             </div>
