@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Save, Printer, Check, Home, Section, Loader2 } from "lucide-react"
 import InitialChoice from "./sections/section0Choice"
 import ProductSelection from "./sections/section2Products"
@@ -99,6 +100,7 @@ interface ActiveMindServicesProps {
 export default function ActiveMindServices({ recordIdTrattativa = "default" }: ActiveMindServicesProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
+  const [printProgress, setPrintProgress] = useState(0)
 
   const [chosenPath, setChosenPath] = useState<"system_assurance" | "services" | "service_asset" | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
@@ -196,10 +198,32 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
   }
 
   const handlePrint = async () => {
+    let progressInterval: NodeJS.Timeout | undefined;
     try {
       setIsPrinting(true)
+      setPrintProgress(10)
 
       toast.info("Generazione PDF e salvataggio in corso...")
+
+      let seconds = 1500
+
+      progressInterval = setInterval(() => {
+        setPrintProgress((prev) => {
+          if (prev >= 99) {
+            clearInterval(progressInterval)
+            return 99
+          }
+          if (prev >= 90) {
+            return prev + 1
+          }
+          if ((prev/10) % 2 == 0) {
+            seconds = seconds - 500
+          }else{
+            seconds = seconds + 500
+          }
+          return prev + 10
+        })
+      }, seconds)
 
       const dataToPrint = {
         ...serviceData,
@@ -240,6 +264,9 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       );
 
       if (response.status === 200) {
+          clearInterval(progressInterval)
+          setPrintProgress(100)
+
           const blob = new Blob([response.data], { type: "application/pdf" })
           const url = URL.createObjectURL(blob)
           const a = document.createElement("a")
@@ -255,10 +282,15 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           throw new Error("Errore nella generazione del PDF")
         }
     } catch (error) {
+      clearInterval(progressInterval)
+      setPrintProgress(0)
       console.error("Errore durante la stampa:", error)
       toast.error("Errore durante la generazione del PDF")
     } finally {
-      setIsPrinting(false)
+      setTimeout(() => {
+        setIsPrinting(false)
+        setPrintProgress(0)
+      }, 500)
     }
   }
 
@@ -451,6 +483,15 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
 
       {/* Navigation Buttons */}
       <div className="print:hidden">
+        {isPrinting && (
+          <div className="py-2 space-y-2 pb-4">
+            <div className="flex justify-between text-sm text-gray-500 font-medium">
+              <span>Caricamento per la stampa in corso...</span>
+              <span>{printProgress}%</span>
+            </div>
+            <Progress value={printProgress} className="h-2 bg-gray-200 w-full" indicatorColor="bg-blue-600" />
+          </div>
+        )}
         {/* Mobile Layout */}
         <div className="flex flex-col space-y-3 sm:hidden">
           <div className="flex justify-between">
