@@ -42,6 +42,7 @@ interface TimesheetItem {
     id: string;
     date: string;
     company: string;
+    is_signed?: boolean;
 }
 
 interface User {
@@ -293,10 +294,10 @@ export default function BixHub() {
                                         )}
                                         
                                         {timesheetApp && (
-                                            <div className="p-3 bg-zinc-50 border-t border-zinc-100 text-center">
+                                            <div className="bg-zinc-50 border-t border-zinc-100 hover:bg-zinc-100 transition-colors text-center">
                                                  <button 
                                                     onClick={() => setShowHistory(!showHistory)}
-                                                    className="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
+                                                    className="p-3 w-full h-full text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
                                                  >
                                                     {showHistory ? "Nascondi storico" : "Vedi storico completo"}
                                                  </button>
@@ -330,7 +331,12 @@ export default function BixHub() {
                                                                     <span className="text-[10px] text-emerald-600/70 font-medium uppercase tracking-wider">Completato</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex flex-col items-end shrink-0 pl-2">
+                                                            <div className="flex flex-col items-end shrink-0 pl-2 gap-1">
+                                                                {!ts.is_signed && (
+                                                                    <span className="text-[9px] font-bold text-amber-600 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
+                                                                        Da Firmare
+                                                                    </span>
+                                                                )}
                                                                 <span className="text-xs font-bold text-emerald-600 bg-emerald-100/50 px-2 py-1 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
                                                                     {formatDate(ts.date)}
                                                                 </span>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import DigitalSignature from './activeMind/DigitalSignature';
 
 interface SignatureDialogProps {
@@ -25,16 +26,37 @@ export const SignatureDialog = ({
   const [signatureSaved, setSignatureSaved] = useState(false);
   const [savedSignature, setSavedSignature] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const handleSaveSignature = async () => {
     try {
       setLoading(true);
+      setProgress(10);
+      
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(interval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 400);
+
       const result = await onSaveSignature?.(); // Salvataggio (può essere sincrono o async)
-      setSavedSignature(result); // Salva il valore ritornato
-      setSignatureSaved(true); // Mostra i nuovi bottoni
+      
+      clearInterval(interval);
+      setProgress(100);
+      
+      setTimeout(() => {
+        setSavedSignature(result); // Salva il valore ritornato
+        setSignatureSaved(true); // Mostra i nuovi bottoni
+        setProgress(0);
+        setLoading(false);
+      }, 400);
     } catch (err) {
       console.error('Errore durante il salvataggio firma:', err);
-    } finally {
+      setProgress(0);
       setLoading(false);
     }
   };
@@ -42,6 +64,8 @@ export const SignatureDialog = ({
   const handleClose = () => {
     setSignatureSaved(false);
     setSavedSignature(null);
+    setProgress(0);
+    setLoading(false);
     onOpenChange(false);
   };
 
@@ -52,6 +76,8 @@ export const SignatureDialog = ({
         if (!open) {
           setSignatureSaved(false);
           setSavedSignature(null);
+          setProgress(0);
+          setLoading(false);
         }
         onOpenChange(open);
       }}
@@ -91,6 +117,16 @@ export const SignatureDialog = ({
             </>
           )}
 
+          {loading && (
+            <div className="py-2 space-y-2 pb-4">
+              <div className="flex justify-between text-sm text-gray-500 font-medium">
+                <span>Salvataggio firma in corso...</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-2 bg-gray-200 w-full" indicatorColor="bg-green-700" />
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-4 border-t border-accent/10">
             {!signatureSaved ? (
               <>
@@ -105,7 +141,7 @@ export const SignatureDialog = ({
                   disabled={loading}
                   className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors duration-200 font-medium shadow-md hover:shadow-lg disabled:opacity-60"
                 >
-                  {loading ? 'Salvataggio...' : 'Salva Firma'}
+                  {loading ? 'Salvataggio in corso...' : 'Salva Firma e genera PDF'}
                 </button>
               </>
             ) : (

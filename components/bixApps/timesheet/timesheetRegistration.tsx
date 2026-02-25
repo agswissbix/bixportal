@@ -667,7 +667,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                             <div className="fixed top-0 left-0 right-0 h-1.5 flex z-[200] bg-white border-b border-zinc-100">
                                 <div
                                     className="h-full bg-orange-500 transition-all duration-500"
-                                    style={{ width: `${(step / 14) * 100}%` }}
+                                    style={{ width: `${(step === 12 ? 10 : step > 9 ? 9 : step) / 10 * 100}%` }}
                                 />
                             </div>
 
@@ -1105,8 +1105,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                 )}
 
                                 {/* --- 9. RIEPILOGO RECAP --- */}
-                                {/* --- 10. RIEPILOGO RECAP (Moved from 9) --- */}
-                                {step === 10 && (
+                                {/* --- 12. RIEPILOGO RECAP (Moved from 10) --- */}
+                                {step === 12 && (
                                     <div className="animate-in zoom-in-95 duration-300">
                                         <StepTitle
                                             title="Riepilogo Totale"
@@ -1116,7 +1116,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         />
                                         <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 shadow-sm space-y-1 mb-8 text-left">
                                             <RecapRow
-                                                label="Utente"
+                                                label="Collaboratore"
                                                 value={formData.utente?.name}
                                                 icon={Icons.UserCircleIcon}
                                                 onEdit={() => setStep(1)}
@@ -1180,8 +1180,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                                                     Descrizione Attività
                                                 </span>
-                                                <p className="text-sm font-medium italic text-zinc-600 leading-relaxed pr-6">
-                                                    "{formData.descrizione}"
+                                                <p className="text-sm font-semibold text-zinc-600 leading-relaxed pr-6">
+                                                    {formData.descrizione}
                                                 </p>
                                             </div>
 
@@ -1190,7 +1190,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
                                                         Materiali Utilizzati
                                                         <button 
-                                                            onClick={() => setStep(9)} 
+                                                            onClick={() => setStep(10)} 
                                                             className="absolute top-0 right-0 p-1 pt-4 text-zinc-300 hover:text-orange-500 transition-colors">
                                                             <Icons.PencilSquareIcon className="w-4 h-4" />
                                                         </button>
@@ -1207,12 +1207,12 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                 </div>
                                             )}
 
-                                            {formData.allegati.length > 0 && (
+                                            {/* {formData.allegati.length > 0 && (
                                                 <div className="pt-4 mt-4 border-t border-zinc-100 relative">
                                                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
                                                         Allegati
                                                         <button 
-                                                            onClick={() => setStep(9)} 
+                                                            onClick={() => setStep(11)} 
                                                             className="absolute top-0 right-0 p-1 pt-4 text-zinc-300 hover:text-orange-500 transition-colors">
                                                             <Icons.PencilSquareIcon className="w-4 h-4" />
                                                         </button>
@@ -1224,7 +1224,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                                         </div>
                                                     ))}
                                                 </div>
-                                            )}
+                                            )} */}
                                         </div>
                                         <div className="space-y-4">
                                             <button
@@ -1266,7 +1266,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         <div className="grid gap-4 mt-10">
                                         <button
                                             disabled={!timesheetId}
-                                            onClick={() => setStep(11)}
+                                            onClick={() => setStep(10)}
                                             className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
                                             <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
                                                 <Icons.InboxStackIcon className="w-6 h-6" />
@@ -1286,7 +1286,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         </button>
                                         <button
                                             disabled={!timesheetId}
-                                            onClick={() => setStep(13)}
+                                            onClick={() => setStep(11)}
                                             className="p-6 bg-white border border-zinc-200 rounded-3xl flex items-center gap-4 active:scale-95 shadow-sm">
                                             <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
                                                 <Icons.PaperClipIcon className="w-6 h-6" />
@@ -1352,7 +1352,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             </button> */}
                                             {/* <button
                                                 onClick={() =>
-                                                    setStep(10)
+                                                    setStep(12)
                                                 }
                                                 className="mt-10 p-6 bg-zinc-900 text-white rounded-[2rem] font-bold flex items-center justify-center gap-3 w-full active:scale-95 transition-all shadow-lg">
                                                 <Icons.FlagIcon className="w-5 h-5" />
@@ -1362,8 +1362,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                     </div>
                                 )}
 
-                                {/* --- 11-12. MATERIALI --- */}
-                                {step === 11 && (
+                                {/* --- 10. MATERIALI --- */}
+                                {step === 10 && (
                                     <div>
                                         <StepTitle
                                             title="Materiali"
@@ -1413,8 +1413,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                     </div>
                                 )}
 
-                                {/* --- 13-14. ALLEGATI --- */}
-                                {step === 13 && (
+                                {/* --- 11. ALLEGATI --- */}
+                                {step === 11 && (
                                     <div>
                                         <StepTitle
                                             title="Allegati"
@@ -1511,10 +1511,10 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                             {/* FOOTER NAVIGAZIONE (SOLO STEP < 9) */}
                             <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-zinc-100 flex gap-3 z-[100]">
 
-                                 {(step > 1 && step < 11) ? (
+                                 {((step > 1 && step <= 9) || step === 12) ? (
                                     <button
                                         onClick={() => {
-                                            if (step === 11) setStep(9);
+                                            if (step === 12) setStep(9);
                                             else setStep((s) => s - 1);
                                         }}
                                         className="p-4 rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 active:scale-90 transition-all">
@@ -1524,15 +1524,15 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         />
                                     </button>
                                 ) : null}
-                                {step < 9 || step < 10 ? (
+                                {step <= 9 ? (
                                     <>
                                     <button
                                         disabled={!isStepValid || isSaving}
                                         onClick={() => {
                                             if (step === 8) {
                                                 handleSaveBase("continue");
-                                            } else if (step === 11) {
-                                                setStep(9);
+                                            } else if (step === 9) {
+                                                setStep(12);
                                             } else {
                                                 setStep((s) => s + 1);
                                             }
