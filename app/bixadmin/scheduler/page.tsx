@@ -12,6 +12,7 @@ import { useApi } from "@/utils/useApi";
 import { Trash2, Play, Save, Plus, Power, Calendar, Clock, Repeat, Settings, CheckCircle, XCircle, PlayCircle, Loader2, RefreshCw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
+import { ChevronRight, ChevronDown } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Copy, ExternalLink } from "lucide-react";
@@ -175,9 +176,9 @@ export default function SchedulerPage() {
               .replace(/False/g, "false")
               .replace(/None/g, "null");
 
-          return JSON.stringify(JSON.parse(jsonValid), null, 2);
+          return JSON.parse(jsonValid);
       } catch (e) {
-          return str; // Ritorna l'originale se il parsing fallisce
+          return null; // Ritorna null se il parsing fallisce
       }
   };
 
@@ -328,7 +329,8 @@ export default function SchedulerPage() {
     return obj;
   };
 
-  const renderOutput = (output: string | undefined) => {
+  const renderOutput = (schedule: Schedule) => {
+      const output = schedule.output;
       if (!output)
           return <span className="text-slate-400 italic">Nessun output</span>;
 
@@ -350,6 +352,28 @@ export default function SchedulerPage() {
               : parsedOutput.value || status
           : output;
 
+      let isOldOutput = false;
+      if (isJson && parsedOutput.timestamp && schedule.next_run && schedule.schedule_type === 'I' && schedule.minutes) {
+          const nextRunTime = new Date(schedule.next_run.includes('T') ? schedule.next_run : schedule.next_run + 'T00:00:00').getTime();
+          console.log("nextruntime:", nextRunTime);
+          console.log("timestamp:", parsedOutput.timestamp);
+          console.log("minutes:", schedule.minutes);
+          if (!isNaN(nextRunTime)) {
+              const [datePart, timePart] = parsedOutput.timestamp.split(' ');
+              const [day, month, year] = datePart.split('/');
+              const outputTime = new Date(`${year}-${month}-${day}T${timePart}`).getTime();
+              console.log("outputTime:", outputTime);
+              const intervalMs = schedule.minutes * 60 * 1000;
+              console.log("intervalMs:", intervalMs);
+              const expectedLastRunTime = nextRunTime - intervalMs;
+              console.log("expectedLastRunTime:", expectedLastRunTime);
+              
+              if (outputTime <= expectedLastRunTime + 60000) {
+                  isOldOutput = true;
+              }
+          }
+      }
+
       // Logica Colori Originale
       let colorClass = "bg-slate-100 text-slate-800 hover:bg-slate-200";
       if (status === "success")
@@ -359,27 +383,38 @@ export default function SchedulerPage() {
       else if (output.toLowerCase().includes("running") || status === "running")
           colorClass = "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
 
+      if (isOldOutput) {
+          colorClass = "bg-orange-50 text-orange-800 hover:bg-orange-100 border-orange-300 border-dashed border";
+      }
+
       const openDetails = () => {
           setSelectedOutput(output);
           setIsOutputDialogOpen(true);
       };
 
       return (
-          <div className="flex items-center space-x-2">
-              <Badge
-                  className={`cursor-pointer font-medium transition-all ${colorClass}`}
-                  variant="secondary"
-                  onClick={openDetails}
-                  title="Clicca per i dettagli">
-                  <span className="truncate max-w-[120px]">{message}</span>
-              </Badge>
-              <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-slate-400 hover:text-indigo-600"
-                  onClick={openDetails}>
-                  <ExternalLink className="h-3 w-3" />
-              </Button>
+          <div className="flex flex-col space-y-1">
+              <div className="flex items-center space-x-2">
+                  <Badge
+                      className={`cursor-pointer font-medium transition-all ${colorClass}`}
+                      variant="secondary"
+                      onClick={openDetails}
+                      title={isOldOutput ? "Output obsoleto / Ciclo saltato" : "Clicca per i dettagli"}>
+                      <span className="truncate max-w-[120px]">{message}</span>
+                  </Badge>
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-slate-400 hover:text-indigo-600"
+                      onClick={openDetails}>
+                      <ExternalLink className="h-3 w-3" />
+                  </Button>
+              </div>
+              {isOldOutput && (
+                  <span className="text-[10px] text-orange-600 font-medium leading-tight max-w-[150px]">
+                      Ciclo saltato / Vecchio output
+                  </span>
+              )}
           </div>
       );
   };
@@ -392,7 +427,7 @@ export default function SchedulerPage() {
           {(response: SchedulerResponse) => (
               <>
                   <div className="w-full max-h-[calc(100vh-80px)] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6 pb-20 overflow-y-auto">
-                      <div className="max-w-7xl mx-auto space-y-8">
+                      <div className="w-3/4 mx-auto space-y-8">
                           {/* Header */}
                           <div className="mb-8">
                               <div className="flex items-center justify-between">
@@ -953,9 +988,7 @@ export default function SchedulerPage() {
                                                       </td>
                                                       <td className="p-3">
                                                           <div className="flex justify-start">
-                                                              {renderOutput(
-                                                                  s.output
-                                                              )}
+                                                              {renderOutput(s)}
                                                           </div>
                                                       </td>
                                                       <td className="p-3">
@@ -1193,12 +1226,40 @@ export default function SchedulerPage() {
                               </DialogTitle>
                           </DialogHeader>
 
-                          <div className="flex-1 overflow-y-auto mt-4 rounded-lg border bg-slate-950 p-4">
-                              <pre className="text-sm font-mono text-blue-300 whitespace-pre-wrap break-all leading-relaxed">
-                                  {selectedOutput
-                                      ? formatJsonString(selectedOutput)
-                                      : "Nessun dato"}
-                              </pre>
+                          <div className="flex-1 overflow-y-auto mt-4 rounded-lg border bg-slate-950 p-4 space-y-4 text-sm font-mono text-blue-300">
+                              {(() => {
+                                  if (!selectedOutput) return "Nessun dato";
+                                  const parsed = formatJsonString(selectedOutput);
+                                  
+                                  if (!parsed) {
+                                      // Se non è JSON valido, mostra la stringa nuda
+                                      return <pre className="whitespace-pre-wrap break-all leading-relaxed">{selectedOutput}</pre>;
+                                  }
+
+                                  // Estrapola hidden_log se presente
+                                  const { hidden_log, ...restOfOutput } = parsed;
+                                  
+                                  return (
+                                      <>
+                                          <pre className="whitespace-pre-wrap break-all leading-relaxed">
+                                              {JSON.stringify(restOfOutput, null, 2)}
+                                          </pre>
+                                          
+                                          {hidden_log !== undefined && (
+                                              <details className="mt-4 border-t border-slate-800 pt-4 group">
+                                                  <summary className="cursor-pointer text-yellow-500 font-semibold hover:text-yellow-400 select-none list-none flex items-center">
+                                                      <span className="mr-2 group-open:hidden"><ChevronRight className="w-4 h-4"/></span>
+                                                      <span className="mr-2 hidden group-open:block"><ChevronDown className="w-4 h-4"/></span>
+                                                      hidden_log
+                                                  </summary>
+                                                  <pre className="mt-3 pl-6 border-l-2 border-slate-800 text-yellow-200 whitespace-pre-wrap break-all text-xs leading-relaxed">
+                                                      {JSON.stringify(hidden_log, null, 2).replace(/\\n/g, "\n")}
+                                                  </pre>
+                                              </details>
+                                          )}
+                                      </>
+                                  );
+                              })()}
                           </div>
 
                           <DialogFooter className="pt-4 border-t">
