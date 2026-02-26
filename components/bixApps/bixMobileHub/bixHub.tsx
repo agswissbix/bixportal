@@ -20,8 +20,10 @@ import {
     CalendarDaysIcon,
     BuildingOfficeIcon,
     ExclamationCircleIcon,
-    CheckCircleIcon
+    CheckCircleIcon,
+    ChevronDownIcon
 } from '@heroicons/react/24/solid';
+import { Computer, Laptop } from 'lucide-react';
 
 // INTERFACCE
 interface BixApp {
@@ -49,12 +51,24 @@ interface User {
     name: string;
 }
 
+interface LenovoTicketItem {
+    id: string;
+    name: string;
+    surname: string;
+    company: string;
+    status: string;
+    date: string;
+    problem_description?: string;
+}
+
 interface ResponseInterface {
     bixApps: BixApp[];
     timesheets?: TimesheetItem[];
     closedTimesheets?: TimesheetItem[];
+    lenovoTickets?: LenovoTicketItem[];
     user: User;
     timesheet_fn?: BixApp;
+    lenovo_fn?: BixApp;
 }
 
 export default function BixHub() {
@@ -167,6 +181,54 @@ export default function BixHub() {
         }
     };
 
+    const getStatusTheme = (status: string) => {
+        const lower = status.toLowerCase();
+        
+        switch (lower) {
+            case 'presa in consegna':
+                return {
+                    bg: 'bg-emerald-50/50',
+                    text: 'text-emerald-700',
+                    border: 'border-emerald-200/50',
+                    icon: 'text-emerald-500',
+                    borderGroup: 'group-open:border-emerald-200/50'
+                };
+            case 'diagnostica':
+                return {
+                    bg: 'bg-violet-100/50',
+                    text: 'text-violet-700',
+                    border: 'border-violet-300/50',
+                    icon: 'text-violet-500',
+                    borderGroup: 'group-open:border-violet-300/50'
+                };
+            case 'attesa tecnico':
+                return {
+                    bg: 'bg-amber-50/50',
+                    text: 'text-amber-700',
+                    border: 'border-amber-200/50',
+                    icon: 'text-amber-500',
+                    borderGroup: 'group-open:border-amber-200/50'
+                };
+            case 'riparazione in corso':
+                return {
+                    bg: 'bg-blue-100/50',
+                    text: 'text-blue-700',
+                    border: 'border-blue-300/50',
+                    icon: 'text-blue-500',
+                    borderGroup: 'group-open:border-blue-300/50'
+                };
+            case 'riconsegnato':
+            case 'attesa componenti':
+                return {
+                    bg: 'bg-orange-50/50',
+                    text: 'text-orange-700',
+                    border: 'border-orange-200/50',
+                    icon: 'text-orange-500',
+                    borderGroup: 'group-open:border-orange-200/50'
+                };
+        }
+    };
+
     return (
         <GenericComponent response={responseData} loading={loading} error={error}>
             {(dataResponse: ResponseInterface) => {
@@ -174,8 +236,19 @@ export default function BixHub() {
                 const apps = safeResponse.bixApps || [];
                 const timesheets = safeResponse.timesheets || [];
                 const closedTimesheets = safeResponse.closedTimesheets || [];
+                const lenovoTickets = safeResponse.lenovoTickets || [];
 
                 const timesheetApp = safeResponse.timesheet_fn;
+                const lenovoApp = safeResponse.lenovo_fn;
+
+                // Group lenovo tickets by status
+                const groupedLenovoTickets = lenovoTickets.reduce((acc, ticket) => {
+                    if (!acc[ticket.status]) {
+                        acc[ticket.status] = [];
+                    }
+                    acc[ticket.status].push(ticket);
+                    return acc;
+                }, {} as Record<string, LenovoTicketItem[]>);
 
                 const today = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -205,15 +278,13 @@ export default function BixHub() {
                                 </div>
                             </header>
 
-                            <div className="flex flex-col lg:flex-row gap-8">
-                                
-                                {/* APPS GRID */}
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
-                                        <Squares2X2Icon className="w-5 h-5 text-zinc-400" /> Applicazioni
-                                    </h2>
-                                    {apps.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                            {/* APPS GRID */}
+                            <div className="mb-8 w-full">
+                                <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
+                                    <Squares2X2Icon className="w-5 h-5 text-zinc-400" /> Applicazioni
+                                </h2>
+                                {apps.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
                                             {apps.map((app, index) => {
                                                  const theme = getTheme(index);
                                                  return (
@@ -247,9 +318,12 @@ export default function BixHub() {
                                             <p className="text-zinc-400 font-medium">Nessuna app disponibile</p>
                                         </div>
                                     )}
-                                </div>
+                            </div>
 
-                                <div className="w-full lg:w-1/3 animate-in fade-in slide-in-from-right-4 duration-700 delay-200">
+                            <div className="flex flex-col lg:flex-row gap-8 items-start">
+                                
+                                {/* TIMESHEETS */}
+                                <div className="w-full lg:w-1/2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                                     <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
                                         <ExclamationCircleIcon className="w-5 h-5 text-amber-500" /> Timesheets Da Completare
                                     </h2>
@@ -349,7 +423,33 @@ export default function BixHub() {
                                     </div>
                                 </div>
 
+                                {/* LENOVO TICKETS */}
+                                {lenovoTickets.length > 0 && (
+                                    <div className="w-full lg:w-1/2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+                                        <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
+                                            <Laptop className="w-5 h-5 text-blue-500" /> Ticket Lenovo in Sospeso
+                                        </h2>
+                                        <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+                                            {Object.entries(groupedLenovoTickets).map(([status, tickets], groupIndex) => {
+                                                const theme = getStatusTheme(status);
+                                                return (
+                                                    <LenovoStatusGroup
+                                                        key={status}
+                                                        status={status}
+                                                        tickets={tickets}
+                                                        theme={theme}
+                                                        lenovoApp={lenovoApp}
+                                                        handleTimesheetClick={handleTimesheetClick}
+                                                        formatDate={formatDate}
+                                                        isLast={groupIndex === Object.entries(groupedLenovoTickets).length - 1}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
+
                         </main>
                     </div>
                 );
@@ -357,3 +457,92 @@ export default function BixHub() {
         </GenericComponent>
     );
 };
+
+function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetClick, formatDate, isLast }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div className={`${!isLast ? 'border-b border-zinc-100' : ''}`}>
+            {/* Header gruppo status */}
+            <button
+                onClick={() => setOpen(!open)}
+                className={`
+                    w-full flex items-center justify-between px-4 py-3
+                    ${open ? theme.bg : 'hover:bg-zinc-50'}
+                    transition-colors duration-200
+                `}
+            >
+                <div className="flex items-center gap-2.5">
+                    {/* Dot colorato */}
+                    <span className={`w-2 h-2 rounded-full ${theme.dot} shrink-0`} />
+                    <span className={`text-sm font-bold ${open ? theme.text : 'text-zinc-600'} uppercase tracking-wider transition-colors`}>
+                        {status}
+                    </span>
+                    {/* Badge count */}
+                    <span className={`
+                        text-[10px] font-black px-1.5 py-0.5 rounded-full
+                        ${open ? `${theme.badgeBg} ${theme.text}` : 'bg-zinc-100 text-zinc-500'}
+                        transition-colors duration-200
+                    `}>
+                        {tickets.length}
+                    </span>
+                </div>
+                <ChevronDownIcon className={`
+                    w-4 h-4 ${open ? theme.icon : 'text-zinc-400'}
+                    transition-transform duration-300 ${open ? 'rotate-180' : ''}
+                `} />
+            </button>
+
+            {/* Lista tickets */}
+            <div className={`
+                overflow-hidden transition-all duration-300 ease-in-out
+                ${open ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
+            `}>
+                <div className="divide-y divide-zinc-50">
+                    {tickets.map((ticket) => (
+                        <div
+                            key={ticket.id}
+                            onClick={() => lenovoApp && handleTimesheetClick(lenovoApp, ticket.id)}
+                            className="group/item flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors cursor-pointer"
+                        >
+                            {/* Icona */}
+                            <div className={`
+                                w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+                                ${theme.bg} ${theme.icon}
+                                border ${theme.border}
+                                group-hover/item:scale-110 transition-transform duration-200
+                            `}>
+                                <Computer className="w-4 h-4" />
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                                <div className={`text-sm font-bold text-zinc-700 group-hover/item:${theme.text} transition-colors truncate`}>
+                                    {
+                                        ticket.company
+                                            ? `${ticket.company}${
+                                                ticket.name || ticket.surname
+                                                    ? ` - ${[ticket.name, ticket.surname].filter(Boolean).join(" ")}`
+                                                    : ""
+                                            }`
+                                            : [ticket.name, ticket.surname].filter(Boolean).join(" ")
+                                    }
+                                </div>
+                                {ticket.problem_description && (
+                                    <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
+                                        {ticket.problem_description}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Data */}
+                            <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-lg shrink-0 group-hover/item:bg-white group-hover/item:shadow-sm transition-all border border-zinc-100">
+                                {formatDate(ticket.date)}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}

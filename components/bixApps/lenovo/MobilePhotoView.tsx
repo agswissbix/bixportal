@@ -4,6 +4,13 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast, Toaster } from "sonner";
 import * as Icons from "@heroicons/react/24/outline";
 import SignaturePad from './SignaturePad';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
     ticketId: string;
@@ -23,6 +30,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
     const [photo, setPhoto] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [note, setNote] = useState("");
+    const [attachmentType, setAttachmentType] = useState("pre-intervento");
 
     const [activeTab, setActiveTab] = useState<'photo' | 'attachments' | 'signature'>('photo');
 
@@ -99,6 +107,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
             } else {
                 apiRoute = "upload_lenovo_attachment";
                 formData.append("note", note);
+                formData.append("attachment_type", attachmentType);
             }
             formData.append("apiRoute", apiRoute);
 
@@ -323,13 +332,28 @@ export default function MobilePhotoView({ ticketId }: Props) {
                             </div>
 
                             {view === 'upload_attachment' && (
-                                <input 
-                                    type="text" 
-                                    value={note}
-                                    onChange={e => setNote(e.target.value)}
-                                    placeholder="Note..."
-                                    className="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#E2231A]"
-                                />
+                                <div className="space-y-4">
+                                    <input 
+                                        type="text" 
+                                        value={note}
+                                        onChange={e => setNote(e.target.value)}
+                                        placeholder="Note..."
+                                        className="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#E2231A]"
+                                    />
+                                    
+                                    <Select
+                                        value={attachmentType}
+                                        onValueChange={setAttachmentType}
+                                    >
+                                        <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-[58px] rounded-xl focus:ring-[#E2231A] focus:border-[#E2231A] px-4">
+                                            <SelectValue placeholder="Tipo di allegato..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="">
+                                            <SelectItem className="" value="pre-intervento">Foto pre-intervento</SelectItem>
+                                            <SelectItem className="" value="post-intervento">Foto post-intervento</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             )}
 
                             <button 

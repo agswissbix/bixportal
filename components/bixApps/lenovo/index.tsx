@@ -9,6 +9,7 @@ import * as Icons from "@heroicons/react/24/outline";
 import QRCode from "react-qr-code";
 import { useSearchParams } from "next/navigation";
 import SelectStandard from "../../selectStandard";
+import SelectUser from "../../selectUser";
 import { StepIndicator } from "./StepIndicator";
 import { AuthCard } from "./AuthCard";
 import { AccessorySelector } from "./AccessorySelector";
@@ -72,6 +73,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         password: "",
         warranty: "No", // 'Si' | 'No'
         warranty_type: "",
+        technician: "",
         
         // Authorization
         auth_factory_reset: "No",
@@ -85,6 +87,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
     // Lookup State
     const [lookups, setLookups] = useState<{ itemcode: string; itemdesc: string; }[]>([]);
+    const [usersLookup, setUsersLookup] = useState<any[]>([]);
 
     // Field Settings
     const [fieldSettings, setFieldSettings] = useState<any>({});
@@ -103,6 +106,10 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         if (response) {
           setFieldSettings(response.field_settings)
           setLookups(response.lookups?.accessories || [])
+          setUsersLookup(response.lookups?.users || [])
+          if (response.logged_in_userid) {
+            setFormData(prev => prev.technician ? prev : { ...prev, technician: response.logged_in_userid })
+          }
           console.log("Custom functions loaded:", response)
         }
       }, [response])
@@ -457,10 +464,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             // Save as 'Aperto' to trigger signature mode on mobile
             const id = await handleSave('Presa in consegna');
             if(id) {
-                const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${id}`;
-                setMobileUrl(url);
-                setShowQR(true); 
-                toast.info("Scansiona il QR con il mobile per firmare.");
+                if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                    setShowSignatureModal(true);
+                } else {
+                    const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${id}`;
+                    setMobileUrl(url);
+                    setShowQR(true); 
+                    toast.info("Scansiona il QR con il mobile per firmare.");
+                }
             }
         }
     };
@@ -476,6 +487,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             const res = await axiosInstanceClient.post("/postApi", formDataLocal);
             if (res.data.success) {
                 toast.success("Signature saved!");
+                setFormData(prev => ({ ...prev, signatureUrl: res.data.signatureUrl || "signed" }));
+                setShowSignatureModal(false);
                 // Reload to show signed state
                 // window.location.reload();
             } else {
@@ -776,6 +789,16 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 />
                              </div>
 
+                             {/* Technician */}
+                             <div>
+                                <Label field="technician" text="Technician" />
+                                <SelectUser 
+                                    lookupItems={usersLookup} 
+                                    initialValue={formData.technician}
+                                    onChange={(value) => setFormData(prev => ({...prev, technician: value as string}))}
+                                />
+                             </div>
+
                              {/* Warranty & Authorization */}
                              <div className="space-y-4 pt-6 border-t border-gray-100">
                                 <h3 className="text-lg font-bold">Warranty & Authorization</h3>
@@ -873,7 +896,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     {/* Step 4: Multimedia & Sign */}
                     {step === 4 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                            <h2 className="text-2xl font-bold mb-4">Multimedia & Sign</h2>
+                            <h2 className="text-2xl font-bold mb-4">Multimedia</h2>
                             
                             {/* Product Photo Section */}
                             <div className="flex flex-col md:flex-row gap-6">
@@ -887,7 +910,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     />
                                     <Icons.ComputerDesktopIcon className="w-10 h-10 text-gray-400 mb-2" />
                                     <p className="text-sm font-medium text-gray-600">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Upload from Mobile" : "Upload from PC"}
+                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Upload" : "Upload from PC"}
                                     </p>
                                     <p className="text-xs text-gray-400">
                                         {typeof window !== 'undefined' && window.innerWidth < 768 ? "Choose a file or take a photo" : "Click or drag file here"}
@@ -896,7 +919,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
                                 {/* Mobile Handoff & Direct Sign */}
                                 {/* {window.innerWidth >= 768 && ( */}
-                                <div className="flex-1 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
+                                <div className="flex-1 hidden md:flex flex-col border-2 border-dashed border-gray-300 rounded-xl p-6 items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
                                      onClick={async () => {
                                         // Detect mobile (simple check)
                                         const isMobile = window.innerWidth < 768;
@@ -989,11 +1012,11 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                             onValueChange={(val) => setAttachmentType(val)}
                                         >
                                             <SelectTrigger className="w-40 bg-white border-gray-300 text-sm">
-                                                <SelectValue placeholder="Type" />
+                                                <SelectValue placeholder="Tipo di allegato..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="pre-intervento">Pre-intervento</SelectItem>
-                                                <SelectItem value="post-intervento">Post-intervento</SelectItem>
+                                                <SelectItem value="pre-intervento">Foto pre-intervento</SelectItem>
+                                                <SelectItem value="post-intervento">Foto post-intervento</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <div className="relative">
@@ -1147,6 +1170,26 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         <span className="text-gray-500">Richiesta Preventivo</span><span className="font-bold">{formData.request_quote}</span>
                                         <span className="text-gray-500">Riparazione Diretta</span><span className="font-bold">{formData.direct_repair} {formData.direct_repair === 'Si' ? `(Max ${formData.direct_repair_limit} CHF)` : ''}</span>
                                         <span className="text-gray-500">Auth. Formattazione</span><span className="font-bold">{formData.auth_formatting}</span>
+                                    </div>
+                                </div>
+
+                                {/* Multimedia & Allegati */}
+                                <div>
+                                    <div className="flex items-center justify-between border-b border-red-200 pb-2 mb-3">
+                                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Icons.PaperClipIcon className="w-4 h-4 text-[#E2231A]" /> Allegati
+                                        </h3>
+                                        <button onClick={() => setStep(4)} className="text-xs text-[#E2231A] font-medium hover:underline flex items-center gap-1">Modifica <Icons.PencilIcon className="w-3 h-3"/></button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                                        <span className="text-gray-500">Foto Dispositivo</span>
+                                        <span className="font-bold">{formData.product_photo ? 'Presente' : 'Non presente'}</span>
+                                        <span className="text-gray-500">Documenti/Altre foto</span>
+                                        <span className="font-bold">
+                                            {attachments.length > 0 
+                                                ? `${attachments.length} caricati (Pre: ${attachments.filter(a => a.type === 'pre-intervento').length}, Post: ${attachments.filter(a => a.type === 'post-intervento').length}${attachments.filter(a => a.type !== 'pre-intervento' && a.type !== 'post-intervento').length > 0 ? `, Altri: ${attachments.filter(a => a.type !== 'pre-intervento' && a.type !== 'post-intervento').length}` : ''})` 
+                                                : 'Nessuno'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
