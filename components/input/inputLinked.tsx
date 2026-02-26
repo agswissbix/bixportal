@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, Filter } from "lucide-react"
 import _ from "lodash"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useRecordsStore } from "../records/recordsStore"
@@ -38,7 +38,7 @@ const fetchLinkedItems = async (
     fieldid: string,
     formValues: Record<string, any>,
     recordid?: string,
-): Promise<LinkedItem[]> => {
+): Promise<{items: LinkedItem[], active_filters: {field: string, value: string, convertedvalue?: string}[]}> => {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
     const payload = {
@@ -76,6 +76,7 @@ export default function inputLinked({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [items, setItems] = useState<LinkedItem[]>([])
+  const [activeFilters, setActiveFilters] = useState<{field: string, value: string, convertedvalue?: string}[]>([])
   const wrapperRef = useRef<HTMLDivElement>(null)
   const { handleRowClick } = useRecordsStore()
 
@@ -101,13 +102,16 @@ export default function inputLinked({
                       initialValue
                   );
 
-                  if (results && results.length > 0) {
-                      const matchedItem = results.find(
+                  if (results?.items && results.items.length > 0) {
+                      const matchedItem = results.items.find(
                           (item) => item.recordid === initialValue
                       );
                       if (matchedItem) {
                           setValue(matchedItem.name);
                       }
+                  }
+                  if (results?.active_filters) {
+                      setActiveFilters(results.active_filters);
                   }
               } catch (err) {
                   console.error(
@@ -138,14 +142,17 @@ export default function inputLinked({
             fieldid,
             formValuesRef.current,
           )
-          setItems(results)
+          setItems(results?.items || [])
+          setActiveFilters(results?.active_filters || [])
         } else {
           setError("Missing required parameters")
           setItems([])
+          setActiveFilters([])
         }
       } catch {
         setError("Error fetching data")
         setItems([])
+        setActiveFilters([])
       } finally {
         setLoading(false)
       }
@@ -252,6 +259,31 @@ export default function inputLinked({
 
       {isOpen && (
         <div className="absolute w-full z-[9999] bg-white mt-2 border border-gray-300 rounded-lg shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+          
+{activeFilters.length > 0 && (
+  <div className="px-3 py-2 bg-zinc-50 border-b border-zinc-100 flex flex-wrap gap-2 items-center">
+    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+      <Filter className="w-4 h-4" />
+    </span>
+    <div className="flex flex-wrap gap-1.5">
+      {activeFilters.map((filter, index) => (
+        <div
+          key={index}
+          className="inline-flex items-center gap-1.5 rounded-full bg-white border border-zinc-200 px-2.5 py-0.5 text-xs"
+        >
+          <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wide">
+            {filter.field}
+          </span>
+          <span className="h-3 w-px bg-zinc-200" />
+          <span className="text-zinc-700 font-medium">
+            {filter.convertedvalue || filter.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+          
           {loading ? (
             <div className="flex items-center justify-center p-4 text-muted-foreground">
               <Loader2 className="animate-spin mr-2" size={20} />
