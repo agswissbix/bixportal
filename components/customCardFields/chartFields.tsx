@@ -327,6 +327,9 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
       title_it: "Titolo in Italiano",
       title_fr: "Titolo in Francese",
       title_de: "Titolo in Tedesco",
+      description_it: "Descrizione in Italiano",
+      description_fr: "Descrizione in Francese",
+      description_de: "Descrizione in Tedesco",
     }
     return descriptions[fieldid] || null
   }
@@ -578,7 +581,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
   }
 
   const fieldsByStep = useMemo(() => {
-    const step1Fields = backendFields.filter((f) => ["name", "title", "title_it", "title_fr", "title_de", "description", "icon", "status"].includes(f.fieldid))
+    const step1Fields = backendFields.filter((f) => ["name", "title", "title_it", "title_fr", "title_de", "description", "description_it", "description_fr", "description_de", "icon", "status"].includes(f.fieldid))
     const step2Fields = backendFields.filter((f) => ["type", "dashboards", "category_dashboard", "function_button", "user"].includes(f.fieldid))
     const step3Fields = backendFields.filter((f) =>
       ["table_name", "views", "fields", "colors", "operation", "dynamic_field_1", "dynamic_field_1_label"].includes(f.fieldid),
@@ -841,7 +844,47 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
                 {visibleSteps.find((s) => s.id === currentStep)?.description}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 pt-6">{currentStepFields.map((field) => renderField(field))}</CardContent>
+            <CardContent className="space-y-6 pt-6">
+              {currentStep === 1 ? (
+                <>
+                  {/* Fields principali (non localizzati) */}
+                  {currentStepFields
+                    .filter((f) => !["title_it", "title_fr", "title_de", "description_it", "description_fr", "description_de"].includes(f.fieldid))
+                    .map((field) => renderField(field))}
+
+                  <div className="bg-gray-50/50 p-4 rounded-lg border border-gray-100 space-y-4">
+                    <h3 className="text-sm font-semibold text-gray-700 pb-2 border-b border-gray-200">
+                      Localizzazione
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase">Titoli Localizzati</h4>
+                        {currentStepFields
+                          .filter((f) => ["title_it", "title_fr", "title_de"].includes(f.fieldid))
+                          .map((field) => (
+                            <div key={field.fieldid} className="w-full">
+                              {renderField(field)}
+                            </div>
+                          ))}
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase">Descrizioni Localizzate</h4>
+                        {currentStepFields
+                          .filter((f) => ["description_it", "description_fr", "description_de"].includes(f.fieldid))
+                          .map((field) => (
+                            <div key={field.fieldid} className="w-full">
+                              {renderField(field)}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                currentStepFields.map((field) => renderField(field))
+              )}
+            </CardContent>
           </Card>
 
           <div className="flex justify-between items-center gap-4 pt-4 border-t-2 border-gray-100">
