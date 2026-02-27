@@ -56,21 +56,40 @@ const getRandomColorFromPalette = () => {
 export default function GenericChart({ chartType, chartData, view, showDataLabels, hideMeta = false }: Props) {
     const [resizeKey, setResizeKey] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
-    const isInitialMount = useRef(true);
+    const mountTime = useRef(Date.now());
+    const prevSize = useRef({ width: 0, height: 0 });
 
     useEffect(() => {
         if (!containerRef.current) return;
         
+        prevSize.current = {
+            width: containerRef.current.clientWidth,
+            height: containerRef.current.clientHeight
+        };
+        
         let timeoutId: NodeJS.Timeout;
-        const observer = new ResizeObserver(() => {
-            if (isInitialMount.current) {
-                isInitialMount.current = false;
+        const observer = new ResizeObserver((entries) => {
+            if (!entries.length) return;
+            
+            const entry = entries[0];
+            const newWidth = entry.contentRect.width;
+            const newHeight = entry.contentRect.height;
+            const prev = prevSize.current;
+            
+            // Ignore any sub-pixel/initial jittering within 1.5 seconds of mounting
+            if (Date.now() - mountTime.current < 1500) {
+                prevSize.current = { width: newWidth, height: newHeight };
                 return;
             }
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                setResizeKey(prev => prev + 1);
-            }, 250);
+            
+            // Solo se la dimensione è cambiata in modo apprezzabile (es. > 5px)
+            if (Math.abs(prev.width - newWidth) > 5 || Math.abs(prev.height - newHeight) > 5) {
+                prevSize.current = { width: newWidth, height: newHeight };
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    setResizeKey(prev => prev + 1);
+                }, 300);
+            }
         });
         
         observer.observe(containerRef.current);
