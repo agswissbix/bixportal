@@ -303,7 +303,7 @@ function Dashboard({ onOpenPopup, dashboardId, selectedYears, refreshDashboard, 
                 gridInstanceRef.current.onResize(); 
                 void gridRef.current.offsetHeight;
 
-                await new Promise(resolve => setTimeout(resolve, 500)); 
+                await new Promise(resolve => setTimeout(resolve, 2000)); 
             }
         },
         onAfterPrint: () => {
