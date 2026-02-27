@@ -41,6 +41,7 @@ interface Timetracking {
     task_id?: string;
     task_name?: string;
     task_expected_duration?: number;
+    service_name?: string;
 }
 
 interface Client {
@@ -48,11 +49,11 @@ interface Client {
     companyname: string;
 }
 
-// INTERFACCIA RISPOSTA DAL BACKEND
 interface ResponseInterface {
     timetracking: Timetracking[];
     clients: Client[];
     task_totals: Record<string, number>;
+    services?: { itemcode: string; itemdesc: string; }[];
 }
 
 export default function TimetrackingList() {
@@ -64,6 +65,7 @@ export default function TimetrackingList() {
         timetracking: [],
         clients: [],
         task_totals: {},
+        services: [],
     };
 
     // DATI RESPONSE PER LO SVILUPPO
@@ -134,6 +136,7 @@ export default function TimetrackingList() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newDescription, setNewDescription] = useState("");
     const [selectedClientId, setSelectedClientId] = useState("");
+    const [selectedService, setSelectedService] = useState("");
 
     // STATO DI RICERCA
     const [searchQuery, setSearchQuery] = useState("");
@@ -470,6 +473,7 @@ export default function TimetrackingList() {
                     apiRoute: "save_timetracking",
                     description: description,
                     clientid: clientid || "",
+                    service: selectedService || "",
                 },
                 {
                     headers: {
@@ -530,6 +534,7 @@ export default function TimetrackingList() {
         setIsModalOpen(false);
         setNewDescription("");
         setSelectedClientId("");
+        setSelectedService("");
         setSearchQuery("");
         setIsDropdownOpen(false);
     };
@@ -734,11 +739,11 @@ export default function TimetrackingList() {
                                                 <p className="font-semibold text-gray-800 line-clamp-2 overflow-hidden">
                                                     {activeTrack.description}
                                                 </p>
-                                                {activeTrack.client_name && (
+                                                {(activeTrack.client_name || activeTrack.service_name) && (
                                                     <span className="text-[10px] text-blue-600 font-bold uppercase truncate block">
-                                                        {
-                                                            activeTrack.client_name
-                                                        }
+                                                        {[activeTrack.client_name, activeTrack.service_name]
+                                                            .filter(Boolean)
+                                                            .join(" · ")}
                                                     </span>
                                                 )}
                                             </div>
@@ -932,7 +937,7 @@ export default function TimetrackingList() {
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-{finishedTracks.length > 0 ? (
+                                {finishedTracks.length > 0 ? (
                                     finishedTracks.map((track, i) => (
                                         <div
                                             key={track.id || i}
@@ -942,9 +947,11 @@ export default function TimetrackingList() {
                                                     <p className="font-semibold text-gray-800 line-clamp-2 overflow-hidden">
                                                         {track.description}
                                                     </p>
-                                                    {track.client_name && (
+                                                    {(track.client_name || track.service_name) && (
                                                         <span className="text-[10px] text-blue-600 font-bold uppercase truncate block">
-                                                            {track.client_name}
+                                                            {[track.client_name, track.service_name]
+                                                                .filter(Boolean)
+                                                                .join(" · ")}
                                                         </span>
                                                     )}
                                                 </div>
@@ -1193,6 +1200,24 @@ export default function TimetrackingList() {
                                                 )}
                                             </div>
                                         )}
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Servizio (opzionale)
+                                        </label>
+                                        <select
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-200 outline-none bg-white cursor-pointer"
+                                            value={selectedService}
+                                            onChange={(e) => setSelectedService(e.target.value)}
+                                        >
+                                            <option value="">Seleziona un servizio...</option>
+                                            {responseData.services?.map((service) => (
+                                                <option key={service.itemcode} value={service.itemcode}>
+                                                    {service.itemdesc}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="flex space-x-3">
