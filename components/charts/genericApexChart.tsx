@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactApexChart, { Props as ReactApexChartProps } from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import OverlappingBarChart from './overlappingChart';
@@ -54,6 +54,33 @@ const getRandomColorFromPalette = () => {
  * Unifica il parsing e il rendering di diversi tipi di grafici.
  */
 export default function GenericChart({ chartType, chartData, view, showDataLabels, hideMeta = false }: Props) {
+    const [resizeKey, setResizeKey] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const isInitialMount = useRef(true);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        
+        let timeoutId: NodeJS.Timeout;
+        const observer = new ResizeObserver(() => {
+            if (isInitialMount.current) {
+                isInitialMount.current = false;
+                return;
+            }
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                setResizeKey(prev => prev + 1);
+            }, 250);
+        });
+        
+        observer.observe(containerRef.current);
+        
+        return () => {
+            clearTimeout(timeoutId);
+            observer.disconnect();
+        };
+    }, []);
+
     if (chartData?.error == "$empty$") {
         return <div className="p-4 text-gray-400"><i>Nessun dato disponibile.</i></div>;
     }
@@ -717,13 +744,15 @@ export default function GenericChart({ chartType, chartData, view, showDataLabel
 
 
         return (
-            <ReactApexChart
-            key={hideMeta ? "hidden" : "visible"}
-                options={finalOptions}
-                series={finalSeries}
-                type={finalType}
-                height="100%"
-            />
+            <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+                <ReactApexChart
+                    key={`${hideMeta ? "hidden" : "visible"}-${resizeKey}`}
+                    options={finalOptions}
+                    series={finalSeries}
+                    type={finalType}
+                    height="100%"
+                />
+            </div>
         );
     }
     
