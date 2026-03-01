@@ -137,7 +137,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const months = useMemo(() => {
     // Se l'anno è 2026 E l'utente NON è admin, mostra solo Gennaio
     if (currentYear === 2026 && !isAdmin) {
-      return ['Gennaio', 'Febbraio', 'Marzo', 'Aprile'];
+      return ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio'];
     }
 
     // In tutti gli altri casi (2025 per tutti, o 2026 per admin), mostra tutti i mesi
@@ -818,8 +818,8 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
                     <button
                       className={`px-4 py-2 rounded ${formData.shift
-                          ? "bg-blue-500 text-white hover:bg-blue-600"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        ? "bg-blue-500 text-white hover:bg-blue-600"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
                       onClick={handleFormSubmit}
                       disabled={!formData.shift}
