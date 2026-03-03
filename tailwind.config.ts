@@ -136,6 +136,7 @@ export default {
 	require("tailwindcss-animate"),
 	require('@tailwindcss/typography'),
   ],
+  /*
   safelist: [
     { pattern: /text-(.*)/ },
     { pattern: /bg-(.*)/ },
@@ -143,4 +144,5 @@ export default {
     { pattern: /fill-(.*)/ },
     { pattern: /stroke-(.*)/ },
   ],
+  */
 } satisfies Config;

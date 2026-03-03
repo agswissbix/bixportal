@@ -10,6 +10,7 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { useRecordsStore } from "./records/recordsStore"
 import { toast } from "sonner"
 import { Camera, RefreshCcw, Upload, ImageIcon } from "lucide-react" // Nuove icone
+import Image from "next/image"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -132,13 +133,16 @@ function UserProfilePic() {
   return (
     <>
       <div className="relative group w-24 h-24">
-        <img
+        <Image
           src={profilePicUrl || "/placeholder.svg"}
           alt="Immagine del profilo"
+          width={96}
+          height={96}
           className="w-full h-full rounded-full object-cover border-2 border-gray-300 transition-opacity duration-200"
           onError={(e) => {
             const target = e.currentTarget
             if (!target.src.includes("default.jpg")) {
+              target.srcset = ""
               target.src = defaultPicUrl
             }
           }}
@@ -223,13 +227,16 @@ function UserProfilePic() {
                         : "border-gray-300 hover:border-primary"
                     } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                   >
-                    <img
+                    <Image
                       src={avatarUrl || defaultPicUrl}
                       alt={`Avatar ${index + 1}`}
+                      fill
+                      sizes="(max-width: 768px) 33vw, 150px"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.currentTarget
                         if (!target.src.includes("default.jpg")) {
+                          target.srcset = ""
                           target.src = defaultPicUrl
                         }
                       }}

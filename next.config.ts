@@ -38,6 +38,11 @@ const nextConfig: NextConfig = {
 
     //TODO: Rivedere questa configurazione per la produzione per le porte
     images: {
+        localPatterns: [
+            {
+                pathname: "/**",
+            },
+        ],
         remotePatterns: [
             {
                 protocol: "http",

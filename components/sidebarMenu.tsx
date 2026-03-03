@@ -225,7 +225,7 @@ export default function Sidebar({}: PropsInterface) {
                   <>
                     <li>
                       <span
-                        className="flex items-center gap-3 block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
                         onClick={() => handleMenuClick("Dashboard")}
                       >
                         <Icons.LayoutDashboard className="w-5 h-5"/>
@@ -277,7 +277,7 @@ export default function Sidebar({}: PropsInterface) {
                     <Link
                       href="/bixadmin/admin"
                       target="_blank"
-                      className="flex items-center gap-3 cursor-pointer block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                      className="flex items-center gap-3 cursor-pointer px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                     >
                       <SquareArrowOutUpRight className="w-5 h-5"/>
                       Admin Settings
@@ -387,13 +387,16 @@ export default function Sidebar({}: PropsInterface) {
               <HMenu as="div" className="relative mx-4 my-4">
                 <div className="flex items-center gap-3">
                   <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar transition-all hover:scale-105 active:scale-95">
-                    <img
-                      src={`/api/media-proxy?url=userProfilePic/${userid}.png`}
+                    <Image
+                      src={userid ? `/api/media-proxy?url=userProfilePic/${userid}.png` : "/api/media-proxy?url=userProfilePic/default.jpg"}
                       alt="profile"
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full object-cover border-2 border-gray-300"
                       onError={(e) => {
                         const target = e.currentTarget
                         if (!target.src.includes("default.jpg")) {
+                          target.srcset = ""
                           target.src = "/api/media-proxy?url=userProfilePic/default.jpg"
                         }
                       }}
