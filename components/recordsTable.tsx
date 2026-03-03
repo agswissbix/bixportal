@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 import { motion, AnimatePresence } from "framer-motion"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
+import { TableSkeleton } from './tableSkeleton';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 // FLAG PER LO SVILUPPO
@@ -592,12 +593,17 @@ export default function RecordsTable({
   return (
     <GenericComponent
       response={responseData}
-      loading={loading}
+      loading={false} // Gestito internamente tramite TableSkeleton per migliorare il CLS
       error={error}
       title="recordsTable"
       elapsedTime={elapsedTime}
     >
-      {(response: ResponseInterface) => (
+      {(response: ResponseInterface) => {
+        if (loading && (!localRows || localRows.length === 0)) {
+          return <TableSkeleton />;
+        }
+        
+        return (
         <div className="h-full w-full flex flex-col">
           {((tableid == "job_status" && activeServer != "swissbix") ||
             (tableid == "monitoring" && activeServer == "swissbix")) && (
@@ -1066,7 +1072,8 @@ export default function RecordsTable({
             )}
           </nav>
         </div>
-      )}
+        );
+      }}
     </GenericComponent>
   )
 }
