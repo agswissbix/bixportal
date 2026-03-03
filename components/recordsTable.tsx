@@ -485,7 +485,9 @@ export default function RecordsTable({
       action: {
         label: "Conferma",
         onClick: async () => {
+          toast.loading("Eliminazione in corso...", {id: "delete"})
           await deleteRecord(recordid)
+          toast.dismiss("delete")
         },
       },
     })

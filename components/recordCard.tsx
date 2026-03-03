@@ -236,7 +236,11 @@ const RecordCard = React.memo(({
     toast.warning('Sei sicuro di voler eliminare questo record?', {
       action: {
         label: 'Conferma',
-        onClick: async () => {await deleteRecord()},
+        onClick: async () => {
+          toast.loading("Eliminazione in corso...", {id: "delete"})
+          await deleteRecord()
+          toast.dismiss("delete")
+        },
       },
     });
   };
