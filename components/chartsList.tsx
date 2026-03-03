@@ -111,7 +111,7 @@ function ChartsList({
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
-      apiRoute: "get_dashboard_blocks",
+      apiRoute: "get_dashboard_charts",
       userid: user,
       dashboardid: dashboardId,
     };

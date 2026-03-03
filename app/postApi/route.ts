@@ -302,6 +302,9 @@ export async function POST(request: Request) {
         case "get_dashboard_blocks":
             djangoUrl = "/commonapp/get_dashboard_blocks/";
             break;
+        case "get_dashboard_charts":
+            djangoUrl = "/commonapp/get_dashboard_charts/";
+            break;
         case "save_dashboard_disposition":
             djangoUrl = "/commonapp/save_dashboard_disposition/";
             break;
