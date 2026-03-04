@@ -239,6 +239,28 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     }
   }
 
+  const handleConvertLookup = async (fieldid: string) => {
+    try {
+      const payload: any = {
+        apiRoute: "settings_table_fields_change_to_lookup",
+        tableid: tableId,
+        userid: userId,
+        fieldid: fieldid
+      }
+
+      const response = await axiosInstanceClient.post("/postApi", payload)
+
+      if (response.data.success) {
+        toast.success("Campo convertito in lookup con successo")
+        setFields(prev => prev.map(f => f.id === fieldid ? { ...f, fieldtypeid: "lookup" } : f))
+      } else {
+        toast.error(response.data.error || "Errore nella conversione del campo")
+      }
+    } catch {
+      toast.error("Errore durante la conversione del campo")
+    }
+  }
+
   const filteredFields = useMemo(() => {
     if (!searchTerm.trim()) return fields
     const lower = searchTerm.toLowerCase()
@@ -450,6 +472,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
               isSaved={isSaved}
               setIsSaved={setIsSaved}
               onItemDelete={handleDeleteField}
+              onItemConvertLookup={handleConvertLookup}
             />
           </CardContent>
         </Card>

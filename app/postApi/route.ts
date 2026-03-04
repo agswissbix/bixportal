@@ -573,6 +573,9 @@ export async function POST(request: Request) {
         case "settings_table_fields_delete_field":
             djangoUrl = "/commonapp/settings_table_fields_delete_field/";
             break;
+        case "settings_table_fields_change_to_lookup":
+            djangoUrl = "/commonapp/settings_table_fields_change_to_lookup/";
+            break;
 
         case "save_signature":
             djangoUrl = "/customapp_swissbix/save_signature/";

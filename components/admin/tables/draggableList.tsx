@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
-import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2, MoreVertical } from "lucide-react"
+import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2, MoreVertical, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -38,6 +38,7 @@ interface DraggableListProps {
   onGroupsChange: (groups: Record<string, DraggableGroup>) => void
   onItemSettings: (itemId: string) => void
   onItemDelete?: (itemId: string) => void
+  onItemConvertLookup?: (itemId: string) => void
   title?: string
   showGroups?: boolean
   isSaved?: boolean
@@ -49,6 +50,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   onGroupsChange,
   onItemSettings,
   onItemDelete,
+  onItemConvertLookup,
   title,
   showGroups = true,
   isSaved = true,
@@ -417,6 +419,15 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="shadow-lg">
+                      {onItemConvertLookup && item.fieldtypeid !== "lookup" && item.fieldtypeid !== "multiselect" && (
+                        <DropdownMenuItem
+                          onClick={() => onItemConvertLookup(item.id)}
+                          className="text-blue-600 focus:text-blue-600 focus:bg-blue-50"
+                        >
+                          <Search className="h-4 w-4 mr-2" />
+                          Converti in Lookup
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => handleDeleteClick(item.id, groupName, item.description)}
                         className="text-red-600 focus:text-red-600 focus:bg-red-50"
@@ -465,6 +476,15 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      {onItemConvertLookup && item.fieldtypeid !== "lookup" && item.fieldtypeid !== "multiselect" && (
+                        <DropdownMenuItem
+                          onClick={() => onItemConvertLookup(item.id)}
+                          className="text-blue-600 focus:text-blue-600 focus:bg-blue-50"
+                        >
+                          <Search className="h-4 w-4 mr-2" />
+                          Converti in Lookup
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => handleDeleteClick(item.id, groupName, item.description)}
                         className="text-red-600 focus:text-red-600 focus:bg-red-50"
