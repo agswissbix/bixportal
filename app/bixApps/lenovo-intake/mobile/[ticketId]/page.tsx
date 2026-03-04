@@ -1,5 +1,3 @@
-"use client";
-
 import React, { use } from 'react'; // Importa 'use'
 import MobilePhotoView from "@/components/bixApps/lenovo/MobilePhotoView";
 import { Metadata } from "next";

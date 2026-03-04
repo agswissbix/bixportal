@@ -1,4 +1,3 @@
-"use client";
 import React, { use } from 'react';
 import LenovoIntakeComponent from "@/components/bixApps/lenovo";
 import { Toaster } from "sonner";
