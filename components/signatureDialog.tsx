@@ -35,9 +35,12 @@ export const SignatureDialog = ({
       
       const interval = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 90) {
+          if (prev >= 99) {
             clearInterval(interval);
-            return 90;
+            return 99;
+          }
+          if (prev >= 90) {
+            return prev + 1;
           }
           return prev + 10;
         });
