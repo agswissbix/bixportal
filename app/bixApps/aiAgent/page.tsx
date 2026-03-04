@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   manifest: "/api/manifest?app=aiAgent",
-  title: "BixData AI Agent",
+  title: "AI Agent - BixData",
 };
 
 interface AiAgentBixAppProps {

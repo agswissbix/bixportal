@@ -4,6 +4,12 @@ import LenovoIntakeComponent from "@/components/bixApps/lenovo";
 // We need useSearchParams to be wrapped in Suspense
 import { useSearchParams } from 'next/navigation';
 import { Toaster } from 'sonner';
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  manifest: "/api/manifest?app=lenovo-intake",
+  title: "Lenovo Intake - BixData",
+};
 
 function LenovoIntakeContent() {
     const searchParams = useSearchParams();

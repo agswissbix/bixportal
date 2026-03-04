@@ -4,7 +4,7 @@ import BixMobileHub from "@/components/bixApps/bixMobileHub/bixMobileHub";
 
 export const metadata: Metadata = {
   manifest: "/api/manifest?app=bixMobileHub",
-  title: "BixData Mobile Hub",
+  title: "Mobile Hub - BixData",
 };
 
 interface BixMobileHubBixAppProps {

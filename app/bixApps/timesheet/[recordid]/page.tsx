@@ -3,7 +3,7 @@ import * as React from "react";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "BixData Timesheet - Modifica",
+  title: "Timesheet - BixData",
 };
 
 interface TimesheetDetailProps {

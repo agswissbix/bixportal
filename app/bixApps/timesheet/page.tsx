@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   manifest: "/api/manifest?app=timesheet",
-  title: "BixData Timesheet",
+  title: " Timesheet - BixData",
 };
 
 interface TimesheetBixAppProps {
