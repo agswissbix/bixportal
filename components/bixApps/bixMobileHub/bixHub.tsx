@@ -226,6 +226,14 @@ export default function BixHub() {
                     icon: 'text-orange-500',
                     borderGroup: 'group-open:border-orange-200/50'
                 };
+            default:
+                return {
+                    bg: 'bg-gray-50/50',
+                    text: 'text-gray-700',
+                    border: 'border-gray-200/50',
+                    icon: 'text-gray-500',
+                    borderGroup: 'group-open:border-gray-200/50'
+                };
         }
     };
 
@@ -296,8 +304,8 @@ export default function BixHub() {
                                                             shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] overflow-hidden
                                                         `}
                                                     >
-                                                        <div className={`absolute inset-0 bg-gradient-to-r ${theme.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                                                        <div className={`flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-xl ${theme.bg} ${theme.text} shadow-sm ring-1 ring-black/5 transition-transform group-hover:scale-110 duration-300`}>
+                                                        <div className={`absolute inset-0 bg-gradient-to-r ${theme?.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                                                        <div className={`flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-xl ${theme?.bg} ${theme?.text} shadow-sm ring-1 ring-black/5 transition-transform group-hover:scale-110 duration-300`}>
                                                             {app.logo ? <img src={app.logo} alt={app.name} className="h-8 w-8 object-contain" /> : renderNativeIcon(app.icon, "h-7 w-7")}
                                                         </div>
                                                         <div className="flex-1 min-w-0 z-10 flex flex-col justify-center">
@@ -468,27 +476,27 @@ function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetC
                 onClick={() => setOpen(!open)}
                 className={`
                     w-full flex items-center justify-between px-4 py-3
-                    ${open ? theme.bg : 'hover:bg-zinc-50'}
+                    ${open ? theme?.bg : 'hover:bg-zinc-50'}
                     transition-colors duration-200
                 `}
             >
                 <div className="flex items-center gap-2.5">
                     {/* Dot colorato */}
-                    <span className={`w-2 h-2 rounded-full ${theme.dot} shrink-0`} />
-                    <span className={`text-sm font-bold ${open ? theme.text : 'text-zinc-600'} uppercase tracking-wider transition-colors`}>
+                    <span className={`w-2 h-2 rounded-full ${theme?.dot} shrink-0`} />
+                    <span className={`text-sm font-bold ${open ? theme?.text : 'text-zinc-600'} uppercase tracking-wider transition-colors`}>
                         {status}
                     </span>
                     {/* Badge count */}
                     <span className={`
                         text-[10px] font-black px-1.5 py-0.5 rounded-full
-                        ${open ? `${theme.badgeBg} ${theme.text}` : 'bg-zinc-100 text-zinc-500'}
+                        ${open ? `${theme?.badgeBg} ${theme?.text}` : 'bg-zinc-100 text-zinc-500'}
                         transition-colors duration-200
                     `}>
                         {tickets.length}
                     </span>
                 </div>
                 <ChevronDownIcon className={`
-                    w-4 h-4 ${open ? theme.icon : 'text-zinc-400'}
+                    w-4 h-4 ${open ? theme?.icon : 'text-zinc-400'}
                     transition-transform duration-300 ${open ? 'rotate-180' : ''}
                 `} />
             </button>
@@ -508,8 +516,8 @@ function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetC
                             {/* Icona */}
                             <div className={`
                                 w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-                                ${theme.bg} ${theme.icon}
-                                border ${theme.border}
+                                ${theme?.bg} ${theme?.icon}
+                                border ${theme?.border}
                                 group-hover/item:scale-110 transition-transform duration-200
                             `}>
                                 <Computer className="w-4 h-4" />
@@ -517,7 +525,7 @@ function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetC
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
-                                <div className={`text-sm font-bold text-zinc-700 group-hover/item:${theme.text} transition-colors truncate`}>
+                                <div className={`text-sm font-bold text-zinc-700 group-hover/item:${theme?.text} transition-colors truncate`}>
                                     {
                                         ticket.company
                                             ? `${ticket.company}${
