@@ -9,13 +9,14 @@ import { Pen, RotateCcw, Check, X, Edit } from "lucide-react"
 
 interface DigitalSignatureProps {
   onSignatureChange?: (signature: string | null) => void
+  isSignatureModeDefault?: boolean
 }
 
-export default function DigitalSignature({ onSignatureChange }: DigitalSignatureProps) {
+export default function DigitalSignature({ onSignatureChange, isSignatureModeDefault = false }: DigitalSignatureProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [hasSignature, setHasSignature] = useState(false)
-  const [isSignatureMode, setIsSignatureMode] = useState(false)
+  const [isSignatureMode, setIsSignatureMode] = useState(isSignatureModeDefault)
   const [savedSignature, setSavedSignature] = useState<string | null>(null)
 
   useEffect(() => {

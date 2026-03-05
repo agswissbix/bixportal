@@ -115,7 +115,7 @@ export const SignatureDialog = ({
               </div>
 
               <div className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-inner">
-                <DigitalSignature onSignatureChange={onSignatureChange} />
+                <DigitalSignature onSignatureChange={onSignatureChange} isSignatureModeDefault={true} />
               </div>
             </>
           )}
