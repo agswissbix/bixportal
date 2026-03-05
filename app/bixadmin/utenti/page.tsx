@@ -8,7 +8,7 @@ import NewUserForm from '@/components/admin/users/newUser';
 // import NewGroupForm from './NewGroupForm'; 
 import {useApi} from '@/utils/useApi';
 import GenericComponent from '@/components/genericComponent';
-import UserThemeSettings from '@/components/admin/users/settingsUser';
+import UserProfileSettings from '@/components/admin/users/settingsUser';
 
 const isDev = false
 
@@ -89,7 +89,7 @@ const UserSettings = () => {
       case 'userSettings':
         return (
           <div className="space-y-6">
-            <UserThemeSettings userid={selectedUser.id} />
+            <UserProfileSettings userid={selectedUser.id} />
              <div className="bg-white shadow-sm p-4 rounded-md border border-gray-200 mt-6">
                <h4 className="text-lg font-medium text-gray-900 mb-2">Impersonation</h4>
                <p className="text-sm text-gray-500 mb-4">Accedi al sistema come questo utente per verificare impostazioni o problemi. Le azioni eseguite saranno tracciate.</p>

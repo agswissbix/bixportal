@@ -401,6 +401,12 @@ export async function POST(request: Request) {
         case "get_user_settings_api":
             djangoUrl = `/commonapp/get_user_settings_api/`;
             break;
+        case "get_user_profile_api":
+            djangoUrl = `/commonapp/get_user_profile_api/`;
+            break;
+        case "save_user_profile_api":
+            djangoUrl = `/commonapp/save_user_profile_api/`;
+            break;
         case "get_table_filters":
             djangoUrl = `/commonapp/get_table_filters/`;
             break;
