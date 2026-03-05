@@ -21,6 +21,8 @@ interface AppContextType {
   handleLogout: () => void;
   activeServer: string | null;
   setActiveServer: React.Dispatch<React.SetStateAction<string | null>>;
+  isImpersonating: boolean;
+  impersonatorUsername: string | null;
 }
 
 export const AppContext = createContext<AppContextType>({
@@ -37,6 +39,8 @@ export const AppContext = createContext<AppContextType>({
   handleLogout: () => {},
   activeServer: '',
   setActiveServer: () => {},
+  isImpersonating: false,
+  impersonatorUsername: null,
 });
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -46,6 +50,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [telefono, setTelefono] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [activeServer, setActiveServer] = useState<string | null>(null);
+  const [isImpersonating, setIsImpersonating] = useState<boolean>(false);
+  const [impersonatorUsername, setImpersonatorUsername] = useState<string | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true); // <--- stato di caricamento
 
   const router = useRouter();
@@ -77,6 +83,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUserName(result.name ?? null);
         var activeServer=result.activeServer ?? null
         setActiveServer(activeServer);
+        setIsImpersonating(result.is_impersonating || false);
+        setImpersonatorUsername(result.impersonator_username || null);
         if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password') {
           //TODO CUSTOM TELEFONO AMICO
           if (activeServer!=='telefonoamico') {
@@ -98,6 +106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRole(null);
       setUserName(null);
       setActiveServer(null);
+      setIsImpersonating(false);
+      setImpersonatorUsername(null);
       router.push('/login');
     } else {
       console.error('Logout fallito:', result.detail);
@@ -111,7 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider 
-      value={{ user, setUser, role, setRole, chat, setChat, telefono, setTelefono, userName, setUserName, handleLogout, activeServer, setActiveServer }}
+      value={{ user, setUser, role, setRole, chat, setChat, telefono, setTelefono, userName, setUserName, handleLogout, activeServer, setActiveServer, isImpersonating, impersonatorUsername }}
     >
       {children}
     </AppContext.Provider>

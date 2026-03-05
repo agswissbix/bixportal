@@ -1,6 +1,7 @@
 import './globals.css';
 import { AppProvider } from '@/context/appContext';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import ImpersonationBanner from '@/components/ImpersonationBanner';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 
@@ -37,6 +38,7 @@ export default function RootLayout({
     <html lang="it">
       <body className={inter.className}>
         <AppProvider>
+          <ImpersonationBanner />
           {children}
         </AppProvider>
       </body>

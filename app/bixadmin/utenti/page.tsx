@@ -54,6 +54,32 @@ const UserSettings = () => {
     setViewMode('groupSettings');
   };
 
+  const handleImpersonate = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axiosInstanceClient.post(
+        '/postApi',
+        {
+          apiRoute: 'start_impersonate',
+          target_user_id: userId,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.data.success) {
+        toast.success(response.data.detail || 'Impersonation avviata');
+        // Ricarica per applicare il nuovo contesto di sessione
+        window.location.href = "/";
+      } else {
+        toast.error('Errore: ' + response.data.detail);
+      }
+    } catch (error: any) {
+      console.error('Errore durante impersonation:', error);
+      toast.error('Impossibile avviare impersonation: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const renderContent = () => {
     switch (viewMode) {
       case 'newUser':
@@ -61,7 +87,16 @@ const UserSettings = () => {
       case 'newGroup':
         // return <NewGroupForm />;
       case 'userSettings':
-        return <UserThemeSettings userid={selectedUser.id} />;
+        return (
+          <div className="space-y-6">
+            <UserThemeSettings userid={selectedUser.id} />
+             <div className="bg-white shadow-sm p-4 rounded-md border border-gray-200 mt-6">
+               <h4 className="text-lg font-medium text-gray-900 mb-2">Impersonation</h4>
+               <p className="text-sm text-gray-500 mb-4">Accedi al sistema come questo utente per verificare impostazioni o problemi. Le azioni eseguite saranno tracciate.</p>
+               <button onClick={() => handleImpersonate(selectedUser.id)} className="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">Accedi come {selectedUser.username}</button>
+            </div>
+          </div>
+        );
       case 'groupSettings':
         return <div>Impostazioni Gruppo per: {selectedGroup.username}</div>;
       default:

@@ -138,6 +138,8 @@ export interface CheckAuthResponse {
   chat?: string | null; //TODO CUSTOM TELEFONO AMICO
   telefono?: string | null;
   activeServer?: string;
+  is_impersonating?: boolean;
+  impersonator_username?: string | null;
 }
 
 // Funzione per controllare se l'utente è autenticato (endpoint: /auth/user/)
@@ -158,6 +160,8 @@ export async function checkAuth(page?: string): Promise<CheckAuthResponse> {
       chat: response.data.chat, //TODO CUSTOM TELEFONO AMICO
       telefono: response.data.telefono,
       activeServer: activeServer,
+      is_impersonating: response.data.is_impersonating,
+      impersonator_username: response.data.impersonator_username,
     };
   } catch (error: any) {
     if (error.response && error.response.status === 401) {

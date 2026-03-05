@@ -156,6 +156,12 @@ export async function POST(request: Request) {
         case "reset_password_with_token":
             djangoUrl = "/commonapp/reset_password_with_token/";
             break;
+        case "start_impersonate":
+            djangoUrl = "/commonapp/start_impersonate/";
+            break;
+        case "stop_impersonate":
+            djangoUrl = "/commonapp/stop_impersonate/";
+            break;
         case "get_shifts_and_volunteers_telefono":
             djangoUrl =
                 "/customapp_telefonoamico/get_shifts_and_volunteers_telefono/";
