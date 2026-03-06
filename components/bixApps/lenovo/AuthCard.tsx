@@ -8,6 +8,7 @@ export function AuthCard({
   title,
   description,
   required,
+  icon,
   children,
 }: {
   checked: boolean
@@ -15,6 +16,7 @@ export function AuthCard({
   title: string
   description?: string
   required?: boolean
+  icon?: React.ReactNode
   children?: React.ReactNode
 }) {
   return (
@@ -39,6 +41,11 @@ export function AuthCard({
         onClick={(e) => e.stopPropagation()}
         className="mt-0.5 shrink-0 data-[state=checked]:bg-[#E2231A] data-[state=checked]:border-[#E2231A] [&>span]:text-white"
       />
+      {icon && (
+        <div className={`mt-0.5 shrink-0 ${checked ? "text-[#E2231A]" : "text-gray-400"}`}>
+          {icon}
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <p
           className={`text-sm font-medium ${

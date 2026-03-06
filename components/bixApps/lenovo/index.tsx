@@ -98,10 +98,10 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const [isFetchingLenovo, setIsFetchingLenovo] = useState(false);
     const [lastCheckedSerial, setLastCheckedSerial] = useState("");
 
-    // Field Settings
     const [fieldSettings, setFieldSettings] = useState<any>({});
 
     const [warrantyHistory, setWarrantyHistory] = useState<any[]>([]);
+    const [showWarrantyHistory, setShowWarrantyHistory] = useState(false);
 
     const payload = useMemo(() => {
         return {
@@ -154,6 +154,11 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         // Ensure accessories is a string if it comes as array, or handle accordingly
                         accessories: ticket.accessories || []
                     }));
+                    
+                    if (ticket.warrantyHistory && Array.isArray(ticket.warrantyHistory)) {
+                        setWarrantyHistory(ticket.warrantyHistory);
+                    }
+
                     // Optionally set step to 1 or allowing navigation
                 } else {
                     toast.error("Errore nel caricamento del ticket: " + res.data.error);
@@ -501,6 +506,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             };
             
             body.append("fields", JSON.stringify(fields));
+            body.append("warrantyHistory", JSON.stringify(warrantyHistory));
 
             const res = await axiosInstanceClient.post("/postApi", body);
             
@@ -876,7 +882,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         </div>
                     )}
 
-                    {/* Step 3: Assistance & Authorization */}
+                    {/* Step 3: Assistance */}
                     {step === 3 && (
                         <div className="space-y-6">
                              <h2 className="text-2xl font-bold mb-4">Issue Description</h2>
@@ -902,7 +908,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
                              {/* Warranty & Authorization */}
                              <div className="space-y-4 pt-6 border-t border-gray-100">
-                                <h3 className="text-lg font-bold">Warranty & Authorization</h3>
+                                <h3 className="text-lg font-bold">Warranty</h3>
                                 
                                 {/* Warranty */}
                                 <div className="flex items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -947,77 +953,114 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
                                  {/* Warranty History Panel */}
                                  {warrantyHistory.length > 0 && (
-                                     <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl max-h-64 overflow-y-auto">
-                                         <h4 className="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Lenovo Warranty History</h4>
-                                         <div className="space-y-3">
-                                             {warrantyHistory.map((w, idx) => (
-                                                 <div key={idx} className="flex flex-col gap-1 p-3 bg-gray-50 rounded-lg text-sm">
-                                                     <div className="flex justify-between items-start">
-                                                         <span className="font-semibold text-gray-800">{w.name} ({w.type})</span>
-                                                         {w.level && (
-                                                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                                                                 {w.level}
+                                     <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl">
+                                         <div 
+                                             className="flex justify-between items-center cursor-pointer mb-2 border-b pb-2"
+                                             onClick={() => setShowWarrantyHistory(!showWarrantyHistory)}
+                                         >
+                                             <h4 className="text-sm font-bold text-gray-700 select-none">Lenovo Warranty History</h4>
+                                             <button type="button" className="text-gray-500 hover:text-gray-700">
+                                                 {showWarrantyHistory ? (
+                                                     <Icons.ChevronUpIcon className="w-5 h-5" />
+                                                 ) : (
+                                                     <Icons.ChevronDownIcon className="w-5 h-5" />
+                                                 )}
+                                             </button>
+                                         </div>
+                                         
+                                         {showWarrantyHistory && (
+                                             <div className="space-y-3 overflow-y-auto mt-3 pr-2">
+                                                 {warrantyHistory.map((w, idx) => (
+                                                     <div key={idx} className="flex flex-col gap-1 p-3 bg-gray-50 rounded-lg text-sm">
+                                                         <div className="flex justify-between items-start">
+                                                             <span className="font-semibold text-gray-800">{w.name} ({w.type})</span>
+                                                             {w.level && (
+                                                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium shrink-0 ml-2">
+                                                                     {w.level}
+                                                                 </span>
+                                                             )}
+                                                         </div>
+                                                         <span className="text-gray-600">{w.deliveryTypeName}</span>
+                                                         <div className="flex justify-between text-gray-500 text-xs mt-1">
+                                                             <span>{w.startDate} To {w.endDate}</span>
+                                                             <span className={`font-medium ${w.remainingDays > 0 ? "text-green-600" : "text-gray-400"}`}>
+                                                                 {w.remainingDays > 0 ? `${w.remainingDays} days left` : "Expired"}
                                                              </span>
+                                                         </div>
+                                                         {w.description && (
+                                                             <div className="mt-2 text-xs text-gray-500 italic border-t pt-1 border-gray-200">
+                                                                 {w.description}
+                                                             </div>
                                                          )}
                                                      </div>
-                                                     <span className="text-gray-600">{w.deliveryTypeName}</span>
-                                                     <div className="flex justify-between text-gray-500 text-xs mt-1">
-                                                         <span>{w.startDate} To {w.endDate}</span>
-                                                         <span className={`font-medium ${w.remainingDays > 0 ? "text-green-600" : "text-gray-400"}`}>
-                                                             {w.remainingDays > 0 ? `${w.remainingDays} days left` : "Expired"}
-                                                         </span>
-                                                     </div>
-                                                 </div>
-                                             ))}
-                                         </div>
+                                                 ))}
+                                             </div>
+                                         )}
                                      </div>
                                  )}
 
-                                 {/* Auth Checks */}
+                                <h2 className="text-2xl font-bold mb-4 border-t border-gray-100 pt-2">Authorization</h2>
+
+                            {/* ── System Operations ── */}
+                            <div className="">
+                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">System Operations</p>
                                 <div className="space-y-3">
-                                    <AuthCard
-                                        checked={formData.auth_factory_reset === 'Si'}
-                                        onChange={() => setFormData(prev => ({...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si'}))}
-                                        title="Authorize Factory Reset"
-                                        description="Data may be lost during the reset process."
-                                        required={fieldSettings['auth_factory_reset']?.required}
-                                    />
-
-                                    <AuthCard
-                                        checked={formData.request_quote === 'Si'}
-                                        onChange={() => setFormData(prev => ({...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si'}))}
-                                        title="Request Quote"
-                                        description="Evaluation cost max 50 CHF if rejected."
-                                        required={fieldSettings['request_quote']?.required}
-                                    />
-
-                                    <AuthCard
-                                        checked={formData.direct_repair === 'Si'}
-                                        onChange={() => setFormData(prev => ({...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si'}))}
-                                        title="Direct Repair"
-                                        description="Authorize repair if cost is below limit."
-                                        required={fieldSettings['direct_repair']?.required}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-gray-500">Limit (CHF):</span>
-                                            <input 
-                                                type="number" 
-                                                value={formData.direct_repair_limit}
-                                                onChange={e => setFormData({...formData, direct_repair_limit: e.target.value})}
-                                                className="w-32 p-2 border border-gray-300 rounded-lg text-sm"
-                                                placeholder="e.g. 200"
-                                            />
-                                        </div>
-                                    </AuthCard>
-
-                                    <AuthCard
-                                        checked={formData.auth_formatting === 'Si'}
-                                        onChange={() => setFormData(prev => ({...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si'}))}
-                                        title="Authorize Full Formatting"
-                                        description="Data WILL be lost permanently."
-                                        required={fieldSettings['auth_formatting']?.required}
-                                    />
+                                <AuthCard
+                                    checked={formData.auth_factory_reset === 'Si'}
+                                    onChange={() => setFormData(prev => ({ ...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si' }))}
+                                    title="Authorize Factory Reset"
+                                    description="Device will be restored to factory defaults. Personal data may be lost."
+                                    required={fieldSettings['auth_factory_reset']?.required}
+                                    icon={<Icons.ArrowPathIcon className="w-5 h-5" />}
+                                />
+                                <AuthCard
+                                    checked={formData.auth_formatting === 'Si'}
+                                    onChange={() => setFormData(prev => ({ ...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si' }))}
+                                    title="Authorize Full Formatting"
+                                    description="Complete disk format — all data will be permanently erased. This cannot be undone."
+                                    required={fieldSettings['auth_formatting']?.required}
+                                    icon={<Icons.TrashIcon className="w-5 h-5" />}
+                                />
                                 </div>
+                            </div>
+
+                            {/* ── Financial Authorizations ── */}
+                            <div className="pt-2 border-t border-gray-100">
+                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Financial Authorizations</p>
+                                <div className="space-y-3">
+                                <AuthCard
+                                    checked={formData.request_quote === 'Si'}
+                                    onChange={() => setFormData(prev => ({ ...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si' }))}
+                                    title="Request Evaluation Quote"
+                                    description="A diagnostic fee of up to CHF 50 applies if repair is declined after evaluation."
+                                    required={fieldSettings['request_quote']?.required}
+                                    icon={<Icons.DocumentTextIcon className="w-5 h-5" />}
+                                />
+                                <AuthCard
+                                    checked={formData.direct_repair === 'Si'}
+                                    onChange={() => setFormData(prev => ({ ...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si' }))}
+                                    title="Authorize Direct Repair"
+                                    description="Repair proceeds without prior quote approval, up to the cost limit below."
+                                    required={fieldSettings['direct_repair']?.required}
+                                    icon={<Icons.WrenchScrewdriverIcon className="w-5 h-5" />}
+                                >
+                                    <div className="flex items-center gap-3 pt-3 border-t border-dashed border-gray-200">
+                                    <label className="text-xs font-semibold text-gray-600 shrink-0">Max cost (CHF)</label>
+                                    <div className="relative flex-1">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">CHF</span>
+                                        <input
+                                        type="number"
+                                        value={formData.direct_repair_limit}
+                                        onChange={e => setFormData({ ...formData, direct_repair_limit: e.target.value })}
+                                        className="w-full pl-11 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] outline-none"
+                                        placeholder="e.g. 200"
+                                        min={0}
+                                        />
+                                    </div>
+                                    </div>
+                                </AuthCard>
+                                </div>
+                            </div>
                              </div>
                         </div>
                     )}
