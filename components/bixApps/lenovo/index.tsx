@@ -94,8 +94,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const [pickUpLookups, setPickUpLookups] = useState<{ itemcode: string; itemdesc: string; }[]>([]);
     const [usersLookup, setUsersLookup] = useState<any[]>([]);
 
+    // Lenovo API State
+    const [isFetchingLenovo, setIsFetchingLenovo] = useState(false);
+    const [lastCheckedSerial, setLastCheckedSerial] = useState("");
+
     // Field Settings
     const [fieldSettings, setFieldSettings] = useState<any>({});
+
+    const [warrantyHistory, setWarrantyHistory] = useState<any[]>([]);
 
     const payload = useMemo(() => {
         return {
@@ -427,6 +433,60 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             handleSave('Presa in consegna');
         }
     };
+    const handleSerialBlur = async () => {
+        const currentSerial = formData.serial?.trim();
+        if (!currentSerial || currentSerial === lastCheckedSerial) return;
+        
+        setIsFetchingLenovo(true);
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_lenovo_device_info");
+            body.append("product_id", currentSerial);
+            
+            const res = await axiosInstanceClient.post("/postApi", body);
+            
+            if (res.data.success && res.data.data) {
+                console.log(res.data.data.data);
+                const lenovoData = res.data.data.data;
+                const updates: any = {};
+                
+                if (lenovoData.machineInfo?.productName) {
+                    updates.model = lenovoData.machineInfo.productName;
+                    updates.brand = "Lenovo";
+                }
+                
+                const wStatus = lenovoData.warrantyStatus?.toLowerCase() || '';
+                if (wStatus === 'in warranty') {
+                    updates.warranty = 'Si';
+                } else if (wStatus === 'out of warranty') {
+                    updates.warranty = 'No';
+                }
+
+                const currentDeliveryType = lenovoData.currentWarranty?.deliveryType;
+                if (currentDeliveryType) {
+                    if (currentDeliveryType === 'PREMIER') updates.warranty_type = 'Premium';
+                    else if (currentDeliveryType === 'DEPOT') updates.warranty_type = 'Depot';
+                    else if (currentDeliveryType === 'ONSITE') updates.warranty_type = 'OnSite';
+                    else if (currentDeliveryType === 'ADP') updates.warranty_type = 'ADP';
+                }
+
+                const baseW = lenovoData.baseWarranties || [];
+                const upgradeW = lenovoData.upgradeWarranties || [];
+                setWarrantyHistory([...baseW, ...upgradeW]);
+
+                setFormData(prev => ({ ...prev, ...updates }));
+                setLastCheckedSerial(currentSerial);
+                toast.success("Dati Lenovo recuperati con successo");
+            } else {
+                toast.error("Prodotto non trovato");
+            }
+        } catch (err) {
+            console.error("Lenovo API Error:", err);
+            toast.error("Errore nel recupero dati Lenovo");
+        } finally {
+            setIsFetchingLenovo(false);
+        }
+    };
 
     const handleSave = async (status = "Draft") => {
         setLoadingMethod(true);
@@ -708,13 +768,22 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             <div>
                                 <Label field="serial" text="Serial Number" />
                                 <div className="flex gap-2">
-                                    <input 
-                                        type="text" 
-                                        value={formData.serial}
-                                        onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
-                                        className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
-                                        placeholder="PF..."
-                                    />
+                                    <div className="relative w-full">
+                                        <input 
+                                            type="text" 
+                                            value={formData.serial}
+                                            onBlur={handleSerialBlur}
+                                            onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
+                                            className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
+                                            placeholder="PF..."
+                                            disabled={isFetchingLenovo}
+                                        />
+                                        {isFetchingLenovo && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <RefreshCwIcon className="w-4 h-4 text-gray-400 animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -857,26 +926,54 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 </div>
 
                                 {formData.warranty === 'Si' && (
-                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                            <Label field="warranty_type" text="Warranty Type" />
-                                            <Select
-                                                value={formData.warranty_type}
-                                                onValueChange={(val) => setFormData({...formData, warranty_type: val})}
-                                            >
-                                            <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
-                                                <SelectValue placeholder="Select Warranty Type..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="OnSite">OnSite Support</SelectItem>
-                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Depot">Depot / Carry-in</SelectItem>
-                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Premium">Premium Care</SelectItem>
-                                                <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="ADP">ADP (Accidental Damage)</SelectItem>
-                                            </SelectContent>
-                                            </Select>
-                                    </div>
-                                )}
+                                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                             <Label field="warranty_type" text="Warranty Type" />
+                                             <Select
+                                                 value={formData.warranty_type}
+                                                 onValueChange={(val) => setFormData({...formData, warranty_type: val})}
+                                             >
+                                             <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
+                                                 <SelectValue placeholder="Select Warranty Type..." />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="OnSite">OnSite Support</SelectItem>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Depot">Depot / Carry-in</SelectItem>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Premium">Premium Care</SelectItem>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="ADP">ADP (Accidental Damage)</SelectItem>
+                                             </SelectContent>
+                                             </Select>
+                                     </div>
+                                 )}
 
-                                {/* Auth Checks */}
+                                 {/* Warranty History Panel */}
+                                 {warrantyHistory.length > 0 && (
+                                     <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl max-h-64 overflow-y-auto">
+                                         <h4 className="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Lenovo Warranty History</h4>
+                                         <div className="space-y-3">
+                                             {warrantyHistory.map((w, idx) => (
+                                                 <div key={idx} className="flex flex-col gap-1 p-3 bg-gray-50 rounded-lg text-sm">
+                                                     <div className="flex justify-between items-start">
+                                                         <span className="font-semibold text-gray-800">{w.name} ({w.type})</span>
+                                                         {w.level && (
+                                                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                                                 {w.level}
+                                                             </span>
+                                                         )}
+                                                     </div>
+                                                     <span className="text-gray-600">{w.deliveryTypeName}</span>
+                                                     <div className="flex justify-between text-gray-500 text-xs mt-1">
+                                                         <span>{w.startDate} To {w.endDate}</span>
+                                                         <span className={`font-medium ${w.remainingDays > 0 ? "text-green-600" : "text-gray-400"}`}>
+                                                             {w.remainingDays > 0 ? `${w.remainingDays} days left` : "Expired"}
+                                                         </span>
+                                                     </div>
+                                                 </div>
+                                             ))}
+                                         </div>
+                                     </div>
+                                 )}
+
+                                 {/* Auth Checks */}
                                 <div className="space-y-3">
                                     <AuthCard
                                         checked={formData.auth_factory_reset === 'Si'}
@@ -1311,14 +1408,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             
                             <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-md">
                                 <button 
-                                    onClick={() => window.location.href = '/bixApps/bixMobileHub/bixHub'}
+                                    onClick={() => window.location.href = '/bixApps/bixMobileHub'}
                                     className="flex items-center justify-center gap-2 px-6 py-4 bg-[#333333] text-white rounded-xl font-bold shadow hover:bg-black transition-all flex-1 text-center"
                                 >
                                     <Icons.HomeIcon className="w-6 h-6" />
                                     Home
                                 </button>
                                 <button 
-                                    onClick={() => window.location.reload()}
+                                    onClick={() => window.location.href = '/bixApps/lenovo-intake'}
                                     className="flex items-center justify-center gap-2 px-6 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold shadow-sm hover:bg-gray-50 transition-all flex-1 text-center"
                                 >
                                     <RefreshCwIcon className="w-6 h-6" />

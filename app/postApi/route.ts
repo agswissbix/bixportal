@@ -451,6 +451,10 @@ export async function POST(request: Request) {
             djangoUrl = "/commonapp/import_csv_data/";
             break;
 
+        // SWISSBIX
+        case "get_lenovo_device_info":
+            djangoUrl = "/customapp_swissbix/get_lenovo_device_info/";
+            break;
         case "get_fields_swissbix_deal":
             djangoUrl = "/customapp_swissbix/get_fields_swissbix_deal/";
             break;
