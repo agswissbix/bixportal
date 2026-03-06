@@ -86,6 +86,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         auth_formatting: "No",
         signatureUrl: "",
         accessories: [] as string | string[],
+        custom_accessory: "",
         pick_up: "",
     });
 
@@ -152,7 +153,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         ...prev,
                         ...sanitizedTicket,
                         // Ensure accessories is a string if it comes as array, or handle accordingly
-                        accessories: ticket.accessories || []
+                        accessories: ticket.accessories || [],
+                        custom_accessory: ""
                     }));
                     
                     if (ticket.warrantyHistory && Array.isArray(ticket.warrantyHistory)) {
@@ -238,6 +240,26 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Extract custom accessory from backend loaded data
+    useEffect(() => {
+        if (lookups.length > 0 && formData.accessories) {
+            const accArray = Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' ? formData.accessories.split(',') : [];
+            const standardCodes = lookups.map(l => l.itemcode);
+            const customList = accArray.filter(a => !standardCodes.includes(a) && a !== 'Altro' && a.trim() !== '');
+            
+            if (customList.length > 0 && !formData.custom_accessory) {
+                setFormData(prev => {
+                    const prevAcc = Array.isArray(prev.accessories) ? prev.accessories : typeof prev.accessories === 'string' && prev.accessories ? prev.accessories.split(',') : [];
+                    return { 
+                        ...prev, 
+                        custom_accessory: customList.join(', '),
+                        accessories: [...prevAcc.filter(a => standardCodes.includes(a)), 'Altro']
+                    };
+                });
+            }
+        }
+    }, [lookups, formData.accessories, formData.custom_accessory]);
 
     const searchCompanies = async (query: string) => {
         if (!query || query.length < 2) {
@@ -500,9 +522,20 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             body.append("apiRoute", "save_lenovo_ticket");
             body.append("recordid", formData.recordid);
             
+            let saveAccessories = Array.isArray(formData.accessories) ? [...formData.accessories] : (typeof formData.accessories === 'string' && formData.accessories ? formData.accessories.split(',') : []);
+            
+            // Handle custom accessory saving
+            if (saveAccessories.includes('Altro')) {
+                saveAccessories = saveAccessories.filter(a => a !== 'Altro');
+                if (formData.custom_accessory && formData.custom_accessory.trim() !== '') {
+                    saveAccessories.push(formData.custom_accessory.trim());
+                }
+            }
+
             const fields = {
                 ...formData,
-                status: status
+                status: status,
+                accessories: saveAccessories
             };
             
             body.append("fields", JSON.stringify(fields));
@@ -659,10 +692,9 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     }
                 </div>
 
-                {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto px-1">
+                <div className="flex-1 overflow-y-auto px-1 pb-24 lg:pb-8">
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                    {step === 1 && (
+                        {step === 1 && (
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold mb-4">Client Details</h2>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -816,8 +848,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             </div>
                             <div>
                                 <Label field="accessories" text="Accessories" />
-                                <div className="flex gap-2 w-full">
-                                <div className="flex gap-2 w-full">
+                                <div className="flex gap-2 w-full flex-col">
                                     <AccessorySelector
                                         selectedItems={Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' ? (formData.accessories as string).split(',') : []}
                                         onToggle={(item) => {
@@ -830,9 +861,19 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                 return { ...prev, accessories: newAcc };
                                             });
                                         }}
-                                        options={(lookups || []).map(l => ({ value: l.itemcode, label: l.itemdesc }))}
+                                        options={[...(lookups || []).map(l => ({ value: l.itemcode, label: l.itemdesc })), { value: 'Altro', label: 'Altro' }]}
                                     />
-                                </div>
+                                    { (Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' && formData.accessories ? (formData.accessories as string).split(',') : []).includes('Altro') && (
+                                        <div className="mt-2 animate-in fade-in slide-in-from-top-2">
+                                            <input 
+                                                type="text" 
+                                                value={formData.custom_accessory || ""}
+                                                onChange={e => setFormData({...formData, custom_accessory: e.target.value})}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] text-sm transition-all"
+                                                placeholder="Specifica l'accessorio personalizzato..."
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             
@@ -1076,7 +1117,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 <div className="flex-1 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-all relative">
                                     <input 
                                         type="file" 
-                                        accept="image/*"
+                                        accept={`${isMobile ? "" : "image/*"}`}
                                         onChange={handleFileUpload}
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     />
@@ -1470,7 +1511,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 </div>
                 </div>
 
-                <div className="mt-8 flex items-center justify-between">
+                <div className="flex items-center justify-between sticky bottom-0 bg-gray-50 p-4 border-t border-gray-200 -mx-4 px-4 lg:-mx-0 lg:px-0 lg:p-0 lg:mt-8 lg:sticky lg:inset-auto lg:border-t-0 lg:bg-transparent">
                     <button 
                         onClick={() => step > 1 && setStep(step - 1)}
                         className={`px-6 py-3 rounded-xl font-medium transition-colors ${step > 1 ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' : 'invisible'}`}
