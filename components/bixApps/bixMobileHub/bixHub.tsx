@@ -59,6 +59,7 @@ interface LenovoTicketItem {
     status: string;
     date: string;
     problem_description?: string;
+    serial?:string
 }
 
 interface ResponseInterface {
@@ -435,7 +436,7 @@ export default function BixHub() {
                                 {lenovoTickets.length > 0 && (
                                     <div className="w-full lg:w-1/2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                                         <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
-                                            <Laptop className="w-5 h-5 text-blue-500" /> Ticket Lenovo in Sospeso
+                                            <Laptop className="w-5 h-5 text-blue-500" /> Riparazioni Lenovo in Sospeso
                                         </h2>
                                         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
                                             {Object.entries(groupedLenovoTickets).map(([status, tickets], groupIndex) => {
@@ -538,7 +539,7 @@ function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetC
                                 </div>
                                 {ticket.problem_description && (
                                     <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
-                                        {ticket.problem_description}
+                                        {ticket.serial} - {ticket.problem_description}
                                     </div>
                                 )}
                             </div>

@@ -16,7 +16,7 @@ interface Props {
     ticketId: string;
 }
 
-type ViewMode = 'home' | 'upload_photo' | 'upload_attachment' | 'signature';
+type ViewMode = 'home' | 'upload_photo' | 'upload_attachment' | 'signature' | 'completato';
 
 export default function MobilePhotoView({ ticketId }: Props) {
     const [loading, setLoading] = useState(true);
@@ -32,7 +32,8 @@ export default function MobilePhotoView({ ticketId }: Props) {
     const [note, setNote] = useState("");
     const [attachmentType, setAttachmentType] = useState("pre-intervento");
 
-    const [activeTab, setActiveTab] = useState<'photo' | 'attachments' | 'signature'>('photo');
+    const [activeTab, setActiveTab] = useState<'photo' | 'attachments' | 'signature' | 'summary'>('photo');
+    const [completing, setCompleting] = useState(false);
 
     useEffect(() => {
         if (ticketId) {
@@ -41,7 +42,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
     }, [ticketId]);
 
     useEffect(() => {
-        if(ticket?.status === 'Aperto' && !ticket?.signatureUrl && activeTab === 'photo') {
+        if(ticket?.status === 'Draft' && !ticket?.signatureUrl && activeTab === 'photo') {
              // Maybe don't auto-switch if we want them to take photo first.
              // User said "inquadro solo una volta", implies flow.
              // Let's stick to default 'photo' or 'signature' based on logic?
@@ -60,7 +61,9 @@ export default function MobilePhotoView({ ticketId }: Props) {
             if (ticketRes.data.success) {
                 setTicket(ticketRes.data.ticket);
                 // Determine initial view based on status
-                if (ticketRes.data.ticket.status === 'Aperto' && !ticketRes.data.ticket.signatureUrl) {
+                if (ticketRes.data.ticket.status === 'Ritirato') {
+                    setActiveTab('summary');
+                } else if (ticketRes.data.ticket.status != 'Draft' && !ticketRes.data.ticket.signatureUrl) {
                     setActiveTab('signature');
                 }
             } else {
@@ -146,12 +149,39 @@ export default function MobilePhotoView({ ticketId }: Props) {
             } else {
                 toast.error("Failed to save signature");
             }
-        } catch (e) {
-            console.error(e);
-            toast.error("Error saving signature");
         } finally {
             setUploading(false);
             toast.dismiss();
+        }
+    };
+
+    const handleComplete = async () => {
+        setCompleting(true);
+        try {
+            const formData = new FormData();
+            formData.append("apiRoute", "save_lenovo_ticket");
+            formData.append("recordid", ticketId);
+            
+            const fields = {
+                ...ticket,
+                status: "Completa ticket"
+            };
+            
+            formData.append("fields", JSON.stringify(fields));
+
+            const res = await axiosInstanceClient.post("/postApi", formData);
+            
+            if (res.data.success) {
+                toast.success("Ticket Completato!");
+                setView('completato');
+            } else {
+                toast.error("Error saving ticket: " + res.data.error);
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Network error");
+        } finally {
+            setCompleting(false);
         }
     };
 
@@ -285,6 +315,97 @@ export default function MobilePhotoView({ ticketId }: Props) {
         </div>
     );
 
+    const renderSummaryTab = () => (
+        <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-right-4">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                <Icons.ClipboardDocumentCheckIcon className="w-6 h-6 text-[#E2231A]" />
+                Sommario
+            </h2>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-sm space-y-6">
+                
+                {/* Client Info */}
+                <div>
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
+                        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <Icons.UserIcon className="w-4 h-4 text-[#E2231A]" /> Dati Cliente
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-y-2 text-sm">
+                        {ticket.company_name && <div><span className="text-gray-500 block text-xs">Azienda</span><span className="font-bold text-gray-200">{ticket.company_name}</span></div>}
+                        {(ticket.name || ticket.surname) && <div><span className="text-gray-500 block text-xs">Contatto</span><span className="font-bold text-gray-200">{ticket.name} {ticket.surname}</span></div>}
+                        {ticket.email && <div><span className="text-gray-500 block text-xs">Email</span><span className="font-medium text-gray-300">{ticket.email}</span></div>}
+                        {ticket.phone && <div><span className="text-gray-500 block text-xs">Telefono</span><span className="font-medium text-gray-300">{ticket.phone}</span></div>}
+                        {ticket.address && <div><span className="text-gray-500 block text-xs">Indirizzo</span><span className="font-medium text-gray-300">{ticket.address}, {ticket.place}</span></div>}
+                    </div>
+                </div>
+
+                {/* Product Info */}
+                <div>
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
+                        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <Icons.ComputerDesktopIcon className="w-4 h-4 text-[#E2231A]" /> Prodotto e Accesso
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-y-2 text-sm">
+                        {ticket.brand && <div><span className="text-gray-500 block text-xs">Dispositivo</span><span className="font-bold text-gray-200">{ticket.brand} {ticket.model}</span></div>}
+                        {ticket.serial && <div><span className="text-gray-500 block text-xs">Seriale</span><span className="font-mono bg-zinc-800 px-1 border border-zinc-700 rounded text-gray-300">{ticket.serial}</span></div>}
+                        {ticket.username && <div><span className="text-gray-500 block text-xs">Utente</span><span className="font-medium text-gray-300">{ticket.username}</span></div>}
+                        {ticket.password && <div><span className="text-gray-500 block text-xs">Password/PIN</span><span className="font-medium font-mono bg-zinc-800 px-1 border border-zinc-700 rounded text-gray-300">{ticket.password}</span></div>}
+                        {ticket.pick_up && <div><span className="text-gray-500 block text-xs">Pick Up</span><span className="font-medium text-gray-300">{ticket.pick_up}</span></div>}
+                        {(ticket.accessories && ticket.accessories.length > 0) && <div><span className="text-gray-500 block text-xs">Accessori</span><span className="font-medium text-gray-300">{Array.isArray(ticket.accessories) ? ticket.accessories.join(", ") : ticket.accessories}</span></div>}
+                    </div>
+                </div>
+
+                {/* Assistance Info */}
+                <div>
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
+                        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <Icons.WrenchScrewdriverIcon className="w-4 h-4 text-[#E2231A]" /> Assistenza
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-y-2 text-sm">
+                        {ticket.problem_description && <div><span className="text-gray-500 block text-xs">Problema</span><span className="font-semibold text-gray-200">{ticket.problem_description}</span></div>}
+                        <div><span className="text-gray-500 block text-xs">In Garanzia?</span><span className="font-bold text-gray-300">{ticket.warranty} {ticket.warranty === 'Si' ? `(${ticket.warranty_type})` : ''}</span></div>
+                        <div><span className="text-gray-500 block text-xs">Auth. Ripristino</span><span className="font-bold text-gray-300">{ticket.auth_factory_reset}</span></div>
+                        <div><span className="text-gray-500 block text-xs">Richiesta Preventivo</span><span className="font-bold text-gray-300">{ticket.request_quote}</span></div>
+                        <div><span className="text-gray-500 block text-xs">Riparazione Diretta</span><span className="font-bold text-gray-300">{ticket.direct_repair} {ticket.direct_repair === 'Si' ? `(Max ${ticket.direct_repair_limit} CHF)` : ''}</span></div>
+                        <div><span className="text-gray-500 block text-xs">Auth. Formattazione</span><span className="font-bold text-gray-300">{ticket.auth_formatting}</span></div>
+                    </div>
+                </div>
+
+                {/* Multimedia & Allegati */}
+                <div>
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
+                        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <Icons.PaperClipIcon className="w-4 h-4 text-[#E2231A]" /> Allegati
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-y-2 text-sm">
+                        <div><span className="text-gray-500 block text-xs">Foto Dispositivo</span>
+                        <span className="font-bold text-gray-300">{ticket.product_photo ? 'Presente' : 'Non presente'}</span></div>
+                        <div><span className="text-gray-500 block text-xs">Documenti/Altre foto</span>
+                        <span className="font-bold text-gray-300">
+                            {attachments.length > 0 
+                                ? `${attachments.length} caricati` 
+                                : 'Nessuno'}
+                        </span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="pt-6 border-t border-zinc-800 mt-6 flex justify-center">
+                 <button 
+                     onClick={handleComplete}
+                     disabled={completing}
+                     className="px-8 py-4 bg-[#E2231A] text-white rounded-xl font-bold shadow-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 w-full max-w-sm active:scale-95 disabled:opacity-50"
+                 >
+                     {completing ? 'Completamento...' : 'Completa Ticket'} <Icons.CheckBadgeIcon className="w-6 h-6" />
+                 </button>
+            </div>
+        </div>
+    );
+
     return (
         <div className="h-screen bg-black text-white flex flex-col font-sans overflow-hidden pb-20">
             <Toaster richColors position="top-center" />
@@ -367,13 +488,37 @@ export default function MobilePhotoView({ ticketId }: Props) {
                     </div>
                 )}
                 
-                {/* Tab Content */}
                 {view === 'home' && (
                     <>
                     {activeTab === 'photo' && renderPhotoTab()}
                     {activeTab === 'attachments' && renderAttachmentsTab()}
                     {activeTab === 'signature' && renderSignatureTab()}
+                    {activeTab === 'summary' && renderSummaryTab()}
                     </>
+                )}
+                {view === 'completato' && (
+                    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 flex flex-col items-center justify-center py-20 h-full">
+                        <Icons.CheckCircleIcon className="w-24 h-24 text-green-500 mb-4" />
+                        <h2 className="text-2xl font-bold text-white text-center">Ticket Completato</h2>
+                        <p className="text-gray-400 text-center max-w-md text-sm">
+                            Il ticket è stato completato con successo. Puoi tornare alla Home o creare un nuovo ticket.
+                        </p>
+                        
+                        <div className="flex flex-col gap-4 mt-8 w-full max-w-xs">
+                            <button 
+                                onClick={() => window.location.href = '/bixApps/bixMobileHub/bixHub'}
+                                className="px-6 py-4 bg-zinc-800 text-white rounded-xl font-bold shadow hover:bg-zinc-700 transition-all w-full text-center"
+                            >
+                                Home
+                            </button>
+                            <button 
+                                onClick={() => window.location.reload()}
+                                className="px-6 py-4 bg-transparent border-2 border-zinc-700 text-gray-300 rounded-xl font-bold shadow-sm hover:bg-zinc-800 transition-all w-full text-center"
+                            >
+                                Nuovo Ticket
+                            </button>
+                        </div>
+                    </div>
                 )}
             </main>
 
@@ -400,6 +545,13 @@ export default function MobilePhotoView({ ticketId }: Props) {
                     >
                         <Icons.PencilSquareIcon className="w-6 h-6 mb-1" />
                         <span className="text-[10px] font-bold">Sign</span>
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('summary')}
+                        className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === 'summary' ? 'text-[#E2231A] bg-red-900/10' : 'text-gray-500'}`}
+                    >
+                        <Icons.ClipboardDocumentCheckIcon className="w-6 h-6 mb-1" />
+                        <span className="text-[10px] font-bold">Summary</span>
                     </button>
                 </div>
             )}

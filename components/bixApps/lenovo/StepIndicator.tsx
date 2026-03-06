@@ -21,7 +21,7 @@ export function StepIndicator({
   return (
     <nav aria-label="Progress" className="w-full">
       {/* Desktop stepper */}
-      <ol className="hidden md:flex items-center gap-2">
+      <ol className="hidden lg:flex items-center gap-2">
         {STEPS.map((s, i) => {
           const isComplete = currentStep > s.id
           const isCurrent = currentStep === s.id
@@ -64,7 +64,7 @@ export function StepIndicator({
       </ol>
 
       {/* Mobile stepper */}
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-gray-900">
             {STEPS[currentStep - 1].label}

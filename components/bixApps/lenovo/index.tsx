@@ -6,6 +6,7 @@ import { AppContext } from "@/context/appContext";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast, Toaster } from "sonner";
 import * as Icons from "@heroicons/react/24/outline";
+import { RefreshCwIcon } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useSearchParams } from "next/navigation";
 import SelectStandard from "../../selectStandard";
@@ -41,6 +42,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     // QR State
     const [showQR, setShowQR] = useState(false);
     const [mobileUrl, setMobileUrl] = useState("");
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 1024;
 
     // Form State
     const [formData, setFormData] = useState({
@@ -83,10 +86,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         auth_formatting: "No",
         signatureUrl: "",
         accessories: [] as string | string[],
+        pick_up: "",
     });
 
     // Lookup State
     const [lookups, setLookups] = useState<{ itemcode: string; itemdesc: string; }[]>([]);
+    const [pickUpLookups, setPickUpLookups] = useState<{ itemcode: string; itemdesc: string; }[]>([]);
     const [usersLookup, setUsersLookup] = useState<any[]>([]);
 
     // Field Settings
@@ -106,6 +111,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         if (response) {
           setFieldSettings(response.field_settings)
           setLookups(response.lookups?.accessories || [])
+          setPickUpLookups(response.lookups?.pick_up || [])
           setUsersLookup(response.lookups?.users || [])
           if (response.logged_in_userid) {
             setFormData(prev => prev.technician ? prev : { ...prev, technician: response.logged_in_userid })
@@ -133,9 +139,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 if (res.data.success) {
                     const ticket = res.data.ticket;
                     console.log("Loaded Ticket:", ticket);
+                    const sanitizedTicket = Object.fromEntries(
+                        Object.entries(ticket).map(([key, value]) => [key, value === null ? "" : value])
+                    );
                     setFormData(prev => ({
                         ...prev,
-                        ...ticket,
+                        ...sanitizedTicket,
                         // Ensure accessories is a string if it comes as array, or handle accordingly
                         accessories: ticket.accessories || []
                     }));
@@ -156,7 +165,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
     // Polling for photo, attachments and SIGNATURE update
     useEffect(() => {
-        if (window.innerWidth < 768) return;
+        if (isMobile) return;
         let interval: NodeJS.Timeout;
         if ((step === 2 || step === 3 || step === 4 || step === 5) && formData.recordid) {
             interval = setInterval(async () => {
@@ -441,6 +450,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 
                 if (status === 'Draft') {
                     toast.success("Draft saved");
+                } else if (status === 'Completa ticket') {
+                    toast.success("Ticket Completato!");
                 } else {
                     toast.success("Ticket registered successfully!");
                     // setTimeout(() => window.location.reload(), 1500);
@@ -464,7 +475,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             // Save as 'Aperto' to trigger signature mode on mobile
             const id = await handleSave('Presa in consegna');
             if(id) {
-                if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                if (isMobile) {
                     setShowSignatureModal(true);
                 } else {
                     const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${id}`;
@@ -565,17 +576,21 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto pb-20 md:pb-0 h-[calc(100vh-140px)] flex flex-col">
+            <main className="max-w-4xl mx-auto pb-20 lg:pb-0 h-[calc(100vh-140px)] flex flex-col">
                 
-                <div className="mb-8 sticky top-[80px] z-20 bg-gray-50 p-4 md:p-0 pt-2 pb-4">
-                    <StepIndicator currentStep={step} onStepClick={(s) => {
-                        // Allow navigating back or to next step if valid
-                         if (s < step) {
-                            setStep(s)
-                          } else if (s === step + 1) {
-                            if(validateStep(step)) setStep(s);
-                          }
-                    }} />
+                <div className="mb-8 sticky top-[80px] z-20 bg-gray-50 p-4 lg:p-0 pt-2 pb-4">
+                    {
+                        step < 6 && (
+                            <StepIndicator currentStep={step} onStepClick={(s) => {
+                                // Allow navigating back or to next step if valid
+                                 if (s < step) {
+                                    setStep(s)
+                                  } else if (s === step + 1) {
+                                    if(validateStep(step)) setStep(s);
+                                  }
+                            }} />
+                        )
+                    }
                 </div>
 
                 {/* Content Area - Scrollable */}
@@ -584,7 +599,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     {step === 1 && (
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold mb-4">Client Details</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <div className="relative" ref={searchRef}>
                                     <Label field="company_name" text="Company" />
                                     <input 
@@ -630,7 +645,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         placeholder="Surname"
                                     />
                                 </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                                 <div>
                                     <Label field="address" text="Address" />
                                     <input 
@@ -678,7 +693,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     onClick={() => setStep(5)}
                                     className="text-sm font-bold text-[#E2231A] hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                                 >
-                                    Vai alla Firma <Icons.PencilSquareIcon className="w-4 h-4" />
+                                    Go to Summary <Icons.PencilSquareIcon className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
@@ -690,12 +705,24 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             <h2 className="text-2xl font-bold mb-4">Product & Access</h2>
                             
                             {/* Product Fields */}
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <Label field="serial" text="Serial Number" />
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={formData.serial}
+                                        onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
+                                        className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
+                                        placeholder="PF..."
+                                    />
+                                </div>
+                            </div>
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <div>
                                     <Label field="brand" text="Brand" />
                                     <input 
                                         type="text" 
-                                        value={formData.brand}
+                                        value={formData.brand || "Lenovo"}
                                         onChange={e => setFormData({...formData, brand: e.target.value})}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
                                         placeholder="Lenovo, HP, Apple..."
@@ -709,18 +736,6 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         onChange={e => setFormData({...formData, model: e.target.value})}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
                                         placeholder="ThinkPad X1..."
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label field="serial" text="Serial Number" />
-                                <div className="flex gap-2">
-                                    <input 
-                                        type="text" 
-                                        value={formData.serial}
-                                        onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
-                                        className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
-                                        placeholder="PF..."
                                     />
                                 </div>
                             </div>
@@ -745,11 +760,28 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 </div>
                                 </div>
                             </div>
+                            
+                            <div>
+                                <Label field="pick_up" text="Pick Up" />
+                                <Select
+                                    value={formData.pick_up}
+                                    onValueChange={(val) => setFormData({...formData, pick_up: val})}
+                                >
+                                    <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
+                                        <SelectValue placeholder="Seleziona..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {(pickUpLookups || []).map(l => (
+                                            <SelectItem key={l.itemcode} value={l.itemcode} className="focus:bg-red-50 focus:text-[#E2231A]">{l.itemdesc}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
                             {/* Credentials */}
                             <div className="mt-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
                                 <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-4">Access Credentials</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div>
                                         <Label field="username" text="Username" />
                                         <input 
@@ -899,7 +931,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             <h2 className="text-2xl font-bold mb-4">Multimedia</h2>
                             
                             {/* Product Photo Section */}
-                            <div className="flex flex-col md:flex-row gap-6">
+                            <div className="flex flex-col lg:flex-row gap-6">
                                 {/* PC Upload */}
                                 <div className="flex-1 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center hover:bg-gray-50 transition-all relative">
                                     <input 
@@ -910,19 +942,16 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     />
                                     <Icons.ComputerDesktopIcon className="w-10 h-10 text-gray-400 mb-2" />
                                     <p className="text-sm font-medium text-gray-600">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Upload" : "Upload from PC"}
+                                        {isMobile ? "Upload" : "Upload from PC"}
                                     </p>
                                     <p className="text-xs text-gray-400">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Choose a file or take a photo" : "Click or drag file here"}
+                                        {isMobile ? "Choose a file or take a photo" : "Click or drag file here"}
                                     </p>
                                 </div>
 
                                 {/* Mobile Handoff & Direct Sign */}
-                                {/* {window.innerWidth >= 768 && ( */}
-                                <div className="flex-1 hidden md:flex flex-col border-2 border-dashed border-gray-300 rounded-xl p-6 items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
+                                <div className="flex-1 hidden lg:flex flex-col border-2 border-dashed border-gray-300 rounded-xl p-6 items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
                                      onClick={async () => {
-                                        // Detect mobile (simple check)
-                                        const isMobile = window.innerWidth < 768;
 
                                         if (isMobile) {
                                             setShowSignatureModal(true);
@@ -946,10 +975,10 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 >
                                     <Icons.DevicePhoneMobileIcon className="w-10 h-10 text-gray-400 mb-2" />
                                     <p className="text-sm font-medium text-gray-600">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Sign Now" : "Use Mobile"}
+                                        {isMobile ? "Sign Now" : "Use Mobile"}
                                     </p>
                                     <p className="text-xs text-gray-400">
-                                        {typeof window !== 'undefined' && window.innerWidth < 768 ? "Sign here" : (showQR ? 'Hide QR' : 'Scan QR Code')}
+                                        {isMobile ? "Sign here" : (showQR ? 'Hide QR' : 'Scan QR Code')}
                                     </p>
                                 </div>
                                 {/* )} */}
@@ -1151,6 +1180,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         {formData.serial && <><span className="text-gray-500">Seriale</span><span className="font-mono bg-white px-1 border border-gray-200 rounded">{formData.serial}</span></>}
                                         {formData.username && <><span className="text-gray-500">Utente</span><span className="font-medium">{formData.username}</span></>}
                                         {formData.password && <><span className="text-gray-500">Password/PIN</span><span className="font-medium font-mono bg-white px-1 border border-gray-200 rounded">{formData.password}</span></>}
+                                        {formData.pick_up && <><span className="text-gray-500">Pick Up</span><span className="font-medium">{pickUpLookups.find(l => l.itemcode === formData.pick_up)?.itemdesc || formData.pick_up}</span></>}
                                         {(formData.accessories && formData.accessories.length > 0) && <><span className="text-gray-500">Accessori</span><span className="font-medium">{Array.isArray(formData.accessories) ? formData.accessories.join(", ") : formData.accessories}</span></>}
                                     </div>
                                 </div>
@@ -1214,9 +1244,9 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                             <Icons.PencilSquareIcon className="w-6 h-6" /> Firma per ritiro del prodotto
                                         </h3>
                                         
-                                        <div className="flex flex-col md:flex-row gap-6 items-stretch justify-center">
+                                        <div className="flex flex-col lg:flex-row gap-6 items-stretch justify-center">
                                             {/* Action Buttons */}
-                                            <div className="flex flex-col justify-center gap-4 w-full md:w-auto min-w-[250px] animate-in slide-in-from-left-4">
+                                            <div className="flex flex-col justify-center gap-4 w-full lg:w-auto min-w-[250px] animate-in slide-in-from-left-4">
                                                 
                                                 {!formData.signatureUrl ? (
                                                     <button
@@ -1269,6 +1299,34 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             </div>
                         </div>
                     )}
+
+                    {/* Step 6: Completamento */}
+                    {step === 6 && (
+                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 flex flex-col items-center justify-center py-10">
+                            <Icons.CheckCircleIcon className="w-24 h-24 text-green-500 mb-4" />
+                            <h2 className="text-3xl font-bold text-gray-900">Ticket Completato</h2>
+                            <p className="text-gray-500 text-center max-w-md">
+                                Il ticket è stato completato con successo. Puoi tornare alla Home o creare un nuovo ticket.
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-md">
+                                <button 
+                                    onClick={() => window.location.href = '/bixApps/bixMobileHub/bixHub'}
+                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-[#333333] text-white rounded-xl font-bold shadow hover:bg-black transition-all flex-1 text-center"
+                                >
+                                    <Icons.HomeIcon className="w-6 h-6" />
+                                    Home
+                                </button>
+                                <button 
+                                    onClick={() => window.location.reload()}
+                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold shadow-sm hover:bg-gray-50 transition-all flex-1 text-center"
+                                >
+                                    <RefreshCwIcon className="w-6 h-6" />
+                                    Nuovo Ticket
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 </div>
 
@@ -1288,7 +1346,18 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             >
                                 Next <Icons.ArrowRightIcon className="w-4 h-4" />
                             </button>
-                        ) : null}
+                        ) : step === 5 ? (
+                            <button 
+                                onClick={async () => {
+                                    const res = await handleSave("Completa ticket");
+                                    if(res) setStep(6);
+                                }}
+                                disabled={loadingMethod}
+                                className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 transition-all flex items-center justify-center gap-2 w-full max-w-sm active:scale-95 disabled:opacity-50"
+                            >
+                                {loadingMethod ? 'Completamento...' : 'Completa Ticket'} <Icons.CheckBadgeIcon className="w-6 h-6" />
+                            </button>
+                        ): null}
                     </div>
                 </div>
             </main>
