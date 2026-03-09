@@ -49,6 +49,7 @@ interface ProductSelectionProps {
   }
   dealid?: string
   onUpdate: (data: any) => void
+  onClientInfoUpdate?: (data: any) => void
 }
 
 interface Service {
@@ -74,6 +75,8 @@ interface ServiceCategory {
 
 interface ResponseInterface {
     servicesCategory: ServiceCategory[]
+    contractConstraint?: number
+    discount?: number
 }
 
 const responseDataDEV: ResponseInterface = {
@@ -137,7 +140,7 @@ const categoryLabels: { [key: string]: string } = {
   firewall: "Firewall",
 }
 
-export default function ProductSelection({ data, onUpdate, dealid }: ProductSelectionProps) {
+export default function ProductSelection({ data, onUpdate, onClientInfoUpdate, dealid }: ProductSelectionProps) {
     const [responseData, setResponseData] = useState<ResponseInterface>(
         isDev ? responseDataDEV : responseDataDEFAULT
     );
@@ -216,6 +219,13 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
 
             if (Object.keys(initialData).length > 0) {
               onUpdate(initialData);
+            }
+
+            if (response.contractConstraint !== undefined && onClientInfoUpdate) {
+                onClientInfoUpdate({
+                    contractConstraint: response.contractConstraint,
+                    discount: response.discount
+                })
             }
         }
     }, [response]);

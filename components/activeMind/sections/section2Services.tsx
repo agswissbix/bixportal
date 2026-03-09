@@ -287,24 +287,24 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                   </CardHeader>
 
                   {isExpanded && (
-              <CardContent className="pt-0">
-                <div className="bg-white/70 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
-                  <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
-                    {service.features.map((col, colIndex) => (
-                      <div key={colIndex} className="space-y-2">
-                        {col.map((feature, fIndex) => (
-                          <div key={fIndex} className="flex items-start space-x-2">
-                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-sm text-gray-700">{feature}</span>
-                          </div>
-                        ))}
+                    <CardContent className="pt-0">
+                      <div className="bg-white/70 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
+                        <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                          {service.features.map((col, colIndex) => (
+                            <div key={colIndex} className="space-y-2">
+                              {col.map((feature, fIndex) => (
+                                <div key={fIndex} className="flex items-start space-x-2">
+                                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                                  <span className="text-sm text-gray-700">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            )}
+                    </CardContent>
+                  )}
                 </Card>
               )
             })}

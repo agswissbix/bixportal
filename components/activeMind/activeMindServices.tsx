@@ -206,7 +206,6 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
 
       toast.info("Generazione PDF e salvataggio in corso...")
 
-      let seconds = 1500
 
       progressInterval = setInterval(() => {
         setPrintProgress((prev) => {
@@ -217,14 +216,9 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           if (prev >= 90) {
             return prev + 1
           }
-          if ((prev/10) % 2 == 0) {
-            seconds = seconds - 500
-          }else{
-            seconds = seconds + 500
-          }
           return prev + 10
         })
-      }, seconds)
+      }, 750)
 
       const dataToPrint = {
         ...serviceData,
@@ -312,7 +306,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
       switch (currentStep) {
         case 1:
           return (
-            <ProductSelection data={serviceData.section2Products} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Products", data)} />
+            <ProductSelection data={serviceData.section2Products} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Products", data)} onClientInfoUpdate={(data) => updateServiceData("clientInfo", data)} />
           )
         case 2:
           return (
