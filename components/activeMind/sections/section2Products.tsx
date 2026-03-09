@@ -162,9 +162,15 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
   const handlePriceEdit = (service: Service, field: "unit" | "monthly" | "yearly", newValue: string) => {
     const numValue = parseFloat(newValue)
     if (!isNaN(numValue) && numValue >= 0) {
-      if (field === "monthly") service.monthlyPrice = numValue
-      else if (field === "yearly") service.yearlyPrice = numValue
-      else service.unitPrice = numValue
+      if (field === "yearly") {
+        service.yearlyPrice = numValue
+        service.monthlyPrice = numValue / 12
+      } else {
+        service.monthlyPrice = numValue
+        service.yearlyPrice = numValue * 12
+      }
+
+      service.unitPrice = service.monthlyPrice
       
       const currentQuantity = data[service.id]?.quantity || 0
       const currentBillingType = data[service.id]?.billingType || "monthly"
@@ -321,7 +327,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
               <Input
                 type="number"
                 min="0"
-                step="0.01"
+                step="1"
                 className="w-16 h-6 text-sm p-1 mx-auto text-center"
                 autoFocus
                 defaultValue={price}
@@ -361,40 +367,6 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
               <div className="flex-1">
                 <CardTitle className="text-lg">{service.title}</CardTitle>
                 {service.description && <p className="text-xs text-gray-500 mt-1">{service.description}</p>}
-                <div className="flex items-start mt-2">
-                  {service.unitPrice && (
-                    <Badge variant="secondary" className="text-xs">
-                      {editingPrice?.id === service.id && editingPrice?.field === "unit" ? (
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          className="w-16 h-5 p-0 bg-transparent border-b border-gray-400 rounded-none text-xs inline text-center"
-                          autoFocus
-                          defaultValue={service.unitPrice}
-                          onBlur={(e) => {
-                            handlePriceEdit(service, "unit", e.target.value)
-                            setEditingPrice(null)
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handlePriceEdit(service, "unit", e.currentTarget.value)
-                              setEditingPrice(null)
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <span 
-                          onDoubleClick={(e) => { e.stopPropagation(); setEditingPrice({ id: service.id, field: "unit" }) }}
-                          className="cursor-pointer"
-                        >
-                          CHF {formatPrice(service.unitPrice)}/unità
-                        </span>
-                      )}
-                    </Badge>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -471,7 +443,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                         <Input
                           type="number"
                           min="0"
-                          step="0.01"
+                          step="1"
                           className="w-16 h-5 p-0 bg-white text-black border border-gray-300 rounded-sm text-xs inline text-center font-normal"
                           autoFocus
                           defaultValue={service.yearlyPrice}
