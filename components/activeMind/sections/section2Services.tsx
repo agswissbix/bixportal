@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ChevronDown, ChevronUp, Server, Monitor, Shield, Wifi, HardDrive, Database, Cloud } from "lucide-react"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "@/components/genericComponent"
+import { formatPrice } from "@/utils/formatPrice"
 
 interface Section2Props {
   data: {
@@ -16,7 +16,8 @@ interface Section2Props {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[]
+      features?: string[][]
+      category?: string
     }
   }
   dealid: string
@@ -29,9 +30,11 @@ interface Service {
   title: string;
   unitPrice: number;
   unitCost?: number
+  total?: number
+  selected?: boolean
   icon: string;
   quantity?: number;
-  features: string[];
+  features: string[][];
 }
 
 interface ResponseInterface {
@@ -47,7 +50,7 @@ const responseDataDEV: ResponseInterface = {
       title: "Windows server (VM)",
       unitPrice: 250,
       icon: "Server",
-      features: ["Aggiornamenti software", "Windows server"]
+      features: [["Aggiornamenti software", "Windows server"]]
     }
   ]
 };
@@ -99,6 +102,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
     }, [response]);
   
   const [expandedServices, setExpandedServices] = useState<string[]>([])
+  const [editingPrice, setEditingPrice] = useState<string | null>(null)
 
   const toggleService = (serviceId: string) => {
     setExpandedServices((prev) =>
@@ -106,16 +110,25 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
     )
   }
 
+  const handlePriceEdit = (serviceId: string, newValue: string) => {
+    const numValue = parseFloat(newValue)
+    if (!isNaN(numValue) && numValue >= 0) {
+      const service = responseData.services.find((s) => s.id === serviceId)
+      if (service) {
+         service.unitPrice = numValue
+         const currentQuantity = data[serviceId]?.quantity || 0
+         if (currentQuantity > 0) {
+           updateQuantity(serviceId, currentQuantity)
+         }
+      }
+    }
+  }
+
   const updateQuantity = (serviceId: string, quantity: number) => {
     const service = responseData.services.find((s) => s.id === serviceId)
     if (!service) return
 
     let total = quantity * service.unitPrice
-
-    if (serviceId === 'clientPC' && quantity > 1) {
-      const discount = 1 - (quantity - 1) / 100
-      total = total * discount
-    }
 
     onUpdate({
       [serviceId]: {
@@ -179,7 +192,38 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                         <Icon className="w-6 h-6 text-gray-700" />
                         <div>
                           <CardTitle className="text-lg">{service.title}</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">CHF {service.unitPrice} per unità</p>
+                          <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                            CHF
+                            {editingPrice === service.id ? (
+                              <Input
+                                type="number"
+                                min="0"
+                                step="1"
+                                className="w-16 h-5 p-0 bg-transparent border-b border-gray-400 rounded-none text-xs inline text-center"
+                                autoFocus
+                                defaultValue={service.unitPrice}
+                                onBlur={(e) => {
+                                  handlePriceEdit(service.id, e.target.value)
+                                  setEditingPrice(null)
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handlePriceEdit(service.id, e.currentTarget.value)
+                                    setEditingPrice(null)
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span 
+                                onDoubleClick={(e) => { e.stopPropagation(); setEditingPrice(service.id) }}
+                                className="cursor-pointer"
+                              >
+                                {formatPrice(service.unitPrice)}
+                              </span>
+                            )}
+                            per unità
+                          </p>
                         </div>
                       </div>
 
@@ -225,7 +269,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                             </div>
                             
                             <div className={`text-right min-w-[90px] transition-opacity duration-150 ${serviceData.quantity > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                              <div className="text-base font-bold text-amber-700 whitespace-nowrap">CHF {serviceData.total}.-</div>
+                              <div className="text-base font-bold text-amber-700 whitespace-nowrap">CHF {formatPrice(serviceData.total)}</div>
                               <div className="text-xs text-gray-600 whitespace-nowrap">Totale</div>
                             </div>
                           </div>
@@ -243,20 +287,24 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                   </CardHeader>
 
                   {isExpanded && (
-                    <CardContent className="pt-0">
-                      <div className="bg-white/70 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
-                        <div className="grid gap-2 lg:grid-cols-2">
-                          {service.features.map((feature, index) => (
-                            <div key={index} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
-                              <span className="text-sm text-gray-700">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
+              <CardContent className="pt-0">
+                <div className="bg-white/70 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
+                  <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                    {service.features.map((col, colIndex) => (
+                      <div key={colIndex} className="space-y-2">
+                        {col.map((feature, fIndex) => (
+                          <div key={fIndex} className="flex items-start space-x-2">
+                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <span className="text-sm text-gray-700">{feature}</span>
+                          </div>
+                        ))}
                       </div>
-                    </CardContent>
-                  )}
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            )}
                 </Card>
               )
             })}
@@ -275,7 +323,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-green-900">CHF {getTotalForAllServices()}.-</div>
+                    <div className="text-3xl font-bold text-green-900">CHF {formatPrice(getTotalForAllServices())}</div>
                     <div className="text-sm text-green-700">Totale</div>
                   </div>
                 </div>

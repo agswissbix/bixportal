@@ -26,6 +26,7 @@ import {
   CalendarDays
 } from "lucide-react"
 import GenericComponent from "@/components/genericComponent"
+import { formatPrice } from "@/utils/formatPrice"
 
 
 const isDev = false
@@ -38,7 +39,7 @@ interface ProductSelectionProps {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[]
+      features?: string[][]
       category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
       monthlyPrice?: number
       yearlyPrice?: number
@@ -56,7 +57,7 @@ interface Service {
   unitPrice: number
   unitCost?: number
   icon: string
-  features: string[]
+  features: string[][]
   category: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
   monthlyPrice?: number
   yearlyPrice?: number
@@ -92,10 +93,14 @@ const responseDataDEV: ResponseInterface = {
                     "category": "data_security",
                     "description": "Presidio da remoto automatico con gestione patch e inventario",
                     "features": [
-                        "Presidio da remoto (automatico)",
-                        "Gestione delle patch windows",
-                        "Attivazione script di controllo",
-                        "Inventario HW/SW e report",
+                        [
+                          "Presidio da remoto (automatico)",
+                          "Gestione delle patch windows"
+                        ],
+                        [
+                          "Attivazione script di controllo",
+                          "Inventario HW/SW e report"
+                        ]
                     ],
                 },
 
@@ -152,6 +157,23 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
 
   const [expandedServices, setExpandedServices] = useState<string[]>([])
   const [activeCategory, setActiveCategory] = useState<string | undefined>()
+  const [editingPrice, setEditingPrice] = useState<{ id: string; field: "unit" | "monthly" | "yearly" } | null>(null)
+
+  const handlePriceEdit = (service: Service, field: "unit" | "monthly" | "yearly", newValue: string) => {
+    const numValue = parseFloat(newValue)
+    if (!isNaN(numValue) && numValue >= 0) {
+      if (field === "monthly") service.monthlyPrice = numValue
+      else if (field === "yearly") service.yearlyPrice = numValue
+      else service.unitPrice = numValue
+      
+      const currentQuantity = data[service.id]?.quantity || 0
+      const currentBillingType = data[service.id]?.billingType || "monthly"
+      // trigger update if quantity > 0
+      if (currentQuantity > 0) {
+         updateQuantity({...service}, currentQuantity, currentBillingType)
+      }
+    }
+  }
 
     useEffect(() => {
         if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
@@ -270,29 +292,57 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
     const isMonthlySelected = serviceData.billingType === "monthly"
     const isYearlySelected = serviceData.billingType === "yearly"
 
-    const renderBillingOption = (type: "monthly" | "yearly", price: number, label: string, IconComponent: React.ComponentType<{ className?: string }>, isSelected: boolean) => (
-      <div
-        key={type}
-        className={`
-          flex flex-col items-center justify-center p-2 rounded-lg border
-          cursor-pointer transition-all duration-150 text-center flex-1 min-w-[100px]
-          ${isSelected 
-            ? "ring-2 ring-blue-500 bg-blue-100 border-blue-400" 
-            : "hover:border-gray-400 bg-white border-gray-300"
-          }
-        `}
-        onClick={(e) => {
-          e.stopPropagation()
-          updateBillingType(service, type)
-        }}
-      >
-        <IconComponent className={`w-4 h-4 mb-1 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
-        <div className="text-xs font-medium text-gray-700">{label}</div>
-        <div className={`text-sm font-bold ${isSelected ? "text-blue-700" : "text-gray-800"}`}>
-          CHF {price}.-
+    const renderBillingOption = (type: "monthly" | "yearly", price: number, label: string, IconComponent: React.ComponentType<{ className?: string }>, isSelected: boolean) => {
+      const isEditing = editingPrice?.id === service.id && editingPrice?.field === type
+      return (
+        <div
+          key={type}
+          className={`
+            flex flex-col items-center justify-center p-2 rounded-lg border
+            cursor-pointer transition-all duration-150 text-center flex-1 min-w-[100px]
+            ${isSelected 
+              ? "ring-2 ring-blue-500 bg-blue-100 border-blue-400" 
+              : "hover:border-gray-400 bg-white border-gray-300"
+            }
+          `}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (!isEditing) updateBillingType(service, type)
+          }}
+          onDoubleClick={(e) => {
+            e.stopPropagation()
+            setEditingPrice({ id: service.id, field: type })
+          }}
+        >
+          <IconComponent className={`w-4 h-4 mb-1 ${isSelected ? "text-blue-600" : "text-gray-500"}`} />
+          <div className="text-xs font-medium text-gray-700">{label}</div>
+          <div className={`text-sm font-bold ${isSelected ? "text-blue-700" : "text-gray-800"}`}>
+            {isEditing ? (
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                className="w-16 h-6 text-sm p-1 mx-auto text-center"
+                autoFocus
+                defaultValue={price}
+                onBlur={(e) => {
+                  handlePriceEdit(service, type, e.target.value)
+                  setEditingPrice(null)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handlePriceEdit(service, type, e.currentTarget.value)
+                    setEditingPrice(null)
+                  }
+                }}
+              />
+            ) : (
+              `CHF ${formatPrice(price)}`
+            )}
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
 
     return (
       <Card
@@ -314,7 +364,34 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                 <div className="flex items-start mt-2">
                   {service.unitPrice && (
                     <Badge variant="secondary" className="text-xs">
-                      CHF {service.unitPrice}/unità
+                      {editingPrice?.id === service.id && editingPrice?.field === "unit" ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-16 h-5 p-0 bg-transparent border-b border-gray-400 rounded-none text-xs inline text-center"
+                          autoFocus
+                          defaultValue={service.unitPrice}
+                          onBlur={(e) => {
+                            handlePriceEdit(service, "unit", e.target.value)
+                            setEditingPrice(null)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handlePriceEdit(service, "unit", e.currentTarget.value)
+                              setEditingPrice(null)
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span 
+                          onDoubleClick={(e) => { e.stopPropagation(); setEditingPrice({ id: service.id, field: "unit" }) }}
+                          className="cursor-pointer"
+                        >
+                          CHF {formatPrice(service.unitPrice)}/unità
+                        </span>
+                      )}
                     </Badge>
                   )}
                 </div>
@@ -339,15 +416,41 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                           : "bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50"
                         }
                       `}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation()
+                        setEditingPrice({ id: service.id, field: "monthly" })
+                      }}
                     >
                       <Calendar className="w-3.5 h-3.5" />
                       <span>Mensile</span>
-                      <span className="font-semibold">CHF {service.monthlyPrice.toFixed(0)}.-</span>
+                      {editingPrice?.id === service.id && editingPrice?.field === "monthly" ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-16 h-5 p-0 bg-white text-black border border-gray-300 rounded-sm text-xs inline text-center font-normal"
+                          autoFocus
+                          defaultValue={service.monthlyPrice}
+                          onBlur={(e) => {
+                            handlePriceEdit(service, "monthly", e.target.value)
+                            setEditingPrice(null)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handlePriceEdit(service, "monthly", e.currentTarget.value)
+                              setEditingPrice(null)
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span className="font-semibold">CHF {formatPrice(service.monthlyPrice!)}</span>
+                      )}
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        updateBillingType(service, "yearly")
+                        if (editingPrice?.id !== service.id || editingPrice?.field !== "yearly") updateBillingType(service, "yearly")
                       }}
                       className={`
                         flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium
@@ -357,10 +460,36 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                           : "bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50"
                         }
                       `}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation()
+                        setEditingPrice({ id: service.id, field: "yearly" })
+                      }}
                     >
                       <CalendarDays className="w-3.5 h-3.5" />
                       <span>Annuale</span><br />
-                      <span className="text-md font-semibold">CHF {service.yearlyPrice.toFixed(0)}.-</span>
+                      {editingPrice?.id === service.id && editingPrice?.field === "yearly" ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-16 h-5 p-0 bg-white text-black border border-gray-300 rounded-sm text-xs inline text-center font-normal"
+                          autoFocus
+                          defaultValue={service.yearlyPrice}
+                          onBlur={(e) => {
+                            handlePriceEdit(service, "yearly", e.target.value)
+                            setEditingPrice(null)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handlePriceEdit(service, "yearly", e.currentTarget.value)
+                              setEditingPrice(null)
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span className="text-md font-semibold">CHF {formatPrice(service.yearlyPrice!)}</span>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -409,7 +538,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                     </div>
                     
                     <div className={`text-right min-w-[100px] transition-opacity duration-150 ${serviceData.quantity > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                      <div className="text-base font-bold text-blue-700 whitespace-nowrap">CHF {serviceData.total.toFixed(0)}.-</div>
+                      <div className="text-base font-bold text-blue-700 whitespace-nowrap">CHF {formatPrice(serviceData.total)}</div>
                       <div className="text-xs text-gray-600 whitespace-nowrap">
                         {serviceData.billingType === "yearly" ? "Tot. annuale" : "Tot. mensile"}
                       </div>
@@ -433,11 +562,15 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
           <CardContent className="pt-0">
             <div className="bg-white/70 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-3">Caratteristiche incluse:</h4>
-              <div className="grid gap-2 lg:grid-cols-2">
-                {service.features.map((feature, index) => (
-                  <div key={index} className="flex items-start space-x-2">
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-sm text-gray-700">{feature}</span>
+              <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                {service.features.map((col, colIndex) => (
+                  <div key={colIndex} className="space-y-2">
+                    {col.map((feature, fIndex) => (
+                      <div key={fIndex} className="flex items-start space-x-2">
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-sm text-gray-700">{feature}</span>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -495,7 +628,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                   </div>
                   {getTotalForCategory(category.id) > 0 && (
                       <div className="text-right">
-                      <div className="text-xl font-bold text-blue-900">CHF {getTotalForCategory(category.id).toFixed(0)}.-</div>
+                      <div className="text-xl font-bold text-blue-900">CHF {formatPrice(getTotalForCategory(category.id))}</div>
                       <div className="text-sm text-blue-700">Totale categoria</div>
                     </div>
                   )}
@@ -525,7 +658,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                 {getTotalForAllServicesByBillingType("monthly") > 0 && (
                   <div>
                     <div className="text-2xl font-bold text-green-900">
-                      CHF {getTotalForAllServicesByBillingType("monthly").toFixed(0)}.-
+                      CHF {formatPrice(getTotalForAllServicesByBillingType("monthly"))}
                     </div>
                     <div className="text-sm text-green-700">Totale mensile</div>
                   </div>
@@ -533,7 +666,7 @@ export default function ProductSelection({ data, onUpdate, dealid }: ProductSele
                 {getTotalForAllServicesByBillingType("yearly") > 0 && (
                   <div>
                     <div className="text-2xl font-bold text-green-900">
-                      CHF {getTotalForAllServicesByBillingType("yearly").toFixed(0)}.-
+                      CHF {formatPrice(getTotalForAllServicesByBillingType("yearly"))}
                     </div>
                     <div className="text-sm text-green-700">Totale annuale</div>
                   </div>

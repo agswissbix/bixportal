@@ -25,6 +25,7 @@ interface ServiceData {
     indirizzo: string
     data: string
     termine: string
+    contractConstraint?: number
   }
   section1: {
     selectedTier: string
@@ -40,7 +41,7 @@ interface ServiceData {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[]
+      features?: string[][]
       category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
       monthlyPrice?: number
       yearlyPrice?: number
@@ -54,7 +55,7 @@ interface ServiceData {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[]
+      features?: string[][]
     }
   }
   sectionServiceAsset: {
@@ -231,6 +232,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           nome: serviceData.clientInfo?.nome || "N/A",
           indirizzo: serviceData.clientInfo?.indirizzo || "N/A",
           data: serviceData.clientInfo?.data || new Date().toLocaleDateString(),
+          contractConstraint: serviceData.clientInfo?.contractConstraint || 12,
         },
         products: Object.entries(serviceData.section2Products || {}).map(([id, product]) => ({
           id,

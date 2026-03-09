@@ -3,8 +3,10 @@
 import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calculator, FileText, Phone, Mail, Clock, Package, Settings, Calendar, Database } from "lucide-react"
+import { Calculator, FileText, Phone, Mail, Clock, Package, Settings, Calendar, Database, CalendarDays } from "lucide-react"
 import DigitalSignature from "@/components/activeMind/DigitalSignature"
+
+import { formatPrice } from "@/utils/formatPrice"
 
 interface SummarySectionProps {
   serviceData: {
@@ -13,6 +15,7 @@ interface SummarySectionProps {
       indirizzo: string
       data: string
       termine: string
+      contractConstraint?: number
     }
     section1: {
       selectedTier: string
@@ -24,7 +27,7 @@ interface SummarySectionProps {
         quantity: number
         unitPrice: number
         total: number
-        features?: string[]
+        features?: string[][]
         category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
         monthlyPrice?: number
         yearlyPrice?: number
@@ -38,7 +41,7 @@ interface SummarySectionProps {
         quantity: number
         unitPrice: number
         total: number
-        features?: string[]
+        features?: string[][]
       }
     }
     sectionServiceAsset: {
@@ -112,15 +115,7 @@ const serviceLabels: { [key: string]: string } = {
 }
 
 export default function SummarySection({ serviceData, onUpdate, onSignatureChange }: SummarySectionProps) {
-  const servicesTotal = (() => {
-      const clientPC = serviceData.section2Services['clientPC'];
-      const total = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
-      if (clientPC) {
-        return clientPC.unitPrice * clientPC.quantity * (1 - (clientPC.quantity - 1) / 100) + (total - clientPC.total)
-      } else {
-        return total
-      }
-    })()
+  const servicesTotal = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
   
   const productsTotal = Object.values(serviceData.section2Products).reduce((sum, product) => sum + product.total, 0)
   const annualTotal = Object.values(serviceData.section2Products)
@@ -160,12 +155,30 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
   const servicesYearly = servicesTotal * 12;
   const servicesMonthly = servicesTotal;
   
+  const contractConstraint = serviceData.clientInfo?.contractConstraint || 12;
+
+  const discountRate = contractConstraint === 36 ? 0.10 : contractConstraint === 24 ? 0.05 : 0;
+  
+  const grandTotalMonthly = (productsMonthlyTotal + servicesMonthly);
+  const grandTotalMonthlyDiscounted = grandTotalMonthly * (1 - discountRate);
+
+  const grandTotalYearly = (productsYearlyTotal + servicesYearly);
+  const grandTotalYearlyDiscounted = grandTotalYearly * (1 - discountRate);
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const nome = e.target.value
     console.log("Name changed:", nome)
     onUpdate({
       nome: nome,
+    })
+  }
+
+  function handleConstraintChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const value = parseInt(e.target.value, 10)
+    console.log("Constraint changed:", value)
+    onUpdate({
+      ...serviceData.clientInfo,
+      contractConstraint: value,
     })
   }
 
@@ -192,6 +205,8 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
   const hasSystemAssuranceOrProducts = serviceData.section1.selectedTier || selectedProducts.length > 0
   const hasServicesOrPlanning = selectedServices.length > 0 || serviceData.section3.selectedFrequency
 
+  const showGrandTotal = grandTotalMonthly > 0;
+
   return (
     <div className="space-y-6">
       {/* Summary Header */}
@@ -203,7 +218,9 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-800">Riepilogo completo dei servizi selezionati e calcolo del totale finale.</p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <p className="text-gray-800">Riepilogo completo dei servizi selezionati e calcolo del totale finale.</p>
+          </div>
         </CardContent>
       </Card>
 
@@ -268,6 +285,42 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
         </Card>
       )}
 
+      
+
+      {/* Section Hours - Monte Ore */}
+      {serviceData.sectionHours?.selectedOption && (
+        <Card className="shadow-md">
+          <CardHeader className="bg-gradient-to-r from-green-100 to-green-50 rounded-t-lg">
+            <CardTitle className="text-lg flex items-center">
+              <Clock className="w-5 h-5 mr-2 text-green-700" />
+              Monte Ore Selezionato
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+             <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl shadow-inner">
+               <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                 <div>
+                   <h4 className="font-semibold text-gray-900 text-base mb-2">Pacchetto ore</h4>
+                   <p className="text-gray-700 text-lg font-medium">
+                    {serviceData.sectionHours.label ? serviceData.sectionHours.label : serviceData.sectionHours.selectedOption}
+                   </p>
+                   {/* <p className="text-sm text-gray-600 mt-1">Calcolato su {totalProducts} prodotti</p> */}
+                 </div>
+
+                 <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
+                    <div className="text-right">
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        CHF {formatPrice(monteOreTotal)}
+                      </h3>
+                      <p className="text-sm text-gray-600">Una Tantum</p>
+                    </div>
+                 </div>
+               </div>
+             </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Section 2 Products */}
       {selectedProducts.length > 0 && (
         <Card className="shadow-md">
@@ -305,16 +358,16 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                               <CardTitle className="text-lg">{product.title}</CardTitle>
                               <div className="flex items-center space-x-2 mt-1">
                                 <p className="text-sm text-gray-600">
-                                  {product.quantity} × CHF {product.unitPrice.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                  {product.quantity} × CHF {formatPrice(product.unitPrice)}
                                 </p>
                                 {product.monthlyPrice && (
                                   <Badge variant="outline" className="text-xs">
-                                    {product.monthlyPrice.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}/mese
+                                    {formatPrice(product.monthlyPrice)}/mese
                                   </Badge>
                                 )}
                                 {product.yearlyPrice && (
                                   <Badge variant="outline" className="text-xs">
-                                    {product.yearlyPrice.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}/anno
+                                    {formatPrice(product.yearlyPrice)}/anno
                                   </Badge>
                                 )}
                               </div>
@@ -325,7 +378,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           </div>
 
                           <div className="text-right">
-                            <div className="font-bold text-gray-900">CHF {product.total.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}.-</div>
+                            <div className="font-bold text-gray-900">CHF {formatPrice(product.total)}</div>
                             <div className="text-xs text-gray-600">Totale</div>
                           </div>
                         </div>
@@ -334,12 +387,16 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                       {product.features && product.features.length > 0 && (
                         <CardContent className="pt-0">
                           <div className="bg-white/70 rounded-lg p-4">
-                            <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
-                            <div className="grid gap-2 lg:grid-cols-2">
-                              {product.features.map((feature, index) => (
-                                <div key={index} className="flex items-start space-x-2">
-                                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                                  <span className="text-sm text-gray-700">{feature}</span>
+                            <h4 className="font-medium text-gray-900 mb-3">Caratteristiche incluse:</h4>
+                            <div className={`grid gap-4 ${product.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                              {product.features.map((col, colIndex) => (
+                                <div key={colIndex} className="space-y-2">
+                                  {col.map((feature, index) => (
+                                    <div key={index} className="flex items-start space-x-2">
+                                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                                      <span className="text-sm text-gray-700">{feature}</span>
+                                    </div>
+                                  ))}
                                 </div>
                               ))}
                             </div>
@@ -364,7 +421,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           {productsMonthlyTotal > 0 && (
                             <>
                               <h3 className="text-2xl font-bold text-gray-900">
-                                    <div className="text-2xl font-bold text-indigo-900">CHF {productsMonthlyTotal.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-</div>
+                                    <div className="text-2xl font-bold text-indigo-900">CHF {formatPrice(productsMonthlyTotal)}</div>
                               </h3>
                         <p className="text-sm text-gray-600">totale mensile equivalente</p>
                             </>
@@ -374,7 +431,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           {productsYearlyTotal > 0 && (
                             <>
                         <h3 className="text-xl font-semibold text-amber-700">
-                              <div className="text-2xl font-bold text-indigo-900">CHF {productsYearlyTotal.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-</div>
+                              <div className="text-2xl font-bold text-indigo-900">CHF {formatPrice(productsYearlyTotal)}</div>
                         </h3>
                         <p className="text-sm text-gray-600">totale annuo equivalente</p>
                             </>
@@ -416,14 +473,14 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                         <div>
                           <CardTitle className="text-lg">{serviceLabels[service.id]}</CardTitle>
                           <p className="text-sm text-gray-600">
-                            {service.quantity} × CHF {service.unitPrice}
+                            {service.quantity} × CHF {formatPrice(service.unitPrice)}
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right">
                         <div className="font-bold text-gray-900">
-                          CHF {service.id == "clientPC" ? (service.unitPrice * service.quantity * (1 - (service.quantity - 1) / 100)).toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : service.total.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} .-
+                          CHF {formatPrice(service.total)}
                         </div>
                       </div>
                     </div>
@@ -433,11 +490,15 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                     <CardContent className="pt-0">
                       <div className="bg-white/70 rounded-lg p-4">
                         <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
-                        <div className="grid gap-2 lg:grid-cols-2">
-                          {service.features.map((feature, index) => (
-                            <div key={index} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
-                              <span className="text-sm text-gray-700">{feature}</span>
+                        <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                          {service.features.map((col, colIndex) => (
+                            <div key={colIndex} className="space-y-2">
+                              {col.map((feature, index) => (
+                                <div key={index} className="flex items-start space-x-2">
+                                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
+                                  <span className="text-sm text-gray-700">{feature}</span>
+                                </div>
+                              ))}
                             </div>
                           ))}
                         </div>
@@ -470,7 +531,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           <>
                             <h3 className="text-2xl font-bold text-gray-900">
                               <div className="text-2xl font-bold text-orange-900">
-                                CHF {servicesMonthly.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-
+                                CHF {formatPrice(servicesMonthly)}
                               </div>
                             </h3>
                             <p className="text-sm text-gray-600">
@@ -485,7 +546,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                           <>
                             <h3 className="text-xl font-semibold text-amber-700">
                               <div className="text-2xl font-bold text-orange-900">
-                                CHF {servicesYearly.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-
+                                CHF {formatPrice(servicesYearly)}
                               </div>
                             </h3>
                             <p className="text-sm text-gray-600">
@@ -505,36 +566,75 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
         </Card>
       )}
 
-      {/* Section Hours - Monte Ore */}
-      {serviceData.sectionHours?.selectedOption && (
-        <Card className="shadow-md">
-          <CardHeader className="bg-gradient-to-r from-green-100 to-green-50 rounded-t-lg">
-            <CardTitle className="text-lg flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-green-700" />
-              Monte Ore Selezionato
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-             <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl shadow-inner">
-               <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                 <div>
-                   <h4 className="font-semibold text-gray-900 text-base mb-2">Pacchetto ore</h4>
-                   <p className="text-gray-700 text-lg font-medium">
-                    {serviceData.sectionHours.label ? serviceData.sectionHours.label : serviceData.sectionHours.selectedOption}
-                   </p>
-                   {/* <p className="text-sm text-gray-600 mt-1">Calcolato su {totalProducts} prodotti</p> */}
-                 </div>
+      {/* Grand Total Section */}
+      {showGrandTotal && (
+        <Card className="shadow-xl border-orange-200 border-2 mt-8">
+          <CardContent className="p-6 md:p-8 bg-gradient-to-br from-orange-50 to-orange-100/50">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="flex-1 w-full md:w-auto">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Totale Complessivo Ricorrente</h3>
+                <p className="text-gray-600 mb-4">Include Prodotti e Servizi ActiveMind</p>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 bg-white/80 p-4 rounded-xl border border-orange-200 shadow-sm w-full max-w-md">
+                  <div className="flex flex-col w-full">
+                    <label htmlFor="constraint" className="text-sm font-semibold text-gray-800 mb-1.5 flex items-center">
+                      <CalendarDays className="w-4 h-4 mr-1.5 text-orange-600" />
+                      Durata Contratto:
+                    </label>
+                    <select
+                      id="constraint"
+                      value={contractConstraint}
+                      onChange={handleConstraintChange}
+                      className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block p-2.5 shadow-sm transition-colors hover:border-orange-400 font-medium cursor-pointer"
+                    >
+                      <option value={12}>12 Mesi (Prezzo Standard)</option>
+                      <option value={24}>24 Mesi (Sconto 5%)</option>
+                      <option value={36}>36 Mesi (Sconto 10%)</option>
+                    </select>
+                  </div>
+                </div>
 
-                 <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
-                    <div className="text-right">
-                      <h3 className="text-2xl font-bold text-gray-900">
-                        CHF {monteOreTotal.toLocaleString("de-CH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}.-
-                      </h3>
-                      <p className="text-sm text-gray-600">Una Tantum</p>
+                {discountRate > 0 && (
+                  <div className="mt-4 flex flex-col space-y-2">
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 w-fit text-sm px-3 py-1">
+                      Sconto applicato: {discountRate * 100}% per vincolo {contractConstraint} mesi
+                    </Badge>
+                    <p className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 w-fit flex items-center">
+                      <Calculator className="w-4 h-4 mr-1.5" />
+                      Risparmi CHF {formatPrice(grandTotalYearly - grandTotalYearlyDiscounted)} all'anno
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-4 text-right w-full md:w-auto min-w-[280px]">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-orange-100">
+                  {discountRate > 0 && (
+                    <div className="flex justify-between items-center gap-12 mb-2 pb-2 border-b border-orange-50">
+                       <span className="text-gray-500 text-sm">Mensile Base:</span>
+                       <span className="text-gray-400 line-through text-sm">CHF {formatPrice(grandTotalMonthly)}</span>
                     </div>
-                 </div>
-               </div>
-             </div>
+                  )}
+                  <div className="flex justify-between items-center gap-12">
+                     <span className="text-gray-900 font-semibold">{discountRate > 0 ? "Mensile Scontato:" : "Mensile:"}</span>
+                     <span className="text-3xl font-bold text-orange-600">CHF {formatPrice(grandTotalMonthlyDiscounted)}</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-orange-100">
+                  {discountRate > 0 && (
+                    <div className="flex justify-between items-center gap-12 mb-2 pb-2 border-b border-orange-50">
+                       <span className="text-gray-500 text-sm">Annuale Base:</span>
+                       <span className="text-gray-400 line-through text-sm">CHF {formatPrice(grandTotalYearly)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center gap-12">
+                     <span className="text-gray-900 font-semibold">{discountRate > 0 ? "Annuale Scontato:" : "Annuale:"}</span>
+                     <span className="text-2xl font-bold text-orange-600">CHF {formatPrice(grandTotalYearlyDiscounted)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
