@@ -368,7 +368,8 @@ export default function SchedulerPage() {
               const expectedLastRunTime = nextRunTime - intervalMs;
               console.log("expectedLastRunTime:", expectedLastRunTime);
               
-              if (outputTime <= expectedLastRunTime + 60000) {
+              if (outputTime < (expectedLastRunTime - 60000)) {
+                  console.log("isOldOutput")
                   isOldOutput = true;
               }
           }
