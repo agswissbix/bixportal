@@ -725,7 +725,8 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
             <div>
               <h4 className="font-semibold text-gray-900 mb-3">Metodo di pagamento</h4>
-              <p className="text-sm text-gray-700">Fatturazione ad intervento eseguito, pagamento a 20gg</p>
+              <p className="text-sm text-gray-700">• Servizi e prodotti BE ALL: Trimestrale anticipato</p>
+              <p className="text-sm text-gray-700">• Monte ore di intervento: Anticipato all’ordine</p>
             </div>
           </div>
 

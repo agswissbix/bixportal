@@ -198,7 +198,7 @@ export default function ProductSelection({ data, onUpdate, onClientInfoUpdate, d
                   const pricePerUnit =
                     billingType === "yearly" && service.yearlyPrice
                       ? service.yearlyPrice
-                      : service.monthlyPrice || service.unitPrice;
+                      : service.monthlyPrice;
 
                   initialData[service.id] = {
                     title: service.title,
