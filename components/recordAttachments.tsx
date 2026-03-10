@@ -70,7 +70,9 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
 
   // IMPOSTAZIONE DELLA RESPONSE (non toccare)
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
-
+  
+  const { handleRowClick, refreshTable, setRefreshTable } = useRecordsStore();
+  
   // PAYLOAD (solo se non in sviluppo)
   const payload = useMemo(() => {
     if (isDev) return null;
@@ -78,10 +80,10 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
       apiRoute: 'get_record_attachments',
       tableid: tableid,
       recordid: recordid,
+      _refreshTick: refreshTable
     };
-  }, [tableid, recordid]);
+  }, [tableid, recordid, refreshTable]);
 
-  const { handleRowClick } = useRecordsStore();
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };

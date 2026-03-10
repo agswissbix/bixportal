@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   ArrowRight,
   GripVertical,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
@@ -257,6 +258,7 @@ export default function RecordsTable({
   const [rowOpen, setRowOpen] = useState<string | null>(null)
 
   const [errorFile, setErrorFile] = useState<Record<string, boolean>>({})
+  const [zoomImg, setZoomImg] = useState<string | null>(null)
 
   const [contextMenu, setContextMenu] = useState<{
     x: number
@@ -591,6 +593,7 @@ export default function RecordsTable({
     }
   }
   return (
+    <>
     <GenericComponent
       response={responseData}
       loading={false} // Gestito internamente tramite TableSkeleton per migliorare il CLS
@@ -786,13 +789,17 @@ export default function RecordsTable({
                             {isFileField ? (
                               errorFile[field.recordid] ? (
                                 <>
-                                  <ImageIcon className="w-8 h-8 flex items-center justify-center text-gray-400" />
+                                  {/* <ImageIcon className="w-8 h-8 flex items-center justify-center text-gray-400" /> */}
                                 </>
                               ) : (
                                 <img
                                   src={`/api/media-proxy?url=${field.value}`}
                                   alt="File field"
-                                  className="w-8 h-8 rounded flex-shrink-0"
+                                  className="w-8 h-8 rounded flex-shrink-0 cursor-zoom-in"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setZoomImg(`/api/media-proxy?url=${field.value}`)
+                                  }}
                                   onError={(e) => {
                                     setErrorFile((prev) => ({ ...prev, [field.recordid]: true }))
                                   }}
@@ -1075,5 +1082,36 @@ export default function RecordsTable({
         );
       }}
     </GenericComponent>
+
+    {/* Modal zoom immagine */}
+    {zoomImg && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+        onClick={() => setZoomImg(null)}
+      >
+        <div
+          className="relative max-w-4xl w-full max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-end px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              onClick={() => setZoomImg(null)}
+              className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="overflow-auto p-2 flex items-center justify-center">
+            <img
+              src={zoomImg}
+              alt="Anteprima"
+              className="max-w-full max-h-[80vh] object-contain"
+            />
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
