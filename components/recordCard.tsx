@@ -203,7 +203,7 @@ const RecordCard = React.memo(({
       console.error('Errore durante la duplicazione del record', err);
       toast.error('Errore durante la duplicazione del record');
     } finally {
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
     }
   };
 
@@ -228,7 +228,7 @@ const RecordCard = React.memo(({
       toast.error('Errore durante l\'eliminazione del record');
     } finally {
       handleRemoveCard();
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
     }
   };
 

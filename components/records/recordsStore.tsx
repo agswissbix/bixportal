@@ -3,8 +3,8 @@ import { toast } from 'sonner';
 import { create } from 'zustand'
 
 interface RecordsStore {
-    refreshTable: number;
-    setRefreshTable: (updater: (v: number) => number) => void;
+    refreshTable: Record<string, number>;
+    setRefreshTable: (tableid: string) => void;
     isTableChanging: boolean;
     setTableChangeCompleted: () => void;
     cardsList: Array<{
@@ -167,9 +167,14 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         });
     },
 
-    refreshTable: 0,
-    setRefreshTable: (updater) =>
-        set((state) => ({ refreshTable: updater(state.refreshTable) })),
+    refreshTable: {},
+    setRefreshTable: (tableid: string) =>
+        set((state) => ({
+            refreshTable: {
+                ...state.refreshTable,
+                [tableid]: (state.refreshTable[tableid] ?? 0) + 1,
+            },
+        })),
 
     isTableChanging: false,
     setTableChangeCompleted: () => set({ isTableChanging: false }),
@@ -315,10 +320,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     tableView: "",
     setTableView: (view) =>
-        set((state) => ({
+        set({
             tableView: view,
-            refreshTable: state.refreshTable + 1,
-        })),
+        }),
 
     columnOrder: {
         columnDesc: null,
@@ -351,7 +355,6 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     filtersList: [],
     setFiltersList: (filtersList) => {
         set({ filtersList });
-        get().setRefreshTable((v) => v + 1);
     },
 
     popUpType: "",

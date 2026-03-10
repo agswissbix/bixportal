@@ -291,7 +291,7 @@ export default function cardSteps({
       toast.error("Errore durante il salvataggio del record")
       setIsSaving(false)
     } finally {
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
     }
   }
 

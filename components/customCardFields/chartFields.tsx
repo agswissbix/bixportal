@@ -741,7 +741,7 @@ export default function ChartConfigForm({ tableid, recordid, mastertableid, mast
     } finally {
       setIsSaving(false)
       resetCardsList()
-      setRefreshTable((prev) => prev + 1)
+      setRefreshTable(tableid)
     }
   }
 

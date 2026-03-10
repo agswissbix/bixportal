@@ -85,7 +85,7 @@ export default function PopupImportCsv({
 
             if (response.data.success) {
                 toast.success(`Importazione completata: ${response.data.imported} record importati, ${response.data.errors} errori.`);
-                setRefreshTable((v) => v + 1); // Reload table data
+                setRefreshTable(tableid); // Reload table data
                 onClose && onClose();
             } else {
                 toast.error(response.data.error || 'Errore durante l\'importazione');

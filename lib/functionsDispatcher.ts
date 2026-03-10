@@ -586,7 +586,7 @@ export function useFrontendFunctions() {
         },
       )
       toast.success("Aggiornato")
-      setRefreshTable((v) => v + 1)
+      if ((params as any)?.tableid) setRefreshTable((params as any).tableid)
       return response.data
     } catch (error) {
       console.error("Errore durante il salvataggio", error)
@@ -713,7 +713,7 @@ export function useFrontendFunctions() {
       console.error('Errore durante il rinnovo del contratto', error);
       toast.error('Errore durante il rinnovo del contratto');
     } finally {
-      setRefreshTable((v) => v + 1);
+      setRefreshTable('servicecontract');
       removeCard('servicecontract', recordid)
     }
   },

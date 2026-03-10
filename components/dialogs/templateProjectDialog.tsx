@@ -86,7 +86,7 @@ export function TemplateSelectionDialog({ open, onClose, recordid }: DialogProps
       console.error(error)
     } finally {
       setLoadingSaving(false)
-      setRefreshTable((v) => v+1)
+      setRefreshTable('project')
     }
   }
 

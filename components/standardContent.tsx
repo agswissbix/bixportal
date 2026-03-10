@@ -43,7 +43,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
     return getIsSettingAllowed(tableid, 'add', '')
   }, [tableSettings, tableid])
 
-  const refreshTableFunc = () => setRefreshTable((v) => v + 1)
+  const refreshTableFunc = () => setRefreshTable(tableid)
 
   const devPropExampleValue = isDev ? "Example prop" : tableid
   const responseDataDEFAULT: ResponseInterface = {

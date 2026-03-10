@@ -83,7 +83,7 @@ export default function QuickFilters({ tableid }: PropsInterface) {
 
   const researchTableSubmit = () => {
     setSearchTerm(inputValue) // Imposta il termine di ricerca solo quando invii
-    setRefreshTable((v) => v + 1) // Ricarica la tabella
+    setRefreshTable(tableid ?? selectedMenu) // Ricarica la tabella
   }
 
   // PAYLOAD (solo se non in sviluppo)

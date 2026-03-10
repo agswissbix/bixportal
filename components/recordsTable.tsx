@@ -324,9 +324,9 @@ export default function RecordsTable({
       filtersList: filtersList,
       masterTableid: masterTableid,
       masterRecordid: masterRecordid,
-      _refreshTick: refreshTable,
+      _refreshTick: refreshTable[tableid] ?? 0,
     }
-  }, [tableid, searchTerm, view, currentPage, sortConfig, filtersList, masterTableid, masterRecordid, refreshTable])
+  }, [tableid, searchTerm, view, currentPage, sortConfig, filtersList, masterTableid, masterRecordid, refreshTable[tableid]])
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error, elapsedTime } = useApi<ResponseInterface>(!isDev && payload ? payload : null)
@@ -453,7 +453,7 @@ export default function RecordsTable({
       console.error("Errore durante la duplicazione del record", err)
       toast.error("Errore durante la duplicazione del record")
     } finally {
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
     }
   }
 
@@ -477,7 +477,7 @@ export default function RecordsTable({
       console.error("Errore durante l'eliminazione del record", err)
       toast.error("Errore durante l'eliminazione del record")
     } finally {
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
     }
   }
 
@@ -496,7 +496,7 @@ export default function RecordsTable({
 
   const setTablePage = async (page: number) => {
     setCurrentPage(page)
-    setRefreshTable((v) => v + 1)
+    setRefreshTable(tableid)
   }
 
   const handleDrop = async (recordid: string) => {
@@ -587,7 +587,7 @@ export default function RecordsTable({
       console.error("Errore durante l'eliminazione del record", err)
       toast.error("Errore durante l'eliminazione del record")
     } finally {
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
     }
   }
   return (
@@ -599,7 +599,7 @@ export default function RecordsTable({
       elapsedTime={elapsedTime}
     >
       {(response: ResponseInterface) => {
-        if (loading && (!localRows || localRows.length === 0)) {
+        if (loading) {
           return <TableSkeleton />;
         }
         

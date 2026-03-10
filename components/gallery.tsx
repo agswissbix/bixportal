@@ -186,7 +186,7 @@ export default function GalleryView({ tableid, searchTerm, filters, view, order,
             masterTableid: masterTableid,
             masterRecordid: masterRecordid
         };
-    }, [refreshTable, tableid,]);
+    }, [refreshTable[tableid], tableid,]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error, elapsedTime } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null, elapsedTime:null };
@@ -233,7 +233,7 @@ export default function GalleryView({ tableid, searchTerm, filters, view, order,
             page = pagination.limit;
         }
         setCurrentPage(page);       
-        setRefreshTable(v => v + 1) 
+        setRefreshTable(tableid) 
     }
 
     return (

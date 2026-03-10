@@ -630,7 +630,7 @@ export default function CardFields({
       console.error("Errore durante il salvataggio del record:", error)
       toast.error("Errore durante il salvataggio del record")
     } finally {
-      setRefreshTable((v) => v + 1)
+      setRefreshTable(tableid)
       removeCard(tableid, recordid)
     }
   }
