@@ -112,6 +112,8 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
     const [searchQuery, setSearchQuery] = useState("");
     const [showAddMaterial, setShowAddMaterial] = useState(false);
     const [showAddAllegato, setShowAddAllegato] = useState(false);
+
+    const [getRefreshTick, setGetRefreshTick] = useState(0);
     
     const [isOpzioniPrefilled, setIsOpzioniPrefilled] = useState(false);
 
@@ -141,6 +143,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         notaRifiuto: "",
         materiali: [] as Materiale[],
         allegati: [] as AllegatoDettagliato[],
+        printTravel: '',
     });
 
     const [tempMaterial, setTempMaterial] = useState<Materiale>({
@@ -202,13 +205,15 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
             return {
                 apiRoute: "get_timesheet_initial_data",
                 recordid: timesheetId,
+                _refreshTick: getRefreshTick
             };
         }
 
         return {
             apiRoute: "get_timesheet_initial_data",
+            _refreshTick: getRefreshTick
         };
-     }, [timesheetId]);
+     }, [timesheetId, getRefreshTick]);
 
     const { response, loading, error } = useApi<ResponseInterface>(payload);
     const [responseData, setResponseData] = useState<ResponseInterface | null>(
@@ -400,7 +405,12 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                 setTimesheetId(res.data.id);
                 toast.success("Timesheet salvato correttamente");
                 if (mode === "finish") setIsSuccess(true);
-                else setStep(9);
+                else {
+                    setGetRefreshTick((v) => v+1)
+                    setTimeout(() => {
+                        setStep(9);
+                    }, 100);
+                }
             } else {
                 toast.error(res.data.error || "Errore nel salvataggio");
             }
@@ -1168,6 +1178,12 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             <RecapRow
                                                 label="Tempo Trasferta"
                                                 value={formData.tempoTrasferta}
+                                                icon={Icons.ClockIcon}
+                                                onEdit={() => setStep(6)}
+                                            />
+                                            <RecapRow
+                                                label="Trasferta"
+                                                value={formData.printTravel || "Non inclusa"}
                                                 icon={Icons.ClockIcon}
                                                 onEdit={() => setStep(6)}
                                             />
