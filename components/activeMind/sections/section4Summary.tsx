@@ -513,14 +513,27 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                 <div className="p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl shadow-inner">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                     
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-base mb-2">
-                        Subtotale servizi
-                      </h4>
+                    <div className="flex-1 space-y-4">
+                      <div>
+                        <h2 className="text-2xl font-extrabold text-gray-900">
+                          Subtotale interventi
+                        </h2>
+                        <p className="inline-block mt-2 px-3 py-1 bg-amber-200 text-amber-900 text-sm font-bold rounded-full">
+                          {frequencyLabels[serviceData.section3.selectedFrequency] || "Frequenza non definita"}
+                        </p>
+                      </div>
 
-                      {/* Label condizioni */}
-                      <p className="text-gray-700 text-lg font-medium">
-                        {frequencyLabels[serviceData.section3.selectedFrequency] || "Non selezionata"}
+                      <p className="text-gray-600 text-sm md:text-base leading-relaxed max-w-2xl">
+                        Il servizio di intervento programmatico periodico garantisce il mantenimento ottimale 
+                        dell’infrastruttura informatica e telefonica aziendale. Con cadenza prestabilita, 
+                        i nostri tecnici eseguono:
+                        <span className="block mt-2 italic font-medium text-gray-700">
+                          • Controlli preventivi • Aggiornamenti di sistema • Verifiche di sicurezza
+                        </span>
+                      </p>
+                      
+                      <p className="text-xs text-gray-500 italic">
+                        Ogni intervento è corredato da un rapporto tecnico dettagliato.
                       </p>
                     </div>
 
