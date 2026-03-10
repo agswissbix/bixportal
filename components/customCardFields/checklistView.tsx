@@ -170,7 +170,7 @@ export function ChecklistView({
     } catch (error) {
       console.error("Error updating record:", error)
     } finally {
-              setRefreshTable((prev) => prev + 1)
+      setRefreshTable((prev) => prev + 1)
     }
   }
 
