@@ -513,29 +513,68 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                 <div className="p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl shadow-inner">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                     
-                    <div className="flex-1 space-y-4">
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-gray-900">
-                          Subtotale interventi
-                        </h2>
-                        <p className="inline-block mt-2 px-3 py-1 bg-amber-200 text-amber-900 text-sm font-bold rounded-full">
-                          {frequencyLabels[serviceData.section3.selectedFrequency] || "Frequenza non definita"}
-                        </p>
-                      </div>
+                    <div className="flex-1 space-y-6">
+  {/* Titolo e Badge Frequenza */}
+  <div className="space-y-3">
+    <div className="flex flex-wrap items-center gap-3">
+      <h2 className="text-2xl font-black tracking-tight text-gray-900">
+        Subtotale servizi
+      </h2>
+      <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-sm font-bold uppercase tracking-wider shadow-sm">
+        {frequencyLabels[serviceData.section3.selectedFrequency] || "Frequenza non definita"}
+      </span>
+    </div>
+    
+    <div className="h-1 w-12 bg-amber-400 rounded-full" /> {/* Accento grafico */}
+  </div>
 
-                      <p className="text-gray-600 text-sm md:text-base leading-relaxed max-w-2xl">
-                        Il servizio di intervento programmatico periodico garantisce il mantenimento ottimale 
-                        dell’infrastruttura informatica e telefonica aziendale. Con cadenza prestabilita, 
-                        i nostri tecnici eseguono:
-                        <span className="block mt-2 italic font-medium text-gray-700">
-                          • Controlli preventivi • Aggiornamenti di sistema • Verifiche di sicurezza
-                        </span>
-                      </p>
-                      
-                      <p className="text-xs text-gray-500 italic">
-                        Ogni intervento è corredato da un rapporto tecnico dettagliato.
-                      </p>
-                    </div>
+  {/* Descrizione Principale */}
+  <div className="space-y-4">
+    <p className="text-gray-600 text-sm md:text-base leading-relaxed max-w-2xl">
+      Il servizio di intervento programmatico periodico garantisce il mantenimento ottimale 
+      dell’infrastruttura informatica e telefonica aziendale. Con cadenza prestabilita, 
+      i nostri tecnici eseguono:
+    </p>
+
+    {/* Lista Servizi - Formattazione migliorata */}
+    <div className="flex flex-wrap gap-x-4 text-sm font-semibold text-gray-700">
+      <span className="flex items-center gap-1.5">
+        <span className="text-amber-500 text-lg">•</span> Controlli preventivi
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="text-amber-500 text-lg">•</span> Aggiornamenti di sistema
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="text-amber-500 text-lg">•</span> Verifiche di sicurezza
+      </span>
+    </div>
+
+    <p className="text-[11px] text-gray-400 uppercase tracking-wide font-medium">
+      Ogni intervento è corredato da un rapporto tecnico dettagliato.
+    </p>
+  </div>
+
+  {/* Alert Box: Specifica Monte Ore - Design più "Professional" */}
+  <div className="relative overflow-hidden bg-amber-50/50 border border-amber-200 p-5 rounded-2xl max-w-xl shadow-inner">
+    {/* Icona di sfondo decorativa */}
+    <div className="absolute -right-4 -top-4 opacity-10 text-amber-500">
+      <svg width="80" height="80" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+      </svg>
+    </div>
+
+    <div className="relative z-10">
+      <h5 className="flex items-center gap-2 text-amber-900 font-bold text-sm mb-2">
+        <span className="flex items-center justify-center w-5 h-5 bg-amber-200 rounded-full text-[10px]">i</span>
+        NOTA SULLA FATTURAZIONE
+      </h5>
+      <p className="text-sm text-gray-600 leading-relaxed">
+        Gli interventi vengono <strong className="text-gray-900">scalati dal monte ore acquistato</strong> in base alla durata effettiva dell'attività. 
+        La periodicità indica la cadenza programmata delle visite, non un costo fisso aggiuntivo per singola uscita.
+      </p>
+    </div>
+  </div>
+</div>
 
                     <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
                       
