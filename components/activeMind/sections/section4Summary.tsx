@@ -276,7 +276,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-gray-900">
-                      CHF {serviceData.section1.price.toLocaleString("it-CH")}.-
+                      CHF {serviceData.section1.price.toLocaleString("it-CH")}.--
                     </div>
                     <Badge variant="secondary" className="mt-1">Prezzo fisso</Badge>
                   </div>
