@@ -595,6 +595,8 @@ export default function CardFields({
       return
     }
 
+    if (isSaving) return
+
     setIsSaving(true)
     try {
       if (externalOnSave) {
