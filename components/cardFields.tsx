@@ -102,9 +102,11 @@ export default function CardFields({
 
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? (undefined as any) : responseDataDEFAULT)
   const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] | File }>({})
+  const [initialFields, setInitialFields] = useState<{ [key: string]: string | string[] | File }>({})
   const [isSaveDisabled, setIsSaveDisabled] = useState(true)
   const [isEditable, setIsEditable] = useState(false)
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({})
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
   const [isSaving, setIsSaving] = useState(false)
 
@@ -218,7 +220,7 @@ export default function CardFields({
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       console.log("[API Response]", response)
       setResponseData(response)
-      const initialFields: { [key: string]: string | string[] | File } = {}
+      const init: { [key: string]: string | string[] | File } = {}
       response.fields.forEach((field) => {
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
@@ -226,22 +228,23 @@ export default function CardFields({
           typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
 
         if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
-          initialFields[field.fieldid] = defaultValue
+          init[field.fieldid] = defaultValue
         } 
           if (backendValue !== undefined && backendValue !== null) {
-          initialFields[field.fieldid] = backendValue
+          init[field.fieldid] = backendValue
         }
         if (prefillData && prefillData[field.fieldid] !== undefined) {
-          initialFields[field.fieldid] = prefillData[field.fieldid]
+          init[field.fieldid] = prefillData[field.fieldid]
         }
       })
-      setUpdatedFields(initialFields)
+      setUpdatedFields(init)
+      setInitialFields(init)
     }
   }, [response, isDev, responseData, prefillData])
 
   useEffect(() => {
     if (externalFields && externalFields.length > 0) {
-      const initialFields: { [key: string]: string | string[] | File } = {}
+      const init: { [key: string]: string | string[] | File } = {}
       externalFields.forEach((field) => {
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
@@ -250,16 +253,17 @@ export default function CardFields({
           typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
 
         if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
-          initialFields[field.fieldid] = defaultValue
+          init[field.fieldid] = defaultValue
         } 
         if (backendValue !== undefined && backendValue !== null) {
-          initialFields[field.fieldid] = backendValue
+          init[field.fieldid] = backendValue
         }
         if (prefillData && prefillData[field.fieldid] !== undefined) {
-            initialFields[field.fieldid] = prefillData[field.fieldid];
+            init[field.fieldid] = prefillData[field.fieldid];
         }
       })
-      setUpdatedFields(initialFields)
+      setUpdatedFields(init)
+      setInitialFields(init)
     }
   }, [externalFields, prefillData])
 
@@ -373,10 +377,12 @@ export default function CardFields({
       )
     }
 
+    const isDirty = !isCalculated && isFieldDirty(field.fieldid)
+
     return (
         <div
             key={`${field.fieldid}-container`}
-            className="flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group"
+            className={`flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group transition-all duration-200 ${isDirty ? "border-l-2 rounded-lg border-amber-400 pl-2" : "border-l-2 border-transparent pl-1"}`}
             onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}>
             <div className="w-full lg:w-1/4 pt-2">
                 <div className="flex items-center gap-1">
@@ -585,10 +591,48 @@ export default function CardFields({
     setIsSaveDisabled(!allRequiredFilled || Object.keys(updatedFields).length === 0)
   }, [currentValues, currentFields, updatedFields])
 
+  
   const toggleAccordion = (label: string) => {
     setOpenAccordions((prev) => ({ ...prev, [label]: !prev[label] }))
   }
 
+  const hasUnsavedChanges = useMemo(() => {
+    return Object.keys(updatedFields).some((key) => {
+      const current = updatedFields[key] || null
+      const initial = initialFields[key] || null
+
+      console.log(current, initial)
+      if (current instanceof File) return true
+      return JSON.stringify(current) !== JSON.stringify(initial)
+    })
+  }, [updatedFields, initialFields])
+
+  /** Ripristina tutti i campi ai valori originali ricevuti dal payload */
+  const handleDiscardChanges = useCallback(() => {
+    setUpdatedFields({ ...initialFields })
+  }, [initialFields])
+
+  /** Ritorna true se il valore del campo è diverso da quello iniziale */
+  const isFieldDirty = useCallback(
+    (fieldid: string) => {
+      const current = updatedFields[fieldid] || null
+      const initial = initialFields[fieldid] || null
+      if (current instanceof File) return true
+      return JSON.stringify(current) !== JSON.stringify(initial)
+    },
+    [updatedFields, initialFields],
+  )
+  
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+  
   const handleSave = async () => {
     if (isSaveDisabled) {
       toast.warning("Compilare tutti i campi obbligatori per poter salvare.")
@@ -601,6 +645,7 @@ export default function CardFields({
     try {
       if (externalOnSave) {
         await externalOnSave(updatedFields)
+        setInitialFields(updatedFields)
         setUpdatedFields({})
         setIsSaving(false)
         return
@@ -626,6 +671,7 @@ export default function CardFields({
       })
 
       toast.success("Record salvato con successo")
+      setInitialFields(updatedFields)
       setUpdatedFields({})
       setIsSaving(false)
     } catch (error) {
@@ -651,6 +697,23 @@ export default function CardFields({
         )}
         <div className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
           <Tooltip id="my-tooltip" className="tooltip" />
+          {hasUnsavedChanges && (
+            <div className="flex items-center justify-between gap-2 mb-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-300 text-amber-700 text-xs font-medium">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Ci sono modifiche non salvate
+              </div>
+              <button
+                type="button"
+                onClick={handleDiscardChanges}
+                className="ml-auto text-amber-700 hover:text-amber-900 underline underline-offset-2 text-xs font-semibold transition-colors"
+              >
+                Annulla
+              </button>
+            </div>
+          )}
           <div className="flex-grow overflow-y-auto max-h-[83%] space-y-3 pr-2">
             <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
 
@@ -693,7 +756,11 @@ export default function CardFields({
                   type="button"
                   onClick={handleSave}
                   disabled={isSaveDisabled || isCalculating}
-                  className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled || isCalculating ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 transition-all duration-200 ${
+                    isSaveDisabled || isCalculating
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
                   {isSaving ? "Salvataggio..." : "Salva"}
                 </button>
@@ -701,6 +768,39 @@ export default function CardFields({
             </div>
           )}
         </div>
+
+        {/* Confirmation modal for discarding unsaved changes on close */}
+        {showCloseConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900">Modifiche non salvate</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-5">Ci sono modifiche non salvate. Sei sicuro di voler chiudere senza salvare?</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowCloseConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Continua a modificare
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowCloseConfirm(false); removeCard(tableid, recordid) }}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
+                >
+                  Chiudi senza salvare
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     )
   }
@@ -719,6 +819,23 @@ export default function CardFields({
           )}
           <div className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
             <Tooltip id="my-tooltip" className="tooltip" />
+            {hasUnsavedChanges && (
+              <div className="flex items-center justify-between gap-2 mb-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-300 text-amber-700 text-xs font-medium">
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Ci sono modifiche non salvate
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDiscardChanges}
+                  className="ml-auto text-amber-700 hover:text-amber-900 underline underline-offset-2 text-xs font-semibold transition-colors"
+                >
+                  Ripristina
+                </button>
+              </div>
+            )}
             <div className="flex-grow overflow-y-auto space-y-3 pr-2">
               <input ref={dummyInputRef} tabIndex={-1} className="absolute opacity-0" />
 
@@ -761,7 +878,11 @@ export default function CardFields({
                     type="button"
                     onClick={handleSave}
                     disabled={isSaveDisabled || isCalculating || !isEditable}
-                    className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 ${isSaveDisabled || isCalculating || !isEditable ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 transition-all duration-200 ${
+                      isSaveDisabled || isCalculating || !isEditable
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
                   >
                     {isSaving ? "Salvataggio..." : "Salva"}
                   </button>
@@ -769,6 +890,39 @@ export default function CardFields({
               </div>
             )}
           </div>
+
+          {/* Confirmation modal for discarding unsaved changes on close */}
+          {showCloseConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-shrink-0 w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900">Modifiche non salvate</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-5">Ci sono modifiche non salvate. Sei sicuro di voler chiudere senza salvare?</p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowCloseConfirm(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  >
+                    Continua a modificare
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowCloseConfirm(false); removeCard(tableid, recordid) }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
+                  >
+                    Chiudi senza salvare
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </GenericComponent>
