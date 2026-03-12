@@ -126,7 +126,7 @@ export default function PopupEmailSelection({
         }
       }}
     >
-      <DialogContent className="sm:max-w-[425px] z-[99999] bg-white text-gray-800 border-none shadow-2xl">
+      <DialogContent className="z-[99999] bg-white text-gray-800 border-none shadow-2xl">
         <DialogHeader className="border-b border-gray-100 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-gray-900">
             <Mail className="w-5 h-5 text-blue-600" />
