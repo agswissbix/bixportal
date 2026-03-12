@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext, useCallback, useLayoutEffect } from 'react';
 import { useRecordsStore } from './records/recordsStore';
+import { useRecordActions } from '../hooks/useRecordActions';
 import { CircleX, Maximize2, Info, Trash2, Copy, Minimize2, Minus } from 'lucide-react';
 import CardBadge from './cardBadge';
 import CardBadgeStabile from './customBadges/cardBadgeStabile';
@@ -180,55 +181,19 @@ const RecordCard = React.memo(({
     }
   };
   
+  const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
+
   const duplicateRecord = async () => {
-    try {
-      const response = await axiosInstanceClient.post(
-        '/postApi',
-        {
-          apiRoute: 'duplicate_record',
-          tableid,
-          recordid,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      if (response.data.success == true) {
-        toast.success('Record duplicato con successo');
-        handleRowClick('standard', response.data.new_recordid, tableid);
-      }
-    } catch (err) {
-      console.error('Errore durante la duplicazione del record', err);
-      toast.error('Errore durante la duplicazione del record');
-    } finally {
-      setRefreshTable(tableid)
+    const result = await duplicateRecordAction(tableid, recordid);
+    if (result && result.success) {
+      handleRowClick('standard', result.new_recordid, tableid);
     }
   };
 
   const deleteRecord = async () => {
-    try {
-      await axiosInstanceClient.post(
-        '/postApi',
-        {
-          apiRoute: 'delete_record',
-          tableid,
-          recordid,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      toast.success('Record eliminato con successo');
-    } catch (err) {
-      console.error('Errore durante l\'eliminazione del record', err);
-      toast.error('Errore durante l\'eliminazione del record');
-    } finally {
+    const success = await deleteRecordAction(tableid, recordid);
+    if (success) {
       handleRemoveCard();
-      setRefreshTable(tableid)
     }
   };
 
@@ -237,9 +202,7 @@ const RecordCard = React.memo(({
       action: {
         label: 'Conferma',
         onClick: async () => {
-          toast.loading("Eliminazione in corso...", {id: "delete"})
-          await deleteRecord()
-          toast.dismiss("delete")
+          await deleteRecord();
         },
       },
     });

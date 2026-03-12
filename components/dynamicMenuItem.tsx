@@ -1,5 +1,6 @@
 // DynamicMenuItem.tsx
 import { useState } from "react";
+import { toast } from "sonner";
 import { useFrontendFunctions } from "@/lib/functionsDispatcher";
 import LoadingComp from "./loading";
 
@@ -26,6 +27,7 @@ export default function DynamicMenuItem({
   const [isLoading, setIsLoading] = useState(false);
   const handleClick = async () => {
     setIsLoading(true); // Start loading
+    const toastId = toast.loading(`Esecuzione di "${fn.title}" in corso...`);
     const func = frontendFunctions[fn.function];
     try {
       if (func) {
@@ -35,14 +37,17 @@ export default function DynamicMenuItem({
         } else {
           await func();
         }
+        toast.success(`Esecuzione di "${fn.title}" completata`, { id: toastId });
       } else {
         console.warn(`Funzione non trovata: ${fn.function}`);
+        toast.error(`Funzione non trovata: ${fn.function}`, { id: toastId });
       }
     } catch (error) {
       console.error(
         `Errore durante l'esecuzione della funzione: ${fn.function}`,
         error
       );
+      toast.error(`Errore durante l'esecuzione di "${fn.title}"`, { id: toastId });
     } finally {
       setIsLoading(false); // End loading
     }
