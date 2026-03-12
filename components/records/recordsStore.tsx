@@ -86,6 +86,9 @@ interface RecordsStore {
     popUpType: string;
     setPopUpType: (popUpType: string) => void;
 
+    popupData: any;
+    setPopupData: (data: any) => void;
+
     popupRecordId: string;
     setPopupRecordId: (recordid: string) => void;
 
@@ -108,7 +111,7 @@ interface RecordsStore {
     popupResolver: ((data: any) => void) | null;
     setPopupResolver: (resolver: ((data: any) => void) | null) => void;
 
-    openPopup: (type: string, recordid?: string) => Promise<any>;
+    openPopup: (type: string, recordid?: string, data?: any) => Promise<any>;
 
     dashboardFilters: {
         selectedYears: string[];
@@ -158,12 +161,13 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
     popupResolver: null,
     setPopupResolver: (resolver: ((data: any) => void) | null) =>
         set({ popupResolver: resolver }),
-    openPopup: (type: string, recordid?: string) => {
+    openPopup: (type: string, recordid?: string, data?: any) => {
         return new Promise((resolve) => {
             set({
                 popupResolver: resolve,
                 popupRecordId: recordid ?? "",
                 popUpType: type,
+                popupData: data ?? null,
                 isPopupOpen: true,
             });
         });
@@ -364,6 +368,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
 
     popUpType: "",
     setPopUpType: (popUpType: string) => set({ popUpType }),
+
+    popupData: null,
+    setPopupData: (data: any) => set({ popupData: data }),
 
     popupRecordId: "",
     setPopupRecordId: (recordid: string) => set({ popupRecordId: recordid }),

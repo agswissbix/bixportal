@@ -485,6 +485,9 @@ export async function POST(request: Request) {
         case "save_email_timesheet":
             djangoUrl = "/customapp_swissbix/save_email_timesheet/";
             break;
+        case "get_timesheet_emails":
+            djangoUrl = "/customapp_swissbix/get_timesheet_emails/";
+            break;
         case "get_project_templates":
             djangoUrl = "/customapp_swissbix/get_project_templates/";
             break;
