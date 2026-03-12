@@ -5,6 +5,8 @@ import { create } from 'zustand'
 interface RecordsStore {
     refreshTable: Record<string, number>;
     setRefreshTable: (tableid: string) => void;
+    refreshViewsList: number;
+    setRefreshViewsList: () => void;
     isTableChanging: boolean;
     setTableChangeCompleted: () => void;
     cardsList: Array<{
@@ -175,6 +177,9 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
                 [tableid]: (state.refreshTable[tableid] ?? 0) + 1,
             },
         })),
+
+    refreshViewsList: 0,
+    setRefreshViewsList: () => set((state) => ({ refreshViewsList: state.refreshViewsList + 1 })),
 
     isTableChanging: false,
     setTableChangeCompleted: () => set({ isTableChanging: false }),

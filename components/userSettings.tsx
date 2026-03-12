@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import UserProfile from './userProfile';
 import UserFavTables from './userFavTables';
 import UserTheme from './userTheme';
+import UserTableViews from './userTableViews';
 
 const AccordionItem = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +39,9 @@ export default function UserSettings() {
       </AccordionItem>
       <AccordionItem title="Tabelle Preferite">
         <UserFavTables />
+      </AccordionItem>
+      <AccordionItem title="Viste Tabelle">
+        <UserTableViews />
       </AccordionItem>
       <AccordionItem title="Tema di BixData">
         <UserTheme />

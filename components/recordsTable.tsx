@@ -706,7 +706,7 @@ export default function RecordsTable({
                       const isNumberField = column?.fieldtypeid === "Numero"
                       const isFileField = column?.fieldtypeid === "file"
                       const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid
-                      console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
+                      // console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
                       return (
                         <td
                           key={`${row.recordid}-${field.fieldid}`}

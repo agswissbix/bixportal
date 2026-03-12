@@ -450,6 +450,12 @@ export async function POST(request: Request) {
         case "import_csv_data":
             djangoUrl = "/commonapp/import_csv_data/";
             break;
+        case "save_table_view":
+            djangoUrl = "/commonapp/save_table_view/";
+            break;
+        case "delete_table_view":
+            djangoUrl = "/commonapp/delete_table_view/";
+            break;
 
         // SWISSBIX
         case "get_lenovo_device_info":
