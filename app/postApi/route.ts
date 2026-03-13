@@ -453,6 +453,12 @@ export async function POST(request: Request) {
         case "import_csv_data":
             djangoUrl = "/commonapp/import_csv_data/";
             break;
+        case "save_table_view":
+            djangoUrl = "/commonapp/save_table_view/";
+            break;
+        case "delete_table_view":
+            djangoUrl = "/commonapp/delete_table_view/";
+            break;
 
         // SWISSBIX
         case "get_lenovo_device_info":
@@ -481,6 +487,9 @@ export async function POST(request: Request) {
             break;
         case "save_email_timesheet":
             djangoUrl = "/customapp_swissbix/save_email_timesheet/";
+            break;
+        case "get_timesheet_emails":
+            djangoUrl = "/customapp_swissbix/get_timesheet_emails/";
             break;
         case "get_project_templates":
             djangoUrl = "/customapp_swissbix/get_project_templates/";

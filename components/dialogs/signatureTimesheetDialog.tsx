@@ -2,9 +2,13 @@ import React, { useCallback, useState } from "react";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast } from "sonner";
 import { SignatureDialog } from "../signatureDialog";
+import { useRecordsStore } from "@/components/records/recordsStore";
+import PopupEmailSelection from "@/components/popupContent/popupEmailSelection";
 
 export default function SignatureDialogWrapper({ recordid, openSignatureDialog, setOpenSignatureDialog }) {
   const [digitalSignature, setDigitalSignature] = useState<string | null>(null);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [savedSignatureRecordId, setSavedSignatureRecordId] = useState<string | null>(null);
 
   const handleSignatureChange = useCallback((signature: string | null) => {
     setDigitalSignature(signature);
@@ -47,9 +51,21 @@ export default function SignatureDialogWrapper({ recordid, openSignatureDialog, 
     }
   };
 
-  const handleSendEmailTimesheet = async (recordidAttachment: string) => {
+  const onSendEmailClick = async (recordidAttachment: string) => {
     if (!digitalSignature) {
       toast.error("Nessuna firma digitale rilevata. Si prega di firmare prima di procedere.");
+      return;
+    }
+
+    setSavedSignatureRecordId(recordidAttachment);
+    setShowEmailDialog(true);
+  };
+
+  const handleEmailConfirmed = async (finalEmail: string | null) => {
+    setShowEmailDialog(false);
+
+    if (!finalEmail) {
+      // User cancelled
       return;
     }
 
@@ -59,14 +75,15 @@ export default function SignatureDialogWrapper({ recordid, openSignatureDialog, 
         {
           apiRoute: "save_email_timesheet",
           recordid,
-          recordidAttachment,
+          recordidAttachment: savedSignatureRecordId,
+          recipient: finalEmail,
         },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "application/json",
           },
-          responseType: "blob",
+          responseType: "json",
         }
       );
 
@@ -77,8 +94,8 @@ export default function SignatureDialogWrapper({ recordid, openSignatureDialog, 
 
       toast.success("Email inviata con successo.");
     } catch (error) {
-      console.error("Errore durante il salvataggio o il download:", error);
-      toast.error("Errore durante il salvataggio o il download");
+      console.error("Errore durante l'invio:", error);
+      toast.error("Errore durante l'invio dell'email");
     }
   };
 
@@ -118,13 +135,27 @@ export default function SignatureDialogWrapper({ recordid, openSignatureDialog, 
   };
 
   return (
-    <SignatureDialog
-      isOpen={openSignatureDialog}
-      onOpenChange={setOpenSignatureDialog}
-      onSaveSignature={handleSaveSignature}
-      onSignatureChange={handleSignatureChange}
-      onDownload={(savedSignature) => handlePrintTimesheet(savedSignature)}
-      onSendEmail={(savedSignature) => handleSendEmailTimesheet(savedSignature)}
-    />
+    <>
+      <SignatureDialog
+        isOpen={openSignatureDialog}
+        onOpenChange={(open) => {
+          setOpenSignatureDialog(open);
+        }}
+        onSaveSignature={handleSaveSignature}
+        onSignatureChange={handleSignatureChange}
+        onDownload={(savedSignature) => handlePrintTimesheet(savedSignature)}
+        onSendEmail={(savedSignature) => onSendEmailClick(savedSignature)}
+      />
+
+      <PopupEmailSelection
+        open={showEmailDialog}
+        onClose={() => setShowEmailDialog(false)}
+        recordid={recordid}
+        apiRouteGetEmails="get_timesheet_emails"
+        title="Invia Timesheet a:"
+        onConfirm={handleEmailConfirmed}
+      />
+    </>
   );
 }
+

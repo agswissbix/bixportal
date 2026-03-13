@@ -5,6 +5,7 @@ import { useApi } from "@/utils/useApi"
 import GenericComponent from "./genericComponent"
 import { AppContext } from "@/context/appContext"
 import { useRecordsStore } from "./records/recordsStore"
+import { useRecordActions } from "../hooks/useRecordActions"
 import {
   ArrowUp,
   ArrowDown,
@@ -432,55 +433,10 @@ export default function RecordsTable({
     // NON è più necessario chiamare setColumnOrder da zustand
   }
 
-  const duplicateRecord = async (recordid: string) => {
-    try {
-      const response = await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "duplicate_record",
-          tableid,
-          recordid,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      )
-      if (response?.data.success == true) {
-        toast.success("Record duplicato con successo")
-        // handleRowClick('standard', response?.data.new_recordid, tableid);
-      }
-    } catch (err) {
-      console.error("Errore durante la duplicazione del record", err)
-      toast.error("Errore durante la duplicazione del record")
-    } finally {
-      setRefreshTable(tableid)
-    }
-  }
+  const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
 
-  const deleteRecord = async (recordid: string) => {
-    try {
-      await axiosInstanceClient.post(
-        "/postApi",
-        {
-          apiRoute: "delete_record",
-          tableid,
-          recordid,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      )
-      toast.success("Record eliminato con successo")
-    } catch (err) {
-      console.error("Errore durante l'eliminazione del record", err)
-      toast.error("Errore durante l'eliminazione del record")
-    } finally {
-      setRefreshTable(tableid)
-    }
+  const duplicateRecord = async (recordid: string) => {
+    await duplicateRecordAction(tableid, recordid);
   }
 
   const handleTrashClick = (recordid: string) => {
@@ -488,9 +444,7 @@ export default function RecordsTable({
       action: {
         label: "Conferma",
         onClick: async () => {
-          toast.loading("Eliminazione in corso...", {id: "delete"})
-          await deleteRecord(recordid)
-          toast.dismiss("delete")
+          await deleteRecordAction(tableid, recordid);
         },
       },
     })
@@ -752,7 +706,7 @@ export default function RecordsTable({
                       const isNumberField = column?.fieldtypeid === "Numero"
                       const isFileField = column?.fieldtypeid === "file"
                       const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid
-                      console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
+                      // console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
                       return (
                         <td
                           key={`${row.recordid}-${field.fieldid}`}

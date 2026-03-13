@@ -18,6 +18,7 @@ import RecordsCalendar from './recordsCalendar';
 import MatrixView from './calendar/matrixView';
 import UnifiedCalendar from './calendar/unifiedCalendar';
 import RecordsGroupedTable from './recordsGroupedTable';
+import CustomDeadlines from '@/app/custom/swissbix/tableTabs/customDeadline';
 
 const isDev = false;
 
@@ -26,9 +27,14 @@ interface PropsInterface {
   contentRef?: React.MutableRefObject<HTMLDivElement | null>;
 }
 
+interface TableTab {
+  id: string;
+  name: string;
+}
+
 interface ResponseInterface {
-  tableTabs: string[];
-  activeTab: string;
+  tableTabs: TableTab[];
+  activeTab: TableTab;
 }
 
 export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
@@ -38,13 +44,29 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
   );
 
   const responseDataDEFAULT: ResponseInterface = {
-    tableTabs: ['Tabella', 'TabellaRaggruppata', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
-    activeTab: 'Tabella'
+    tableTabs: [
+      { id: 'Tabella', name: 'Tabella' },
+      { id: 'TabellaRaggruppata', name: 'TabellaRaggruppata' },
+      { id: 'Kanban', name: 'Kanban' },
+      { id: 'Calendario', name: 'Calendario' },
+      { id: 'Timeline', name: 'Timeline' },
+      { id: 'Gallery', name: 'Gallery' },
+      { id: 'Pivot', name: 'Pivot' }
+    ],
+    activeTab: { id: 'Tabella', name: 'Tabella' }
   };
 
   const responseDataDEV: ResponseInterface = {
-    tableTabs: ['Tabella', 'TabellaRaggruppata', 'Kanban', 'Calendario','Timeline', 'Gallery', 'Pivot'],
-    activeTab: 'Tabella'
+    tableTabs: [
+      { id: 'Tabella', name: 'Tabella' },
+      { id: 'TabellaRaggruppata', name: 'TabellaRaggruppata' },
+      { id: 'Kanban', name: 'Kanban' },
+      { id: 'Calendario', name: 'Calendario' },
+      { id: 'Timeline', name: 'Timeline' },
+      { id: 'Gallery', name: 'Gallery' },
+      { id: 'Pivot', name: 'Pivot' }
+    ],
+    activeTab: { id: 'Tabella', name: 'Tabella' }
   };
 
   const [responseData, setResponseData] = useState<ResponseInterface>(
@@ -68,7 +90,7 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       setResponseData(response);
-      setActiveTab(response.activeTab);
+      setActiveTab(response.activeTab.id);
     }
   }, [response]);
 
@@ -87,12 +109,12 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                                   className="me-2">
                                   <button
                                       className={`inline-block p-4 border-b-2 rounded-t-lg transition-all duration-300 ${
-                                          activeTab === tab
+                                          activeTab === tab.id
                                               ? "text-primary border-primary"
                                               : "text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300"
                                       }`}
-                                      onClick={() => setActiveTab(tab)}>
-                                      {tab}
+                                      onClick={() => setActiveTab(tab.id)}>
+                                      {tab.name}
                                   </button>
                               </li>
                           ))}
@@ -136,36 +158,6 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                           />
                           // <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
                       )}
-                      {activeTab === "MatrixCalendar" && (
-                          <CalendarBase
-                              viewType="records"
-                              tableid={tableid}
-                              showUnplannedEvents={false}>
-                              {(calendarProps: CalendarChildProps) => (
-                                  <MatrixView
-                                      {...calendarProps}
-                                      calendarType={calendarType}
-                                      onCalendarTypeChange={setCalendarType}
-                                  />
-                              )}
-                          </CalendarBase>
-                          // <RecordsPlanner tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} showUnplannedEvents={false} />
-                      )}
-                      {activeTab === "Planner" && (
-                          <CalendarBase
-                              viewType="records"
-                              tableid={tableid}
-                              showUnplannedEvents={true}>
-                              {(calendarProps: CalendarChildProps) => (
-                                  <MatrixView
-                                      {...calendarProps}
-                                      calendarType={calendarType}
-                                      onCalendarTypeChange={setCalendarType}
-                                  />
-                              )}
-                          </CalendarBase>
-                          // <RecordsPlanner tableid={tableid} view={tableView} searchTerm={searchTerm} showUnplannedEvents={true}/>
-                      )}
                       {activeTab === "Gallery" && (
                           <GalleryView tableid={tableid} />
                       )}
@@ -177,6 +169,10 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                               searchTerm={searchTerm}
                           />
                       )}
+                      {activeTab === "Custom" && (
+                        // TODO: manager per ogni tabella
+                        <CustomDeadlines />
+                      )}
                       {[
                           "Tabella",
                           "TabellaRaggruppata",
@@ -184,7 +180,7 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                           "Calendario",
                           "Gallery",
                           "Pivot",
-                          "Planner",
+                          "Custom"
                       ].indexOf(activeTab) === -1 && (
                           <div className="text-gray-400 italic">
                               Nessun contenuto da mostrare

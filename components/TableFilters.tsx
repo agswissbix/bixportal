@@ -8,6 +8,7 @@ import { MoreVertical, X, Plus } from 'lucide-react';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import SelectUser from './selectUser';
 import SelectStandard from './selectStandard';
+import { toast } from 'sonner';
 import InputLinked from './input/inputLinked';
 import InputDate from './input/inputDate';
 
@@ -60,7 +61,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
     };
 
     const { user } = useContext(AppContext);
-    const { filtersList, setFiltersList } = useRecordsStore();
+    const { filtersList, setFiltersList, setRefreshViewsList } = useRecordsStore();
 
     const [filterValues, setFilterValues] = useState<Record<string, any[]>>({});
 
@@ -70,6 +71,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
 
     const [openMenuFieldId, setOpenMenuFieldId] = useState<string | null>(null);
     const [filterConditions, setFilterConditions] = useState<Record<string, string>>({});
+
+    const [isSaveViewChecked, setIsSaveViewChecked] = useState(false);
+    const [newViewName, setNewViewName] = useState("");
 
     const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -187,6 +191,26 @@ export default function TableFilters({ tableid }: PropsInterface) {
 
         console.log("Applying Filters:", filters);
         setFiltersList(filters);
+
+        if (isSaveViewChecked && newViewName.trim() !== '') {
+            axiosInstanceClient.post(`/postApi`, {
+                apiRoute: "save_table_view",
+                tableid: tableid,
+                view_name: newViewName.trim(),
+                filters: filters
+            }).then(response => {
+                if (response.data.success) {
+                    setIsSaveViewChecked(false);
+                    setNewViewName('');
+                    setRefreshViewsList(); // Trigger re-fetch dell'elenco delle viste in quickFilters
+                    toast.success("Vista salvata con successo!");
+                } else {
+                    toast.error(response.data.detail || "Errore durante il salvataggio della vista");
+                }
+            }).catch(error => {
+                toast.error(error.response?.data?.detail || "Errore di connessione o server interno");
+            });
+        }
     }
 
     const updateFilter = (
@@ -650,6 +674,36 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                 )}
                             </div>
                         )})}
+                        
+                        {/* Checkbox per salvare la view */}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex items-center mb-3">
+                                <input
+                                    id="save-view-checkbox"
+                                    type="checkbox"
+                                    checked={isSaveViewChecked}
+                                    onChange={(e) => setIsSaveViewChecked(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <label htmlFor="save-view-checkbox" className="ms-2 text-sm font-medium text-gray-900">
+                                    Salva come vista predefinita
+                                </label>
+                            </div>
+                            
+                            {isSaveViewChecked && (
+                                <div className="mb-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nome della vista"
+                                        value={newViewName}
+                                        onChange={(e) => setNewViewName(e.target.value)}
+                                        required={isSaveViewChecked}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         <div className="mt-6 flex gap-3">
                             <button
                                 type="submit"

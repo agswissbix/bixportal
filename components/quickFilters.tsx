@@ -22,6 +22,7 @@ interface ResponseInterface {
   views: {
     id: number
     name: string
+    userid?: number
   }[]
   defaultViewId?: number
 }
@@ -61,24 +62,27 @@ export default function QuickFilters({ tableid }: PropsInterface) {
 
   const {
     setSearchTerm,
-    setTableView, // usa lo setter aggiornato
+    setTableView,
     isFiltersOpen,
     setIsFiltersOpen,
-    setRefreshTable, // ★ MOD (nuova firma)
+    setRefreshTable,
     selectedMenu,
+    refreshViewsList,
   } = useRecordsStore()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const keyword = e.target.value
-    setInputValue(keyword) // Solo aggiorna lo stato locale
-    // RIMOSSO: setSearchTerm(keyword);
+    setInputValue(keyword)
   }
 
   const handleViewChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const viewid = e.target.value
     setSelectedView(Number.parseInt(viewid)) // Aggiorna stato locale
     setTableView(viewid) // Passa il valore al componente genitore
-    researchTableSubmit()
+    
+    // Imposta il termine di ricerca locale
+    setSearchTerm(inputValue)
+    setRefreshTable(tableid ?? selectedMenu)
   }
 
   const researchTableSubmit = () => {
@@ -92,8 +96,9 @@ export default function QuickFilters({ tableid }: PropsInterface) {
     return {
       apiRoute: "get_table_views", // riferimento api per il backend
       tableid: tableid ?? selectedMenu,
+      refreshTrigger: refreshViewsList, // forza il ricaricamento da useApi
     }
-  }, [selectedMenu, tableid])
+  }, [selectedMenu, tableid, refreshViewsList])
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error } = useApi<ResponseInterface>(payload)
@@ -103,18 +108,25 @@ export default function QuickFilters({ tableid }: PropsInterface) {
 
   // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
   useEffect(() => {
-    // azzera input + filtri
+    // azzera input + filtri solo se cambia il menu
     setInputValue("")
     setSearchTerm("")
 
     if (response?.views?.length) {
       setResponseData(response) // ★ QUI: aggiorna lo state
-      const first = String(response.views[0].id)
-      const initialViewId = response.defaultViewId ?? response.views[0].id
-      const initialViewIdStr = String(initialViewId)
-
+      
+      let initialViewId = response.views[0].id
+      if (response.defaultViewId && String(response.defaultViewId) !== "0" && String(response.defaultViewId) !== "") {
+          initialViewId = Number(response.defaultViewId)
+      }
+      
+      const viewExists = response.views.some(v => v.id == initialViewId)
+      if (!viewExists) {
+          initialViewId = response.views[0].id
+      }
+      
       setSelectedView(initialViewId)
-      setTableView(initialViewIdStr) // auto-refresh via store
+      setTableView(String(initialViewId)) // auto-refresh via store
     }
   }, [selectedMenu, response, setSearchTerm, setTableView])
 
@@ -130,20 +142,33 @@ export default function QuickFilters({ tableid }: PropsInterface) {
               researchTableSubmit()
             }}
           >
-            <select
-              id="filter-type"
-              value={selectedView}
-              className="w-1/2 xl:w-64 h-11 bg-card-background border border-card-border text-foreground text-sm rounded-lg 
-                              focus:ring-2 focus:ring-primary/20 focus:border-primary px-4 shadow-sm 
-                              hover:border-primary/50 transition-all duration-200 outline-none"
-              onChange={handleViewChange}
-            >
-              {response.views.map((view) => (
-                <option key={view.id} value={view.id}>
-                  {view.name}
-                </option>
-              ))}
-            </select>
+            <div className="flex w-1/2 xl:w-64 gap-2 items-center">
+              <select
+                id="filter-type"
+                value={selectedView}
+                className="w-full h-11 bg-card-background border border-card-border text-foreground text-sm rounded-lg 
+                                focus:ring-2 focus:ring-primary focus:border-primary px-4 shadow-sm 
+                                hover:border-primary transition-all duration-200 outline-none"
+                onChange={handleViewChange}
+              >
+                {responseData.views.some(v => v.userid !== 1) && (
+                  <optgroup label="Viste Personali">
+                    {responseData.views.filter(v => v.userid !== 1).map((view) => (
+                      <option key={view.id} value={view.id}>
+                        {view.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="Viste di Sistema">
+                  {responseData.views.filter(v => v.userid === 1).map((view) => (
+                    <option key={view.id} value={view.id}>
+                      {view.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
 
             <div className="relative flex-grow">
               <div className="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none">

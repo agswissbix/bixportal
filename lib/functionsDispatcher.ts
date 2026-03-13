@@ -134,6 +134,47 @@ export function useFrontendFunctions() {
     // -----------------------------------------------------------------------
     //                                 SWISSBIX
     // -----------------------------------------------------------------------
+    sendEmailTimesheet: async ({ recordid }: { recordid: string }) => {
+      const finalEmail = await openPopup("emailSelection", recordid, {
+        apiRouteGetEmails: "get_timesheet_emails",
+        title: "Invia Timesheet a:"
+      });
+
+      if (!finalEmail) {
+        return; // User cancelled
+      }
+
+      const loadingToast = toast.loading("Invio email in corso...");
+
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "save_email_timesheet",
+            recordid,
+            recipient: finalEmail,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+            responseType: "json",
+          }
+        );
+
+        if (response.status === 200) {
+          toast.dismiss(loadingToast);
+          toast.success("Email inviata con successo.");
+        } else {
+          throw new Error(response.data?.error || "Errore sconosciuto");
+        }
+      } catch (error: any) {
+        console.error("Errore durante l'invio:", error);
+        toast.dismiss(loadingToast);
+        toast.error(error?.response?.data?.error || "Errore durante l'invio dell'email");
+      }
+    },
     applyProjectTemplate: async ({ recordid }: { recordid: string }) => {
       setPopUpType('templateProject')
       setPopupRecordId(recordid)

@@ -10,6 +10,7 @@ import PopupAI from './popupContent/popupAI';
 import PopupInfo from './popupContent/popupInfo';
 import PopupImportCsv from './popupContent/popupImportCsv';
 import PopupRenewServiceContract from './popupContent/popupRenewServiceContract';
+import PopupEmailSelection from './popupContent/popupEmailSelection';
 
 
 // INTERFACCIA PROPS
@@ -37,6 +38,8 @@ export default function PopUpManager({isOpen, onClose, type, tableid, recordid, 
             <TemplateSelectionDialog onClose={onClose} open={isOpen} recordid={recordid} />
         : type === 'signatureTimesheet' ?
             <SignatureDialogWrapper recordid={recordid} openSignatureDialog={isOpen} setOpenSignatureDialog={onClose}/>
+        : type === 'emailSelection' ?
+            <PopupEmailSelection onClose={onClose} open={isOpen} recordid={recordid} />
             : (
         <div className="fixed inset-0 flex h-fix items-center justify-center bg-black bg-opacity-50 z-[1000]">
             <div className="bg-white p-6 rounded-lg shadow-lg w-fix h-fix flex flex-col">
