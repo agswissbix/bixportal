@@ -287,10 +287,10 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                 <div className="flex-1">
                   <div className="relative h-full pt-2">
                     <div className="absolute -top-1 left-6 z-10">
-                        <div className="bg-[#248da2] text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-sm">
+                        <div className="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-sm">
                             SERVIZI ATTIVI ({servicesList.length})
                         </div>
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-[#248da2]"></div>
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-primary"></div>
                     </div>
                     
                     {/* Updated Service List Layout */}
@@ -303,12 +303,12 @@ export default function CardBadgeCompany({ tableid, recordid }: PropsInterface) 
                                     <span className="flex-shrink-0">
                                         {/* Force orange styling for icons as per screenshot */}
                                         {React.cloneElement(getServiceIcon(service.sector), { 
-                                            className: "w-5 h-5 text-[#ea580c]" 
+                                            className: "w-5 h-5 text-accent" 
                                         })}
                                     </span>
                                     <span className="text-sm text-gray-600 font-medium truncate flex-1">{service.label}</span>
                                     {service.quantity > 1 && (
-                                        <span className="text-[10px] font-semibold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                                        <span className="text-[10px] font-semibold bg-accent-foreground text-accent px-1.5 py-0.5 rounded-full">
                                             x{service.quantity}
                                         </span>
                                     )}
