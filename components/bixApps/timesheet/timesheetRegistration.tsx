@@ -8,7 +8,7 @@ import { useFrontendFunctions } from "@/lib/functionsDispatcher";
 import { toast, Toaster } from "sonner";
 import PopUpManager from "@/components/popUpManager";
 import { useRecordsStore } from "@/components/records/recordsStore";
-import { SaveIcon } from "lucide-react";
+import { ArrowRightToLine, SaveIcon } from "lucide-react";
 
 // HeroIcons v2 (Open Source)
 import * as Icons from "@heroicons/react/24/outline";
@@ -351,7 +351,6 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         }
     };
 
-    // --- VALIDAZIONE CAMPI OBBLIGATORI ---
     const isStepValid = useMemo(() => {
         switch (step) {
             case 1:
@@ -373,9 +372,19 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         }
     }, [step, formData]);
 
+    const isAllValid = useMemo(() => {
+        return (
+            !!formData.azienda &&
+            !!formData.servizio &&
+            !!formData.data &&
+            !!formData.tempoLavoro &&
+            formData.descrizione.trim().length > 1
+        );
+    }, [formData]);
+
     // --- LOGICHE DI SALVATAGGIO ---
 
-    const handleSaveBase = async (mode: "finish" | "continue") => {
+    const handleSaveBase = async (mode: "finish" | "continue" | "summary") => {
         setIsSaving(true);
         try {
             const body = new FormData();
@@ -405,6 +414,12 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                 setTimesheetId(res.data.id);
                 toast.success("Timesheet salvato correttamente");
                 if (mode === "finish") setIsSuccess(true);
+                else if (mode == "summary") {
+                    setGetRefreshTick((v) => v+1)
+                    setTimeout(() => {
+                        setStep(12);
+                    }, 100);
+                }
                 else {
                     setGetRefreshTick((v) => v+1)
                     setTimeout(() => {
@@ -1533,6 +1548,7 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                             if (step === 12) setStep(9);
                                             else setStep((s) => s - 1);
                                         }}
+                                        title="Torna indietro"
                                         className="p-4 rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 active:scale-90 transition-all">
                                         <Icons.ChevronLeftIcon
                                             className="w-6 h-6"
@@ -1565,6 +1581,24 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                                         />
                                     </button>
                                     </>
+                                ) : null}
+                                {step !== 12 ? (
+                                    <button
+                                        disabled={!isAllValid}
+                                        onClick={async () => {
+                                            await handleSaveBase("summary")
+                                        }}
+                                        title="Vai alla fine"
+                                        className={`p-4 rounded-2xl border transition-all ${
+                                            isAllValid
+                                                ? 'border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 active:scale-90'
+                                                : 'border-zinc-100 bg-zinc-50 text-zinc-200 cursor-not-allowed'
+                                        }`}>
+                                        <ArrowRightToLine
+                                            className="w-6 h-6"
+                                            strokeWidth={2.5}
+                                        />
+                                    </button>
                                 ) : null}
                             </footer>
 
