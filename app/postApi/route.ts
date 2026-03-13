@@ -269,6 +269,9 @@ export async function POST(request: Request) {
         case "crea_lista_lavanderie":
             djangoUrl = "/customapp_pitservice/crea_lista_lavanderie/";
             break;
+        case "aggiorna_lista_acqua":
+            djangoUrl = "/customapp_pitservice/aggiorna_lista_acqua/";
+            break;
         case "get_record_attachments":
             djangoUrl = "/commonapp/get_record_attachments/";
             break;
@@ -731,9 +734,8 @@ export async function POST(request: Request) {
         const axiosConfig = {
             headers: {
                 "X-CSRFToken": csrfToken ?? "",
-                Cookie: `sessionid=${sessionId ?? ""}; csrftoken=${
-                    csrfToken ?? ""
-                }`,
+                Cookie: `sessionid=${sessionId ?? ""}; csrftoken=${csrfToken ?? ""
+                    }`,
                 ...(rawFormData ? rawFormData.getHeaders() : {}),
             },
             responseType: "arraybuffer" as const,
@@ -809,9 +811,9 @@ export async function POST(request: Request) {
                     errJson.message ||
                     errJson.error ||
                     detail;
-            } catch (e) {}
+            } catch (e) { }
         }
-        
+
         return NextResponse.json({ error: detail }, { status });
     }
 }
