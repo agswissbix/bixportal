@@ -118,7 +118,7 @@ export function UnplannedEventsSidebar({
   }
 
   return (
-    <div className="w-64 border-l bg-muted flex flex-col">
+    <div className="w-1/4 border-l bg-muted flex flex-col">
       {/* Header */}
       <div className="p-3 border-b bg-background backdrop-blur-sm space-y-2">
         <div className="flex items-center justify-between">
