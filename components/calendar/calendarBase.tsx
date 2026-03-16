@@ -6,6 +6,8 @@ import { useApi } from "@/utils/useApi"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toLocalISOString, getEventUniqueId } from "./calendarHelpers"
 import { UnplannedEventsSidebar } from "./unplannedEventSidebar"
+import { useRecordsStore } from "../records/recordsStore"
+import GenericComponent from "../genericComponent"
 
 export interface CalendarEvent {
   recordid: string
@@ -80,20 +82,20 @@ export interface CalendarChildProps {
   ) => void
   saveEvent: (eventid: string, startdate: Date, enddate: Date, resourceid?: string) => Promise<void>
   unscheduleEvent: (eventid: string) => Promise<void>
-  handleRowClick?: (type: string, recordid: string, tableid: string) => void
   tableid: string
   requestEventsForTable: (tableId: string) => Promise<void>
 }
 
+const isDev = false
 export function CalendarBase({
   tableid,
   apiRoute = "get_records_matrixcalendar",
   showUnplannedEvents = false,
   viewType,
   children,
-  handleRowClick,
 }: CalendarBaseProps) {
-  const isDev = process.env.NODE_ENV === "development"
+
+  const { searchTerm, filtersList, refreshTable, tableView, handleRowClick } = useRecordsStore()
 
   // State management
   const [responseData, setResponseData] = useState<CalendarResponseInterface>({
@@ -109,20 +111,29 @@ export function CalendarBase({
 
   const [selectedExtraTable, setSelectedExtraTable] = useState<string>("")
 
-  const { response, loading, error } = useApi<CalendarResponseInterface>({
-    apiRoute,
-    tableid,
-    ...(selectedExtraTable && { requestEventsForTable: selectedExtraTable }),
-  })
-
   // API payload
-  const payload = useMemo(
-    () => ({
+  const payload = useMemo(() => {
+    if (isDev) return null
+    return {
       apiRoute,
       tableid,
-    }),
-    [apiRoute, tableid],
-  )
+      view: tableView,
+      searchTerm,
+      filtersList,
+      ...(selectedExtraTable && { requestEventsForTable: selectedExtraTable }),
+      _refreshTick: refreshTable[tableid],
+    }
+  }, [apiRoute, tableid, selectedExtraTable, searchTerm, filtersList, refreshTable, tableView])
+
+  const { response, loading, error } = useApi<CalendarResponseInterface>(!isDev && payload ? payload : null)
+
+  // Update responseData when API response changes
+  useEffect(() => {
+    if (response) {
+      setResponseData(response)
+    }
+  }, [response])
+
 
   // Ref to track the current state of the resizing event
   const currentResizedEventRef = useRef<{ start: string; end: string } | null>(null)
@@ -370,13 +381,6 @@ export function CalendarBase({
     }
   }, [resizingEvent, resizeStartY, resizeStartX])
 
-  // Update responseData when API response changes
-  useEffect(() => {
-    if (response) {
-      setResponseData(response)
-    }
-  }, [response])
-
   const requestEventsForTable = useCallback(async (tableId: string) => {
     setSelectedExtraTable(tableId)
     // The useApi hook will automatically refetch with the new parameter
@@ -395,18 +399,21 @@ export function CalendarBase({
     handleResizeStart,
     saveEvent,
     unscheduleEvent,
-    handleRowClick,
     tableid,
     requestEventsForTable,
   }
 
   return (
+    <GenericComponent response={responseData} loading={loading} error={error}>
+      {(response: CalendarResponseInterface) => (
     <div className="flex h-full w-full">
       <div className="flex-1 overflow-auto">{children(childProps)}</div>
       {showUnplannedEvents && (
-        <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} />
+        <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} onRowClick={(recordid: string) => {handleRowClick("records", recordid, tableid)}} />
       )}
     </div>
+      )}
+      </GenericComponent>
   )
 }
 
