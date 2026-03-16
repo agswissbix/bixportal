@@ -21,7 +21,8 @@ import {
   CheckSquare,
   Settings,
   Copy,
-  Trash2
+  Trash2,
+  ExternalLink
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from "framer-motion"
@@ -126,9 +127,8 @@ const TableIcon = ({ tableid, className }) => {
 };
 
 export default function CustomDeadlines() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // all, Attivo, In scadenza, Scaduto
-  const { handleRowClick, getIsSettingAllowed, setTableSettings, refreshTable } = useRecordsStore();
+  const { handleRowClick, getIsSettingAllowed, setTableSettings, refreshTable, searchTerm, filtersList, tableView } = useRecordsStore();
   const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
 
   // Payload per il backend
@@ -137,7 +137,7 @@ export default function CustomDeadlines() {
       apiRoute: "get_table_records", // riferimento api per il backend
       tableid: "deadline",
       searchTerm: searchTerm,
-      view: "all",
+      view: tableView,
       pagination: {
         page: 1,
         limit: 1000,
@@ -146,10 +146,10 @@ export default function CustomDeadlines() {
         fieldid: "date_deadline",
         direction: "asc" as "asc" | "desc" | null,
       },
-      filtersList: [],
+      filtersList: filtersList,
       _refreshTick: refreshTable['deadline'] ?? 0
     }
-  }, [searchTerm, refreshTable['deadline'] ?? 0])
+  }, [searchTerm, refreshTable['deadline'] ?? 0, filtersList, tableView])
 
   // CHIAMATA AL BACKEND
   const { response, loading, error } = useApi<ResponseInterface>(payload)
@@ -244,6 +244,7 @@ export default function CustomDeadlines() {
         actions: getField('actions'),
         notice_days: parseInt(getField('notice_days') || '0', 10),
         tableid: getField('tableid'),
+        recordidtable: getField('recordidtable'),
         notification_sent: getField('notification_sent') === '1' || getField('notification_sent')?.toLowerCase() === 'si' ? 'Si' : 'No'
       };
 
@@ -375,8 +376,10 @@ export default function CustomDeadlines() {
                   {deadline.description}
                 </h3>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500">
-                  <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">
-                    <Globe className="w-3.5 h-3.5"/> Modulo: {deadline.tableid || 'N/D'}
+                  <span 
+                    onClick={(e) => {e.stopPropagation(); handleRowClick('standard', deadline.recordidtable, deadline.tableid)}} 
+                    className="hover:text-accent hover:bg-accent-foreground transition-colors cursor-pointer flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">
+                    <Globe className="w-3.5 h-3.5"/> Modulo: {deadline.tableid || 'N/D'} <ExternalLink className="w-3.5 h-3.5"/>
                   </span>
                   <span className="hidden sm:inline text-slate-300">•</span>
                   <span className="flex items-center gap-1">
