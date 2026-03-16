@@ -55,15 +55,15 @@ export default {
   				hover: 'var(--color-accent-hover)'
   			},
   			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
+  				DEFAULT: 'var(--muted)',
+  				foreground: 'var(--muted-foreground)'
   			},
   			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
+  				DEFAULT: 'var(--destructive)',
+  				foreground: 'var(--destructive-foreground)'
   			},
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
+  			background: 'var(--background)',
+  			foreground: 'var(--foreground)',
   			records: {
   				background: 'var(--records-background)'
   			},
@@ -83,18 +83,18 @@ export default {
   				border: 'var(--badge-border)'
   			},
   			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
+  				DEFAULT: 'var(--popover)',
+  				foreground: 'var(--popover-foreground)'
   			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
+  			border: 'var(--border)',
+  			input: 'var(--input)',
+  			ring: 'var(--ring)',
   			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
+  				'1': 'var(--chart-1)',
+  				'2': 'var(--chart-2)',
+  				'3': 'var(--chart-3)',
+  				'4': 'var(--chart-4)',
+  				'5': 'var(--chart-5)'
   			}
   		},
   		borderRadius: {
