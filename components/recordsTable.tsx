@@ -289,6 +289,13 @@ export default function RecordsTable({
   useEffect(() => {
     setCurrentPage(1)
   }, [tableid])
+
+  useEffect(() => {
+    console.log("total pages", responseData?.pagination?.totalPages, "current page", currentPage)
+    if (responseData?.pagination?.totalPages < currentPage) {
+      setCurrentPage(responseData?.pagination?.totalPages)
+    }
+  }, [responseData?.pagination?.totalPages])
   const [showContextMenuTip, setShowContextMenuTip] = useState(true)
 
   useEffect(() => {
