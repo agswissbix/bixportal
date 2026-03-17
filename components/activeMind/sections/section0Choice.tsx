@@ -3,10 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Settings, ShoppingCart, ArrowRight, CheckCircle } from "lucide-react"
+import { Settings, ShoppingCart, ArrowRight, CheckCircle, Wifi } from "lucide-react"
+import Image from "next/image"
 
 interface InitialChoiceProps {
-  onChoice: (choice: "system_assurance" | "services" | "service_asset") => void
+  onChoice: (choice: "system_assurance" | "services" | "service_asset" | "bwbix") => void
 }
 
 export default function InitialChoice({ onChoice }: InitialChoiceProps) {
@@ -80,70 +81,9 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
           </CardContent>
         </Card>
 
-        {/* Services Selection Option */}
-        <Card
-          className="bg-amber-50 border-amber-200 hover:bg-amber-100 transition-all duration-200 cursor-pointer group flex flex-col"
-          onClick={() => onChoice("services")}
-        >
-          <CardHeader className="pb-4">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="p-3 bg-amber-600 rounded-lg">
-                <ShoppingCart className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-xl text-amber-900">Manutenzione e Assistenza</CardTitle>
-                <Badge variant="secondary" className="mt-1">
-                  Servizi continuativi
-                </Badge>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 flex-1 flex flex-col">
-            <p className="text-gray-700">
-              Servizi di manutenzione programmata e assistenza IT continuativa per proteggere e ottimizzare la tua
-              infrastruttura nel tempo.
-            </p>
-
-            <div className="space-y-2 flex-1">
-              <h4 className="font-medium text-gray-900">Servizi disponibili:</h4>
-              <div className="space-y-1">
-                {[
-                  "Fornitura prodotti Hardware & Software",
-                  "Servizi gestiti di continuità e sicurezza",
-                  "Protezione dati e Cyber Security",
-                  "Supporto tecnico e Monte ore dedicato",
-                ].map((category, index) => (
-                  <div key={index} className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{category}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-amber-100 rounded-lg p-3">
-              <p className="text-sm text-amber-800 font-medium">
-                Configurazione rapida con preventivo immediato
-              </p>
-            </div>
-
-            <Button
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white group-hover:bg-amber-700"
-              onClick={(e) => {
-                e.stopPropagation()
-                onChoice("services")
-              }}
-            >
-              Configura i Servizi
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
-
         {/* Service & Asset Option */}
-        <div className="md:col-span-2 flex justify-center">
           <Card
-            className="w-full md:w-[49%] bg-purple-50 border-purple-200 hover:bg-purple-100 transition-all duration-200 cursor-pointer group flex flex-col"
+            className="w-full bg-purple-50 border-purple-200 hover:bg-purple-100 transition-all duration-200 cursor-pointer group flex flex-col"
             onClick={() => onChoice("service_asset")}
           >
             <CardHeader className="pb-4">
@@ -199,7 +139,128 @@ export default function InitialChoice({ onChoice }: InitialChoiceProps) {
               </Button>
             </CardContent>
           </Card>
-        </div>
+
+        {/* Services Selection Option */}
+        <Card
+          className="bg-amber-50 border-amber-200 hover:bg-amber-100 transition-all duration-200 cursor-pointer group flex flex-col"
+          onClick={() => onChoice("services")}
+        >
+          <CardHeader className="pb-4">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-3 bg-amber-600 rounded-lg">
+                <ShoppingCart className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-xl text-amber-900">Soluzioni e Assistenza</CardTitle>
+                <Badge variant="secondary" className="mt-1">
+                  Servizi continuativi
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 flex-1 flex flex-col">
+            <p className="text-gray-700">
+              Servizi di manutenzione programmata e assistenza IT continuativa per proteggere e ottimizzare la tua
+              infrastruttura nel tempo.
+            </p>
+
+            <div className="space-y-2 flex-1">
+              <h4 className="font-medium text-gray-900">Servizi disponibili:</h4>
+              <div className="space-y-1">
+                {[
+                  "Fornitura prodotti Hardware & Software",
+                  "Servizi gestiti di continuità e sicurezza",
+                  "Protezione dati e Cyber Security",
+                  "Supporto tecnico e Monte ore dedicato",
+                ].map((category, index) => (
+                  <div key={index} className="flex items-start space-x-2">
+                    <CheckCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">{category}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-amber-100 rounded-lg p-3">
+              <p className="text-sm text-amber-800 font-medium">
+                Configurazione rapida con preventivo immediato
+              </p>
+            </div>
+
+            <Button
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white group-hover:bg-amber-700"
+              onClick={(e) => {
+                e.stopPropagation()
+                onChoice("services")
+              }}
+            >
+              Configura i Servizi
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* BwBix Option */}
+        <Card
+          className="bg-teal-50 border-teal-200 hover:bg-teal-100 transition-all duration-200 cursor-pointer group flex flex-col"
+          onClick={() => onChoice("bwbix")}
+        >
+          <CardHeader className="pb-4">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-3 bg-teal-600 rounded-lg">
+                <Wifi className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <CardTitle className="text-xl text-teal-900">BwBix</CardTitle>
+                  <Badge variant="secondary" className="mt-1">
+                    Servizi remoti Swisscom
+                  </Badge>
+                </div>
+                <Image src="/bixdata/logos/swisscom.png" alt="swisscom" className="right-0 relative" width={100} height={100} />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 flex-1 flex flex-col">
+            <p className="text-gray-700">
+              Selezione dei servizi offerti da Swisscom da remoto.
+            </p>
+
+            <div className="space-y-2 flex-1">
+              <h4 className="font-medium text-gray-900">Servizi disponibili:</h4>
+              <div className="space-y-1">
+                {[
+                  "Servizi gestiti da remoto",
+                  "Supporto Swisscom",
+                  "Soluzioni cloud e connettività",
+                  "Assistenza tecnica remota",
+                ].map((category, index) => (
+                  <div key={index} className="flex items-start space-x-2">
+                    <CheckCircle className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">{category}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-teal-100 rounded-lg p-3">
+              <p className="text-sm text-teal-800 font-medium">
+                Percorso semplificato — solo servizi BwBix
+              </p>
+            </div>
+
+            <Button
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white group-hover:bg-teal-700"
+              onClick={(e) => {
+                e.stopPropagation()
+                onChoice("bwbix")
+              }}
+            >
+              Configura BwBix
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="text-center">

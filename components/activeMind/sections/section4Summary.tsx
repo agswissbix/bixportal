@@ -72,6 +72,7 @@ interface SummarySectionProps {
   }
   onUpdate: (data: any) => void
   onSignatureChange?: (signature: string | null) => void
+  isBwbix?: boolean
 }
 
 const tierLabels: { [key: string]: string } = {
@@ -114,8 +115,14 @@ const serviceLabels: { [key: string]: string } = {
   sharepoint: "Sharepoint/OneDrive",
 }
 
-export default function SummarySection({ serviceData, onUpdate, onSignatureChange }: SummarySectionProps) {
+export default function SummarySection({ serviceData, onUpdate, onSignatureChange, isBwbix }: SummarySectionProps) {
   const servicesTotal = Object.values(serviceData.section2Services).reduce((sum, service) => sum + service.total, 0)
+
+  const svcColor = isBwbix
+    ? { header: "from-teal-100 to-teal-50", icon: "text-teal-700", cardBg: "bg-teal-50 border-teal-200 hover:bg-teal-100", dot: "bg-teal-400", border: "border-teal-200", subtotalBg: "from-teal-50 to-teal-100", subtotalBorder: "border-teal-300", badge: "bg-teal-100 border-teal-300 text-teal-900", accentBar: "bg-teal-400", accentDot: "text-teal-500", amount: "text-teal-900", noteBg: "bg-teal-50/50 border-teal-200", noteIcon: "bg-teal-200", noteTitle: "text-teal-900", title: "Servizi BwBix Inclusi",
+      gtCardBorder: "border-teal-300", gtCardBg: "from-teal-50 to-teal-100/50", gtInnerBorder: "border-teal-200", gtSelectRing: "focus:ring-teal-500 focus:border-teal-500 hover:border-teal-400", gtBoxBorder: "border-teal-100", gtBoxDiscBorder: "border-teal-50", gtCalendarIcon: "text-teal-600", gtAmount: "text-teal-600" }
+    : { header: "from-amber-100 to-amber-50", icon: "text-amber-700", cardBg: "bg-amber-50 border-amber-200 hover:bg-amber-100", dot: "bg-amber-400", border: "border-amber-200", subtotalBg: "from-amber-50 to-amber-100", subtotalBorder: "border-amber-300", badge: "bg-amber-100 border-amber-300 text-amber-900", accentBar: "bg-amber-400", accentDot: "text-amber-500", amount: "text-orange-900", noteBg: "bg-amber-50/50 border-amber-200", noteIcon: "bg-amber-200", noteTitle: "text-amber-900", title: "Servizi Inclusi",
+      gtCardBorder: "border-orange-200", gtCardBg: "from-orange-50 to-orange-100/50", gtInnerBorder: "border-orange-200", gtSelectRing: "focus:ring-orange-500 focus:border-orange-500 hover:border-orange-400", gtBoxBorder: "border-orange-100", gtBoxDiscBorder: "border-orange-50", gtCalendarIcon: "text-orange-600", gtAmount: "text-orange-600" }
   
   const productsTotal = Object.values(serviceData.section2Products).reduce((sum, product) => sum + product.total, 0)
   const annualTotal = Object.values(serviceData.section2Products)
@@ -328,10 +335,10 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
             <CardTitle className="text-lg flex items-center justify-between">
               <div className="flex items-center">
                 <Package className="w-5 h-5 mr-2 text-indigo-700" />
-                Prodotti Selezionati
+                Soluzioni Selezionate
               </div>
               <Badge variant="outline" className="bg-white">
-                {selectedProducts.length} {selectedProducts.length === 1 ? "prodotto" : "prodotti"}
+                {selectedProducts.length} {selectedProducts.length === 1 ? "soluzione" : "soluzioni"}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -342,7 +349,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                   <div className="flex items-center justify-between border-b pb-2">
                     <h3 className="text-md font-semibold text-gray-900">{categoryLabels[category]}</h3>
                     <Badge variant="outline" className="text-xs">
-                      {products.length} {products.length === 1 ? "prodotto" : "prodotti"}
+                      {products.length} {products.length === 1 ? "soluzione" : "soluzioni"}
                     </Badge>
                   </div>
 
@@ -449,11 +456,11 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
       {/* Section 2 Services */}
       {selectedServices.length > 0 && (
         <Card className="shadow-md">
-          <CardHeader className="bg-gradient-to-r from-amber-100 to-amber-50 rounded-t-lg">
+          <CardHeader className={`bg-gradient-to-r ${svcColor.header} rounded-t-lg`}>
             <CardTitle className="text-lg flex items-center justify-between">
               <div className="flex items-center">
-                <Settings className="w-5 h-5 mr-2 text-amber-700" />
-                Servizi Inclusi
+                <Settings className={`w-5 h-5 mr-2 ${svcColor.icon}`} />
+                {svcColor.title}
               </div>
               <Badge variant="outline" className="bg-white">
                 {selectedServices.length} {selectedServices.length === 1 ? "servizio" : "servizi"}
@@ -465,7 +472,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
               {selectedServices.map((service) => (
                 <Card
                   key={service.id}
-                  className="bg-amber-50 border-amber-200 hover:bg-amber-100 transition-all duration-200"
+                  className={`${svcColor.cardBg} transition-all duration-200`}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
@@ -495,7 +502,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                             <div key={colIndex} className="space-y-2">
                               {col.map((feature, index) => (
                                 <div key={index} className="flex items-start space-x-2">
-                                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></div>
+                                  <div className={`w-1.5 h-1.5 ${svcColor.dot} rounded-full mt-2 flex-shrink-0`}></div>
                                   <span className="text-sm text-gray-700">{feature}</span>
                                 </div>
                               ))}
@@ -509,8 +516,8 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
               ))}
               
               {/* Subtotale Servizi */}
-              <div className="border-t-2 border-amber-200 pt-4 mt-4">
-                <div className="p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl shadow-inner">
+              <div className={`border-t-2 ${svcColor.border} pt-4 mt-4`}>
+                <div className={`p-6 bg-gradient-to-br ${svcColor.subtotalBg} border-2 ${svcColor.subtotalBorder} rounded-xl shadow-inner`}>
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                     
                     <div className="flex-1 space-y-6">
@@ -520,12 +527,12 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
       <h2 className="text-2xl font-black tracking-tight text-gray-900">
         Subtotale servizi
       </h2>
-      <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-sm font-bold uppercase tracking-wider shadow-sm">
+      <span className={`inline-flex items-center px-3 py-1 rounded-full ${svcColor.badge} border text-sm font-bold uppercase tracking-wider shadow-sm`}>
         {frequencyLabels[serviceData.section3.selectedFrequency] || "Frequenza non definita"}
       </span>
     </div>
     
-    <div className="h-1 w-12 bg-amber-400 rounded-full" /> {/* Accento grafico */}
+    <div className={`h-1 w-12 ${svcColor.accentBar} rounded-full`} /> {/* Accento grafico */}
   </div>
 
   {/* Descrizione Principale */}
@@ -538,14 +545,14 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
     {/* Lista Servizi - Formattazione migliorata */}
     <div className="flex flex-wrap gap-x-4 text-sm font-semibold text-gray-700">
-      <span className="flex items-center gap-1.5">
-        <span className="text-amber-500 text-lg">•</span> Controlli preventivi
+      <span className={`flex items-center gap-1.5`}>
+        <span className={`${svcColor.accentDot} text-lg`}>•</span> Controlli preventivi
       </span>
-      <span className="flex items-center gap-1.5">
-        <span className="text-amber-500 text-lg">•</span> Aggiornamenti di sistema
+      <span className={`flex items-center gap-1.5`}>
+        <span className={`${svcColor.accentDot} text-lg`}>•</span> Aggiornamenti di sistema
       </span>
-      <span className="flex items-center gap-1.5">
-        <span className="text-amber-500 text-lg">•</span> Verifiche di sicurezza
+      <span className={`flex items-center gap-1.5`}>
+        <span className={`${svcColor.accentDot} text-lg`}>•</span> Verifiche di sicurezza
       </span>
     </div>
 
@@ -555,7 +562,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
   </div>
 
   {/* Alert Box: Specifica Monte Ore - Design più "Professional" */}
-  <div className="relative overflow-hidden bg-amber-50/50 border border-amber-200 p-5 rounded-2xl max-w-xl shadow-inner">
+  <div className={`relative overflow-hidden ${svcColor.noteBg} border p-5 rounded-2xl max-w-xl shadow-inner`}>
     {/* Icona di sfondo decorativa */}
     <div className="absolute -right-4 -top-4 opacity-10 text-amber-500">
       <svg width="80" height="80" fill="currentColor" viewBox="0 0 24 24">
@@ -564,8 +571,8 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
     </div>
 
     <div className="relative z-10">
-      <h5 className="flex items-center gap-2 text-amber-900 font-bold text-sm mb-2">
-        <span className="flex items-center justify-center w-5 h-5 bg-amber-200 rounded-full text-[10px]">i</span>
+      <h5 className={`flex items-center gap-2 ${svcColor.noteTitle} font-bold text-sm mb-2`}>
+        <span className={`flex items-center justify-center w-5 h-5 ${svcColor.noteIcon} rounded-full text-[10px]`}>i</span>
         NOTA SULLA FATTURAZIONE
       </h5>
       <p className="text-sm text-gray-600 leading-relaxed">
@@ -582,7 +589,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                         {servicesMonthly > 0 && (
                           <>
                             <h3 className="text-2xl font-bold text-gray-900">
-                              <div className="text-2xl font-bold text-orange-900">
+                              <div className={`text-2xl font-bold ${svcColor.amount}`}>
                                 CHF {formatPrice(servicesMonthly)}
                               </div>
                             </h3>
@@ -597,7 +604,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                         {servicesYearly > 0 && (
                           <>
                             <h3 className="text-xl font-semibold text-amber-700">
-                              <div className="text-2xl font-bold text-orange-900">
+                              <div className={`text-2xl font-bold ${svcColor.amount}`}>
                                 CHF {formatPrice(servicesYearly)}
                               </div>
                             </h3>
@@ -620,24 +627,24 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
 
       {/* Grand Total Section */}
       {showGrandTotal && (
-        <Card className="shadow-xl border-orange-200 border-2 mt-8">
-          <CardContent className="p-6 md:p-8 bg-gradient-to-br from-orange-50 to-orange-100/50">
+        <Card className={`shadow-xl ${svcColor.gtCardBorder} border-2 mt-8`}>
+          <CardContent className={`p-6 md:p-8 bg-gradient-to-br ${svcColor.gtCardBg}`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="flex-1 w-full md:w-auto">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Totale Complessivo Ricorrente</h3>
-                <p className="text-gray-600 mb-4">Include Prodotti e Servizi ActiveMind</p>
+                <p className="text-gray-600 mb-4">Include Soluzioni e Servizi ActiveMind</p>
                 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 bg-white/80 p-4 rounded-xl border border-orange-200 shadow-sm w-full max-w-md">
+                <div className={`flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 bg-white/80 p-4 rounded-xl border ${svcColor.gtInnerBorder} shadow-sm w-full max-w-md`}>
                   <div className="flex flex-col w-full">
                     <label htmlFor="constraint" className="text-sm font-semibold text-gray-800 mb-1.5 flex items-center">
-                      <CalendarDays className="w-4 h-4 mr-1.5 text-orange-600" />
+                      <CalendarDays className={`w-4 h-4 mr-1.5 ${svcColor.gtCalendarIcon}`} />
                       Durata Contratto:
                     </label>
                     <select
                       id="constraint"
                       value={contractConstraint}
                       onChange={handleConstraintChange}
-                      className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block p-2.5 shadow-sm transition-colors hover:border-orange-400 font-medium cursor-pointer"
+                      className={`w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg ${svcColor.gtSelectRing} block p-2.5 shadow-sm transition-colors font-medium cursor-pointer`}
                     >
                       <option value={12}>12 Mesi (Prezzo Standard)</option>
                       <option value={24}>24 Mesi (Sconto 5%)</option>
@@ -660,29 +667,29 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
               </div>
               
               <div className="flex flex-col gap-4 text-right w-full md:w-auto min-w-[280px]">
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-orange-100">
+                <div className={`bg-white p-5 rounded-xl shadow-sm border ${svcColor.gtBoxBorder}`}>
                   {discountRate > 0 && (
-                    <div className="flex justify-between items-center gap-12 mb-2 pb-2 border-b border-orange-50">
+                    <div className={`flex justify-between items-center gap-12 mb-2 pb-2 border-b ${svcColor.gtBoxDiscBorder}`}>
                        <span className="text-gray-500 text-sm">Mensile Base:</span>
                        <span className="text-gray-400 line-through text-sm">CHF {formatPrice(grandTotalMonthly)}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center gap-12">
                      <span className="text-gray-900 font-semibold">{discountRate > 0 ? "Mensile Scontato:" : "Mensile:"}</span>
-                     <span className="text-3xl font-bold text-orange-600">CHF {formatPrice(grandTotalMonthlyDiscounted)}</span>
+                     <span className={`text-3xl font-bold ${svcColor.gtAmount}`}>CHF {formatPrice(grandTotalMonthlyDiscounted)}</span>
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-orange-100">
+                <div className={`bg-white p-5 rounded-xl shadow-sm border ${svcColor.gtBoxBorder}`}>
                   {discountRate > 0 && (
-                    <div className="flex justify-between items-center gap-12 mb-2 pb-2 border-b border-orange-50">
+                    <div className={`flex justify-between items-center gap-12 mb-2 pb-2 border-b ${svcColor.gtBoxDiscBorder}`}>
                        <span className="text-gray-500 text-sm">Annuale Base:</span>
                        <span className="text-gray-400 line-through text-sm">CHF {formatPrice(grandTotalYearly)}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center gap-12">
                      <span className="text-gray-900 font-semibold">{discountRate > 0 ? "Annuale Scontato:" : "Annuale:"}</span>
-                     <span className="text-2xl font-bold text-orange-600">CHF {formatPrice(grandTotalYearlyDiscounted)}</span>
+                     <span className={`text-2xl font-bold ${svcColor.gtAmount}`}>CHF {formatPrice(grandTotalYearlyDiscounted)}</span>
                   </div>
                 </div>
               </div>

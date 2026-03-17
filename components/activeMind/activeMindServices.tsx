@@ -89,6 +89,13 @@ const servicesSteps = [
   { id: 5, title: "Riepilogo", description: "Definizione economica" },
 ]
 
+const bwbixSteps = [
+  { id: 1, title: "Selezione Servizi BwBix", description: "Servizi Swisscom da remoto" },
+  { id: 2, title: "Condizioni", description: "Pianificazione interventi" },
+  { id: 3, title: "Monte Ore", description: "Scelta monte ore" },
+  { id: 4, title: "Riepilogo", description: "Definizione economica" },
+]
+
 const serviceAssetSteps = [
   { id: 1, title: "Service & Asset", description: "Visualizzazione Asset" },
   { id: 2, title: "Riepilogo", description: "Definizione economica" },
@@ -103,7 +110,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
   const [isPrinting, setIsPrinting] = useState(false)
   const [printProgress, setPrintProgress] = useState(0)
 
-  const [chosenPath, setChosenPath] = useState<"system_assurance" | "services" | "service_asset" | null>(null)
+  const [chosenPath, setChosenPath] = useState<"system_assurance" | "services" | "service_asset" | "bwbix" | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [serviceData, setServiceData] = useState<ServiceData>({
     section1: { selectedTier: "", price: 0 },
@@ -120,6 +127,8 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     steps = systemAssuranceSteps
   } else if (chosenPath === "service_asset") {
     steps = serviceAssetSteps
+  } else if (chosenPath === "bwbix") {
+    steps = bwbixSteps
   }
 
   const updateServiceData = useCallback((section: keyof ServiceData, data: any) => {
@@ -134,7 +143,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
     setDigitalSignature(signature)
   }, [])
 
-  const handleInitialChoice = (choice: "system_assurance" | "services" | "service_asset") => {
+  const handleInitialChoice = (choice: "system_assurance" | "services" | "service_asset" | "bwbix") => {
     setChosenPath(choice)
     setCurrentStep(1)
   }
@@ -318,6 +327,21 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} />
         case 5:
           return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} />
+        default:
+          return null
+      }
+    } else if (chosenPath === "bwbix") {
+      switch (currentStep) {
+        case 1:
+          return (
+            <Section2Services data={serviceData.section2Services} dealid={recordIdTrattativa} onUpdate={(data) => updateServiceData("section2Services", data)} isBwbix={true} />
+          )
+        case 2:
+          return <Section3Conditions dealid={recordIdTrattativa} data={{ section3: serviceData.section3, section2: serviceData.section2Services }} onUpdate={(data) => updateServiceData("section3", data)} />
+        case 3:
+          return <SectionHours dealid={recordIdTrattativa} data={{ section2Products: serviceData.section2Products, sectionHours: serviceData.sectionHours }} onUpdate={(data) => updateServiceData("sectionHours", data)} isBwbix={true} />
+        case 4:
+          return <Section4Summary serviceData={serviceData} onUpdate={(data) => updateServiceData("clientInfo", data)} onSignatureChange={handleSignatureChange} isBwbix={true} />
         default:
           return null
       }

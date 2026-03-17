@@ -22,6 +22,7 @@ interface Section2Props {
   }
   dealid: string
   onUpdate: (data: any) => void
+  isBwbix?: boolean
 }
 
 
@@ -59,18 +60,23 @@ const responseDataDEFAULT: ResponseInterface = {
   services: []
 };
 
-export default function Section2Services({ data, onUpdate, dealid }: Section2Props) {
+export default function Section2Services({ data, onUpdate, dealid, isBwbix }: Section2Props) {
   const [responseData, setResponseData] = useState<ResponseInterface>(
           isDev ? responseDataDEV : responseDataDEFAULT
       );
-  
+
+  const color = isBwbix
+    ? { bg: "bg-teal-50", bgBold: "bg-teal-500", border: "border-teal-200", hover: "hover:bg-teal-100", accent: "text-teal-600", bold: "text-teal-700", totalCard: "bg-green-50 border-green-200", totalText: "text-green-900", totalSub: "text-green-700", btnMinus: "hover:text-teal-600 hover:bg-teal-50", btnPlus: "hover:text-teal-600", totalAmount: "text-teal-700" }
+    : { bg: "bg-amber-50", bgBold: "bg-amber-500", border: "border-amber-200", hover: "hover:bg-amber-100", accent: "text-amber-600", bold: "text-amber-700", totalCard: "bg-green-50 border-green-200", totalText: "text-green-900", totalSub: "text-green-700", btnMinus: "hover:text-amber-600 hover:bg-amber-50", btnPlus: "hover:text-amber-600", totalAmount: "text-amber-700" }
+
       const payload = useMemo(() => {
           if (isDev) return null;
           return {
               apiRoute: 'get_services_activemind',
-              dealid:  dealid
+              dealid:  dealid,
+              ...(isBwbix ? { isBwbix: true } : {})
           };
-      }, [dealid]);
+      }, [dealid, isBwbix]);
     
       const { response, loading, error } = !isDev && payload
           ? useApi<ResponseInterface>(payload)
@@ -176,14 +182,15 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
               const isExpanded = expandedServices.includes(service.id)
               const serviceData = data[service.id] || { quantity: 0, unitPrice: service.unitPrice, total: 0 }
 
+              const isEven = responseData.services.indexOf(service) % 2 === 0
+              const cardBg = isEven
+                ? `${color.bg} ${color.border} ${color.hover}`
+                : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+
               return (
                 <Card
                   key={service.id}
-                  className={`${(responseData.services.indexOf(service) % 2 === 0
-                      ? "bg-amber-50 border-amber-200 hover:bg-amber-100"
-                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                    )
-                  } transition-all duration-200 cursor-pointer`}
+                  className={`${cardBg} transition-all duration-200 cursor-pointer`}
                   onClick={() => toggleService(service.id)}
                 >
                   <CardHeader className="pb-3">
@@ -241,7 +248,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                                   e.stopPropagation()
                                   decrementQuantity(service.id)
                                 }}
-                                className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 ${color.btnMinus} transition-colors rounded-l-md border-r border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed`}
                                 disabled={serviceData.quantity <= 0}
                               >
                                 <span className="text-lg font-bold">−</span>
@@ -262,14 +269,14 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                                   e.stopPropagation()
                                   incrementQuantity(service.id)
                                 }}
-                                className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors rounded-r-md border-l border-gray-300"
+                                className={`flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 text-gray-600 ${color.btnPlus} transition-colors rounded-r-md border-l border-gray-300`}
                               >
                                 <span className="text-lg font-bold">+</span>
                               </button>
                             </div>
                             
                             <div className={`text-right min-w-[90px] transition-opacity duration-150 ${serviceData.quantity > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                              <div className="text-base font-bold text-amber-700 whitespace-nowrap">CHF {formatPrice(serviceData.total)}</div>
+                              <div className={`text-base font-bold ${color.bold} whitespace-nowrap`}>CHF {formatPrice(serviceData.total)}</div>
                               <div className="text-xs text-gray-600 whitespace-nowrap">Totale</div>
                             </div>
                           </div>
@@ -295,7 +302,7 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
                             <div key={colIndex} className="space-y-2">
                               {col.map((feature, fIndex) => (
                                 <div key={fIndex} className="flex items-start space-x-2">
-                                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                                  <div className={`w-1.5 h-1.5 ${color.bgBold} rounded-full mt-2 flex-shrink-0`}></div>
                                   <span className="text-sm text-gray-700">{feature}</span>
                                 </div>
                               ))}
@@ -312,19 +319,19 @@ export default function Section2Services({ data, onUpdate, dealid }: Section2Pro
 
           {/* Total Summary */}
           {getTotalForAllServices() > 0 && (
-            <Card className="bg-green-50 border-green-200">
+            <Card className={`${color.totalCard}`}>
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
                   <div>
-                    <h3 className="text-lg font-semibold text-green-900">Costo Totale Servizi</h3>
-                    <p className="text-sm text-green-700">per pianficazione Mensile</p>
-                    <p className="text-sm text-green-700">
+                    <h3 className={`text-lg font-semibold ${color.totalText}`}>Costo Totale Servizi</h3>
+                    <p className={`text-sm ${color.totalSub}`}>per pianficazione Mensile</p>
+                    <p className={`text-sm ${color.totalSub}`}>
                       {Object.values(data).filter((s) => s.quantity > 0).length} servizi selezionati
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-green-900">CHF {formatPrice(getTotalForAllServices())}</div>
-                    <div className="text-sm text-green-700">Totale</div>
+                    <div className={`text-3xl font-bold ${color.totalText}`}>CHF {formatPrice(getTotalForAllServices())}</div>
+                    <div className={`text-sm ${color.totalSub}`}>Totale</div>
                   </div>
                 </div>
               </CardContent>

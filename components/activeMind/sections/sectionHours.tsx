@@ -25,6 +25,7 @@ interface SectionHoursProps {
   }
   dealid?: string
   onUpdate: (data: any) => void
+  isBwbix?: boolean
 }
 
 const hoursColors: Record<string, string> = {
@@ -98,7 +99,7 @@ const useApiWrapper = (payload: any) => {
   return { response, loading, error };
 };
 
-export default function SectionHours({ data, onUpdate, dealid }: SectionHoursProps) {
+export default function SectionHours({ data, onUpdate, dealid, isBwbix }: SectionHoursProps) {
   const [responseData, setResponseData] = useState<ResponseInterface>(
     isDev ? responseDataDEV : responseDataDEFAULT
   );
@@ -107,9 +108,10 @@ export default function SectionHours({ data, onUpdate, dealid }: SectionHoursPro
     if (isDev) return null;
     return {
       apiRoute: 'get_monte_ore_activemind',
-      dealid: dealid
+      dealid: dealid,
+      isBwbix: isBwbix
     };
-  }, [dealid]);
+  }, [dealid, isBwbix]);
 
   const { response, loading, error } = useApiWrapper(payload);
 
