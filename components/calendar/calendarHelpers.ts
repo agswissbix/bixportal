@@ -71,7 +71,12 @@ export function getEventDurationHours(
  * Normalizes a date to midnight (00:00:00)
  */
 export function normalizeDate(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  try {
+    return new Date(date?.getFullYear(), date?.getMonth(), date?.getDate())
+  } catch (error) {
+    console.error("Error normalizing date:", error)
+    return new Date()
+  }
 }
 
 /**

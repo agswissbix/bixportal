@@ -18,6 +18,7 @@ export interface CalendarEvent {
   description?: string
   resourceId?: string
   disabled?: boolean
+  __lane?: number;
 }
 
 export interface UnplannedEvent {
