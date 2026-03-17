@@ -106,6 +106,10 @@ export default function QuickFilters({ tableid }: PropsInterface) {
   // IMPOSTAZIONE DELLA RESPONSE (non toccare)
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT)
 
+  useEffect(() => {
+    setIsFiltersOpen(false)
+  }, [tableid ?? selectedMenu])
+
   // AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
   useEffect(() => {
     // azzera input + filtri solo se cambia il menu
