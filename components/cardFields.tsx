@@ -199,7 +199,7 @@ export default function CardFields({
       }
     } catch (error) {
       console.error("Errore durante il calcolo dei campi dipendenti:", error)
-      toast.error("Errore durante l'aggiornamento dei calcoli.")
+      toast.error("Errore durante l'aggiornamento dei calcoli: " + error?.response?.data?.error)
     } finally {
       setIsCalculating(false)
     }
@@ -676,7 +676,7 @@ export default function CardFields({
       setIsSaving(false)
     } catch (error) {
       console.error("Errore durante il salvataggio del record:", error)
-      toast.error("Errore durante il salvataggio del record")
+      toast.error("Errore durante il salvataggio del record: " + error?.response?.data?.error)
     } finally {
       setRefreshTable(tableid)
       removeCard(tableid, recordid)

@@ -517,7 +517,7 @@ export default function RecordsTable({
       } catch (error) {
         console.error("Errore durante l'aggiornamento dell'ordine:", error)
         toast.dismiss(loadingToastId)
-        toast.error("Errore durante l'aggiornamento dell'ordine")
+        toast.error("Errore durante l'aggiornamento dell'ordine: " + error?.response?.data?.error)
       }
       }
       setDragOverRow(null)
@@ -548,8 +548,8 @@ export default function RecordsTable({
       )
       toast.success("Records aggiornata con successo")
     } catch (err) {
-      console.error("Errore durante l'eliminazione del record", err)
-      toast.error("Errore durante l'eliminazione del record")
+      console.error("Errore durante l'eliminazione del record",  err?.response?.data?.error)
+      toast.error("Errore durante l'eliminazione del record: " + err?.response?.data?.error)
     } finally {
       setRefreshTable(tableid)
     }
