@@ -79,6 +79,77 @@ export function normalizeDate(date: Date): Date {
   }
 }
 
+export const getEventGroupStyles = (events) => {
+  const sorted = [...events].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  const columns = [];
+  
+  sorted.forEach(event => {
+    let placed = false;
+    for (let i = 0; i < columns.length; i++) {
+      const lastInCol = columns[i][columns[i].length - 1];
+      if (new Date(event.start) >= new Date(lastInCol.end)) {
+        columns[i].push(event);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) columns.push([event]);
+  });
+
+  const styles = new Map();
+  columns.forEach((column, colIndex) => {
+    column.forEach(event => {
+      styles.set(event.recordid, {
+        width: `${100 / columns.length}%`,
+        left: `${(100 / columns.length) * colIndex}%`,
+      });
+    });
+  });
+  return styles;
+};
+
+export const getWeekMultiDayLayout = (events, weekDays) => {
+  const weekStart = weekDays[0].getTime();
+  const weekEnd = weekDays[6].getTime() + 86400000;
+
+  // Filtra e ordina per durata (i più lunghi in alto)
+  const filtered = events.filter(e => {
+    const s = new Date(e.start).getTime();
+    const end = new Date(e.end || e.start).getTime();
+    return s < weekEnd && end > weekStart;
+  }).sort((a, b) => {
+    const durA = new Date(a.end || a.start).getTime() - new Date(a.start).getTime();
+    const durB = new Date(b.end || b.start).getTime() - new Date(b.start).getTime();
+    return durB - durA;
+  });
+
+  const lanes = [];
+  const eventToLane = {};
+
+  filtered.forEach(event => {
+    const eventStart = new Date(event.start).getTime();
+    const eventEnd = new Date(event.end || event.start).getTime();
+
+    let laneIndex = lanes.findIndex(lane => {
+      return !lane.some(e => {
+        const eS = new Date(e.start).getTime();
+        const eE = new Date(e.end || e.start).getTime();
+        return eventStart < eE && eventEnd > eS;
+      });
+    });
+
+    if (laneIndex === -1) {
+      lanes.push([event]);
+      laneIndex = lanes.length - 1;
+    } else {
+      lanes[laneIndex].push(event);
+    }
+    eventToLane[event.recordid] = laneIndex;
+  });
+
+  return { eventToLane, totalLanes: lanes.length, filteredAllDay: filtered };
+};
+
 /**
  * Checks if an event covers a specific date
  */
