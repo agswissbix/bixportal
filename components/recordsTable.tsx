@@ -279,11 +279,12 @@ export default function RecordsTable({
     handleRowClick,
     cardsList,
     addCard,
-    activeServer,
     setTableSettings,
     tableSettings,
     getIsSettingAllowed
   } = useRecordsStore()
+
+  const { activeServer } = useContext(AppContext);
 
   // Quando la tabella cambia (es. tableid), resetta la pagina a 1
   useEffect(() => {
