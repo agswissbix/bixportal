@@ -388,7 +388,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
 
 
   return (
-    <div className="w-full mx-auto p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl">
+    <div className="w-full mx-auto mb-20 p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl">
       <CompanyHeader recordIdTrattativa={recordIdTrattativa} />
 
       <Button
