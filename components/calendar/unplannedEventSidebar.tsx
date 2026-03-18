@@ -22,6 +22,7 @@ interface UnplannedEvent {
   description?: string
   event_color?: string
   resourceId?: string
+  duration?: number
 }
 
 interface UnplannedEventsSidebarProps {
@@ -248,9 +249,9 @@ export function UnplannedEventsSidebar({
                   <div className="font-medium leading-tight line-clamp-2">
                     {ev.title}
                   </div>
-                  {ev.description && (
+                  {ev?.duration && (
                     <div className="mt-1 text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
-                      {ev.description}
+                      {ev.duration} ore stimate
                     </div>
                   )}
                 </div>

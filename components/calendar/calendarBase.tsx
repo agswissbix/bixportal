@@ -19,6 +19,7 @@ export interface CalendarEvent {
   resourceId?: string
   disabled?: boolean
   __lane?: number;
+  duration?: number
 }
 
 export interface UnplannedEvent {
@@ -30,6 +31,7 @@ export interface UnplannedEvent {
   description?: string
   resourceId?: string
   disabled?: boolean
+  duration?: number
 }
 
 export interface Resource {
@@ -227,7 +229,12 @@ export function CalendarBase({
         0,
       )
 
-      const duration = draggedEvent.originalEnd.getTime() - draggedEvent.originalStart.getTime()
+      let duration = 0
+      if (!draggedEvent.originalEnd.getTime() || draggedEvent.originalEnd.getTime() == 0){
+        duration = (draggedEvent?.duration || 0) * 60 * 60 * 1000;
+      }else{
+        duration = draggedEvent.originalEnd.getTime() - draggedEvent.originalStart.getTime()
+      }
       const newEnd = new Date(newStart.getTime() + duration)
 
       setResponseData((prev) => {
