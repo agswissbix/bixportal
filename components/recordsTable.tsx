@@ -271,6 +271,14 @@ export default function RecordsTable({
   const [draggedRow, setDraggedRow] = useState<string | null>(null)
   const [dragOverRow, setDragOverRow] = useState<string | null>(null)
 
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({})
+  const [columnContextMenu, setColumnContextMenu] = useState<{
+    x: number
+    y: number
+    columnId: string
+  } | null>(null)
+
+
   const {
     isTableChanging,
     setTableChangeCompleted,
@@ -300,7 +308,10 @@ export default function RecordsTable({
   const [showContextMenuTip, setShowContextMenuTip] = useState(true)
 
   useEffect(() => {
-    const handleClickOutside = () => setContextMenu(null)
+    const handleClickOutside = () => {
+      setContextMenu(null)
+      setColumnContextMenu(null)
+    }
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
@@ -604,12 +615,34 @@ export default function RecordsTable({
                         key={column.fieldid}
                         scope="col"
                         onClick={() => handleSort(column.fieldid)}
+                        onContextMenu={(e) => {
+                          e.preventDefault()
+                          const container = e.currentTarget.closest(".overflow-auto")
+                          const rect = container?.getBoundingClientRect()
+                          const scrollX = container?.scrollLeft || 0
+                          const scrollY = container?.scrollTop || 0
+
+                          const x = e.clientX - (rect?.left || 0) + scrollX
+                          const y = e.clientY - (rect?.top || 0) + scrollY
+                          setColumnContextMenu({
+                            x,
+                            y,
+                            columnId: column.fieldid,
+                          })
+                        }}
+                        style={columnWidths[column.fieldid] ? {
+                          width: `${columnWidths[column.fieldid]}px`,
+                          minWidth: `${columnWidths[column.fieldid]}px`,
+                          maxWidth: `${columnWidths[column.fieldid]}px`
+                        } : undefined}
                         className={`
               px-2 py-3 cursor-pointer select-none truncate
               ${
+                !columnWidths[column.fieldid] ? (
                 column.fieldtypeid === "Numero"
                   ? "min-w-[60px] max-w-[80px] text-right"
                   : "min-w-[80px] max-w-[300px] text-left"
+                ) : ""
               }
               ${
                 // sticky only first column
@@ -714,14 +747,20 @@ export default function RecordsTable({
                       const isNumberField = column?.fieldtypeid === "Numero"
                       const isFileField = column?.fieldtypeid === "file"
                       const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid
+                      const customWidth = column && columnWidths[column.fieldid]
                       // console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
                       return (
                         <td
                           key={`${row.recordid}-${field.fieldid}`}
+                          style={customWidth ? {
+                            width: `${customWidth}px`,
+                            minWidth: `${customWidth}px`,
+                            maxWidth: `${customWidth}px`
+                          } : undefined}
                           className={`
                   px-4 py-3 align-middle
                   ${field.css}
-                  ${isNumberField ? "min-w-[60px] max-w-[80px] text-right" : "min-w-[80px] max-w-[300px] text-left"}
+                  ${!customWidth ? (isNumberField ? "min-w-[60px] max-w-[80px] text-right" : "min-w-[80px] max-w-[300px] text-left") : ""}
                   ${isLinked ? "font-bold" : ""}
                   ${
                     field.css && field.css.includes("bg-")
@@ -804,13 +843,19 @@ export default function RecordsTable({
                   {response?.columns.map((column, index) => {
                     const isNumber = column.fieldtypeid === "Numero"
                     const totalValue = response?.totals?.[column.fieldid] ?? null
+                    const customWidth = column && columnWidths[column.fieldid]
 
                     return (
                       <td
                         key={`total-${column.fieldid}`}
+                        style={customWidth ? {
+                          width: `${customWidth}px`,
+                          minWidth: `${customWidth}px`,
+                          maxWidth: `${customWidth}px`
+                        } : undefined}
                         className={`
                           px-2 py-3 align-right font-bold text-gray-900 dark:text-white border-t border-table-border
-                          ${isNumber ? "min-w-[60px] max-w-[80px] text-right whitespace-nowrap overflow-hidden text-ellipsis" : "min-w-[80px] max-w-[300px] text-left"}
+                          ${!customWidth ? (isNumber ? "min-w-[60px] max-w-[80px] text-right whitespace-nowrap overflow-hidden text-ellipsis" : "min-w-[80px] max-w-[300px] text-left") : ""}
                           ${index === 0 ? "sticky left-0 bg-table-header rounded-bl-xl" : ""}
                         `}
                         title={isNumber ? Number(totalValue).toLocaleString("de-CH") : ""} // Tooltip per vedere il valore intero
@@ -938,6 +983,59 @@ export default function RecordsTable({
                       })}
                     </>
                   )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {columnContextMenu && (
+                <motion.div
+                  key="col-context-menu"
+                  initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97, y: -4 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 250,
+                    damping: 25,
+                    mass: 0.8,
+                  }}
+                  className="
+                    absolute p-3 z-50
+                    bg-white dark:bg-gray-800
+                    border border-gray-200 dark:border-gray-600
+                    rounded-lg shadow-2xl shadow-gray-500
+                    flex flex-col gap-2
+                    min-w-[200px] overflow-hidden
+                  "
+                  style={{
+                    top: columnContextMenu.y,
+                    left: columnContextMenu.x,
+                    transformOrigin: "top left",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Larghezza Colonna
+                  </label>
+                  <input
+                    type="range"
+                    min="50"
+                    max="800"
+                    value={columnWidths[columnContextMenu.columnId] || 150}
+                    onChange={(e) => {
+                      setColumnWidths(prev => ({
+                        ...prev,
+                        [columnContextMenu.columnId]: parseInt(e.target.value)
+                      }))
+                    }}
+                    className="w-full accent-primary"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>50px</span>
+                    <span>{columnWidths[columnContextMenu.columnId] || 150}px</span>
+                    <span>800px</span>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
