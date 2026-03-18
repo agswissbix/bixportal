@@ -1,22 +1,17 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import React from "react"
-
 import { Badge } from "@/components/ui/badge"
-import { Clock, CheckCircle2, AlertCircle, HelpCircle, Ticket, Phone, Key, Truck } from "lucide-react"
+import { Clock, CheckCircle2, AlertCircle, HelpCircle, Ticket, Phone, Truck } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "@/components/genericComponent"
 import { formatPrice } from "@/utils/formatPrice"
 
-interface SectionHoursProps {
+interface SectionAssistanceBwbixProps {
   data: {
-    section2Products: {
-      [key: string]: {
-        quantity: number
-      }
-    }
-    sectionHours: {
+    sectionAssistanceBwbix?: {
       selectedOption: string
       label: string
       price: number
@@ -30,7 +25,7 @@ interface SectionHoursProps {
 }
 
 const hoursColors: Record<string, string> = {
-  0: "text-red-900",
+  0: "text-teal-900",
   1: "text-blue-900",
   2: "text-green-900",
   3: "text-orange-900",
@@ -47,18 +42,8 @@ const assistanceConditions = [
   },
   {
     icon: Phone,
-    title: "Monitoraggio e assistenza da remoto",
-    description: "I servizi scelti includono monitoraggio e assistenza da remoto con supporto tecnico illimitato tramite un ticket ad assistenza@swissbix.ch. Ogni richiesta prevede fino a 15 minuti di intervento; per problemi più complessi oltre questo tempo si potrà concordare un intervento in loco.",
-  },
-  {
-    icon: Truck,
-    title: "Assistenza On-Site",
-    description: "Le ore effettive (arrivo-partenza) senza trasferta. Al termine compilazione rapporto firmato dal cliente.",
-  },
-  {
-    icon: Key,
-    title: "Attività di Progetto",
-    description: "Le ore impiegate nelle attività di progetto verranno scalate dal monte ore sulla base delle ore effettive.",
+    title: "Supporto BwBix",
+    description: "Supporto tecnico professionale dedicato alle soluzioni BwBix.",
   },
 ];
 
@@ -70,7 +55,7 @@ interface ResponseInterface {
     label: string;
     description: string;
     icon: string;
-    price: number; // Price per product
+    price: number; 
     cost: number;
     hours: number;
     selected?: boolean;
@@ -80,9 +65,9 @@ interface ResponseInterface {
 const responseDataDEV: ResponseInterface = {
   options: [
     {
-      id: "hours_10",
-      label: "10 Ore",
-      description: "Pacchetto da 10 ore",
+      id: "assistance_1",
+      label: "Giorni lavorativi",
+      description: "lun - ven 8:00 - 17:00",
       icon: "Clock",
       price: 10,
       cost: 10,
@@ -100,7 +85,7 @@ const useApiWrapper = (payload: any) => {
   return { response, loading, error };
 };
 
-export default function SectionHours({ data, onUpdate, dealid, isBwbix }: SectionHoursProps) {
+export default function SectionAssistanceBwbix({ data, onUpdate, dealid, isBwbix }: SectionAssistanceBwbixProps) {
   const [responseData, setResponseData] = useState<ResponseInterface>(
     isDev ? responseDataDEV : responseDataDEFAULT
   );
@@ -108,13 +93,14 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
   const payload = useMemo(() => {
     if (isDev) return null;
     return {
-      apiRoute: 'get_monte_ore_activemind',
+      apiRoute: 'get_assistance_bwbix_activemind',
       dealid: dealid,
-      isBwbix: isBwbix
     };
-  }, [dealid, isBwbix]);
+  }, [dealid]);
 
   const { response, loading, error } = useApiWrapper(payload);
+
+  const [editingPrice, setEditingPrice] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
@@ -131,13 +117,11 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
         });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
-  // Pricing is flat now, so no multiplication by products
-  // const totalProducts = Object.values(data.section2Products || {}).reduce((acc, curr) => acc + curr.quantity, 0);
-
   const handleOptionSelect = (optionId: string, label: string, price: number, cost: number, hours: number) => {
-    if (data.sectionHours?.selectedOption === optionId) {
+    if (data.sectionAssistanceBwbix?.selectedOption === optionId) {
       onUpdate({
         selectedOption: null,
         label: null,
@@ -150,34 +134,50 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
     onUpdate({
       selectedOption: optionId,
       label: label,
-      price: price, // Flat price
+      price: price,
       cost: cost,
       hours: hours
     })
+  }
+
+  const handlePriceEdit = (optionId: string, newValue: string) => {
+    const numValue = parseFloat(newValue)
+    if (!isNaN(numValue) && numValue >= 0) {
+      const option = responseData.options.find((o) => o.id === optionId)
+      if (option) {
+        option.price = numValue
+        // If it's the currently selected option, update the parent
+        if (data.sectionAssistanceBwbix?.selectedOption === optionId) {
+          onUpdate({
+            selectedOption: option.id,
+            label: option.label,
+            price: option.price,
+            cost: option.cost,
+            hours: option.hours
+          })
+        }
+      }
+    }
   }
 
   return (
     <GenericComponent loading={loading} error={error} >
       {(response: ResponseInterface) => (
         <div className="space-y-6">
-          {/* Description - Green theme like section1 uses blue */}
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-teal-50 border-teal-200">
             <CardHeader>
-              <CardTitle className="flex items-center text-green-900">
+              <CardTitle className="flex items-center text-teal-900">
                 <Clock className="w-8 h-8 md:w-6 md:h-6 lg:w-5 lg:h-5 mr-2" />
-                Monte Ore Assistenza Tecnica
+                Opzioni di Assistenza
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 leading-relaxed">
-                Il servizio Monte Ore garantisce supporto tecnico flessibile e personalizzato per la tua azienda. 
-                Le ore acquistate possono essere utilizzate per assistenza remota, interventi on-site e attività di progetto, 
-                senza scadenza temporale.
+                Il servizio fornisce l'accesso all'assistenza nei giorni e negli orari selezionati, garantendo continuità e sicurezza.
               </p>
             </CardContent>
           </Card>
 
-          {/* Features - Same structure as section1 */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -191,7 +191,7 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
                   const Icon = condition.icon
                   return (
                     <div key={index} className="flex items-start space-x-3">
-                      <Icon className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <Icon className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="text-sm text-gray-700 font-medium">{condition.title}</span>
                         <p className="text-sm text-gray-600">{condition.description}</p>
@@ -203,10 +203,9 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
             </CardContent>
           </Card>
 
-          {/* Hours Selection - Same style as tier selection in section1 */}
           <Card className="bg-gray-50">
             <CardHeader>
-              <CardTitle>Seleziona il pacchetto ore</CardTitle>
+              <CardTitle>Seleziona il pacchetto di giorni/orari</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-3 gap-4">
@@ -218,41 +217,69 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
                     HelpCircle
                   };
                   const Icon = iconMap[option.icon] || Clock;
-                  const isSelected = data.sectionHours?.selectedOption === option.id
+                  const isSelected = data.sectionAssistanceBwbix?.selectedOption === option.id
                   const colorClass = hoursColors[index] || hoursColors.default
 
                   return (
                     <Card
                       key={option.id}
                       className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        isSelected ? `ring-2 ring-blue-500 bg-blue-50` : `hover:border-gray-300`
+                        isSelected ? `ring-2 ring-teal-500 bg-teal-50` : `hover:border-gray-300`
                       }`}
                       onClick={() => handleOptionSelect(option.id, option.label, option.price, option.cost, option.hours)}
                     >
                       <CardContent className="p-4 text-center">
-                        <Icon className={`w-8 h-8 mx-auto mb-3 ${isSelected ? "text-blue-600" : colorClass}`} />
+                        <Icon className={`w-8 h-8 mx-auto mb-3 ${isSelected ? "text-teal-600" : colorClass}`} />
                         <h3 className="font-medium text-sm mb-2">{option.label}</h3>
                         <div className="text-2xl font-bold mb-2">
-                          CHF {formatPrice(option.price)}
+                          CHF {" "}
+                          {editingPrice === option.id ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              step="1"
+                              className="w-20 h-8 p-0 bg-transparent border-b border-gray-400 rounded-none text-2xl inline text-center ml-1"
+                              autoFocus
+                              defaultValue={option.price}
+                              onBlur={(e) => {
+                                handlePriceEdit(option.id, e.target.value)
+                                setEditingPrice(null)
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handlePriceEdit(option.id, e.currentTarget.value)
+                                  setEditingPrice(null)
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <span 
+                              onDoubleClick={(e) => { e.stopPropagation(); setEditingPrice(option.id) }}
+                              className="cursor-pointer"
+                            >
+                               {formatPrice(option.price)}
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs opacity-80 mb-2">{option.description}</p>
-                        {isSelected && <Badge className="bg-blue-600 text-white hover:bg-blue-600">Selezionato</Badge>}
+                        {isSelected && <Badge className="bg-teal-600 text-white hover:bg-teal-600">Selezionato</Badge>}
                       </CardContent>
                     </Card>
                   )
                 })}
               </div>
 
-              {data.sectionHours?.selectedOption && (
-                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              {data.sectionAssistanceBwbix?.selectedOption && (
+                <div className="mt-6 p-4 bg-teal-50 border border-teal-200 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-green-900">Pacchetto selezionato</h4>
-                      <p className="text-sm text-green-700">{data.sectionHours.label}</p>
+                      <h4 className="font-medium text-teal-900">Pacchetto selezionato</h4>
+                      <p className="text-sm text-teal-700">{data.sectionAssistanceBwbix.label}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-green-900">CHF {formatPrice(data.sectionHours.price)}</div>
-                      <div className="text-sm text-green-700">Prezzo totale</div>
+                      <div className="text-2xl font-bold text-teal-900">CHF {formatPrice(data.sectionAssistanceBwbix.price)}</div>
+                      <div className="text-sm text-teal-700">Prezzo totale</div>
                     </div>
                   </div>
                 </div>

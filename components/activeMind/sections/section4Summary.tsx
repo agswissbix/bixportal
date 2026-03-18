@@ -63,6 +63,12 @@ interface SummarySectionProps {
       price?: number
       operationsPerYear?: number
     }
+    sectionAssistanceBwbix?: {
+      selectedOption: string
+      label: string
+      price: number
+      hours?: number
+    }
     sectionHours: {
       selectedOption: string
       label: string
@@ -162,14 +168,16 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
   const servicesYearly = servicesTotal * 12;
   const servicesMonthly = servicesTotal;
   
+  const assistanceBwbixTotal = serviceData.sectionAssistanceBwbix?.price || 0;
+  
   const contractConstraint = serviceData.clientInfo?.contractConstraint || 12;
 
   const discountRate = contractConstraint === 36 ? 0.10 : contractConstraint === 24 ? 0.05 : 0;
   
-  const grandTotalMonthly = (productsMonthlyTotal + servicesMonthly);
+  const grandTotalMonthly = (productsMonthlyTotal + servicesMonthly + assistanceBwbixTotal);
   const grandTotalMonthlyDiscounted = grandTotalMonthly * (1 - discountRate);
 
-  const grandTotalYearly = (productsYearlyTotal + servicesYearly);
+  const grandTotalYearly = (productsYearlyTotal + servicesYearly + (assistanceBwbixTotal * 12));
   const grandTotalYearlyDiscounted = grandTotalYearly * (1 - discountRate);
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -320,6 +328,39 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                         CHF {formatPrice(monteOreTotal)}
                       </h3>
                       <p className="text-sm text-gray-600">Una Tantum</p>
+                    </div>
+                 </div>
+               </div>
+             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section Assistance Bwbix */}
+      {serviceData.sectionAssistanceBwbix?.selectedOption && (
+        <Card className="shadow-md">
+          <CardHeader className="bg-gradient-to-r from-teal-100 to-teal-50 rounded-t-lg">
+            <CardTitle className="text-lg flex items-center">
+              <Clock className="w-5 h-5 mr-2 text-teal-700" />
+              Opzione di Assistenza Selezionata
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+             <div className="p-6 bg-gradient-to-br from-teal-50 to-teal-100 border-2 border-teal-300 rounded-xl shadow-inner">
+               <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                 <div>
+                   <h4 className="font-semibold text-gray-900 text-base mb-2">Giorni/orari di assistenza</h4>
+                   <p className="text-gray-700 text-lg font-medium">
+                    {serviceData.sectionAssistanceBwbix.label ? serviceData.sectionAssistanceBwbix.label : serviceData.sectionAssistanceBwbix.selectedOption}
+                   </p>
+                 </div>
+
+                 <div className="flex flex-col items-end space-y-2 bg-white/60 p-4 rounded-lg">
+                    <div className="text-right">
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        CHF {formatPrice(assistanceBwbixTotal)}
+                      </h3>
+                      <p className="text-sm text-gray-600">Al mese</p>
                     </div>
                  </div>
                </div>

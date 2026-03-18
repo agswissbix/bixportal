@@ -461,6 +461,9 @@ export async function POST(request: Request) {
             break;
 
         // SWISSBIX
+        case "get_assistance_bwbix_activemind":
+            djangoUrl = "/customapp_swissbix/get_assistance_bwbix_activemind/";
+            break;
         case "get_lenovo_device_info":
             djangoUrl = "/customapp_swissbix/get_lenovo_device_info/";
             break;
