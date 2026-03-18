@@ -39,6 +39,7 @@ interface ResponseInterface {
 interface FavoriteTableItem {
   id: string;
   tableid: string;
+  title: string;
 }
 
 interface SubItem {
@@ -312,7 +313,7 @@ export default function Sidebar({}: PropsInterface) {
                                 handleMenuClick(table.tableid)
                               }}
                             >
-                              {table.tableid}
+                              {table.title}
                             </span>
                           </li>
                         ))}
