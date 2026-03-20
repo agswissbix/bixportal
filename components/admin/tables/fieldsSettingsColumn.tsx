@@ -92,7 +92,8 @@ export const FieldSettingsColumn: React.FC<{
         items={response.items ? response.items.map(item => ({
           itemcode: item.itemcode, 
           itemdesc: item.itemdesc,
-          status: 'unchanged'
+          status: 'unchanged',
+          itemorder: item.itemorder
         })) : []}
         currentSettings={response.fieldsettings}
         onSave={(data) => console.log("Salvato:", data)} />

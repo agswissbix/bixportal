@@ -4,6 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { GripVertical } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
@@ -20,6 +21,7 @@ interface FieldSetting {
 interface LookupItem {
   itemcode: string
   itemdesc: string
+  itemorder?: number
   status?: "new" | "deleted" | "changed" | "unchanged"
 }
 
@@ -40,6 +42,8 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
   const [lookupItems, setLookupItems] = useState<LookupItem[]>(items || [])
   const [lookupTableId, setLookupTableId] = useState(record?.lookuptableid || "")
 
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
+
   useEffect(() => {
     setLocalSettings(currentSettings)
   }, [currentSettings])
@@ -52,7 +56,12 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
 
   useEffect(() => {
     console.log("Items changed:", items)
-    setLookupItems(items)
+    if (items) {
+      const sorted = [...items].sort((a, b) => (a.itemorder ?? 0) - (b.itemorder ?? 0))
+      setLookupItems(sorted)
+    } else {
+      setLookupItems([])
+    }
   }, [items])
 
   const handleSettingChange = (key: string, value: string) => {
@@ -137,9 +146,33 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
     const newItem: LookupItem = {
       itemcode: "",
       itemdesc: "",
+      itemorder: lookupItems.length + 1,
       status: "new",
     }
     setLookupItems((prev) => [...prev, newItem])
+  }
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    if (lookupItems[index].status === "deleted") return
+    setDraggedItemIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault()
+    if (draggedItemIndex === null || draggedItemIndex === index) return
+    if (lookupItems[index].status === "deleted") return
+
+    setLookupItems((prev) => {
+      const newItems = [...prev]
+      const movedItem = newItems.splice(draggedItemIndex, 1)[0]
+      newItems.splice(index, 0, movedItem)
+      return newItems.map((item, i) => ({ ...item, itemorder: i + 1, status: item.status === "new" ? "new" : "changed" }))
+    })
+    setDraggedItemIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedItemIndex(null)
   }
 
   const handleDeleteLookup = (index: number) => {
@@ -157,7 +190,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
           fieldid: fieldId,
           userid: userId,
           record: { description, label },
-          items: lookupItems,
+          items: lookupItems.map((item, i) => ({ ...item, itemorder: i + 1 })),
         },
         {
           headers: {
@@ -232,9 +265,16 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
               <div className="space-y-3">
                 {lookupItems.map((item, index) => (
                   <div
-                    key={item.itemcode}
-                    className={`flex items-center gap-2 ${item.status === "deleted" ? "opacity-50" : ""}`}
+                    key={`${index}-${item.itemcode}`}
+                    draggable={item.status !== "deleted"}
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-2 p-2 rounded-md ${
+                      item.status === "deleted" ? "opacity-50" : "bg-white border hover:shadow-sm"
+                    } ${draggedItemIndex === index ? "opacity-50 scale-95" : "cursor-move"}`}
                   >
+                    <GripVertical className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     <Input
                       type="text"
                       value={item.itemdesc}
