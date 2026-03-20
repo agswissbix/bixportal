@@ -613,6 +613,12 @@ export async function POST(request: Request) {
         case "settings_table_fields_settings_reset":
             djangoUrl = "/commonapp/settings_table_fields_settings_reset/";
             break;
+        case "settings_table_fields_order_reset":
+            djangoUrl = "/commonapp/settings_table_fields_order_reset/";
+            break;
+        case "settings_table_usertables_order_reset":
+            djangoUrl = "/commonapp/settings_table_usertables_order_reset/";
+            break;
 
         case "save_signature":
             djangoUrl = "/customapp_swissbix/save_signature/";

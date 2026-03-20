@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useMemo, useState } from "react"
-import { Table, Search, Save, Plus, X } from "lucide-react"
+import { Table, Search, Save, Plus, X, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,7 @@ interface TableType {
   description: string
   workspace: string
   order?: number
+  source?: "user" | "default" | "hardcoded"
 }
 
 interface Workspace {
@@ -160,6 +161,18 @@ export const TablesColumn: React.FC<{
     }
   }
 
+  const handleResetOrder = async () => {
+    try {
+      await axiosInstanceClient.post("/postApi", {
+        apiRoute: "settings_table_usertables_order_reset",
+        userid: selectedUserId,
+      }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+      toast.success("Ordine ripristinato a default")
+    } catch {
+      toast.error("Errore durante il ripristino dell'ordine delle tabelle")
+    }
+  }
+
   const handleDeleteTable = async (tableId: string) => {
     try {
       const payload: any = {
@@ -237,7 +250,26 @@ export const TablesColumn: React.FC<{
       {(response: Record<string, Workspace>) => (
         <div className="p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold flex items-center gap-2">Tabelle Utente</h2>
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              Tabelle Utente
+              {Object.values(workspaces).some(ws => ws.tables?.some(t => t.source === 'user')) && (
+                <div className="flex items-center gap-1 ml-2">
+                  <span className="text-xs px-2 py-0.5 rounded-full whitespace-nowrap border bg-blue-100 text-blue-800 border-blue-300 font-medium">
+                    Ordine Personalizzato
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={handleResetOrder} title="Ripristina ordine a default" className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-full transition-colors">
+                    <RotateCcw className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+              {Object.keys(workspaces).length > 0 && !Object.values(workspaces).some(ws => ws.tables?.some(t => t.source === 'user')) && (
+                <div className="flex items-center gap-1 ml-2">
+                  <span className="text-xs px-2 py-0.5 rounded-full whitespace-nowrap border bg-slate-100 text-slate-700 border-slate-300">
+                    Ordine Ereditato
+                  </span>
+                </div>
+              )}
+            </h2>
             <div className="flex items-center gap-2">
               <Button
                 onClick={() => setShowAddTable((prev) => !prev)}

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import {
   Plus, Save, X, Search, User, FileText, Pencil, Table, LayoutGrid, BadgeCheck,
-  Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare, SquareArrowDownRightIcon, Copy
+  Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare, SquareArrowDownRightIcon, Copy, RotateCcw
 } from "lucide-react"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,6 +27,7 @@ interface Field {
   label: string
   order?: number | null
   visible?: boolean
+  source?: "user" | "default" | "hardcoded"
 }
 
 interface ResponseInterface {
@@ -197,6 +198,21 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     }
   }
 
+  const handleResetOrder = async () => {
+    try {
+      await axiosInstanceClient.post("/postApi", {
+        apiRoute: "settings_table_fields_order_reset",
+        tableid: tableId,
+        userid: userId,
+        typepreference: typePreference
+      }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+      toast.success("Ordine ripristinato a default")
+      if (typeof window !== "undefined") window.location.reload()
+    } catch {
+      toast.error("Errore durante il ripristino dell'ordine")
+    }
+  }
+
   const handleAddField = async () => {
     try {
       const payload: any = {
@@ -333,7 +349,21 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
         <Card className="overflow-y-auto h-full shadow-lg border-slate-200">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 sticky top-0 z-10 border-b border-slate-200">
             <CardTitle className="flex flex-wrap justify-between items-center w-full">
-              <span className="text-slate-800">Gestione Campi</span>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-800">Gestione Campi</span>
+                {fields.length > 0 && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap border ${fields.some(f => f.source === 'user') ? 'bg-blue-100 text-blue-800 border-blue-300 font-medium' : 'bg-slate-100 text-slate-700 border-slate-300'}`}>
+                      {fields.some(f => f.source === 'user') ? 'Ordine Personalizzato' : 'Ordine Ereditato'}
+                    </span>
+                    {fields.some(f => f.source === 'user') && (
+                      <Button variant="ghost" size="sm" onClick={handleResetOrder} title="Ripristina a default" className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-full transition-colors">
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setShowAddField(true)} className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 hover:border-2 transition-colors">
                   <Plus className="h-4 w-4 mr-2" /> Aggiungi Campo
