@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import {
   Plus, Save, X, Search, User, FileText, Pencil, Table, LayoutGrid, BadgeCheck,
-  Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare, SquareArrowDownRightIcon
+  Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare, SquareArrowDownRightIcon, Copy
 } from "lucide-react"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,7 +23,7 @@ interface Field {
   id: string
   fieldid: string
   description: string
-  fieldtypeid: string
+  fieldtypewebid: string
   label: string
   order?: number | null
   visible?: boolean
@@ -35,9 +35,9 @@ interface ResponseInterface {
 
 const FieldsResponseDev: ResponseInterface = {
   fields: [
-    { id: "f1", fieldid: "campaign_name", description: "Nome Campagna", fieldtypeid: "string", label: "Nome", order: 1, visible: true },
-    { id: "f2", fieldid: "start_date", description: "Data Inizio", fieldtypeid: "date", label: "Inizio", order: 2, visible: true },
-    { id: "f3", fieldid: "end_date", description: "Data Fine", fieldtypeid: "date", label: "Fine", order: null, visible: false },
+    { id: "f1", fieldid: "campaign_name", description: "Nome Campagna", fieldtypewebid: "string", label: "Nome", order: 1, visible: true },
+    { id: "f2", fieldid: "start_date", description: "Data Inizio", fieldtypewebid: "date", label: "Inizio", order: 2, visible: true },
+    { id: "f3", fieldid: "end_date", description: "Data Fine", fieldtypewebid: "date", label: "Fine", order: null, visible: false },
   ],
 }
 
@@ -58,8 +58,8 @@ const fieldTypeOptions = [
 ]
 
 const typePreferenceOptions = [
-  { value: "view_fields", label: "Campi di Visualizzazione", icon: Eye },
   { value: "insert_fields", label: "Campi di Inserimento", icon: PlusSquare },
+  { value: "view_fields", label: "Campi di Visualizzazione", icon: Eye },
   { value: "search_results_fields", label: "Campi Risultati Ricerca", icon: Search },
   { value: "linked_columns", label: "Colonne Collegate", icon: Link },
   { value: "search_fields", label: "Campi di Ricerca", icon: Filter },
@@ -87,12 +87,13 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     linkedtable: "",
     linkedtablefields: [] as string[],
   })
-  const [typePreference, setTypePreference] = useState<string>("view_fields")
+  const [typePreference, setTypePreference] = useState<string>("insert_fields")
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [masterTableId, setMasterTableId] = useState<string>("")
   const [linkedTables, setLinkedTables] = useState<{ tableid_id: string }[]>([])
   const [availableLinkedTables, setAvailableLinkedTables] = useState<{ id: string, description: string }[]>([])
   const [availableLinkedFields, setAvailableLinkedFields] = useState<{ id: string, description: string }[]>([])
+  const [copySource, setCopySource] = useState<string>("")
 
   const payload = useMemo(() => {
     if (isDev) return null
@@ -157,6 +158,24 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     }
   }
 
+  const handleCopyFrom = async (sourceTypePreference: string) => {
+    try {
+      const resp = await axiosInstanceClient.post("/postApi", {
+        apiRoute: "settings_table_fields",
+        tableid: tableId,
+        userid: userId,
+        typepreference: sourceTypePreference,
+      })
+      if (resp.data && resp.data.fields) {
+        setFields(resp.data.fields)
+        setIsSaved(false)
+        toast.success(`Impostazioni copiate. Clicca su "Salva" per confermare.`)
+      }
+    } catch (e) {
+      toast.error("Errore durante la copia delle impostazioni")
+    }
+  }
+
   const handleSave = async () => {
     if (isDev) return
     try {
@@ -201,10 +220,10 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
         toast.success("Campo aggiunto con successo")
         setShowAddField(false)
         setFields(prev => [...prev, {
-          id: `temp-${Date.now()}`,
+          id: response.data.new_field,
           fieldid: newField.fieldid,
           description: newField.description,
-          fieldtypeid: newField.fieldtype,
+          fieldtypewebid: newField.fieldtype,
           label: newField.description,
           order: prev.length + 1,
           visible: true,
@@ -212,8 +231,8 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
       } else {
         toast.error(response.data.error || "Errore nella creazione del campo")
       }
-    } catch {
-      toast.error("Errore durante la creazione del campo")
+    } catch (error) {
+      toast.error("Errore durante la creazione del campo" + error?.response?.data?.error)
     }
   }
 
@@ -234,8 +253,8 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
       } else {
         toast.error(response.data.error || "Errore nell'eliminazione del campo")
       }
-    } catch {
-      toast.error("Errore durante l'eliminazione del campo")
+    } catch (error) {
+      toast.error("Errore durante l'eliminazione del campo: " + error?.response?.data?.error)
     }
   }
 
@@ -252,7 +271,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
 
       if (response.data.success) {
         toast.success("Campo convertito in lookup con successo")
-        setFields(prev => prev.map(f => f.id === fieldid ? { ...f, fieldtypeid: "lookup" } : f))
+        setFields(prev => prev.map(f => f.id === fieldid ? { ...f, fieldtypewebid: "lookup" } : f))
       } else {
         toast.error(response.data.error || "Errore nella conversione del campo")
       }
@@ -281,7 +300,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
         order: f.order,
         visible: f.visible,
         fieldid: f.fieldid,
-        fieldtypeid: f.fieldtypeid,
+        fieldtypeid: f.fieldtypewebid,
         label: f.label,
       })),
     },
@@ -422,23 +441,61 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
             )}
 
             {/* Preferenze e ricerca restano invariati */}
-            <div className="w-full mt-4">
-              <Label>Tipo Preferenza</Label>
-              <Select value={typePreference} onValueChange={setTypePreference}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Seleziona un tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {typePreferenceOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center gap-2">
-                        {React.createElement(option.icon, { className: "h-4 w-4 text-blue-600" })}
-                        <span>{option.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex gap-4 items-end mt-4 w-full">
+              <div className="flex-1">
+                <Label>Tipo Preferenza</Label>
+                <Select value={typePreference} onValueChange={(val) => {
+                    setTypePreference(val)
+                    setCopySource("")
+                }}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Seleziona un tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typePreferenceOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center gap-2">
+                          {React.createElement(option.icon, { className: "h-4 w-4 text-blue-600" })}
+                          <span>{option.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex-1">
+                <Label>Copia impostazioni da</Label>
+                <div className="flex gap-2 mt-1">
+                  <Select value={copySource} onValueChange={setCopySource}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleziona da dove copiare" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typePreferenceOptions.filter(opt => opt.value !== typePreference).map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            {React.createElement(option.icon, { className: "h-4 w-4 text-blue-600" })}
+                            <span>{option.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      if(copySource) handleCopyFrom(copySource)
+                    }} 
+                    disabled={!copySource}
+                    title="Copia i campi e l'ordine"
+                    type="button"
+                    className="h-9"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {typePreference === "linked_columns" && (
