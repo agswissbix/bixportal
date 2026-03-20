@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react"
 import {
-  Plus, Save, X, Search, User, FileText, Pencil, Table, LayoutGrid, BadgeCheck,
+  Plus, Save, X, Search, User, FileText, Pencil, Table, LayoutGrid, BadgeCheck, CheckCircle,
   Link, Filter, Clock, Calendar, Binary, Hash, Eye, PlusSquare, SquareArrowDownRightIcon, Copy, RotateCcw
 } from "lucide-react"
 import { toast } from "sonner"
@@ -50,6 +50,7 @@ const fieldTypeOptions = [
   { value: "Numero", label: "Numero", icon: Hash },
   { value: "lookup", label: "Lookup", icon: Search },
   { value: "multiselect", label: "Multiselect", icon: Search },
+  { value: "Checkbox", label: "Checkbox", icon: CheckCircle },
   { value: "Utente", label: "Utente", icon: User },
   { value: "Memo", label: "Memo", icon: FileText },
   { value: "html", label: "HTML", icon: FileText },
