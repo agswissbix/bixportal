@@ -8,7 +8,7 @@ import SelectStandard from "@/components/selectStandard"
 import { Button } from "@/components/ui/button"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import { toast } from "sonner"
-import { Save, Search } from "lucide-react"
+import { Save, Search, RotateCcw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import ConditionsEditor from "./conditionsEditor"
 
@@ -39,7 +39,9 @@ interface TableSetting {
   type: "select" | "multiselect" | "parola"
   options?: (string | TableSettingOption)[]
   value: string | string[]
-  conditions?: string | Conditions // Può essere string o object
+  conditions?: string | Conditions
+  source?: "user" | "default" | "hardcoded"
+  original_default?: string
 }
 
 interface ResponseInterface {
@@ -93,6 +95,7 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
   const [formValues, setFormValues] = useState<Record<string, string | string[]>>({})
   const [conditionsValues, setConditionsValues] = useState<Record<string, Conditions>>({})
   const [searchTerm, setSearchTerm] = useState<string>("")
+  const [showOnlyCustom, setShowOnlyCustom] = useState<boolean>(false)
 
   const payload = useMemo(() => {
     return {
@@ -142,6 +145,27 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
     setConditionsValues((prev) => ({ ...prev, [fieldId]: conditions }))
   }
 
+  const handleResetSetting = async (settingName: string) => {
+    try {
+      await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "settings_table_settings_reset",
+          tableid: tableId,
+          userid: userId,
+          settingid: settingName,
+        },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      )
+      toast.success("Impostazione ripristinata")
+      
+      const newFormValue = responseData.tablesettings[settingName]?.original_default || ""
+      setFormValues((prev) => ({ ...prev, [settingName]: newFormValue }))
+    } catch (err) {
+      toast.error("Errore durante il ripristino dell'impostazione")
+    }
+  }
+
   const handleSave = async () => {
     try {
       const settings = Object.entries(formValues).map(([name, value]) => {
@@ -179,30 +203,48 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
   }
 
   const filteredSettings = useMemo(() => {
-    if (!searchTerm.trim()) return responseData.tablesettings
-    const lower = searchTerm.toLowerCase()
-    return Object.fromEntries(
-      Object.entries(responseData.tablesettings).filter(([key, val]) => {
+    let result = Object.entries(responseData.tablesettings)
+    
+    if (showOnlyCustom) {
+      result = result.filter(([key, val]) => val.source === "user")
+    }
+
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase()
+      result = result.filter(([key, val]) => {
         return (
           key.toLowerCase().includes(lower) ||
           (typeof val.value === "string" && val.value.toLowerCase().includes(lower))
         )
-      }),
-    )
-  }, [searchTerm, responseData])
+      })
+    }
+
+    return Object.fromEntries(result)
+  }, [searchTerm, showOnlyCustom, responseData])
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
         <div className="flex flex-col gap-4 p-4 ">
-          <div className="relative mb-4 max-w-full">
-            <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Cerca impostazione..."
-              className="pl-9 w-full"
-              value={searchTerm}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4 max-w-full bg-white p-2 border rounded-md shadow-sm">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Cerca impostazione..."
+                className="pl-9 w-full border-gray-200"
+                value={searchTerm}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer text-gray-700 select-none">
+              <input 
+                type="checkbox" 
+                className="rounded border-gray-300 w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                checked={showOnlyCustom}
+                onChange={(e) => setShowOnlyCustom(e.target.checked)}
+              />
+              Mostra solo personalizzati
+            </label>
           </div>
 
           {Object.entries(filteredSettings).map(([setting, val]) => {
@@ -213,6 +255,39 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
               val.options.includes("true") &&
               val.options.includes("false")
 
+            // Determine badge appearance based on source
+            let badgeText = "Predefinito di sistema"
+            let badgeColors = "bg-gray-100 text-gray-600 border border-gray-200"
+            if (val.source === "user") {
+              badgeText = "Personalizzato"
+              badgeColors = "bg-blue-100 text-blue-800 border-blue-300 font-medium"
+            } else if (val.source === "default") {
+              badgeText = "Ereditato (Default)"
+              badgeColors = "bg-slate-100 text-slate-700 border-slate-300"
+            }
+
+            const headerJSX = (
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                <label className="font-medium text-sm text-slate-800">{setting}</label>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${badgeColors}`}>
+                    {badgeText}
+                  </span>
+                  {val.source === "user" && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleResetSetting(setting)}
+                      title="Ripristina a default"
+                      className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-full transition-colors"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )
+
             if (val.type === "select" || val.type === "multiselect") {
               const lookupItems =
                 val.options?.map((opt) =>
@@ -222,8 +297,8 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
                 ) ?? []
 
               return (
-                <div key={setting} className="flex flex-col gap-2 pb-2 border-b border-gray-400">
-                  <label className="font-medium text-sm">{setting}</label>
+                <div key={setting} className="flex flex-col gap-1 pb-4 border-b border-gray-200 hover:bg-slate-50 p-2 rounded-md transition-colors">
+                  {headerJSX}
                   <SelectStandard
                     lookupItems={lookupItems.map((item) => ({ itemcode: item.id ?? item.name, itemdesc: item.name }))}
                     initialValue={initialValue}
@@ -232,8 +307,10 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
                   />
 
                   {isBooleanField && (
-                    <div className="mt-2 pl-2 border-l-2 border-gray-200">
-                      <label className="font-medium text-xs text-gray-600 mb-1 block">Condizioni</label>
+                    <div className="mt-3 pl-3 border-l-2 border-slate-300 bg-white p-2 rounded shadow-sm">
+                      <label className="font-medium text-xs text-slate-600 mb-1 flex items-center">
+                        Condizioni <span className="text-[10px] ml-2 text-slate-400 font-normal">(opzionale)</span>
+                      </label>
                       <ConditionsEditor
                         value={conditionsValues[setting] || null}
                         onChange={(conditions) => handleConditionsChange(setting, conditions)}
@@ -245,11 +322,11 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
             }
 
             return (
-              <div key={setting} className="flex flex-col gap-2">
-                <label className="font-medium text-sm">{setting}</label>
+              <div key={setting} className="flex flex-col gap-1 pb-4 border-b border-gray-200 hover:bg-slate-50 p-2 rounded-md transition-colors">
+                {headerJSX}
                 <input
                   type="text"
-                  className="border rounded-md p-2"
+                  className="border border-gray-300 rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   value={initialValue as string}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(setting, e.target.value)}
                 />

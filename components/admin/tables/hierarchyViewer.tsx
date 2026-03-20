@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GripVertical } from "lucide-react"
+import { GripVertical, Search, RotateCcw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
@@ -16,6 +16,8 @@ interface FieldSetting {
   options?: string[]
   value: string
   conditions?: string | { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> }
+  source?: "user" | "default" | "hardcoded"
+  original_default?: string
 }
 
 interface LookupItem {
@@ -43,6 +45,9 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
   const [lookupTableId, setLookupTableId] = useState(record?.lookuptableid || "")
 
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
+  
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [showOnlyCustom, setShowOnlyCustom] = useState<boolean>(false)
 
   useEffect(() => {
     setLocalSettings(currentSettings)
@@ -131,7 +136,26 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
       )
     }
 
-    return <Input value={field.value} onChange={(e) => handleSettingChange(key, e.target.value)} className="w-full" />
+    return <Input value={field.value} onChange={(e) => handleSettingChange(key, e.target.value)} className="w-full border-gray-300 focus:ring-blue-500" />
+  }
+
+  const handleResetSetting = async (settingName: string) => {
+    try {
+      await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "settings_table_fields_settings_reset",
+          tableid: tableId,
+          userid: userId,
+          fieldid: fieldId, // Requires the record ID of the field
+          settingid: settingName,
+        },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      )
+      toast.success("Impostazione ripristinata")
+    } catch (err) {
+      toast.error("Errore durante il ripristino dell'impostazione")
+    }
   }
 
   const handleLookupChange = (index: number, value: string) => {
@@ -213,6 +237,17 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
     return <div className="p-4 text-gray-500">Nessun dato disponibile</div>
   }
 
+  const filteredSettings = Object.entries(localSettings).filter(([key, val]) => {
+    if (showOnlyCustom && val.source !== "user") return false
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase()
+      if (!key.toLowerCase().includes(lower) && !(typeof val.value === "string" && val.value.toLowerCase().includes(lower))) {
+        return false
+      }
+    }
+    return true
+  })
+
   return (
     <div className="space-y-6">
       <Card className="border-gray-300">
@@ -231,20 +266,72 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
               className="w-full"
             />
 
-            <label htmlFor="field-label" className="font-medium">
+            <label htmlFor="field-label" className="font-medium text-slate-800">
               Label
             </label>
-            <Input id="field-label" value={label} onChange={(e) => setLabel(e.target.value)} className="w-full" />
+            <Input id="field-label" value={label} onChange={(e) => setLabel(e.target.value)} className="w-full border-gray-300" />
           </div>
 
-          {Object.entries(localSettings).map(([key, field]) => (
-            <div key={key} className="flex flex-col gap-1">
-              <span className="font-medium">{key}</span>
+          <div className="flex flex-wrap items-center justify-between gap-4 mt-6 mb-4 max-w-full bg-white p-2 border rounded-md shadow-sm">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Cerca impostazione..."
+                className="pl-9 w-full border-gray-200"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer text-gray-700 select-none">
+              <input 
+                type="checkbox" 
+                className="rounded border-gray-300 w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                checked={showOnlyCustom}
+                onChange={(e) => setShowOnlyCustom(e.target.checked)}
+              />
+              Mostra solo personalizzati
+            </label>
+          </div>
+
+          {filteredSettings.map(([key, field]) => {
+            let badgeText = "Predefinito di sistema"
+            let badgeColors = "bg-gray-100 text-gray-600 border border-gray-200"
+            if (field.source === "user") {
+              badgeText = "Personalizzato"
+              badgeColors = "bg-blue-100 text-blue-800 border-blue-300 font-medium"
+            } else if (field.source === "default") {
+              badgeText = "Ereditato (Default)"
+              badgeColors = "bg-slate-100 text-slate-700 border-slate-300"
+            }
+
+            return (
+            <div key={key} className="flex flex-col gap-1 pb-4 border-b border-gray-200 hover:bg-slate-50 p-2 rounded-md transition-colors">
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                <span className="font-medium text-sm text-slate-800">{key}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${badgeColors}`}>
+                    {badgeText}
+                  </span>
+                  {field.source === "user" && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleResetSetting(key)}
+                      title="Ripristina a default"
+                      className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-full transition-colors"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
               {renderSettingInput(key, field)}
 
               {isBooleanField(field) && (
-                <div className="mt-2 pl-2 border-l-2 border-gray-300">
-                  <span className="text-sm text-gray-600 mb-2 block">Condizioni di visibilità</span>
+                <div className="mt-3 pl-3 border-l-2 border-slate-300 bg-white p-2 rounded shadow-sm">
+                  <span className="font-medium text-xs text-slate-600 mb-1 flex items-center">
+                    Condizioni <span className="text-[10px] ml-2 text-slate-400 font-normal">(opzionale)</span>
+                  </span>
                   <ConditionsEditor
                     value={parseConditions(field.conditions)}
                     onChange={(conditions) => handleConditionsChange(key, conditions)}
@@ -252,7 +339,8 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
                 </div>
               )}
             </div>
-          ))}
+            )
+          })}
 
           {lookupTableId && (
             <div className="mt-6 space-y-4">
