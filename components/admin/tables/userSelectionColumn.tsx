@@ -1,9 +1,10 @@
 import React, {useState, useEffect, useMemo} from 'react'
-import { Users } from 'lucide-react'
+import { Users, ChevronDown, ChevronRight } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { useApi } from '@/utils/useApi'
 import GenericComponent from '@/components/genericComponent'
+import axiosInstanceClient from '@/utils/axiosInstanceClient'
 
 
 const isDev = false
@@ -76,7 +77,6 @@ export const UserSelectionColumn: React.FC<{
       onGroupsUpdate?.(groups)
     }
   }, [])
-
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error}>

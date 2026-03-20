@@ -137,6 +137,7 @@ const TabellePage: React.FC = () => {
                 icon={<Table className="h-5 w-5 text-gray-600" />}
                 isOpen={isCol1Open}
                 onToggle={() => setIsCol1Open(!isCol1Open)}
+                selectedUserIdSummary={selectedUserId}
               >
                 <UserSelectionColumn
                   users={users}
@@ -146,6 +147,7 @@ const TabellePage: React.FC = () => {
                   onUsersUpdate={setUsers}
                   onGroupsUpdate={setGroups}
                 />
+                
               </ColumnWrapper>
             </div>
 

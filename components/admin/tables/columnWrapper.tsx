@@ -1,6 +1,7 @@
 import React from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SummaryHierarchy } from './summaryHierarchy'
 
 export const ColumnWrapper: React.FC<{
   title: string
@@ -8,7 +9,8 @@ export const ColumnWrapper: React.FC<{
   children: React.ReactNode
   isOpen: boolean
   onToggle: () => void
-}> = ({ title, icon, children, isOpen, onToggle }) => {
+  selectedUserIdSummary?: string
+}> = ({ title, icon, children, isOpen, onToggle, selectedUserIdSummary }) => {
   return (
     <div className="flex flex-col h-full relative">
       {/* Collapsibility Button and Header */}
@@ -41,9 +43,13 @@ export const ColumnWrapper: React.FC<{
       </div>
 
       {/* Content Area (Visible only when open) */}
-      <div className={`flex-1 overflow-y-auto ${isOpen ? 'block' : 'hidden'}`}>
+      <div className={`flex-1 overflow-y-auto flex flex-col ${isOpen ? 'block' : 'hidden'}`}>
         {children}
       </div>
+
+      {isOpen && selectedUserIdSummary && (
+        <SummaryHierarchy selectedUserId={selectedUserIdSummary} />
+      )}
     </div>
   )
 }
