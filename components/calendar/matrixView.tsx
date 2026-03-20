@@ -10,6 +10,7 @@ import {
   getEventPositionInSpan,
   getEventPositionStyles,
 } from "./calendarHelpers"
+import { ArrowRight } from "lucide-react"
 import GenericComponent from "../genericComponent"
 import { useRecordsStore } from "../records/recordsStore"
 import CalendarHeader from "./calendarHeader"
@@ -200,153 +201,240 @@ export default function MatrixView({
   }
 
   const renderWeekMonthView = () => {
+    const laneHeight = 26
+    const headerHeight = 50
+    const rowHeight = 120
+
+    // Get period boundaries
+    const periodStart = new Date(displayedDays[0])
+    periodStart.setHours(0, 0, 0, 0)
+    const periodEnd = new Date(displayedDays[displayedDays.length - 1])
+    periodEnd.setHours(23, 59, 59, 999)
+
+    // ---------- LAYOUT CALCULATION FOR A RESOURCE (like records-view month) ----------
+    const calculateResourceLayout = (resourceId: string) => {
+      const resourceEvents = events.filter((event) => {
+        const eventStart = new Date(event.start)
+        const eventEnd = new Date(event.end || event.start)
+        return event.resourceId === resourceId && eventStart <= periodEnd && eventEnd >= periodStart
+      })
+
+      // Sort: multi-day first (longer ones first), then by start time
+      const sorted = [...resourceEvents].sort((a, b) => {
+        const isAMulti = isMultiDayEvent(a)
+        const isBMulti = isMultiDayEvent(b)
+        
+        if (isAMulti && !isBMulti) return -1
+        if (!isAMulti && isBMulti) return 1
+        
+        const durA = new Date(a.end || a.start).getTime() - new Date(a.start).getTime()
+        const durB = new Date(b.end || b.start).getTime() - new Date(b.start).getTime()
+        if (durB !== durA) return durB - durA
+
+        return new Date(a.start).getTime() - new Date(b.start).getTime()
+      })
+
+      // Assign lanes (events that don't overlap can share the same lane)
+      const lanes: any[][] = []
+      const eventToLane: Record<string, number> = {}
+
+      sorted.forEach((event) => {
+        const eventStart = new Date(event.start).getTime()
+        const eventEnd = new Date(event.end || event.start).getTime()
+
+        let laneIndex = lanes.findIndex((lane) =>
+          !lane.some((e) => {
+            const eS = new Date(e.start).getTime()
+            const eE = new Date(e.end || e.start).getTime()
+            return eventStart <= eE && eventEnd >= eS
+          })
+        )
+
+        if (laneIndex === -1) {
+          lanes.push([event])
+          laneIndex = lanes.length - 1
+        } else {
+          lanes[laneIndex].push(event)
+        }
+        eventToLane[event.recordid] = laneIndex
+      })
+
+      return { eventToLane, totalLanes: lanes.length, sortedEvents: sorted }
+    }
+
+    // Pre-calculate layouts for all resources
+    const resourceLayouts = resources.reduce((acc, resource) => {
+      acc[resource.id] = calculateResourceLayout(resource.id)
+      return acc
+    }, {} as Record<string, ReturnType<typeof calculateResourceLayout>>)
+
+    // ---------- RENDER EVENTS FOR A RESOURCE (like month view in records-view) ----------
+    const renderEventsForResource = (resourceId: string, resourceIndex: number) => {
+      const layout = resourceLayouts[resourceId]
+      const numDays = displayedDays.length
+
+      return layout.sortedEvents.map((event) => {
+        const lane = layout.eventToLane[event.recordid]
+        const eventStart = new Date(event.start)
+        const eventEnd = new Date(event.end || event.start)
+        const isMulti = isMultiDayEvent(event)
+        const isFullDay = eventStart.getHours() === 0 && eventEnd.getHours() === 0
+
+        // Find start and end day indices within displayedDays
+        let startDayIndex = -1
+        let endDayIndex = -1
+
+        for (let i = 0; i < numDays; i++) {
+          const dayStart = new Date(displayedDays[i])
+          dayStart.setHours(0, 0, 0, 0)
+          const dayEnd = new Date(displayedDays[i])
+          dayEnd.setHours(23, 59, 59, 999)
+
+          if (startDayIndex === -1 && eventStart <= dayEnd) {
+            startDayIndex = i
+          }
+          if (eventEnd >= dayStart) {
+            endDayIndex = i
+          }
+        }
+
+        // Clamp to visible range
+        if (startDayIndex === -1) startDayIndex = 0
+        if (endDayIndex === -1 || endDayIndex >= numDays) endDayIndex = numDays - 1
+        if (eventStart < periodStart) startDayIndex = 0
+        if (eventEnd > periodEnd) endDayIndex = numDays - 1
+
+        const colStart = startDayIndex + 2 // +2 because column 1 is the resource name
+        const colSpan = endDayIndex - startDayIndex + 1
+        const isActualStart = eventStart >= periodStart
+        const isActualEnd = eventEnd <= periodEnd
+
+        // Calculate top position based on resource row and lane
+        const topPosition = resourceIndex * rowHeight + headerHeight + (lane * laneHeight) + 4
+
+        return (
+          <div
+            key={`event-${event.recordid}-${resourceId}`}
+            draggable={!resizingEvent && !event.disabled}
+            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (!event.disabled) handleRowClick?.("standard", event.recordid, tableid)
+            }}
+            className={`absolute h-6 text-[11px] flex items-center px-2 transition-opacity group
+              ${event.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-90"}
+              ${!isMulti ? "border border-gray-200 dark:border-gray-700 shadow-sm" : "text-white"}`}
+            style={{
+              gridColumn: `${colStart} / span ${colSpan}`,
+              top: `${topPosition}px`,
+              left: isActualStart ? "4px" : "0px",
+              right: isActualEnd ? "4px" : "0px",
+              backgroundColor: isMulti ? (event.color || "#3b82f6") : "#ffffff",
+              borderLeft: !isMulti ? `3px solid ${event.color || "#3b82f6"}` : "none",
+              borderRadius: isMulti
+                ? `${isActualStart ? "4px" : "0"} ${isActualEnd ? "4px" : "0"} ${isActualEnd ? "4px" : "0"} ${isActualStart ? "4px" : "0"}`
+                : "4px",
+              height: `${laneHeight - 2}px`,
+              pointerEvents: "auto",
+              opacity:
+                draggedEvent?.recordid === event.recordid &&
+                draggedEvent?.resourceId === event.resourceId
+                  ? 0.5
+                  : event.disabled
+                    ? 0.6
+                    : 1,
+            }}
+          >
+            <div className="truncate flex items-center gap-1 w-full select-none">
+              {isActualStart && !isFullDay && (
+                <span className={`font-bold opacity-75 mr-1 ${isMulti ? "" : "text-gray-600"}`}>
+                  {eventStart.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
+              {!isActualStart && <ArrowRight className="w-3 h-3 flex-shrink-0" />}
+              <span className={`${isMulti ? "font-semibold" : "font-medium text-gray-800"}`}>{event.title}</span>
+              {isActualStart && isMulti && <span className="text-[9px] opacity-70">({getEventDaySpan(event)}g)</span>}
+            </div>
+
+            {!event.disabled && isActualEnd && (
+              <div
+                className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity"
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  handleResizeStart(event, "right", e.clientY, e.clientX)
+                }}
+              />
+            )}
+          </div>
+        )
+      })
+    }
+
     return (
       <div className="relative flex-1 overflow-auto">
         <div className="grid border-l border-gray-200 dark:border-gray-700" style={gridColsStyle}>
-          <div className="p-2 border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold sticky top-0 left-0 z-20 text-sm">
+          {/* Header row */}
+          <div
+            className="p-2 border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold sticky top-0 left-0 z-20 text-sm"
+            style={{ height: `${headerHeight}px` }}
+          >
             Dipendenti
           </div>
-          {displayedDays.map((day) => (
-            <div
-              key={day.toISOString()}
-              className={`${day.getDate() === new Date().getDate() ? "text-accent" : ""} p-2 text-center border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold sticky top-0 z-10`}
-            >
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {day.toLocaleDateString("it-IT", { weekday: "short" })}
-              </p>
-              <p className="text-2xl">{day.getDate()}</p>
-            </div>
-          ))}
+          {displayedDays.map((day) => {
+            const isToday = day.toDateString() === new Date().toDateString()
+            return (
+              <div
+                key={day.toISOString()}
+                className={`${isToday ? "text-accent" : ""} p-2 text-center border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold sticky top-0 z-10`}
+                style={{ height: `${headerHeight}px` }}
+              >
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {day.toLocaleDateString("it-IT", { weekday: "short" })}
+                </p>
+                <p className="text-lg leading-none">{day.getDate()}</p>
+              </div>
+            )
+          })}
 
+          {/* Resource rows */}
           {resources.map((resource) => (
             <React.Fragment key={resource.id}>
-              <div className="p-2 border-r border-b border-gray-200 dark:border-gray-700 font-medium bg-white dark:bg-gray-900 sticky left-0 z-10 text-sm">
+              {/* Resource name cell */}
+              <div
+                className="border-r border-b border-gray-200 dark:border-gray-700 font-medium bg-white dark:bg-gray-900 sticky left-0 z-10 text-sm p-2"
+                style={{ height: `${rowHeight}px` }}
+              >
                 {resource.name}
               </div>
 
-              {displayedDays.map((day, dayIndex) => {
-                const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate())
-
-                const dayEvents = events
-                  .filter((event) => {
-                    const eventStart = new Date(event.start)
-                    const eventEnd = new Date(event.end)
-                    const eventStartDay = new Date(
-                      eventStart.getFullYear(),
-                      eventStart.getMonth(),
-                      eventStart.getDate(),
-                    )
-                    const eventEndDay = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate())
-
-                    return (
-                      event.resourceId === resource.id &&
-                      dayStart.getTime() >= eventStartDay.getTime() &&
-                      dayStart.getTime() <= eventEndDay.getTime()
-                    )
-                  })
-                  .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-
-                return (
-                  <div
-                    key={`${resource.id}-${day.toISOString()}`}
-                    className="min-h-32 p-1 border-b border-r border-gray-200 dark:border-gray-700 transition-colors duration-200 relative"
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      e.currentTarget.classList.add("bg-blue-50")
-                    }}
-                    onDragLeave={(e) => e.currentTarget.classList.remove("bg-blue-50")}
-                    onDrop={(e) => {
-                      e.preventDefault()
-                      handleDrop(day, undefined, resource.id)
-                      e.currentTarget.classList.remove("bg-blue-50")
-                    }}
-                  >
-                    {dayEvents.map((event) => {
-                      const durationHours = getEventDurationHours(event)
-                      const baseHeightPerHour = 8
-                      const maxHeight = 24 * baseHeightPerHour
-                      const calculatedHeight = Math.min(durationHours * baseHeightPerHour, maxHeight)
-                      const eventHeight = Math.max(calculatedHeight, 40)
-                      const daySpan = getEventDaySpan(event)
-                      const position = getEventPositionInSpan(event, day)
-                      const positionStyles = getEventPositionStyles(position)
-
-                      return (
-                        <div
-                          key={`${getEventUniqueId(event)}-${dayIndex}`}
-                          draggable={!resizingEvent && !event.disabled}
-                          onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
-                          onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
-                          className="relative group p-1.5 text-xs cursor-pointer text-white select-none shadow hover:opacity-80 transition-opacity mb-1"
-                          style={{
-                            backgroundColor: event.color,
-                            height: `${eventHeight}px`,
-                            ...positionStyles,
-                            opacity:
-                              draggedEvent?.recordid === event.recordid &&
-                              draggedEvent?.start === event.start &&
-                              draggedEvent?.resourceId === event.resourceId
-                                ? 0.5
-                                : event.disabled
-                                  ? 0.6
-                                  : 1,
-                            cursor: event.disabled
-                              ? "not-allowed"
-                              : resizingEvent
-                                ? resizingEvent.handle === "right"
-                                  ? "ew-resize"
-                                  : "ns-resize"
-                                : "pointer",
-                            pointerEvents: event.disabled ? "none" : "auto",
-                          }}
-                        >
-                          {!event.disabled && (position === "first" || position === "single") && (
-                            <div
-                              className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30"
-                              style={{ borderRadius: "0.375rem 0.375rem 0 0" }}
-                              onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
-                            />
-                          )}
-
-                          <div className="font-bold truncate">
-                            {event.title}
-                            {position === "middle" && <span className="ml-1">→</span>}
-                          </div>
-                          <div className="text-xs opacity-90">
-                            {position === "first" || position === "single" ? (
-                              <>
-                                {formatEventTime(event.start)} - {formatEventTime(event.end)}
-                                {isMultiDayEvent(event) && <span className="ml-1">({daySpan}g)</span>}
-                              </>
-                            ) : position === "middle" ? (
-                              <span>continua →</span>
-                            ) : (
-                              <span>← fino a {formatEventTime(event.end)}</span>
-                            )}
-                          </div>
-
-                          {!event.disabled && (position === "last" || position === "single") && (
-                            <>
-                              <div
-                                className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30"
-                                style={{ borderRadius: "0 0 0.375rem 0.375rem" }}
-                                onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
-                              />
-                              <div
-                                className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30"
-                                style={{ borderRadius: "0 0.375rem 0.375rem 0" }}
-                                onMouseDown={(e) => handleResizeStart(event, "right", e.clientY, e.clientX)}
-                              />
-                            </>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )
-              })}
+              {/* Day cells for this resource */}
+              {displayedDays.map((day) => (
+                <div
+                  key={`${resource.id}-${day.toISOString()}`}
+                  className="border-b border-r border-gray-200 dark:border-gray-700 transition-colors duration-200 relative bg-white dark:bg-gray-900"
+                  style={{ height: `${rowHeight}px` }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.currentTarget.classList.add("bg-blue-50/50")
+                  }}
+                  onDragLeave={(e) => e.currentTarget.classList.remove("bg-blue-50/50")}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    e.currentTarget.classList.remove("bg-blue-50/50")
+                    handleDrop(day, undefined, resource.id)
+                  }}
+                />
+              ))}
             </React.Fragment>
           ))}
+        </div>
+
+        {/* Events overlay */}
+        <div
+          className="absolute top-0 left-0 w-full grid pointer-events-none"
+          style={gridColsStyle}
+        >
+          {resources.map((resource, resourceIndex) => renderEventsForResource(resource.id, resourceIndex))}
         </div>
       </div>
     )
@@ -354,189 +442,368 @@ export default function MatrixView({
 
   const renderDayView = () => {
     const hours = Array.from({ length: 24 }, (_, i) => i)
+    const hourHeight = 60
+    const laneHeight = 28
+
+    const currentDayStart = new Date(currentDate)
+    currentDayStart.setHours(0, 0, 0, 0)
+    const currentDayEnd = new Date(currentDate)
+    currentDayEnd.setHours(23, 59, 59, 999)
+
+    // Helper: check if event is full-day (both start and end at 00:00)
+    const isFullDayEvent = (event: any) => {
+      const start = new Date(event.start)
+      const end = new Date(event.end || event.start)
+      return start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 0 && end.getMinutes() === 0
+    }
+
+    // Filter events for this day
     const dayEvents = events.filter((event) => {
       const eventStart = new Date(event.start)
-      const eventEnd = new Date(event.end)
-      return (
-        eventStart.toDateString() === currentDate.toDateString() ||
-        eventEnd.toDateString() === currentDate.toDateString() ||
-        (eventStart < currentDate && eventEnd > currentDate)
-      )
+      const eventEnd = new Date(event.end || event.start)
+      return eventStart <= currentDayEnd && eventEnd >= currentDayStart
     })
 
+    // ---------- LAYOUT CALCULATION FOR A RESOURCE ----------
+    const calculateResourceLayout = (resourceId: string) => {
+      const resourceEvents = dayEvents.filter((e) => e.resourceId === resourceId)
+      const fullDayEvents = resourceEvents.filter(isFullDayEvent)
+      const timedEvents = resourceEvents.filter((e) => !isFullDayEvent(e))
+
+      // Full-day layout (lanes)
+      const fullDayLanes: any[][] = []
+      const fullDayEventToLane: Record<string, number> = {}
+
+      const sortedFullDay = [...fullDayEvents].sort((a, b) => {
+        const durA = new Date(a.end || a.start).getTime() - new Date(a.start).getTime()
+        const durB = new Date(b.end || b.start).getTime() - new Date(b.start).getTime()
+        if (durB !== durA) return durB - durA
+        return new Date(a.start).getTime() - new Date(b.start).getTime()
+      })
+
+      sortedFullDay.forEach((event) => {
+        const eventStart = new Date(event.start).getTime()
+        const eventEnd = new Date(event.end || event.start).getTime()
+
+        let laneIndex = fullDayLanes.findIndex((lane) =>
+          !lane.some((e) => {
+            const eS = new Date(e.start).getTime()
+            const eE = new Date(e.end || e.start).getTime()
+            return eventStart <= eE && eventEnd >= eS
+          })
+        )
+
+        if (laneIndex === -1) {
+          fullDayLanes.push([event])
+          laneIndex = fullDayLanes.length - 1
+        } else {
+          fullDayLanes[laneIndex].push(event)
+        }
+        fullDayEventToLane[event.recordid] = laneIndex
+      })
+
+      // Timed events layout (columns)
+      const getEffectiveRange = (event: any) => {
+        const eventStart = new Date(event.start)
+        const eventEnd = new Date(event.end || event.start)
+        const effectiveStart = eventStart < currentDayStart ? currentDayStart : eventStart
+        const effectiveEnd = eventEnd > currentDayEnd ? currentDayEnd : eventEnd
+        return {
+          startMin: effectiveStart.getHours() * 60 + effectiveStart.getMinutes(),
+          endMin: effectiveEnd.getHours() * 60 + effectiveEnd.getMinutes()
+        }
+      }
+
+      const eventsOverlap = (e1: any, e2: any) => {
+        const r1 = getEffectiveRange(e1)
+        const r2 = getEffectiveRange(e2)
+        return r1.startMin < r2.endMin && r1.endMin > r2.startMin
+      }
+
+      const sortedTimed = [...timedEvents].sort((a, b) => {
+        const rA = getEffectiveRange(a)
+        const rB = getEffectiveRange(b)
+        if (rA.startMin !== rB.startMin) return rA.startMin - rB.startMin
+        return (rB.endMin - rB.startMin) - (rA.endMin - rA.startMin)
+      })
+
+      const timedEventPositions: Record<string, { column: number; totalColumns: number }> = {}
+      const columns: any[][] = []
+
+      sortedTimed.forEach((event) => {
+        let colIndex = -1
+        for (let c = 0; c < columns.length; c++) {
+          const hasOverlap = columns[c].some((e) => eventsOverlap(event, e))
+          if (!hasOverlap) {
+            colIndex = c
+            break
+          }
+        }
+
+        if (colIndex === -1) {
+          columns.push([event])
+          colIndex = columns.length - 1
+        } else {
+          columns[colIndex].push(event)
+        }
+
+        timedEventPositions[event.recordid] = { column: colIndex, totalColumns: 0 }
+      })
+
+      sortedTimed.forEach((event) => {
+        const overlapping = sortedTimed.filter((e) => eventsOverlap(event, e))
+        let maxCol = 0
+        overlapping.forEach((e) => {
+          const pos = timedEventPositions[e.recordid]
+          if (pos && pos.column > maxCol) maxCol = pos.column
+        })
+        timedEventPositions[event.recordid].totalColumns = maxCol + 1
+      })
+
+      return {
+        fullDayEvents: sortedFullDay,
+        fullDayEventToLane,
+        fullDayTotalLanes: fullDayLanes.length,
+        timedEvents: sortedTimed,
+        timedEventPositions,
+      }
+    }
+
+    // Pre-calculate layouts for all resources
+    const resourceLayouts = resources.reduce((acc, resource) => {
+      acc[resource.id] = calculateResourceLayout(resource.id)
+      return acc
+    }, {} as Record<string, ReturnType<typeof calculateResourceLayout>>)
+
+    // Calculate max full-day lanes across all resources
+    const maxFullDayLanes = Math.max(0, ...resources.map((r) => resourceLayouts[r.id].fullDayTotalLanes))
+    const fullDaySectionHeight = maxFullDayLanes > 0 ? maxFullDayLanes * laneHeight + 32 : 0
+
+    // ---------- RENDER FULL-DAY EVENTS FOR A RESOURCE ----------
+    const renderFullDayEventsForResource = (resourceId: string) => {
+      const layout = resourceLayouts[resourceId]
+      return layout.fullDayEvents.map((event) => {
+        const lane = layout.fullDayEventToLane[event.recordid]
+        const eventStart = new Date(event.start)
+        const eventEnd = new Date(event.end || event.start)
+        const isActualStart = eventStart >= currentDayStart
+        const isActualEnd = eventEnd <= currentDayEnd
+
+        return (
+          <div
+            key={`fullday-${event.recordid}`}
+            draggable={!resizingEvent && !event.disabled}
+            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (!event.disabled) handleRowClick?.("standard", event.recordid, tableid)
+            }}
+            className={`absolute h-6 text-[11px] flex items-center px-2 transition-opacity z-20 group text-white
+              ${event.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-90"}`}
+            style={{
+              top: `${lane * laneHeight + 4}px`,
+              left: "4px",
+              right: "4px",
+              backgroundColor: event.color || "#3b82f6",
+              borderRadius: `${isActualStart ? "4px" : "0"} ${isActualEnd ? "4px" : "0"} ${isActualEnd ? "4px" : "0"} ${isActualStart ? "4px" : "0"}`,
+              height: `${laneHeight - 2}px`,
+              pointerEvents: "auto",
+            }}
+          >
+            <div className="truncate flex items-center gap-1 w-full select-none">
+              {!isActualStart && <ArrowRight className="w-3 h-3 flex-shrink-0" />}
+              <span className="font-semibold">{event.title}</span>
+              {isMultiDayEvent(event) && <span className="text-[9px] opacity-70">({getEventDaySpan(event)}g)</span>}
+            </div>
+            {!event.disabled && isActualEnd && (
+              <div
+                className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity"
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  handleResizeStart(event, "right", e.clientY, e.clientX)
+                }}
+              />
+            )}
+          </div>
+        )
+      })
+    }
+
+    // ---------- RENDER TIMED EVENTS FOR A RESOURCE ----------
+    const renderTimedEventsForResource = (resourceId: string) => {
+      const layout = resourceLayouts[resourceId]
+
+      return layout.timedEvents.map((event) => {
+        const eventStart = new Date(event.start)
+        const eventEnd = new Date(event.end || event.start)
+
+        const effectiveStart = eventStart < currentDayStart ? currentDayStart : eventStart
+        const effectiveEnd = eventEnd > currentDayEnd ? currentDayEnd : eventEnd
+
+        const startHour = effectiveStart.getHours() + effectiveStart.getMinutes() / 60
+        const endHour = effectiveEnd.getHours() + effectiveEnd.getMinutes() / 60
+        const durationHours = Math.max(endHour - startHour, 0.5)
+
+        const topPosition = startHour * hourHeight
+        const height = Math.max(durationHours * hourHeight, 40)
+
+        const position = layout.timedEventPositions[event.recordid] || { column: 0, totalColumns: 1 }
+        const width = position.totalColumns > 1 ? `calc((100% - 16px) / ${position.totalColumns})` : "calc(100% - 16px)"
+        const leftOffset = position.totalColumns > 1 ? `calc(8px + (100% - 16px) / ${position.totalColumns} * ${position.column})` : "8px"
+
+        const isFirst = eventStart >= currentDayStart && eventStart <= currentDayEnd
+        const isLast = eventEnd >= currentDayStart && eventEnd <= currentDayEnd
+
+        return (
+          <div
+            key={`timed-${event.recordid}`}
+            draggable={!resizingEvent && !event.disabled}
+            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
+            className="absolute group p-2 text-xs cursor-pointer text-white shadow-md rounded pointer-events-auto hover:shadow-lg transition-shadow"
+            style={{
+              backgroundColor: event.color || "#3b82f6",
+              top: `${topPosition}px`,
+              height: `${height}px`,
+              left: leftOffset,
+              width,
+              opacity:
+                draggedEvent?.recordid === event.recordid &&
+                draggedEvent?.start === event.start &&
+                draggedEvent?.resourceId === event.resourceId
+                  ? 0.5
+                  : event.disabled
+                    ? 0.6
+                    : 1,
+              cursor: event.disabled ? "not-allowed" : resizingEvent ? "ns-resize" : "pointer",
+              zIndex: 10,
+              pointerEvents: event.disabled ? "none" : "auto",
+            }}
+          >
+            {!event.disabled && isFirst && (
+              <div
+                className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t pointer-events-auto"
+                onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
+              />
+            )}
+
+            <p className="font-bold truncate text-sm">{event.title}</p>
+            {height >= 50 && (
+              <p className="text-[10px] opacity-90 mt-0.5">
+                {effectiveStart.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {" - "}
+                {effectiveEnd.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </p>
+            )}
+
+            {!event.disabled && isLast && (
+              <div
+                className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b pointer-events-auto"
+                onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
+              />
+            )}
+          </div>
+        )
+      })
+    }
+
     return (
-      <div className="flex-1 overflow-auto">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Header row */}
         <div
-          className="grid border-l border-gray-200 dark:border-gray-700"
+          className="grid border-l border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
           style={{ gridTemplateColumns: `100px repeat(${resources.length}, 1fr)` }}
         >
-          <div className="p-3 border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold sticky top-0 left-0 z-20 text-sm">
+          <div className="p-3 border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold text-sm">
             Ora
           </div>
           {resources.map((resource) => (
             <div
               key={resource.id}
-              className="p-3 text-center border-b border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold sticky top-0 z-10"
+              className="p-3 text-center border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 font-semibold truncate"
+              title={resource.name}
             >
               {resource.name}
             </div>
           ))}
+        </div>
 
-          {hours.map((hour) => (
-            <React.Fragment key={hour}>
-              <div className="p-3 border-r border-b border-gray-200 dark:border-gray-700 text-sm bg-background sticky left-0 z-10 font-medium text-muted-foreground">
-                {hour.toString().padStart(2, "0")}:00
+        {/* Full-day section */}
+        {maxFullDayLanes > 0 && (
+          <div
+            className="grid border-l border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0"
+            style={{ gridTemplateColumns: `100px repeat(${resources.length}, 1fr)`, minHeight: `${fullDaySectionHeight}px` }}
+          >
+            <div className="p-2 border-r border-gray-200 dark:border-gray-700 flex items-center justify-center">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Tutto il giorno</span>
+            </div>
+            {resources.map((resource) => (
+              <div
+                key={`fullday-cell-${resource.id}`}
+                className="border-r border-gray-200 dark:border-gray-700 relative"
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.classList.add("bg-blue-50/50")
+                }}
+                onDragLeave={(e) => e.currentTarget.classList.remove("bg-blue-50/50")}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.classList.remove("bg-blue-50/50")
+                  handleDrop(currentDate, undefined, resource.id)
+                }}
+              >
+                {renderFullDayEventsForResource(resource.id)}
               </div>
-              {resources.map((resource) => {
-                const slotStart = new Date(currentDate)
-                slotStart.setHours(hour, 0, 0, 0)
-                const slotEnd = new Date(currentDate)
-                slotEnd.setHours(hour + 1, 0, 0, 0)
+            ))}
+          </div>
+        )}
 
-                const slotEvents = dayEvents
-                  .filter((event) => event.resourceId === resource.id)
-                  .map((event) => {
-                    const eventStart = new Date(event.start)
-                    const eventEnd = new Date(event.end)
-                    const eventStartDate = eventStart.toDateString()
-                    const eventEndDate = eventEnd.toDateString()
-                    const currentDateString = currentDate.toDateString()
-                    const isMultiDay = isMultiDayEvent(event)
+        {/* Timed events grid */}
+        <div className="flex-1 overflow-auto">
+          <div className="flex">
+            {/* Hour labels column */}
+            <div className="w-[100px] flex-shrink-0">
+              {hours.map((hour) => (
+                <div
+                  key={`hour-label-${hour}`}
+                  className="p-2 border-r border-b border-gray-200 dark:border-gray-700 text-sm bg-background font-medium text-muted-foreground"
+                  style={{ height: `${hourHeight}px` }}
+                >
+                  {hour.toString().padStart(2, "0")}:00
+                </div>
+              ))}
+            </div>
 
-                    let segmentStartHour: number
-                    let segmentStartMinute: number
-                    let segmentEndHour: number
-                    let segmentEndMinute: number
-
-                    if (isMultiDay) {
-                      // Multi-day event: calculate segment for current day
-                      if (currentDateString === eventStartDate) {
-                        // First day: from actual start time to 17:00
-                        segmentStartHour = eventStart.getHours()
-                        segmentStartMinute = eventStart.getMinutes()
-                        segmentEndHour = 17
-                        segmentEndMinute = 0
-                      } else if (currentDateString === eventEndDate) {
-                        // Last day: from 8:00 to actual end time
-                        segmentStartHour = 8
-                        segmentStartMinute = 0
-                        segmentEndHour = eventEnd.getHours()
-                        segmentEndMinute = eventEnd.getMinutes()
-                      } else {
-                        // Intermediate day: from 8:00 to 17:00
-                        segmentStartHour = 8
-                        segmentStartMinute = 0
-                        segmentEndHour = 17
-                        segmentEndMinute = 0
-                      }
-                    } else {
-                      // Single day event: use actual times
-                      segmentStartHour = eventStart.getHours()
-                      segmentStartMinute = eventStart.getMinutes()
-                      segmentEndHour = eventEnd.getHours()
-                      segmentEndMinute = eventEnd.getMinutes()
-                    }
-
-                    const segmentStart = new Date(currentDate)
-                    segmentStart.setHours(segmentStartHour, segmentStartMinute, 0, 0)
-                    const segmentEnd = new Date(currentDate)
-                    segmentEnd.setHours(segmentEndHour, segmentEndMinute, 0, 0)
-
-                    return {
-                      ...event,
-                      segmentStart,
-                      segmentEnd,
-                      segmentStartHour,
-                      segmentStartMinute,
-                      segmentEndHour,
-                      segmentEndMinute,
-                    }
-                  })
-                  .filter((event) => {
-                    // Only show events that overlap with this hour slot
-                    return event.segmentStart < slotEnd && event.segmentEnd > slotStart
-                  })
-
-                return (
+            {/* Resource columns with events */}
+            {resources.map((resource) => (
+              <div key={`resource-col-${resource.id}`} className="flex-1 relative">
+                {/* Hour grid lines */}
+                {hours.map((hour) => (
                   <div
                     key={`${resource.id}-${hour}`}
-                    className="relative min-h-20 border-b border-r border-gray-200 dark:border-gray-700 transition-colors duration-200 bg-background hover:bg-muted/30"
+                    className="border-b border-r border-gray-200 dark:border-gray-700 transition-colors duration-200 bg-background hover:bg-muted"
+                    style={{ height: `${hourHeight}px` }}
                     onDragOver={(e) => {
                       e.preventDefault()
-                      e.currentTarget.classList.add("bg-primary/10")
+                      e.currentTarget.classList.add("bg-primary")
                     }}
-                    onDragLeave={(e) => e.currentTarget.classList.remove("bg-primary/10")}
+                    onDragLeave={(e) => e.currentTarget.classList.remove("bg-primary")}
                     onDrop={(e) => {
                       e.preventDefault()
                       const dropTime = new Date(currentDate)
                       dropTime.setHours(hour, 0, 0, 0)
                       handleDrop(dropTime, hour, resource.id)
-                      e.currentTarget.classList.remove("bg-primary/10")
+                      e.currentTarget.classList.remove("bg-primary")
                     }}
-                  >
-                    {slotEvents.map((event) => {
-                      if (event.segmentStartHour !== hour) return null
-
-                      const durationMinutes = (event.segmentEnd.getTime() - event.segmentStart.getTime()) / (1000 * 60)
-                      const pixelsPerMinute = 1
-                      const eventHeight = durationMinutes * pixelsPerMinute
-
-                      const minutesFromSlotStart = (event.segmentStart.getTime() - slotStart.getTime()) / (1000 * 60)
-                      const topPosition = minutesFromSlotStart * pixelsPerMinute
-
-                      return (
-                        <div
-                          key={getEventUniqueId(event)}
-                          draggable={!resizingEvent && !event.disabled}
-                          onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
-                          onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
-                          className="absolute left-2 right-2 group p-2.5 rounded-md cursor-pointer text-white select-none shadow-md hover:shadow-lg transition-shadow z-10"
-                          style={{
-                            backgroundColor: event.color,
-                            top: `${topPosition}px`,
-                            height: `${eventHeight}px`,
-                            minHeight: "48px",
-                            opacity:
-                              draggedEvent?.recordid === event.recordid &&
-                              draggedEvent?.start === event.start &&
-                              draggedEvent?.resourceId === event.resourceId
-                                ? 0.5
-                                : event.disabled
-                                  ? 0.6
-                                  : 1,
-                            cursor: event.disabled ? "not-allowed" : "pointer",
-                            pointerEvents: event.disabled ? "none" : "auto",
-                          }}
-                        >
-                          {!event.disabled && (
-                            <div
-                              className="absolute top-0 left-0 right-0 h-3 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/40 rounded-t transition-opacity"
-                              onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
-                            />
-                          )}
-
-                          <div className="font-bold text-sm truncate leading-tight">{event.title}</div>
-                          <div className="text-xs mt-1 opacity-95">
-                            {event.segmentStartHour.toString().padStart(2, "0")}:
-                            {event.segmentStartMinute.toString().padStart(2, "0")} -{" "}
-                            {event.segmentEndHour.toString().padStart(2, "0")}:
-                            {event.segmentEndMinute.toString().padStart(2, "0")}
-                          </div>
-
-                          {!event.disabled && (
-                            <div
-                              className="absolute bottom-0 left-0 right-0 h-3 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/40 rounded-b transition-opacity"
-                              onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
-                            />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )
-              })}
-            </React.Fragment>
-          ))}
+                  />
+                ))}
+                {/* Events overlay for this resource */}
+                <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+                  {renderTimedEventsForResource(resource.id)}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
