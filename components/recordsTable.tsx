@@ -302,7 +302,7 @@ export default function RecordsTable({
 
   useEffect(() => {
     console.log("total pages", responseData?.pagination?.totalPages, "current page", currentPage)
-    if (responseData?.pagination?.totalPages < currentPage) {
+    if (responseData?.pagination?.totalPages !== 0 && responseData?.pagination?.totalPages < currentPage) {
       setCurrentPage(responseData?.pagination?.totalPages)
     }
   }, [responseData?.pagination?.totalPages])
