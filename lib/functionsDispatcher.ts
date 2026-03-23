@@ -649,6 +649,7 @@ export function useFrontendFunctions() {
         )
         toast.success("Aggiornato")
         if ((params as any)?.tableid) setRefreshTable((params as any).tableid)
+        removeCard((params as any)?.tableid, (params as any)?.recordid)
         return response.data
       } catch (error) {
         console.error("Errore durante il salvataggio", error)
