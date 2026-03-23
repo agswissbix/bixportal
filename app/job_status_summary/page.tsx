@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
 
 interface JobStatus {
   recordid_: string;
@@ -11,6 +12,7 @@ interface JobStatus {
   status: string | null;
   creationdate: string | null;
   closedate: string | null;
+  deploydate: string | null;
   type: string | null;
   duration: number | null;
   context: string | null;
@@ -29,6 +31,7 @@ function getStatusStyle(status: string) {
 }
 
 export default function JobStatusSummary() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<JobStatus[]>([]);
 
@@ -36,7 +39,8 @@ export default function JobStatusSummary() {
     const fetchData = async () => {
       try {
         const response = await axiosInstanceClient.post('/postApi', {
-          apiRoute: 'get_job_status_summary_api'
+          apiRoute: 'get_job_status_summary_api',
+          deploydate: searchParams.get('deploydate')
         }, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -378,7 +382,7 @@ export default function JobStatusSummary() {
             <div className="report-meta">
               <span>
                 Generato il{' '}
-                {new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}
+                {searchParams.get('deploydate')}
               </span>
               <span className="report-meta-sep" />
               <span>{totalJobs} voc{totalJobs === 1 ? 'e' : 'i'} totali</span>
@@ -443,6 +447,9 @@ export default function JobStatusSummary() {
                               )}
                               {job.closedate && (
                                 <div><span>Chiusura</span>{formatDate(job.closedate)}</div>
+                              )}
+                              {job.deploydate && (
+                                <div><span>Deploy</span>{formatDate(job.deploydate)}</div>
                               )}
                             </div>
                           )}
