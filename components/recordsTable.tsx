@@ -289,7 +289,8 @@ export default function RecordsTable({
     addCard,
     setTableSettings,
     tableSettings,
-    getIsSettingAllowed
+    getIsSettingAllowed,
+    setColumnOrder
   } = useRecordsStore()
 
   const { activeServer } = useContext(AppContext);
@@ -449,7 +450,10 @@ export default function RecordsTable({
       fieldid: direction === null ? null : fieldid,
       direction,
     })
-    // NON è più necessario chiamare setColumnOrder da zustand
+    setColumnOrder({
+      fieldid: fieldid,
+      direction: direction === null ? null : direction,
+    })
   }
 
   const { duplicateRecordAction, deleteRecordAction } = useRecordActions();

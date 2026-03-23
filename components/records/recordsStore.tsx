@@ -52,11 +52,11 @@ interface RecordsStore {
     setTableView: (view: string) => void;
 
     columnOrder: {
-        columnDesc: string | null;
+        fieldid: string | null;
         direction: "asc" | "desc" | null;
     };
     setColumnOrder: (columnOrder: {
-        columnDesc: string | null;
+        fieldid: string | null;
         direction: "asc" | "desc" | null;
     }) => void;
 
@@ -334,7 +334,7 @@ export const useRecordsStore = create<RecordsStore>((set, get) => ({
         }),
 
     columnOrder: {
-        columnDesc: null,
+        fieldid: null,
         direction: "asc",
     },
     setColumnOrder: (columnOrder) => set({ columnOrder }),

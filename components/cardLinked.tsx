@@ -75,7 +75,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
 
     const [openCards, setOpenCards] = useState<boolean[]>(responseDataDEV.linkedTables.map(table => !!table.isOpen) || []);
 
-    const {handleRowClick, getIsSettingAllowed} = useRecordsStore();
+    const {handleRowClick, getIsSettingAllowed, columnOrder} = useRecordsStore();
 
     const canAdd = useMemo(() => {
         return getIsSettingAllowed(tableid, 'add_linked', recordid);
@@ -89,16 +89,20 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
         });
     };
 
-    const exportExcel = async (tableid: string) => {
+    const exportExcel = async (linkedtableid: string) => {
         const loadingToastId = toast.loading("Esportazione in corso...");
+        console.log(columnOrder);
         try {
             const response = await axiosInstanceClient.post(
             "/postApi",
             {
                 apiRoute: "export_excel",
-                tableid: tableid,
+                tableid: linkedtableid,
                 searchTerm: '',
                 view: 'linked',
+                mastertableid: tableid,
+                masterrecordid: recordid,
+                order: columnOrder
             },
             {
                 responseType: "blob",

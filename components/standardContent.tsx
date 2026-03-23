@@ -33,7 +33,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
   const [showDropdown, setShowDropdown] = useState(false)
   const [showExportDropdown, setShowExportDropdown] = useState(false)
 
-  const { tableSettings, handleRowClick, searchTerm, filtersList, tableView, isFiltersOpen } = useRecordsStore() // Stato per il valore di ricerca
+  const { tableSettings, handleRowClick, searchTerm, filtersList, tableView, isFiltersOpen, columnOrder } = useRecordsStore() // Stato per il valore di ricerca
 
   const { activeServer } = useContext(AppContext)
 
@@ -115,7 +115,8 @@ export default function StandardContent({ tableid }: PropsInterface) {
           tableid: tableid,
           searchTerm: searchTerm,
           view: tableView,
-          filters: filtersList
+          filters: filtersList,
+          order: columnOrder
         },
         {
           responseType: "blob",

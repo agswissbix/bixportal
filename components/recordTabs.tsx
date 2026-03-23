@@ -94,7 +94,7 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
     }
   }, [response]);
 
-  const { handleRowClick, searchTerm, tableView, currentPage, pageLimit, columnOrder, filtersList } = useRecordsStore();
+  const { searchTerm, tableView, filtersList } = useRecordsStore();
 
   return (
       <GenericComponent>
