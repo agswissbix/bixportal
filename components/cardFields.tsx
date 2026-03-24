@@ -755,9 +755,9 @@ export default function CardFields({
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={isSaveDisabled || isCalculating}
+                  disabled={isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges}
                   className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 transition-all duration-200 ${
-                    isSaveDisabled || isCalculating
+                    isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges
                       ? "opacity-50 cursor-not-allowed"
                       : ""
                   }`}
@@ -877,9 +877,9 @@ export default function CardFields({
                   <button
                     type="button"
                     onClick={handleSave}
-                    disabled={isSaveDisabled || isCalculating || !isEditable}
+                    disabled={isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges}
                     className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 transition-all duration-200 ${
-                      isSaveDisabled || isCalculating || !isEditable
+                      isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges
                         ? "opacity-50 cursor-not-allowed"
                         : ""
                     }`}
