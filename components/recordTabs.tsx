@@ -19,6 +19,7 @@ import MatrixView from './calendar/matrixView';
 import UnifiedCalendar from './calendar/unifiedCalendar';
 import RecordsGroupedTable from './recordsGroupedTable';
 import CustomDeadlines from '@/app/custom/swissbix/tableTabs/customDeadline';
+import TabsManager from '@/app/custom/swissbix/tableTabs/tabsManager';
 
 const isDev = false;
 
@@ -170,8 +171,7 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                           />
                       )}
                       {activeTab === "Custom" && (
-                        // TODO: manager per ogni tabella
-                        <CustomDeadlines />
+                        <TabsManager tableid={tableid} />
                       )}
                       {[
                           "Tabella",
