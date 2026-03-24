@@ -96,8 +96,6 @@ export default function CustomDeal() {
   const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [marginFilter, setMarginFilter] = useState('all'); // 'all', 'good', 'bad'
-  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'fixedprice', 'monteore', 'invoiced'
 
   // Payload per il backend
   const payload = useMemo(() => {
@@ -123,7 +121,7 @@ export default function CustomDeal() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filtersList, marginFilter, typeFilter]);
+  }, [searchTerm, filtersList]);
 
   const payloadSettings = useMemo(() => ({
     apiRoute: 'settings_table_settings',
@@ -239,48 +237,17 @@ export default function CustomDeal() {
   }, [response]);
 
   const filteredDeals = useMemo(() => {
-    return processedDeals.filter(deal => {
-      const s = searchTerm.toLowerCase();
-      const matchesSearch = deal.dealname?.toLowerCase().includes(s) || 
-                            deal.company?.toLowerCase().includes(s) ||
-                            deal.dealuser1?.toLowerCase().includes(s);
-                            
-      const matchesMargin = marginFilter === 'all' ||
-                            (marginFilter === 'good' && deal.isGoodMargin) ||
-                            (marginFilter === 'bad' && !deal.isGoodMargin);
-                            
-      const matchesType = typeFilter === 'all' ||
-                          (typeFilter === 'fixedprice' && deal.fixedprice) ||
-                          (typeFilter === 'monteore' && deal.bankhours > 0) ||
-                          (typeFilter === 'invoiced' && (deal.invoicedhours > 0 || deal.invoicedprice > 0));
-
-      return matchesSearch && matchesMargin && matchesType;
-    });
-  }, [processedDeals, searchTerm, marginFilter, typeFilter]);
+    return processedDeals
+  }, [processedDeals]);
 
   return (
     <GenericComponent response={response} loading={loading} error={error}>
       {(response: ResponseInterface) => (
         <>
-        <div className="min-h-screen text-slate-800 font-sans relative pb-10">
+        <div className="flex flex-col h-full text-slate-800 font-sans relative">
           
-          <div className="space-y-6">
-            {/* Filtri */}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-                <button onClick={() => setMarginFilter('all')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${marginFilter === 'all' ? 'bg-slate-100 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>Tutti Margini</button>
-                <button onClick={() => setMarginFilter('good')} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${marginFilter === 'good' ? 'bg-emerald-100 text-emerald-800' : 'text-slate-500 hover:text-emerald-700'}`}><TrendingUp className="w-4 h-4" /> Buon Margine</button>
-                <button onClick={() => setMarginFilter('bad')} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${marginFilter === 'bad' ? 'bg-rose-100 text-rose-800' : 'text-slate-500 hover:text-rose-700'}`}><TrendingDown className="w-4 h-4" /> Critico</button>
-              </div>
-              
-              <div className="flex bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-                <button onClick={() => setTypeFilter('all')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'all' ? 'bg-slate-100 text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>Tutte le Tipologie</button>
-                <button onClick={() => setTypeFilter('fixedprice')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'fixedprice' ? 'bg-purple-100 text-purple-800' : 'text-slate-500 hover:text-purple-700'}`}>Fixed Price</button>
-                <button onClick={() => setTypeFilter('monteore')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'monteore' ? 'bg-blue-100 text-blue-800' : 'text-slate-500 hover:text-blue-700'}`}>Monte Ore</button>
-                <button onClick={() => setTypeFilter('invoiced')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${typeFilter === 'invoiced' ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:text-amber-700'}`}>Consuntivo (FF)</button>
-              </div>
-            </div>
-
+          {/* Area scrollabile */}
+          <div className="flex-1 overflow-y-auto space-y-6 p-1 min-h-0">
             {filteredDeals.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-xl border border-slate-200 border-dashed">
                 <Briefcase className="mx-auto h-12 w-12 text-slate-300 mb-4" />
@@ -437,11 +404,14 @@ export default function CustomDeal() {
               </div>
             )}
             
-            {/* SEZIONE PAGINAZIONE AGGIORNATA */}
-          <nav
-            aria-label="Page navigation"
-            className="mt-4 flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0 sticky bottom-0 bg-card border border-border rounded-lg p-4 shadow-sm"
-          >
+          </div>
+
+          {/* SEZIONE PAGINAZIONE FISSA IN BASSO */}
+          <div className="flex-none bg-card border-t border-slate-200 p-2 sm:p-4 z-50 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] rounded-b-xl">
+            <nav
+              aria-label="Page navigation"
+              className="flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0"
+            >
             {/* 1. Conteggio Totale Record a Sinistra (per schermi larghi) */}
             <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
               <span className="font-semibold text-gray-800 dark:text-gray-200">Totale Record:</span>
@@ -532,7 +502,6 @@ export default function CustomDeal() {
                 {response?.pagination.totalPages})
               </span>
           </nav>
-            
           </div>
 
           <AnimatePresence>
