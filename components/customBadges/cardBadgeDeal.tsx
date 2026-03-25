@@ -4,6 +4,7 @@ import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { UserCircle2, ChevronDown, Check } from 'lucide-react';
 import { useRecordsStore } from '../records/recordsStore';
+import { formatPrice } from '@/utils/formatPrice';
 
 const isDev = false;
 
@@ -17,6 +18,7 @@ interface ResponseInterface {
   badgeItems: {
     deal_name: string;
     deal_amount: string;
+    deal_expectedmargin: string;
     deal_effectivemargin: string;
     company_name: string;
     sales_user_name: string;
@@ -33,6 +35,7 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
     badgeItems: {
       deal_name: '',
       deal_amount: '0',
+      deal_expectedmargin: '0',
       deal_effectivemargin: '0',
       company_name: '',
       sales_user_name: '',
@@ -45,7 +48,8 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
     badgeItems: {
       deal_name: 'Nuovo Sito Web per Acme Corp',
       deal_amount: '50000',
-      deal_effectivemargin: '12500',
+      deal_expectedmargin: '12500',
+      deal_effectivemargin: '10000',
       company_name: 'Acme Corp',
       sales_user_name: 'Mario Rossi',
       sales_user_photo: '/bixdata/users/avatar.jpg',
@@ -94,7 +98,9 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
 
   const dealAmount = Number(responseData.badgeItems.deal_amount);
   const dealMargin = Number(responseData.badgeItems.deal_effectivemargin);
+  const dealExpectedMargin = Number(responseData.badgeItems.deal_expectedmargin);
   const marginPercentage = dealAmount > 0 ? ((dealMargin / dealAmount) * 100).toFixed(0) : '0';
+  const expectedMarginPercentage = dealAmount > 0 ? ((dealExpectedMargin / dealAmount) * 100).toFixed(0) : '0';
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="Deal Badge">
@@ -154,29 +160,57 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
                 <div>
                   <div className="text-sm text-gray-500">Importo</div>
                   <div className="text-xl font-bold text-gray-800">
-                    CHF {dealAmount.toLocaleString('it-CH')}
+                    CHF {formatPrice(dealAmount)}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-gray-500">Margine Lordo</div>
+                  <div className="text-sm text-gray-500">Margine Effettivo</div>
                   <div className="text-xl font-bold text-accent">
-                    CHF {dealMargin.toLocaleString('it-CH')}
+                    CHF {formatPrice(dealMargin)}
                   </div>
                 </div>
               </div>
 
               {/* Margin/Amount Bar */}
               <div className='mb-6'>
-                <div className="flex justify-between items-center text-sm mb-1">
-                  <span className="text-gray-500">Margine / Importo</span>
-                  <span className="font-bold text-accent">{marginPercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-accent h-2.5 rounded-full transition-all duration-500"
-                    style={{ width: `${marginPercentage}%` }}
-                  />
-                </div>
+                  <div className="flex justify-between items-end mb-2">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">Analisi Margine / Importo</span>
+                      <div className="text-xs text-gray-400 mt-0.5 tracking-tight">
+                        Previsto: <span className="font-medium text-gray-800">{expectedMarginPercentage}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right flex flex-col items-end">
+                      <span className="text-2xl font-bold text-accent leading-none">
+                        {marginPercentage}%
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter mt-1">
+                        Effettivo
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Barra con Benchmark */}
+                  <div className="relative w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-accent h-2.5 transition-all duration-500"
+                      style={{ width: `${marginPercentage}%` }}
+                    />
+                    <div 
+                      className="absolute top-0 h-full w-0.5 bg-gray-800 z-10"
+                      style={{ left: `${expectedMarginPercentage}%` }}
+                    />
+                  </div>
+
+                  {/* Footer Invertito: Coerenza con l'header sopra */}
+                  <div className="flex justify-between mt-1.5 text-[11px] italic text-gray-400 font-medium tracking-tight">
+                    {/* Allineato con Target previsto */}
+                    <span>Previsto: CHF {formatPrice(dealExpectedMargin)}</span>
+                    
+                    {/* Allineato con Margine Reale % - Stesso stile del Target */}
+                    <span>Effettivo: CHF {formatPrice(dealMargin)}</span>
+                  </div>
               </div>
 
               {/* Stepper */}
