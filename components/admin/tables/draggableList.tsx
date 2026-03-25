@@ -108,8 +108,8 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   const handleDrag = (e: React.DragEvent) => {
     if (e.clientY === 0) return
 
-    const scrollSpeed = 15
-    const edgeDistance = 100
+    const scrollSpeed = 5
+    const edgeDistance = 50
 
     const container = scrollContainerRef.current
 
