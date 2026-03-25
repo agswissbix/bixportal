@@ -85,8 +85,48 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     }
   }, [groups, isSaved])
 
-  const handleDragStart = (groupName: string, itemIndex: number) => {
+  const scrollContainerRef = useRef<Element | null>(null)
+
+  const findScrollContainer = (element: Element | null) => {
+    let container = element
+    while (container && container !== document.documentElement && container !== document.body) {
+      const style = window.getComputedStyle(container)
+      if (style.overflowY === "auto" || style.overflowY === "scroll" || container.classList.contains("overflow-y-auto")) {
+        scrollContainerRef.current = container
+        return
+      }
+      container = container.parentElement
+    }
+    scrollContainerRef.current = null
+  }
+
+  const handleDragStart = (groupName: string, itemIndex: number, e: React.DragEvent) => {
     setDraggedItem({ groupName, itemIndex })
+    findScrollContainer(e.currentTarget)
+  }
+
+  const handleDrag = (e: React.DragEvent) => {
+    if (e.clientY === 0) return
+
+    const scrollSpeed = 15
+    const edgeDistance = 100
+
+    const container = scrollContainerRef.current
+
+    if (container) {
+      const rect = container.getBoundingClientRect()
+      if (e.clientY >= rect.top && e.clientY - rect.top < edgeDistance) {
+        container.scrollTop -= scrollSpeed
+      } else if (e.clientY <= rect.bottom && rect.bottom - e.clientY < edgeDistance) {
+        container.scrollTop += scrollSpeed
+      }
+    } else {
+      if (e.clientY < edgeDistance) {
+        window.scrollBy(0, -scrollSpeed)
+      } else if (window.innerHeight - e.clientY < edgeDistance) {
+        window.scrollBy(0, scrollSpeed)
+      }
+    }
   }
 
   const handleDragOver = (e: React.DragEvent, groupName: string, targetIndex: number) => {
@@ -130,8 +170,9 @@ export const DraggableList: React.FC<DraggableListProps> = ({
     setDraggedGroup(null)
   }
 
-  const handleGroupDragStart = (groupKey: string) => {
+  const handleGroupDragStart = (groupKey: string, e: React.DragEvent) => {
     setDraggedGroup(groupKey)
+    findScrollContainer(e.currentTarget)
   }
 
   const handleGroupDragOver = (e: React.DragEvent, targetGroupKey: string) => {
@@ -269,7 +310,8 @@ export const DraggableList: React.FC<DraggableListProps> = ({
               <Card
                 key={key}
                 draggable
-                onDragStart={() => handleGroupDragStart(key)}
+                onDragStart={(e) => handleGroupDragStart(key, e)}
+                onDrag={(e) => handleDrag(e)}
                 onDragOver={(e) => handleGroupDragOver(e, key)}
                 onDragEnd={handleDragEnd}
                 className={`
@@ -364,7 +406,8 @@ export const DraggableList: React.FC<DraggableListProps> = ({
               <div
                 key={item.id}
                 draggable
-                onDragStart={() => handleDragStart(groupName, index)}
+                onDragStart={(e) => handleDragStart(groupName, index, e)}
+                onDrag={(e) => handleDrag(e)}
                 onDragOver={(e) => handleDragOver(e, groupName, index)}
                 onDragEnd={handleDragEnd}
                 className={`

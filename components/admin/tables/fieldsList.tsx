@@ -113,6 +113,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
   useEffect(() => {
     if (!isDev && response) {
       setFields(response.fields)
+      console.log(response.fields)
     }
   }, [response])
 
@@ -303,15 +304,26 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     return fields.filter(
       f =>
         f.description.toLowerCase().includes(lower) ||
-        String(f.id).toLowerCase().includes(lower) ||
+        String(f.fieldid).toLowerCase().includes(lower) ||
         (f.label && f.label.toLowerCase().includes(lower))
     )
   }, [fields, searchTerm])
 
-  const fieldsAsGroups = useMemo(() => ({
-    fields: {
-      name: "fields",
-      items: filteredFields.map(f => ({
+  const fieldsAsGroups = useMemo(() => {
+    const groups: Record<string, any> = {}
+
+    filteredFields.forEach((f) => {
+      const groupName = f.label && f.label.trim() !== "" ? f.label : "Senza Etichetta"
+      
+      if (!groups[groupName]) {
+        groups[groupName] = {
+          name: groupName,
+          items: [],
+          groupOrder: Object.keys(groups).length,
+        }
+      }
+      
+      groups[groupName].items.push({
         id: f.id,
         description: f.description,
         order: f.order,
@@ -319,27 +331,29 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
         fieldid: f.fieldid,
         fieldtypeid: f.fieldtypewebid,
         label: f.label,
-      })),
-    },
-  }), [filteredFields])
+      })
+    })
+
+    return groups
+  }, [filteredFields])
 
   const handleFieldsChange = (groups: Record<string, any>) => {
-    const updatedFilteredFields = groups.fields.items.map((item: any) => ({
+    const updatedFilteredFields = Object.values(groups).flatMap((g: any) => g.items).map((item: any) => ({
       id: item.id,
       fieldid: item.fieldid,
       description: item.description,
-      fieldtypeid: item.fieldtypeid,
+      fieldtypewebid: item.fieldtypeid,
       label: item.label,
       order: item.order,
-      visible: item.visible,
+      visible: item.order !== null && item.order !== undefined,
     }))
     setFields(prevFields =>
       prevFields.map(f => {
-        const updated = updatedFilteredFields.find(u => u.id === f.id)
-        return updated ? updated : f
+        const updated = updatedFilteredFields.find((u: any) => u.id === f.id)
+        return updated ? { ...f, order: updated.order, visible: updated.visible } : f
       })
     )
-    handleFieldsReorder(updatedFilteredFields)
+    handleFieldsReorder(updatedFilteredFields as Field[])
   }
 
   const selectedFieldType = fieldTypeOptions.find(opt => opt.value === newField.fieldtype)
@@ -556,7 +570,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
               groups={fieldsAsGroups}
               onGroupsChange={handleFieldsChange}
               onItemSettings={onSelectField}
-              showGroups={false}
+              showGroups={true}
               isSaved={isSaved}
               setIsSaved={setIsSaved}
               onItemDelete={handleDeleteField}
