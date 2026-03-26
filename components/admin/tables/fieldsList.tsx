@@ -313,7 +313,10 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     const groups: Record<string, any> = {}
 
     filteredFields.forEach((f) => {
-      const groupName = f.label && f.label.trim() !== "" ? f.label : "Senza Etichetta"
+      let groupName = "Senza Etichetta"
+      if ((typePreference === "insert_fields" || typePreference === "view_fields") && f.label && f.label.trim() !== "") {
+        groupName = f.label
+      }
       
       if (!groups[groupName]) {
         groups[groupName] = {
@@ -335,7 +338,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     })
 
     return groups
-  }, [filteredFields])
+  }, [filteredFields, typePreference])
 
   const handleFieldsChange = (groups: Record<string, any>) => {
     const updatedFilteredFields = Object.values(groups).flatMap((g: any) => g.items).map((item: any) => ({
