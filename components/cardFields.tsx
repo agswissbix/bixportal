@@ -65,7 +65,7 @@ interface FieldInterface {
   }>
   fieldtypewebid?: string
   linked_mastertable?: string
-  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string, has_dependencies: string }
+  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string, has_dependencies: string, is_editable: string }
   isMulti?: boolean
 }
 
@@ -285,6 +285,8 @@ export default function CardFields({
     const isSimpleMarkdown = field.fieldtype === "SimpleMarkdown";
     const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true")
         || !isEditInsert
+    const isEditableField = (typeof field.settings === "object" && field.settings.is_editable === "true")
+        && isEditInsert
 
     // console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
@@ -296,7 +298,7 @@ export default function CardFields({
 
     const user = field.lookupitemsuser?.find((u) => u.userid.toString() === value.toString())
 
-    if (isCalculated) {
+    if (isCalculated || !isEditableField) {
       return (
         <div key={`${field.fieldid}-container`} className="flex items-start space-x-4 w-full group">
             <div className="w-1/4 pt-2">
