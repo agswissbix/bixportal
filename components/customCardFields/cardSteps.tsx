@@ -43,9 +43,8 @@ interface FieldInterface {
   }>
   fieldtypewebid?: string
   linked_mastertable?: string
-  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string }
+  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string, has_dependencies: string }
   isMulti?: boolean
-  hasDependencies?: boolean
 }
 
 interface LinkedTable {
