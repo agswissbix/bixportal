@@ -65,9 +65,8 @@ interface FieldInterface {
   }>
   fieldtypewebid?: string
   linked_mastertable?: string
-  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string }
+  settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string, has_dependencies: string }
   isMulti?: boolean
-  hasDependencies?: boolean
 }
 
 interface ResponseInterface {
@@ -281,6 +280,7 @@ export default function CardFields({
     const isEditInsert = isNewRecord ? true : isEditable
     const rawValue = typeof field.value === "object" ? field.value?.value : field.value
     const isRequired = typeof field.settings === "object" && field.settings.obbligatorio === "true"
+    const hasDependencies = typeof field.settings === "object" && field.settings.has_dependencies === "true"
     const isMarkdown = field.fieldtype === "Markdown";
     const isSimpleMarkdown = field.fieldtype === "SimpleMarkdown";
     const isCalculated = (typeof field.settings === "object" && field.settings.calcolato === "true")
@@ -293,7 +293,6 @@ export default function CardFields({
     const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
     const isRequiredEmpty = isRequired && isEmpty
     const isRequiredFilled = isRequired && !isEmpty
-    const hasDependencies = field.hasDependencies
 
     const user = field.lookupitemsuser?.find((u) => u.userid.toString() === value.toString())
 
