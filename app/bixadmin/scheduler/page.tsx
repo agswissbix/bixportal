@@ -171,7 +171,7 @@ export default function SchedulerPage() {
       try {
           // Trasforma il formato Python in JSON standard
           const jsonValid = str
-              .replace(/'/g, '"') // Apici singoli -> doppi
+            //   .replace(/'/g, '"') // Apici singoli -> doppi
               .replace(/True/g, "true") // Booleani Python -> JSON
               .replace(/False/g, "false")
               .replace(/None/g, "null");
