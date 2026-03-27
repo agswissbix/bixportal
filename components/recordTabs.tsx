@@ -128,6 +128,18 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                           <RecordsTable
                               tableid={tableid}
                               context="standard"
+                              typepreference="search_results_fields"
+                              view={tableView}
+                              searchTerm={searchTerm}
+                              filtersList={filtersList}
+                              limit={100}
+                          />
+                      )}
+                      {activeTab === "Report" && (
+                          <RecordsTable
+                              tableid={tableid}
+                              context="standard"
+                              typepreference="report_fields"
                               view={tableView}
                               searchTerm={searchTerm}
                               filtersList={filtersList}
@@ -175,6 +187,7 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                       )}
                       {[
                           "Tabella",
+                          "Report",
                           "TabellaRaggruppata",
                           "Kanban",
                           "Calendario",

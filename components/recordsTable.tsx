@@ -58,6 +58,7 @@ interface PropsInterface {
   }>
   masterTableid?: string
   masterRecordid?: string
+  typepreference?: string
 }
 
 // INTERFACCIA RISPOSTA DAL BACKEND
@@ -116,6 +117,7 @@ export default function RecordsTable({
   masterRecordid,
   filtersList,
   limit = 100,
+  typepreference = "search_results_fields",
 }: PropsInterface) {
   //DATI
   // DATI PROPS PER LO SVILUPPO
@@ -347,9 +349,10 @@ export default function RecordsTable({
       filtersList: filtersList,
       masterTableid: masterTableid,
       masterRecordid: masterRecordid,
+      typepreference: typepreference,
       _refreshTick: refreshTable[tableid] ?? 0,
     }
-  }, [tableid, searchTerm, view, currentPage, sortConfig, filtersList, masterTableid, masterRecordid, refreshTable[tableid]])
+  }, [tableid, searchTerm, view, currentPage, sortConfig, filtersList, masterTableid, masterRecordid, typepreference, refreshTable[tableid]])
 
   // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
   const { response, loading, error, elapsedTime } = useApi<ResponseInterface>(!isDev && payload ? payload : null)
