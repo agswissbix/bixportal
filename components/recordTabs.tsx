@@ -98,13 +98,13 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
   const { searchTerm, tableView, filtersList } = useRecordsStore();
 
   return (
-      <GenericComponent>
-          {(data) => (
+      <GenericComponent response={responseData} loading={loading} error={error}>
+          {(data : ResponseInterface) => (
               <div className="h-full flex flex-col">
                   {/* Tabs */}
                   <div className="hidden xl:inline h-min text-sm font-medium text-center text-gray-500 border-gray-200 dark:text-gray-400 dark:border-gray-700">
                       <ul className="flex flex-wrap -mb-px relative">
-                          {responseData.tableTabs.map((tab, index) => (
+                          {data.tableTabs.map((tab, index) => (
                               <li
                                   key={index}
                                   className="me-2">
