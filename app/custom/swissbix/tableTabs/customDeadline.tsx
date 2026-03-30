@@ -22,7 +22,10 @@ import {
   Settings,
   Copy,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  ChevronRight,
+  Eye
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from "framer-motion"
@@ -124,6 +127,14 @@ const TableIcon = ({ tableid, className }) => {
     case 'task': return <CheckSquare className={className} />;
     default: return <Settings className={className} />;
   }
+};
+
+const getRelativeTimeString = (daysLeft) => {
+  if (daysLeft === 0) return "Scade oggi";
+  if (daysLeft === 1) return "Scade domani";
+  if (daysLeft === -1) return "Scaduto ieri";
+  if (daysLeft > 0) return `Scade tra ${daysLeft} giorni`;
+  return `Scaduto da ${Math.abs(daysLeft)} giorni`;
 };
 
 export default function CustomDeadlines() {
@@ -358,7 +369,7 @@ export default function CustomDeadlines() {
           <div 
             key={deadline.recordid_} 
             onClick={() => {handleRowClick('standard', deadline.recordid_, 'deadline',)}}
-            className={`group bg-white rounded-xl border p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col gap-5 cursor-pointer ${
+            className={`group bg-white rounded-xl border p-5 sm:p-6 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all flex flex-col gap-5 cursor-pointer ${
               isExpired ? 'border-red-200 bg-red-50/30' : 
               isExpiring ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 hover:border-indigo-300'
             }`}
@@ -366,13 +377,13 @@ export default function CustomDeadlines() {
             {/* Contenitore Superiore */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               {/* Info Principali */}
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 flex-1">
                 <div className="p-3 rounded-xl flex-shrink-0 mt-1 bg-indigo-50 text-indigo-600">
                   <TableIcon tableid={deadline.tableid} className="w-6 h-6" />
                 </div>
               
               <div>
-                <h3 className="text-lg font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors line-clamp-1 w-full">
                   {deadline.description}
                 </h3>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500">
@@ -399,35 +410,29 @@ export default function CustomDeadlines() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 lg:ml-auto">
               
               {/* Scadenza Visuale */}
-              <div className="flex flex-col items-start sm:items-end">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Scadenza</span>
-                <div className="flex items-center gap-2">
-                  <CalendarDays className={`w-4 h-4 ${
-                    isExpired ? 'text-red-500' : 
-                    isExpiring ? 'text-amber-500' : 'text-slate-400'
-                  }`} />
-                  <span className="font-medium text-slate-700">
-                    {new Date(deadline.date_deadline).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}
+              <div className="flex flex-col items-end min-w-[160px]">
+                <div className={`flex items-center gap-1.5 text-lg leading-tight ${
+                  isExpired ? 'text-red-600 font-bold' : 
+                  isExpiring ? 'text-amber-600 font-bold' : 'text-emerald-600 font-semibold'
+                }`}>
+                  {/* Icone minimali come prefisso */}
+                  {isExpired && <XCircle className="w-4 h-4" strokeWidth={3} />}
+                  {isExpiring && <AlertCircle className="w-4 h-4" strokeWidth={3} />}
+                  {!isExpired && !isExpiring && <CheckCircle2 className="w-4 h-4" strokeWidth={3} />}
+                  
+                  <span>{getRelativeTimeString(deadline.daysLeft)}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 font-medium">
+                  <CalendarDays className="w-3 h-3" />
+                  <span>
+                    {new Date(deadline.date_deadline).toLocaleDateString('it-IT', { 
+                      day: '2-digit', 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
                   </span>
                 </div>
-              </div>
-
-              {/* Badge Giorni Rimanenti */}
-              <div className={`px-4 py-2 rounded-lg flex flex-col items-center justify-center min-w-[140px] font-semibold text-sm ${
-                isExpired ? 'bg-red-100 text-red-700 border border-red-200' :
-                isExpiring ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                'bg-emerald-50 text-emerald-700 border border-emerald-100'
-              }`}>
-                {isExpired ? (
-                  <span className="flex items-center gap-1.5"><XCircle className="w-4 h-4"/> Scaduto</span>
-                ) : isExpiring ? (
-                  <span className="flex items-center gap-1.5"><AlertCircle className="w-4 h-4"/> In scadenza</span>
-                ) : (
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4"/> Attivo</span>
-                )}
-                <span className="text-xs font-normal mt-0.5 opacity-80">
-                  {deadline.daysLeft < 0 ? `da ${Math.abs(deadline.daysLeft)} gg` : `tra ${deadline.daysLeft} gg`}
-                </span>
               </div>
 
               {/* Icona Notifica Inviata */}
@@ -494,10 +499,36 @@ export default function CustomDeadlines() {
               
               {/* Action row (se presente) */}
               {deadline.actions && (
-                <div className="mt-3 text-xs text-slate-500 bg-slate-50 p-2 rounded-md border border-slate-100 flex items-center gap-2 w-fit">
-                   <Settings className="w-3.5 h-3.5" />
-                   Azione automatica: <span className="font-mono text-slate-700">{deadline.actions}</span>
-                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100">
+    <div className="group/action relative">
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          const el = document.getElementById(`action-${deadline.recordid_}`);
+          el?.classList.toggle('hidden');
+        }}
+        className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-slate-400 hover:text-indigo-600 transition-all"
+      >
+        <Settings className="w-3 h-3" />
+        <span>Dettagli Azione</span>
+        <Plus className="w-3 h-3 ml-auto opacity-0 group-hover/action:opacity-100 transition-opacity" />
+      </button>
+      
+      <div 
+        id={`action-${deadline.recordid_}`}
+        className="hidden mt-2 animate-in fade-in slide-in-from-top-1 duration-200"
+      >
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center gap-3">
+          <div className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[11px] font-mono text-gray-800 shadow-sm">
+            {deadline.actions}
+          </div>
+          <span className="text-[11px] text-slate-500 italic">
+            Eseguita automaticamente alla scadenza
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
               )}
             </div>
           </div>
