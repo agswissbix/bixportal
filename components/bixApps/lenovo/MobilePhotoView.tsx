@@ -4,6 +4,8 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { toast, Toaster } from "sonner";
 import * as Icons from "@heroicons/react/24/outline";
 import SignaturePad from './SignaturePad';
+import BarcodeScanner from './barcodeScanner';
+import { useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -34,10 +36,21 @@ export default function MobilePhotoView({ ticketId }: Props) {
 
     const [activeTab, setActiveTab] = useState<'photo' | 'attachments' | 'signature' | 'summary'>('photo');
     const [completing, setCompleting] = useState(false);
+    const searchParams = useSearchParams();
+    const sessionId = searchParams.get("session_id");
+    const [scannedSuccess, setScannedSuccess] = useState(false);
+
+    const mode = searchParams.get("mode");
+    const [compName, setCompName] = useState("");
+    const [oldSerial, setOldSerial] = useState("");
+    const [newSerial, setNewSerial] = useState("");
+    const [scanTarget, setScanTarget] = useState<'old'|'new'|null>(null);
 
     useEffect(() => {
-        if (ticketId) {
+        if (ticketId && ticketId !== 'search') {
             fetchData();
+        } else if (ticketId === 'search') {
+            setLoading(false);
         }
     }, [ticketId]);
 
@@ -162,9 +175,10 @@ export default function MobilePhotoView({ ticketId }: Props) {
             formData.append("apiRoute", "save_lenovo_ticket");
             formData.append("recordid", ticketId);
             
+            const newStatus = ticket.signatureUrl ? "Completato" : "Completa ticket";
             const fields = {
                 ...ticket,
-                status: "Completa ticket"
+                status: newStatus
             };
             
             formData.append("fields", JSON.stringify(fields));
@@ -186,6 +200,167 @@ export default function MobilePhotoView({ ticketId }: Props) {
     };
 
     if (loading) return <div className="flex items-center justify-center h-screen bg-black text-white">Loading...</div>;
+
+
+    if (ticketId === 'search') {
+        const handleSendComponent = async () => {
+            if (!sessionId) return;
+            // Send exactly the same format as PC
+            const newLine = `COMPONENT_DATA:${compName || 'Componente'} (Vecchio: ${oldSerial || '-'}, Nuovo: ${newSerial || '-'})`;
+            const fd = new FormData();
+            fd.append("apiRoute", "lenovo_mobile_handoff");
+            fd.append("action", "set");
+            fd.append("session_id", sessionId);
+            fd.append("serial", newLine);
+            await axiosInstanceClient.post("/postApi", fd);
+            setScannedSuccess(true);
+        };
+
+        return (
+            <div className="h-screen bg-black text-white flex flex-col font-sans">
+                <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-zinc-900 shrink-0">
+                    <div className="flex items-center gap-2">
+                        <img src="/bixdata/logos/lenovo.png" alt="Lenovo" className="h-6" />
+                        <span className="font-bold text-sm">Service Intake Scanner</span>
+                    </div>
+                </div>
+                <div className="flex-1 relative bg-black overflow-hidden flex flex-col items-center justify-center">
+                    {scannedSuccess ? (
+                        <div className="text-center p-8 animate-in zoom-in-95 duration-300">
+                            <Icons.CheckCircleIcon className="w-24 h-24 text-green-500 mx-auto mb-6" />
+                            <h2 className="text-2xl font-bold text-white mb-2">Dati Inviati!</h2>
+                            <p className="text-gray-400">Controlla lo schermo principale sul PC.</p>
+                            <button 
+                                onClick={() => {
+                                    if (mode === 'components') {
+                                        setScannedSuccess(false);
+                                        setCompName(""); setOldSerial(""); setNewSerial("");
+                                    } else {
+                                        window.close();
+                                    }
+                                }}
+                                className="mt-8 px-6 py-3 bg-zinc-800 text-white rounded-xl font-bold hover:bg-zinc-700 w-full"
+                            >
+                                {mode === 'components' ? 'Inserisci Altro Componente' : 'Chiudi'}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="w-full h-full p-4 flex flex-col">
+                            {mode === 'components' ? (
+                                scanTarget ? (
+                                    <div className="flex-1 flex flex-col rounded-2xl relative border-2 border-dashed border-gray-700 overflow-hidden bg-black animate-in fade-in">
+                                        <div className="absolute top-0 inset-x-0 p-4 z-10 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center">
+                                            <p className="text-white font-bold">Inquadra Seriale {scanTarget === 'old' ? 'VECCHIO' : 'NUOVO'}</p>
+                                            <button onClick={() => setScanTarget(null)} className="p-2 bg-zinc-800 rounded-full text-white">
+                                                <Icons.XMarkIcon className="w-5 h-5"/>
+                                            </button>
+                                        </div>
+                                        <div className="flex-1 w-full h-full relative">
+                                            <BarcodeScanner 
+                                                onDetected={(code) => {
+                                                    if(scanTarget === 'old') setOldSerial(code);
+                                                    if(scanTarget === 'new') setNewSerial(code);
+                                                    setScanTarget(null);
+                                                    toast.success("Acquisito: " + code);
+                                                }}
+                                                onClose={() => setScanTarget(null)}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col pt-4">
+                                        <h2 className="text-xl font-bold mb-4">Aggiunta Rapida Componente</h2>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Componente</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Es. Batteria, Scheda Madre"
+                                                    value={compName}
+                                                    onChange={e => setCompName(e.target.value)}
+                                                    className="w-full p-4 bg-zinc-900 border border-zinc-700 rounded-xl text-white outline-none focus:border-[#E2231A]" 
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Vecchio Seriale</label>
+                                                <div className="relative">
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="Cerca o usa lo scanner"
+                                                        value={oldSerial}
+                                                        onChange={e => setOldSerial(e.target.value)}
+                                                        className="w-full p-4 pr-14 bg-zinc-900 border border-zinc-700 rounded-xl text-white outline-none focus:border-[#E2231A]" 
+                                                    />
+                                                    <button 
+                                                        onClick={() => setScanTarget('old')}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-800 p-2 text-white rounded-lg hover:bg-zinc-700"
+                                                    >
+                                                        <Icons.QrCodeIcon className="w-6 h-6" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Nuovo Seriale</label>
+                                                <div className="relative">
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="Cerca o usa lo scanner"
+                                                        value={newSerial}
+                                                        onChange={e => setNewSerial(e.target.value)}
+                                                        className="w-full p-4 pr-14 bg-zinc-900 border border-zinc-700 rounded-xl text-white outline-none focus:border-[#E2231A]" 
+                                                    />
+                                                    <button 
+                                                        onClick={() => setScanTarget('new')}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-800 p-2 text-white rounded-lg hover:bg-zinc-700"
+                                                    >
+                                                        <Icons.QrCodeIcon className="w-6 h-6" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-8">
+                                            <button 
+                                                onClick={handleSendComponent}
+                                                disabled={!compName && !oldSerial && !newSerial}
+                                                className="w-full py-4 bg-[#E2231A] text-white rounded-xl font-bold shadow-lg hover:bg-red-700 disabled:opacity-50"
+                                            >
+                                                Invia Dati al PC
+                                            </button>
+                                        </div>
+                                    </div>
+                                )
+                            ) : (
+                                <div className="max-w-lg w-full text-center mx-auto">
+                                    <p className="font-bold mb-4 p-4 text-lg">Inquadra il Codice a Barre</p>
+                                    <div className="w-full h-[60vh] max-w-lg overflow-hidden rounded-2xl relative border-2 border-dashed border-gray-700">
+                                        <BarcodeScanner 
+                                            onDetected={async (code) => {
+                                                if (sessionId) {
+                                                    const fd = new FormData();
+                                                    fd.append("apiRoute", "lenovo_mobile_handoff");
+                                                    fd.append("action", "set");
+                                                    fd.append("session_id", sessionId);
+                                                    fd.append("serial", code);
+                                                    await axiosInstanceClient.post("/postApi", fd);
+                                                    setScannedSuccess(true);
+                                                } else {
+                                                    window.location.href = `/bixApps/lenovo-intake?serial=${code}`;
+                                                }
+                                            }}
+                                            onClose={() => {
+                                                window.location.href = `/bixApps/bixMobileHub/bixHub`;
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     if (!ticket) return <div className="flex items-center justify-center h-screen bg-black text-white">Ticket not found or invalid link.</div>;
 
     // Tab State

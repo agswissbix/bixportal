@@ -509,6 +509,12 @@ export async function POST(request: Request) {
         case "get_lenovo_intake_context":
             djangoUrl = "/customapp_swissbix/get_lenovo_intake_context/";
             break;
+        case "search_lenovo_ticket_by_serial":
+            djangoUrl = "/customapp_swissbix/search_lenovo_ticket_by_serial/";
+            break;
+        case "lenovo_mobile_handoff":
+            djangoUrl = "/customapp_swissbix/lenovo_mobile_handoff/";
+            break;
         case "get_lenovo_ticket":
             djangoUrl = "/customapp_swissbix/get_lenovo_ticket/";
             break;
