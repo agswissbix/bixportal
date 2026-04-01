@@ -68,6 +68,15 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             return match ? match[1].trim() : "";
         }
     };
+
+    // Helper: torna alla ricerca e rimuove il recordid dall'URL
+    const goToInitial = () => {
+        setSearchSerial(formData.serial)
+        setAppSection('initial');
+        const url = new URL(window.location.href);
+        url.searchParams.delete('recordid');
+        window.history.pushState({}, '', url.toString());
+    };
     
     // Form State
     const [formData, setFormData] = useState({
@@ -218,7 +227,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         setAppSection('riparazione');
                     } else if (st === 'riparato') {
                         setAppSection('consegna');
-                    } else if (st === 'consegnato') {
+                    } else if (st === 'riconsegnato') {
                         setAppSection('consegna'); // Already delivered, just show it
                     } else {
                         setAppSection('presa_in_consegna');
@@ -261,7 +270,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         if (serverPhoto !== formData.product_photo) {
                             setFormData(prev => ({ ...prev, product_photo: serverPhoto }));
                             if (!formData.product_photo && showQR) {
-                                toast.success("Photo received!");
+                                toast.success("Foto ricevuta!");
                             }
                         }
 
@@ -270,7 +279,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             // If we didn't have a signature and now we do
                             if(!formData.signatureUrl) {
                                 setFormData(prev => ({ ...prev, signatureUrl: serverSignature }));
-                                toast.success("Signature received!");
+                                toast.success("Firma ricevuta!");
                                 setShowQR(false); // Close QR when signed
                             }
                         }
@@ -362,12 +371,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             const requiredFields = ['company_name', 'name', 'surname', 'email'];
             for (const field of requiredFields) {
                 if (fieldSettings[field]?.required && !formData[field as keyof typeof formData]) {
-                    toast.error(`Please fill in required field: ${fieldSettings[field]?.label || field}`);
+                    toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || field}`);
                     return false;
                 }
             }
             if (!formData.company_name && !formData.name) {
-                 toast.error("Please fill in Company or Name");
+                 toast.error("Compila i campi: Azienda o Nome e Cognome");
                  return false;
             }
             return true;
@@ -376,7 +385,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         // Step 2: Product & Credentials
         if (currentStep === 2) {
             //  if (!formData.brand && !formData.model && !formData.serial) {
-            //      toast.error("Please fill in at least one product detail (Brand/Model/Serial)");
+            //      toast.error("Compila almeno un dettaglio del prodotto (Marca/Modello/Seriale)");
             //      return false;
             //  }
              return true;
@@ -386,13 +395,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         if (currentStep === 3) {
             const field = 'problem_description';
              if (fieldSettings[field]?.required && !formData.problem_description) {
-                toast.error(`Please fill in required field: ${fieldSettings[field]?.label || 'Problem Description'}`);
+                console.log("problem_description", formData.problem_description);
+                toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || 'Descrizione Problema'}`);
                 return false;
             }
             const requiredFields = ['auth_factory_reset', 'request_quote', 'direct_repair', 'auth_formatting'];
             for (const field of requiredFields) {
                  if (fieldSettings[field]?.required && (!formData[field as keyof typeof formData] || formData[field as keyof typeof formData] !== 'Si')) {
-                    toast.error(`Please fill in required field: ${fieldSettings[field]?.label || field}`);
+                    toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || field}`);
                     return false;
                 }
             }
@@ -458,12 +468,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     headers: { "Content-Type": "multipart/form-data" }
                 });
                 if (res.data.success) {
-                    toast.success("Attachment uploaded!");
+                    toast.success("Allegato caricato!");
                     setAttachments(prev => [res.data.mod, ...prev]);
                     setAttachmentNote(""); // Reset note
                 }
             } catch (err) {
-                toast.error("Attachment upload failed");
+                toast.error("Caricamento allegato fallito");
             } finally {
                 setIsUploadingAttachment(false);
             }
@@ -495,10 +505,10 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 });
                 if (res.data.success) {
                     setFormData(prev => ({...prev, product_photo: res.data.path}));
-                    toast.success("Photo uploaded!");
+                    toast.success("Foto caricata!");
                 }
             } catch (err) {
-                toast.error("Upload failed");
+                toast.error("Caricamento fallito");
             } finally {
                 setLoadingMethod(false);
             }
@@ -715,21 +725,21 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 setFormData(prev => ({ ...prev, recordid: newId }));
                 
                 if (status === 'Draft') {
-                    toast.success("Draft saved");
+                    toast.success("Bozza salvata");
                 } else if (status === 'Completa ticket') {
                     toast.success("Ticket Completato!");
                 } else {
-                    toast.success("Ticket registered successfully!");
+                    toast.success("Ticket registrato con successo!");
                     // setTimeout(() => window.location.reload(), 1500);
                 }
                 return newId;
             } else {
-                toast.error("Error saving ticket: " + res.data.error);
+                toast.error("Errore nel salvataggio del ticket: " + res.data.error);
                 return null;
             }
         } catch (err) {
             console.error(err);
-            toast.error("Network error");
+            toast.error("Errore di rete");
             return null;
         } finally {
             setLoadingMethod(false);
@@ -747,7 +757,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${id}`;
                     setMobileUrl(url);
                     setShowQR(true); 
-                    toast.info("Scansiona il QR con il mobile per firmare.");
+                    toast.info("Scansiona il QR con il telefono per firmare.");
                 }
             }
         }
@@ -763,17 +773,17 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
             const res = await axiosInstanceClient.post("/postApi", formDataLocal);
             if (res.data.success) {
-                toast.success("Signature saved!");
+                toast.success("Firma salvata!");
                 setFormData(prev => ({ ...prev, signatureUrl: res.data.signatureUrl || "signed" }));
                 setShowSignatureModal(false);
                 // Reload to show signed state
                 // window.location.reload();
             } else {
-                toast.error("Failed to save signature");
+                toast.error("Impossibile salvare la firma");
             }
         } catch (e) {
             console.error(e);
-            toast.error("Error saving signature");
+            toast.error("Errore nel salvataggio della firma");
         } finally {
             // setUploading(false);
         }
@@ -782,7 +792,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const handlePrint = async () => {
         if(!formData.recordid) return;
         
-        const toastId = toast.loading("Generating PDF...");
+        const toastId = toast.loading("Generazione PDF in corso...");
         try {
             const res = await axiosInstanceClient.post("/postApi", {
                 apiRoute: "print_lenovo_ticket",
@@ -798,14 +808,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                  link.click();
                  document.body.removeChild(link);
                  toast.dismiss(toastId);
-                 toast.success("PDF Downloaded");
+                 toast.success("PDF scaricato");
             } else {
                  toast.dismiss(toastId);
                  toast.error("PDF generation failed");
             }
         } catch (e) {
              toast.dismiss(toastId);
-             toast.error("Network error");
+             toast.error("Errore di rete");
         }
     };
     
@@ -913,19 +923,23 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             </form>
                             
                             {showQR && (
-                                <div className="mt-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in zoom-in-95 shadow-sm relative w-fit mx-auto">
+                                <div className="flex flex-col items-center justify-center mb-8 mt-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50">
                                     <button 
                                         type="button"
                                         onClick={() => setShowQR(false)}
-                                        className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
                                     >
-                                        <Icons.XMarkIcon className="w-5 h-5" />
+                                        <Icons.XMarkIcon className="w-6 h-6" />
                                     </button>
-                                    <p className="font-bold text-gray-800 mb-4 text-sm">Codice QR Scansione Mobile</p>
-                                    <div className="bg-white p-2 text-center rounded-xl border border-gray-100 shadow-sm inline-block">
-                                        <QRCode value={mobileUrl} size={150} />
+                                    <h3 className="text-xl font-bold mb-2 text-gray-900">Scansione Mobile</h3>
+                                    <p className="text-gray-500 mb-4">Inquadra il QR con il telefono per la scansione!</p>
+                                    
+                                    <div className="bg-white p-3 rounded-xl border border-gray-200 inline-block shadow-sm">
+                                            <QRCode value={mobileUrl} size={180} />
                                     </div>
-                                    <p className="text-[10px] text-gray-400 font-mono mt-3 break-all max-w-[200px] text-center w-full mx-auto">{mobileUrl}</p>
+                                    <a href={mobileUrl} target="_blank" className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
+                                        {mobileUrl}
+                                    </a>
                                 </div>
                             )}
                         </div>
@@ -1704,16 +1718,16 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 {step === 5 ? (
                     <div className="flex justify-between items-center w-full mt-4 bg-gray-50 p-4 border-t border-gray-200 -mx-4 px-4 lg:-mx-0 lg:px-0 lg:p-0 lg:mt-8 lg:border-none lg:bg-transparent">
                         <button
-                            onClick={() => setAppSection('initial')}
+                            onClick={() => setStep(4)}
                             className="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors"
                         >
-                            Torna alla ricerca
+                            Indietro
                         </button>
                         <button
                             onClick={async () => {
                                 const res = await handleSave("Entrata");
                                 if(res) {
-                                    setAppSection('initial');
+                                    goToInitial();
                                     setSearchSerial(formData.serial);
                                 }
                             }}
@@ -1727,10 +1741,10 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 ) : (
                     <div className="flex items-center justify-between sticky bottom-0 bg-gray-50 p-4 border-t border-gray-200 -mx-4 px-4 lg:-mx-0 lg:px-0 lg:p-0 lg:mt-8 lg:sticky lg:inset-auto lg:border-t-0 lg:bg-transparent">
                         <button 
-                            onClick={() => step > 1 ? setStep(step - 1) : setAppSection('initial')}
+                            onClick={() => step > 1 ? setStep(step - 1) : goToInitial()}
                             className={`px-6 py-3 rounded-xl font-medium transition-colors ${step >= 1 || appSection !== 'presa_in_consegna' ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' : 'invisible'}`}
                         >
-                            Indietro
+                            {step === 1 ? 'Torna alla Ricerca' : 'Indietro'}
                         </button>
                         <div className="flex gap-3">
                             <button 
@@ -1903,38 +1917,45 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             />
                                             <button className="w-full bg-[#333333] text-white font-bold px-4 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-black transition-colors">
-                                                {isUploadingAttachment ? <Icons.ArrowPathIcon className="w-5 h-5 animate-spin"/> : <Icons.ArrowUpTrayIcon className="w-5 h-5"/>}
-                                                <span className="hidden sm:inline">Upload PC</span>
+                                                {isUploadingAttachment ? <Icons.ArrowPathIcon className="w-5 h-5 animate-spin"/> : (isMobile ? <Icons.CameraIcon className="w-5 h-5"/> : <Icons.ArrowUpTrayIcon className="w-5 h-5"/>)}
+                                                <span className="hidden sm:inline">{isMobile ? 'Carica / Scatta' : 'Upload PC'}</span>
+                                                {isMobile && <span className="sm:hidden">Carica / Scatta</span>}
                                             </button>
                                         </div>
-                                        <button 
-                                            onClick={async () => {
-                                                if (showQR) return setShowQR(false);
-                                                const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${formData.recordid}`;
-                                                setMobileUrl(url);
-                                                setShowQR(true);
-                                            }}
-                                            className="flex-1 sm:flex-none bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 font-bold px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                                        >
-                                            <Icons.QrCodeIcon className="w-5 h-5"/>
-                                            <span className="hidden sm:inline">Usa Mobile</span>
-                                        </button>
+                                        {!isMobile && (
+                                            <button 
+                                                onClick={async () => {
+                                                    if (showQR) return setShowQR(false);
+                                                    const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/${formData.recordid}`;
+                                                    setMobileUrl(url);
+                                                    setShowQR(true);
+                                                }}
+                                                className="flex-1 sm:flex-none bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 font-bold px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                                            >
+                                                <Icons.QrCodeIcon className="w-5 h-5"/>
+                                                <span className="hidden sm:inline">Usa Mobile</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
                                 {showQR && (
-                                    <div className="mt-6 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in zoom-in-95 shadow-sm relative w-fit mx-auto lg:mx-0">
+                                    <div className="flex flex-col items-center justify-center mb-8 mt-6 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50">
                                         <button 
                                             onClick={() => setShowQR(false)}
-                                            className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                            className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
                                         >
-                                            <Icons.XMarkIcon className="w-5 h-5" />
+                                            <Icons.XMarkIcon className="w-6 h-6" />
                                         </button>
-                                        <p className="font-bold text-gray-800 mb-4 text-sm">Codice QR per Caricamento Foto</p>
-                                        <div className="bg-white p-2 text-center rounded-xl border border-gray-100 shadow-sm inline-block">
-                                            <QRCode value={mobileUrl} size={150} />
+                                        <h3 className="text-xl font-bold mb-2 text-gray-900">Scansiona QR per Foto</h3>
+                                        <p className="text-gray-500 mb-4">Inquadra il QR con il telefono per scattare foto e allegati!</p>
+                                        
+                                        <div className="bg-white p-3 rounded-xl border border-gray-200 inline-block shadow-sm">
+                                                <QRCode value={mobileUrl} size={180} />
                                         </div>
-                                        <p className="text-[10px] text-gray-400 font-mono mt-3 break-all max-w-[200px] text-center w-full mx-auto">{mobileUrl}</p>
+                                        <a href={mobileUrl} target="_blank" className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
+                                            {mobileUrl}
+                                        </a>
                                     </div>
                                 )}
 
@@ -1959,7 +1980,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             {/* Azioni */}
                             <div className="flex justify-between items-center pt-8 border-t border-gray-100 mt-8">
                                 <button
-                                    onClick={() => setAppSection('initial')}
+                                    onClick={() => goToInitial()}
                                     className="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors"
                                 >
                                     Torna alla ricerca
@@ -1969,7 +1990,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         const statusObj = appSection === 'diagnostica' ? 'Diagnostica' : 'Riparato';
                                         const res = await handleSave(statusObj);
                                         if (res) {
-                                            setAppSection('initial');
+                                            goToInitial();
                                             setSearchSerial(formData.serial);
                                         }
                                     }}
@@ -1994,7 +2015,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     <p className="text-gray-500 text-sm">Dispositivo: <span className="font-mono font-bold text-gray-700">{formData.serial}</span></p>
                                 </div>
                                 <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-bold tracking-widest">
-                                    PRONTO PER LA CONSEGNA
+                                    PRONTO PER LA RICONSEGNA
                                 </div>
                             </div>
                             
@@ -2082,39 +2103,44 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             )}
 
                             {showQR && (
-                                <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in zoom-in-95 shadow-lg relative min-w-[250px] mt-6">
+                                <div className="flex flex-col items-center justify-center mb-8 p-6 bg-white rounded-2xl border-2 border-[#E2231A] text-center animate-in fade-in slide-in-from-top-4 shadow-xl relative ring-4 ring-red-50 mt-6">
                                     <button 
                                         onClick={() => setShowQR(false)}
-                                        className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
                                     >
-                                        <Icons.XMarkIcon className="w-5 h-5" />
+                                        <Icons.XMarkIcon className="w-6 h-6" />
                                     </button>
-                                    <p className="font-bold text-gray-800 mb-4 text-sm">Inquadra per firmare</p>
-                                    <div className="bg-white p-2 rounded-xl border border-gray-100 shadow-sm inline-block">
-                                        <QRCode value={mobileUrl} size={150} />
+                                    <h3 className="text-xl font-bold mb-2 text-gray-900">Inquadra per Firmare</h3>
+                                    <p className="text-gray-500 mb-4">Inquadra il QR con il telefono per raccogliere la firma!</p>
+                                    
+                                    <div className="bg-white p-3 rounded-xl border border-gray-200 inline-block shadow-sm">
+                                            <QRCode value={mobileUrl} size={180} />
                                     </div>
+                                    <a href={mobileUrl} target="_blank" className="text-xs text-gray-400 font-mono mt-4 break-all bg-gray-50 p-2 rounded border border-gray-100 select-all">
+                                        {mobileUrl}
+                                    </a>
                                 </div>
                             )}
 
                             <div className="flex justify-between items-center pt-8 border-t border-gray-100">
                                 <button
-                                    onClick={() => setAppSection('initial')}
+                                    onClick={() => goToInitial()}
                                     className="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors"
                                 >
                                     Torna alla Ricerca
                                 </button>
                                 <button
                                     onClick={async () => {
-                                        const res = await handleSave("Consegnato");
+                                        const res = await handleSave("Riconsegnato");
                                         if(res) {
-                                            setAppSection('initial');
+                                            goToInitial();
                                             setSearchSerial(formData.serial);
                                         }
                                     }}
                                     disabled={!formData.signatureUrl || loadingMethod}
                                     className="px-8 py-4 bg-[#333333] text-white font-bold rounded-xl shadow-lg hover:bg-black transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    {loadingMethod ? 'Salvataggio...' : 'Conferma Consegna'}
+                                    {loadingMethod ? 'Salvataggio...' : 'Conferma Riconsegna'}
                                     <Icons.CheckCircleIcon className="w-5 h-5" />
                                 </button>
                             </div>
@@ -2164,7 +2190,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 <Icons.XMarkIcon className="w-6 h-6" />
                             </button>
                         </div>
-                        <div className="h-72 rounded-xl overflow-hidden relative bg-black border-4 border-gray-100 shadow-inner flex items-center justify-center">
+                        <div className="h-[60vh] min-h-[400px] max-h-[500px] rounded-xl overflow-hidden relative bg-black border-4 border-gray-100 shadow-inner flex flex-col items-center justify-center">
                             {isMobile && scannerTarget !== 'components' ? (
                                 <BarcodeScanner 
                                     onDetected={(code) => {

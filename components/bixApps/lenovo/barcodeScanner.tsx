@@ -14,6 +14,11 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
+  
+  const [boxWidthPct, setBoxWidthPct] = useState<number>(80)
+  const [boxHeightPct, setBoxHeightPct] = useState<number>(40)
+  const boxWidthRef = useRef(80)
+  const boxHeightRef = useRef(40)
 
   useEffect(() => {
     // Dichiarazione variabile per l'eventuale cleanup
@@ -74,15 +79,20 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      // Imposta le dimensioni del canvas per corrispondere al video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      const pctW = boxWidthRef.current / 100;
+      const pctH = boxHeightRef.current / 100;
       
-      // Disegna il frame corrente sul canvas
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const cropWidth = video.videoWidth * pctW;
+      const cropHeight = video.videoHeight * pctH;
+      const startX = (video.videoWidth - cropWidth) / 2;
+      const startY = (video.videoHeight - cropHeight) / 2;
+
+      // Imposta le dimensioni del canvas per corrispondere al crop box
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
       
-      // Ottieni i dati dell'immagine
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+      ctx.drawImage(video, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
       
       // Processa l'immagine con Quagga (in modalità statica)
       Quagga.decodeSingle({
@@ -97,10 +107,9 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
           if (result.codeResult.code) {
             onDetected(result.codeResult.code);
           }
-          clearInterval(scanInterval);
         }
       });
-    }, 500); // Prova a scansionare ogni 500ms
+    }, 400); // Prova a scansionare ogni 400ms
     
     return () => {
       clearInterval(scanInterval);
@@ -108,21 +117,23 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
   }, [scanning, onDetected]);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full h-full flex flex-col bg-black overflow-hidden rounded-lg">
       <button 
-        className="absolute top-4 right-4 z-10 bg-red-500 text-white p-2 rounded-full"
+        className="absolute top-2 right-2 z-20 bg-red-500/80 text-white p-2 rounded-full shadow-lg backdrop-blur-sm"
         onClick={onClose}
       >
-        ✕
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
       
       {errorMessage ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-4">
           {errorMessage}
         </div>
       ) : (
-        <div className="w-full overflow-hidden rounded-lg shadow-lg">
-          <div className="relative bg-black" >
+        <>
+          <div className="relative bg-black flex-1 min-h-0 w-full overflow-hidden" >
             {/* Video element (visibile) */}
             <video 
               ref={videoRef} 
@@ -138,16 +149,58 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
             />
             
             {/* Overlay per il mirino */}
-            <div className="absolute inset-0 border-2 border-yellow-400 opacity-50 z-10 pointer-events-none">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-3/4 h-3/4 border-2 border-yellow-400 border-dashed"></div>
+            <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
+              <div 
+                className="relative border-[3px] border-[#E2231A] transition-all duration-200 ease-out"
+                style={{
+                  width: `${boxWidthPct}%`,
+                  height: `${boxHeightPct}%`,
+                  boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)',
+                  borderRadius: '12px'
+                }}
+              >
               </div>
             </div>
           </div>
-          <div className="bg-white p-4 text-center text-gray-700">
-            Posiziona il codice a barre all'interno dell'area evidenziata
+          
+          <div className="bg-white p-3 flex flex-col gap-2 shrink-0 border-t border-gray-200">
+            <div className="text-center text-gray-700 text-xs font-bold uppercase tracking-wider mb-1">
+              Area di inquadratura
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-gray-500 font-bold shrink-0 w-14">Larg.</span>
+              <input 
+                type="range" 
+                min="20" 
+                max="95" 
+                value={boxWidthPct} 
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  setBoxWidthPct(val);
+                  boxWidthRef.current = val;
+                }}
+                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E2231A]"
+              />
+              <span className="text-[10px] text-gray-400 shrink-0 w-6 text-right">{boxWidthPct}%</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-gray-500 font-bold shrink-0 w-14">Alt.</span>
+              <input 
+                type="range" 
+                min="10" 
+                max="95" 
+                value={boxHeightPct} 
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  setBoxHeightPct(val);
+                  boxHeightRef.current = val;
+                }}
+                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E2231A]"
+              />
+              <span className="text-[10px] text-gray-400 shrink-0 w-6 text-right">{boxHeightPct}%</span>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )

@@ -80,14 +80,14 @@ export default function MobilePhotoView({ ticketId }: Props) {
                     setActiveTab('signature');
                 }
             } else {
-                toast.error("Ticket not found");
+                toast.error("Ticket non trovato");
             }
 
             if (attRes.data.success) {
                 setAttachments(attRes.data.attachments);
             }
         } catch (err) {
-            toast.error("Error loading data");
+            toast.error("Errore nel caricamento dei dati");
         } finally {
             setLoading(false);
         }
@@ -132,14 +132,14 @@ export default function MobilePhotoView({ ticketId }: Props) {
             });
 
             if (res.data.success) {
-                toast.success("Upload successful!");
+                toast.success("Caricamento completato!");
                 await fetchData(); // Refresh data
                 resetUpload();
             } else {
-                toast.error("Upload failed: " + res.data.error);
+                toast.error("Caricamento fallito: " + res.data.error);
             }
         } catch (err) {
-            toast.error("Network error during upload");
+            toast.error("Errore di rete durante il caricamento");
         } finally {
             setUploading(false);
         }
@@ -147,7 +147,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
 
     const handleSignatureSave = async (signatureData: string) => {
         setUploading(true);
-        toast.loading("Saving signature...");
+        toast.loading("Salvataggio firma in corso...");
         try {
             const formData = new FormData();
             formData.append("apiRoute", "save_lenovo_signature");
@@ -156,11 +156,11 @@ export default function MobilePhotoView({ ticketId }: Props) {
 
             const res = await axiosInstanceClient.post("/postApi", formData);
             if (res.data.success) {
-                toast.success("Signature saved!");
+                toast.success("Firma salvata!");
                 // Reload to show signed state
                 window.location.reload();
             } else {
-                toast.error("Failed to save signature");
+                toast.error("Impossibile salvare la firma");
             }
         } finally {
             setUploading(false);
@@ -189,11 +189,11 @@ export default function MobilePhotoView({ ticketId }: Props) {
                 toast.success("Ticket Completato!");
                 setView('completato');
             } else {
-                toast.error("Error saving ticket: " + res.data.error);
+                toast.error("Errore nel salvataggio del ticket: " + res.data.error);
             }
         } catch (err) {
             console.error(err);
-            toast.error("Network error");
+            toast.error("Errore di rete");
         } finally {
             setCompleting(false);
         }
@@ -382,8 +382,11 @@ export default function MobilePhotoView({ ticketId }: Props) {
             <div>
                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Main Product Photo</h3>
                 <div 
-                    onClick={() => setView('upload_photo')}
-                    className="bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[200px] cursor-pointer active:bg-zinc-800 transition-colors relative overflow-hidden"
+                    onClick={() => {
+                        if (!ticket.status || ticket.status === 'Draft' || ticket.status === 'Entrata') setView('upload_photo');
+                        else toast.error('Non modificabile in questo stato');
+                    }}
+                    className={`bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[200px] transition-colors relative overflow-hidden ${(!ticket.status || ticket.status === 'Draft' || ticket.status === 'Entrata') ? 'cursor-pointer active:bg-zinc-800' : 'opacity-75 cursor-not-allowed'}`}
                 >
                     {ticket.product_photo ? (
                         <>
@@ -715,8 +718,14 @@ export default function MobilePhotoView({ ticketId }: Props) {
                         <span className="text-[10px] font-bold">Files</span>
                     </button>
                     <button 
-                        onClick={() => setActiveTab('signature')}
-                        className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === 'signature' ? 'text-[#E2231A] bg-red-900/10' : 'text-gray-500'}`}
+                        onClick={() => {
+                            if (ticket.status === 'Riparato' || ticket.status === 'Consegnato' || ticket.status === 'Completa ticket') {
+                                setActiveTab('signature');
+                            } else {
+                                toast.error('La firma è accessibile solo quando lo stato è Riparato o Consegnato');
+                            }
+                        }}
+                        className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === 'signature' ? 'text-[#E2231A] bg-red-900/10' : 'text-gray-500'} ${(ticket.status === 'Riparato' || ticket.status === 'Consegnato' || ticket.status === 'Completa ticket') ? '' : 'opacity-50 cursor-not-allowed'}`}
                     >
                         <Icons.PencilSquareIcon className="w-6 h-6 mb-1" />
                         <span className="text-[10px] font-bold">Sign</span>
