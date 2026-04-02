@@ -25,6 +25,86 @@ import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
 import { TableSkeleton } from './tableSkeleton';
 
+const CustomCellTooltip = ({ field, isNumberField }: { field: any, isNumberField: boolean }) => {
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  const checkTruncation = () => {
+    if (spanRef.current) {
+      const isOverflowing =
+        spanRef.current.scrollWidth > spanRef.current.clientWidth ||
+        spanRef.current.scrollHeight > spanRef.current.clientHeight;
+
+      const hasHiddenDetails =
+        field.value &&
+        typeof field.value === "string" &&
+        (field.value.includes("deal-details") || field.value.includes("<table"));
+
+      setIsTruncated(isOverflowing || hasHiddenDetails);
+    }
+  };
+
+  if (isNumberField) {
+    return (
+      <Tooltip
+        open={isHovered && isTruncated}
+        onOpenChange={(open) => {
+          if (open) checkTruncation();
+          setIsHovered(open);
+        }}
+      >
+        <TooltipTrigger asChild>
+          <span
+            ref={spanRef}
+            className="block truncate w-full max-h-[40px] text-right"
+            onMouseEnter={checkTruncation}
+          >
+            {field.value && !isNaN(Number(field.value))
+              ? Number(field.value).toLocaleString("de-CH")
+              : field.value}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          align="center"
+          className="max-w-[400px] z-[100] max-h-[300px] overflow-auto shadow-lg"
+        >
+          {field.value && !isNaN(Number(field.value))
+            ? Number(field.value).toLocaleString("de-CH")
+            : field.value}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Tooltip
+      open={isHovered && isTruncated}
+      onOpenChange={(open) => {
+        if (open) checkTruncation();
+        setIsHovered(open);
+      }}
+    >
+      <TooltipTrigger asChild>
+        <span
+          ref={spanRef}
+          className={`block truncate w-full max-h-[40px] [&_.deal-details]:hidden [&_table]:hidden`}
+          dangerouslySetInnerHTML={{ __html: field.value }}
+          onMouseEnter={checkTruncation}
+        />
+      </TooltipTrigger>
+      <TooltipContent
+        side="top"
+        align="center"
+        className="max-w-[400px] z-[100] max-h-[300px] overflow-auto whitespace-normal break-words shadow-lg [&_.deal-summary]:hidden"
+      >
+        <div dangerouslySetInnerHTML={{ __html: field.value }} />
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 // FLAG PER LO SVILUPPO
 const isDev = false
@@ -811,17 +891,8 @@ export default function RecordsTable({
                                       }}
                                     />
                                   )
-                                ) : isNumberField ? (
-                                  <span className="block truncate w-full max-h-[40px] text-right">
-                                    {field.value && !isNaN(Number(field.value))
-                                      ? Number(field.value).toLocaleString("de-CH")
-                                      : field.value}
-                                  </span>
                                 ) : (
-                                  <span
-                                    className={`block truncate w-full max-h-[40px]`}
-                                    dangerouslySetInnerHTML={{ __html: field.value }}
-                                  />
+                                  <CustomCellTooltip field={field} isNumberField={isNumberField} />
                                 )}
                                 {isLinked && (
                                   <button
