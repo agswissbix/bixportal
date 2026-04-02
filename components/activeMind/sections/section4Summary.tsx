@@ -16,6 +16,7 @@ interface SummarySectionProps {
       data: string
       termine: string
       contractConstraint?: number
+      deal_user?: string
     }
     section1: {
       selectedTier: string
@@ -37,11 +38,13 @@ interface SummarySectionProps {
     }
     section2Services: {
       [key: string]: {
+        idproduct: string
         title: string
         quantity: number
         unitPrice: number
         total: number
         features?: string[][]
+        subcategory?: string
       }
     }
     sectionServiceAsset: {
@@ -519,7 +522,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
                       <div className="flex items-center space-x-3">
                         <div>
-                          <CardTitle className="text-lg">{serviceLabels[service.id]}</CardTitle>
+                          <CardTitle className="text-lg">{service.title}</CardTitle>
                           <p className="text-sm text-gray-600">
                             {service.quantity} × CHF {formatPrice(service.unitPrice)}
                           </p>
@@ -794,7 +797,7 @@ export default function SummarySection({ serviceData, onUpdate, onSignatureChang
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-600">Massagno, {new Date().toLocaleDateString("it-IT")}</p>
-                <p className="font-medium">Mauro Gallani</p>
+                <p className="font-medium">{serviceData.clientInfo?.deal_user ?? "Davide Crudo"}</p>
               </div>
               <div className="flex flex-col text-right">
                 <p className="text-sm text-gray-600 mb-2">Per Accettazione</p>

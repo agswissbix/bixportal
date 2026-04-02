@@ -27,6 +27,7 @@ interface ServiceData {
     data: string
     termine: string
     contractConstraint?: number
+    deal_user?: string
   }
   section1: {
     selectedTier: string
@@ -51,12 +52,14 @@ interface ServiceData {
   }
   section2Services: {
     [key: string]: {
+      idproduct: string
       title: string
       quantity: number
       unitPrice: number
       unitCost?: number
       total: number
       features?: string[][]
+      subcategory?: string
     }
   }
   sectionServiceAsset: {
@@ -247,6 +250,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
           indirizzo: serviceData.clientInfo?.indirizzo || "N/A",
           data: serviceData.clientInfo?.data || new Date().toLocaleDateString(),
           contractConstraint: serviceData.clientInfo?.contractConstraint || 12,
+          deal_user: serviceData.clientInfo?.deal_user || "Davide Crudo",
         },
         products: Object.entries(serviceData.section2Products || {}).map(([id, product]) => ({
           id,
@@ -378,7 +382,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
   if (!chosenPath) {
     return (
       <div className="w-full mx-auto p-4 lg:p-8 space-y-6 max-w-6xl">
-        <CompanyHeader recordIdTrattativa={recordIdTrattativa} />
+        <CompanyHeader recordIdTrattativa={recordIdTrattativa} onDataLoaded={(data) => updateServiceData("clientInfo", { nome: data.nome, indirizzo: data.indirizzo, deal_user: data.deal_user })} />
         <InitialChoice onChoice={handleInitialChoice} />
       </div>
     )
@@ -389,7 +393,7 @@ export default function ActiveMindServices({ recordIdTrattativa = "default" }: A
 
   return (
     <div className="w-full mx-auto mb-20 p-4 lg:p-8 space-y-6 print:p-0 print:max-w-none max-w-4xl lg:max-w-7xl">
-      <CompanyHeader recordIdTrattativa={recordIdTrattativa} />
+      <CompanyHeader recordIdTrattativa={recordIdTrattativa} onDataLoaded={(data) => updateServiceData("clientInfo", { nome: data.nome, indirizzo: data.indirizzo, deal_user: data.deal_user })} />
 
       <Button
         variant="outline"
