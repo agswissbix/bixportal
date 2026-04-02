@@ -168,6 +168,11 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
         <GenericComponent response={responseData} loading={loading} error={error} title="cardLinked"> 
             {(response: ResponseInterface) => (
                 <div className="h-full w-full flex flex-col overflow-y-auto overflow-x-hidden">
+                    {response.linkedTables.length === 0 && (
+                        <div className="flex items-start justify-start h-full">
+                            <p className="text-gray-400 italic">Nessuna tabella collegata</p>
+                        </div>
+                    )}
                     {response.linkedTables.map((table, index) => (
                         <React.Fragment key={index}>
                             <div 
