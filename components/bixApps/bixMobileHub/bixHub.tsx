@@ -298,6 +298,7 @@ export default function BixHub() {
                                                  const theme = getTheme(index);
                                                  return (
                                                     <Link 
+                                                        target="_blank"
                                                         href={app.url} 
                                                         key={index}
                                                         className={`
