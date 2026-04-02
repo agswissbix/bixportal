@@ -368,62 +368,62 @@ export default function RecordsTable({
   }, [response])
 
   // const [tableSettings, setTableSettings] = useState<Record<string, { type: string; value: string }>>({})
-    const payloadSettings = useMemo(() => {
-      if (isDev) return null;
-      return {
-        apiRoute: 'settings_table_settings',
-        tableid,
-      };
-    }, [tableid]);
-    
-    const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
-  
-    useEffect(() => {
-      if (!responseSettings || !tableid) return;
+  const payloadSettings = useMemo(() => {
+    if (isDev) return null;
+    return {
+      apiRoute: 'settings_table_settings',
+      tableid,
+    };
+  }, [tableid]);
 
-      setTableSettings(tableid, responseSettings.tablesettings ?? {});
-    }, [responseSettings, tableid]);
+  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
 
-    const payloadFunctions = useMemo(() => {
-        if (isDev) return null;
-        return {
-          apiRoute: 'get_custom_functions',
-          tableid,
-          recordid: contextMenu?.recordid || null,
-        };
-      }, [tableid, contextMenu?.recordid]);
+  useEffect(() => {
+    if (!responseSettings || !tableid) return;
 
-      const { response: responseFunc, loading: loadingFunc, error: errorFunc } = !isDev && payloadFunctions ? useApi<ResponseCustomFunction>(payloadFunctions) : { response: null, loading: false, error: null };
+    setTableSettings(tableid, responseSettings.tablesettings ?? {});
+  }, [responseSettings, tableid]);
 
-      const [ visibleFunctions, setVisibleFunctions ] = useState<ResponseCustomFunction>(null);
-      const [functionsLoading, setFunctionsLoading] = useState(false)
-      const requestIdRef = useRef(0);
-      const [menuOpenId, setMenuOpenId] = useState(0);
+  const payloadFunctions = useMemo(() => {
+    if (isDev) return null;
+    return {
+      apiRoute: 'get_custom_functions',
+      tableid,
+      recordid: contextMenu?.recordid || null,
+    };
+  }, [tableid, contextMenu?.recordid]);
 
-      
-    useEffect(() => {
-      requestIdRef.current += 1;
-    }, [menuOpenId]);
+  const { response: responseFunc, loading: loadingFunc, error: errorFunc } = !isDev && payloadFunctions ? useApi<ResponseCustomFunction>(payloadFunctions) : { response: null, loading: false, error: null };
 
-    useEffect(() => {
-      if (!contextMenu?.recordid) return;
+  const [visibleFunctions, setVisibleFunctions] = useState<ResponseCustomFunction>(null);
+  const [functionsLoading, setFunctionsLoading] = useState(false)
+  const requestIdRef = useRef(0);
+  const [menuOpenId, setMenuOpenId] = useState(0);
 
-      setVisibleFunctions(null);
-      setFunctionsLoading(true);
-    }, [menuOpenId]);
 
-    useEffect(() => {
-      if (!responseFunc) return;
+  useEffect(() => {
+    requestIdRef.current += 1;
+  }, [menuOpenId]);
 
-      const currentRequestId = requestIdRef.current;
+  useEffect(() => {
+    if (!contextMenu?.recordid) return;
 
-      requestAnimationFrame(() => {
-        if (currentRequestId !== requestIdRef.current) return;
+    setVisibleFunctions(null);
+    setFunctionsLoading(true);
+  }, [menuOpenId]);
 
-        setVisibleFunctions({fn: responseFunc.fn ?? []});
-        setFunctionsLoading(false);
-      });
-    }, [responseFunc]);
+  useEffect(() => {
+    if (!responseFunc) return;
+
+    const currentRequestId = requestIdRef.current;
+
+    requestAnimationFrame(() => {
+      if (currentRequestId !== requestIdRef.current) return;
+
+      setVisibleFunctions({ fn: responseFunc.fn ?? [] });
+      setFunctionsLoading(false);
+    });
+  }, [responseFunc]);
 
   const [localRows, setLocalRows] = useState<typeof response.rows>([])
 
@@ -508,37 +508,37 @@ export default function RecordsTable({
 
       try {
         const changedRows = updatedRows.filter(
-        (row) =>
-          row.linkedorder !== undefined && row.linkedorder !== originalOrders.get(row.recordid),
+          (row) =>
+            row.linkedorder !== undefined && row.linkedorder !== originalOrders.get(row.recordid),
         )
 
         for (const row of changedRows) {
-        await axiosInstanceClient.post(
-          "/postApi",
-          {
-          apiRoute: "fieldsupdate",
-          params: {
-            tableid: tableid,
-            linkedorder_: row.linkedorder,
-            recordid: row.recordid,
-          },
-          },
-          {
-          responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          },
-        )
+          await axiosInstanceClient.post(
+            "/postApi",
+            {
+              apiRoute: "fieldsupdate",
+              params: {
+                tableid: tableid,
+                linkedorder_: row.linkedorder,
+                recordid: row.recordid,
+              },
+            },
+            {
+              responseType: "blob",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
+          )
         }
-        toast.success("Ordine aggiornato con successo", {id: loadingToastId})
+        toast.success("Ordine aggiornato con successo", { id: loadingToastId })
       } catch (error) {
         console.error("Errore durante l'aggiornamento dell'ordine:", error)
         toast.dismiss(loadingToastId)
         toast.error("Errore durante l'aggiornamento dell'ordine: " + error?.response?.data?.error)
       }
-      }
-      setDragOverRow(null)
+    }
+    setDragOverRow(null)
   }
 
   console.log("[DEBUG] RecordsTable")
@@ -566,7 +566,7 @@ export default function RecordsTable({
       )
       toast.success("Records aggiornata con successo")
     } catch (err) {
-      console.error("Errore durante l'eliminazione del record",  err?.response?.data?.error)
+      console.error("Errore durante l'eliminazione del record", err?.response?.data?.error)
       toast.error("Errore durante l'eliminazione del record: " + err?.response?.data?.error)
     } finally {
       setRefreshTable(tableid)
@@ -574,54 +574,149 @@ export default function RecordsTable({
   }
   return (
     <>
-    <GenericComponent
-      response={responseData}
-      loading={false} // Gestito internamente tramite TableSkeleton per migliorare il CLS
-      error={error}
-      title="recordsTable"
-      elapsedTime={elapsedTime}
-    >
-      {(response: ResponseInterface) => {
-        if (loading) {
-          return <TableSkeleton />;
-        }
-        
-        return (
-        <div className="h-full w-full flex flex-col">
-          {((tableid == "job_status" && activeServer != "swissbix") ||
-            (tableid == "monitoring" && activeServer == "swissbix")) && (
-            <button className="bg-accent text-accent-foreground rounded-md p-2 hover:bg-accent-hover" onClick={syncJob}>
-              Sincronizza
-            </button>
-          )}
+      <GenericComponent
+        response={responseData}
+        loading={false} // Gestito internamente tramite TableSkeleton per migliorare il CLS
+        error={error}
+        title="recordsTable"
+        elapsedTime={elapsedTime}
+      >
+        {(response: ResponseInterface) => {
+          if (loading) {
+            return <TableSkeleton />;
+          }
 
-          <div className="w-full h-full relative rounded-lg overflow-auto">
-            <table className="min-w-full table-fixed text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
-              <thead className="sticky top-0 z-20 text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
-                <tr>
-                  {isReorderMode && (
-                    <th scope="col" className="px-2 py-3 w-4 min-w-[10px] max-w-[10px]">
-                      <div className="flex items-center">
-                        <GripVertical className="w-4 h-4 text-gray-400" />
-                      </div>
-                    </th>
-                  )}
-                  {response?.columns.map((column, index) => {
-                    const isCurrentSortField = responseData.order.fieldid === column.fieldid
-                    const sortDirection = isCurrentSortField ? responseData.order.direction : null
-                    const shouldShowIcon = isCurrentSortField && (sortDirection === "asc" || sortDirection === "desc")
-                    const iconComponent =
-                      sortDirection === "asc" ? (
-                        <ArrowUp className="h-4 w-4" />
-                      ) : sortDirection === "desc" ? (
-                        <ArrowDown className="h-4 w-4" />
-                      ) : null
+          return (
+            <div className="h-full w-full flex flex-col">
+              {((tableid == "job_status" && activeServer != "swissbix") ||
+                (tableid == "monitoring" && activeServer == "swissbix")) && (
+                  <button className="bg-accent text-accent-foreground rounded-md p-2 hover:bg-accent-hover" onClick={syncJob}>
+                    Sincronizza
+                  </button>
+                )}
 
-                    return (
-                      <th
-                        key={column.fieldid}
-                        scope="col"
-                        onClick={() => handleSort(column.fieldid)}
+              <div className="w-full h-full relative rounded-lg overflow-auto">
+                <table className="min-w-full table-fixed text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 bg-table-background border-table-border rounded-t-2xl rounded-b-xl">
+                  <thead className="sticky top-0 z-20 text-xs text-gray-700 uppercase bg-table-header dark:text-gray-400 rounded-t-xl">
+                    <tr>
+                      {isReorderMode && (
+                        <th scope="col" className="px-2 py-3 w-4 min-w-[10px] max-w-[10px]">
+                          <div className="flex items-center">
+                            <GripVertical className="w-4 h-4 text-gray-400" />
+                          </div>
+                        </th>
+                      )}
+                      {response?.columns.map((column, index) => {
+                        const isCurrentSortField = responseData.order.fieldid === column.fieldid
+                        const sortDirection = isCurrentSortField ? responseData.order.direction : null
+                        const shouldShowIcon = isCurrentSortField && (sortDirection === "asc" || sortDirection === "desc")
+                        const iconComponent =
+                          sortDirection === "asc" ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : sortDirection === "desc" ? (
+                            <ArrowDown className="h-4 w-4" />
+                          ) : null
+
+                        return (
+                          <th
+                            key={column.fieldid}
+                            scope="col"
+                            onClick={() => handleSort(column.fieldid)}
+                            onContextMenu={(e) => {
+                              e.preventDefault()
+                              const container = e.currentTarget.closest(".overflow-auto")
+                              const rect = container?.getBoundingClientRect()
+                              const scrollX = container?.scrollLeft || 0
+                              const scrollY = container?.scrollTop || 0
+
+                              const x = e.clientX - (rect?.left || 0) + scrollX
+                              const y = e.clientY - (rect?.top || 0) + scrollY
+                              setColumnContextMenu({
+                                x,
+                                y,
+                                columnId: column.fieldid,
+                              })
+                            }}
+                            style={columnWidths[column.fieldid] ? {
+                              width: `${columnWidths[column.fieldid]}px`,
+                              minWidth: `${columnWidths[column.fieldid]}px`,
+                              maxWidth: `${columnWidths[column.fieldid]}px`
+                            } : undefined}
+                            className={`
+              px-2 py-3 cursor-pointer select-none truncate
+              ${!columnWidths[column.fieldid] ? (
+                                column.fieldtypeid === "Numero"
+                                  ? "min-w-[60px] max-w-[80px] text-right"
+                                  : "min-w-[80px] max-w-[300px] text-left"
+                              ) : ""
+                              }
+              ${
+                              // sticky only first column
+                              index === 0 ? "sticky left-0 bg-table-header" : ""
+                              }
+            `}
+                          >
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-between">
+                                  <span className="w-full truncate">{column.desc}</span>
+                                  {shouldShowIcon && <div className="w-4 h-4 ml-1">{iconComponent}</div>}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>{column.desc}</TooltipContent>
+                            </Tooltip>
+                          </th>
+                        )
+                      })}
+                    </tr>
+                  </thead>
+
+                  {/* TBODY */}
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {(localRows?.length > 0 ? localRows : response?.rows)?.map((row, rowIndex) => (
+                      <tr
+                        key={row.recordid}
+                        draggable={isReorderMode}
+                        onDragStart={(e) => {
+                          if (isReorderMode) {
+                            setDraggedRow(row.recordid)
+                            e.currentTarget.style.opacity = "0.5"
+                          }
+                        }}
+                        onDragEnd={(e) => {
+                          if (isReorderMode) {
+                            e.currentTarget.style.opacity = "1"
+                            setDraggedRow(null)
+                            setDragOverRow(null)
+                          }
+                        }}
+                        onDragOver={(e) => {
+                          if (isReorderMode) {
+                            e.preventDefault()
+                            setDragOverRow(row.recordid)
+                          }
+                        }}
+                        onDrop={async (e) => {
+                          e.preventDefault()
+                          handleDrop(row.recordid)
+                        }}
+                        className={`
+                      group theme-table border-b
+                      ${row.css === "red" ? "bg-red-50 dark:bg-red-950/20" : ""}
+                      ${row.css === "green" ? "bg-green-50 dark:bg-green-950/20" : ""}
+                      ${row.css === "blue" ? "bg-blue-50 dark:bg-blue-950/20" : ""}
+                      ${isReorderMode ? "cursor-move" : "cursor-pointer"}
+                      ${dragOverRow === row.recordid ? "border-t-2 border-blue-500" : ""}
+                      hover:bg-records-background transition-colors
+                    `}
+                        onClick={() =>
+                          !isReorderMode &&
+                          handleRowClick &&
+                          tableid &&
+                          context &&
+                          handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid) &&
+                          setRowOpen(String(row.recordid))
+                        }
                         onContextMenu={(e) => {
                           e.preventDefault()
                           const container = e.currentTarget.closest(".overflow-auto")
@@ -631,269 +726,191 @@ export default function RecordsTable({
 
                           const x = e.clientX - (rect?.left || 0) + scrollX
                           const y = e.clientY - (rect?.top || 0) + scrollY
-                          setColumnContextMenu({
+
+                          setIsDeleteAble(getIsSettingAllowed(tableid, 'delete', row.recordid))
+
+                          if (row.recordid !== contextMenu?.recordid) {
+                            setMenuOpenId((v) => v + 1);
+                          }
+
+                          setContextMenu({
                             x,
                             y,
-                            columnId: column.fieldid,
+                            recordid: row.recordid,
                           })
+                          setRowOpen(String(row.recordid))
                         }}
-                        style={columnWidths[column.fieldid] ? {
-                          width: `${columnWidths[column.fieldid]}px`,
-                          minWidth: `${columnWidths[column.fieldid]}px`,
-                          maxWidth: `${columnWidths[column.fieldid]}px`
-                        } : undefined}
-                        className={`
-              px-2 py-3 cursor-pointer select-none truncate
-              ${
-                !columnWidths[column.fieldid] ? (
-                column.fieldtypeid === "Numero"
-                  ? "min-w-[60px] max-w-[80px] text-right"
-                  : "min-w-[80px] max-w-[300px] text-left"
-                ) : ""
-              }
-              ${
-                // sticky only first column
-                index === 0 ? "sticky left-0 bg-table-header" : ""
-              }
-            `}
                       >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center justify-between">
-                              <span className="w-full truncate">{column.desc}</span>
-                              {shouldShowIcon && <div className="w-4 h-4 ml-1">{iconComponent}</div>}
+                        {isReorderMode && (
+                          <td className="px-2 py-2.5 w-10 min-w- max-w-[10px] truncate">
+                            <div className="flex items-center">
+                              <GripVertical className="w-4 h-4 text-gray-400" />
                             </div>
-                          </TooltipTrigger>
-                          <TooltipContent>{column.desc}</TooltipContent>
-                        </Tooltip>
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-
-              {/* TBODY */}
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {(localRows?.length > 0 ? localRows : response?.rows)?.map((row, rowIndex) => (
-                  <tr
-                    key={row.recordid}
-                    draggable={isReorderMode}
-                    onDragStart={(e) => {
-                      if (isReorderMode) {
-                        setDraggedRow(row.recordid)
-                        e.currentTarget.style.opacity = "0.5"
-                      }
-                    }}
-                    onDragEnd={(e) => {
-                      if (isReorderMode) {
-                        e.currentTarget.style.opacity = "1"
-                        setDraggedRow(null)
-                        setDragOverRow(null)
-                      }
-                    }}
-                    onDragOver={(e) => {
-                      if (isReorderMode) {
-                        e.preventDefault()
-                        setDragOverRow(row.recordid)
-                      }
-                    }}
-                    onDrop={async (e) => {
-                      e.preventDefault()
-                      handleDrop(row.recordid)
-                    }}
-                    className={`
-                      group theme-table border-b
-                      ${row.css === "red" ? "bg-red-50 dark:bg-red-950/20" : ""}
-                      ${row.css === "green" ? "bg-green-50 dark:bg-green-950/20" : ""}
-                      ${row.css === "blue" ? "bg-blue-50 dark:bg-blue-950/20" : ""}
-                      ${isReorderMode ? "cursor-move" : "cursor-pointer"}
-                      ${dragOverRow === row.recordid ? "border-t-2 border-blue-500" : ""}
-                      hover:bg-records-background transition-colors
-                    `}
-                    onClick={() =>
-                      !isReorderMode &&
-                      handleRowClick &&
-                      tableid &&
-                      context &&
-                      handleRowClick(context, row.recordid, tableid, masterTableid, masterRecordid) &&
-                      setRowOpen(String(row.recordid))
-                    }
-                    onContextMenu={(e) => {
-                      e.preventDefault()
-                      const container = e.currentTarget.closest(".overflow-auto")
-                      const rect = container?.getBoundingClientRect()
-                      const scrollX = container?.scrollLeft || 0
-                      const scrollY = container?.scrollTop || 0
-
-                      const x = e.clientX - (rect?.left || 0) + scrollX
-                      const y = e.clientY - (rect?.top || 0) + scrollY
-                  
-                      setIsDeleteAble(getIsSettingAllowed(tableid, 'delete', row.recordid))
-
-                      if (row.recordid !== contextMenu?.recordid) {
-                        setMenuOpenId((v) => v + 1);
-                      }
-                      
-                      setContextMenu({
-                        x,
-                        y,
-                        recordid: row.recordid,
-                      })
-                      setRowOpen(String(row.recordid))
-                    }}
-                  >
-                    {isReorderMode && (
-                      <td className="px-2 py-2.5 w-10 min-w- max-w-[10px] truncate">
-                        <div className="flex items-center">
-                          <GripVertical className="w-4 h-4 text-gray-400" />
-                        </div>
-                      </td>
-                    )}
-                    {row.fields.map((field, index) => {
-                      const column = response?.columns[index]
-                      const isNumberField = column?.fieldtypeid === "Numero"
-                      const isFileField = column?.fieldtypeid === "file"
-                      const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid
-                      const customWidth = column && columnWidths[column.fieldid]
-                      // console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
-                      return (
-                        <td
-                          key={`${row.recordid}-${field.fieldid}`}
-                          style={customWidth ? {
-                            width: `${customWidth}px`,
-                            minWidth: `${customWidth}px`,
-                            maxWidth: `${customWidth}px`
-                          } : undefined}
-                          className={`
+                          </td>
+                        )}
+                        {row.fields.map((field, index) => {
+                          const column = response?.columns[index]
+                          const isNumberField = column?.fieldtypeid === "Numero"
+                          const isFileField = column?.fieldtypeid === "file"
+                          const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid
+                          const customWidth = column && columnWidths[column.fieldid]
+                          // console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
+                          return (
+                            <td
+                              key={`${row.recordid}-${field.fieldid}`}
+                              style={customWidth ? {
+                                width: `${customWidth}px`,
+                                minWidth: `${customWidth}px`,
+                                maxWidth: `${customWidth}px`
+                              } : undefined}
+                              className={`
                   px-4 py-3 align-middle
                   ${field.css}
                   ${!customWidth ? (isNumberField ? "min-w-[60px] max-w-[80px] text-right" : "min-w-[80px] max-w-[300px] text-left") : ""}
                   ${isLinked ? "font-bold" : ""}
+                  ${field.css && field.css.includes("bg-")
+                                  ? " group-hover:bg-records-background"
+                                  : String(rowOpen) === String(row.recordid)
+                                    ? "bg-records-background group-hover:bg-records-background"
+                                    : " bg-table-background group-hover:bg-records-background"
+                                }
                   ${
-                    field.css && field.css.includes("bg-")
-                      ? " group-hover:bg-records-background"
-                      : String(rowOpen) === String(row.recordid)
-                        ? "bg-records-background group-hover:bg-records-background"
-                        : " bg-table-background group-hover:bg-records-background"
-                  }
-                  ${
-                    // sticky only first column
-                    index === 0 ? "sticky left-0 z-10" : ""
-                  }
+                                // sticky only first column
+                                index === 0 ? "sticky left-0 z-10" : ""
+                                }
                 `}
-                        >
-                          <div className="flex items-center gap-x-2">
-                            {column?.fieldtypeid === "Utente" && (
-                              <img
-                                src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
-                                alt="Utente"
-                                className="w-6 h-6 rounded-full flex-shrink-0"
-                                onError={(e) => {
-                                  const img = e.target as HTMLImageElement
-                                  img.src = "/api/media-proxy?url=userProfilePic/default.jpg"
-                                }}
-                              />
-                            )}
-                            {isFileField ? (
-                              errorFile[field.recordid] ? (
-                                <>
-                                  {/* <ImageIcon className="w-8 h-8 flex items-center justify-center text-gray-400" /> */}
-                                </>
-                              ) : (
-                                <img
-                                  src={`/api/media-proxy?url=${field.value}`}
-                                  alt="File field"
-                                  className="w-8 h-8 rounded flex-shrink-0 cursor-zoom-in"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setZoomImg(`/api/media-proxy?url=${field.value}`)
-                                  }}
-                                  onError={(e) => {
-                                    setErrorFile((prev) => ({ ...prev, [field.recordid]: true }))
-                                  }}
-                                />
-                              )
-                            ) : isNumberField ? (
-                              <span className="block truncate w-full max-h-[40px] text-right">
-                                {field.value && !isNaN(Number(field.value))
-                                  ? Number(field.value).toLocaleString("de-CH")
-                                  : field.value}
-                              </span>
-                            ) : (
-                              <span
-                                className={`block truncate w-full max-h-[40px]`}
-                                dangerouslySetInnerHTML={{ __html: field.value }}
-                              />
-                            )}
-                            {isLinked && (
-                              <button
-                                type="button"
-                                className="z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  addCard && addCard(field.linkedmaster_tableid!, field.linkedmaster_recordid!, "card")
-                                }}
-                              >
-                                <SquareArrowOutUpRight className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
+                            >
+                              <div className="flex items-center gap-x-2">
+                                {column?.fieldtypeid === "Utente" && (
+                                  <img
+                                    src={`/api/media-proxy?url=userProfilePic/${field.userid}.png`}
+                                    alt="Utente"
+                                    className="w-6 h-6 rounded-full flex-shrink-0"
+                                    onError={(e) => {
+                                      const img = e.target as HTMLImageElement
+                                      img.src = "/api/media-proxy?url=userProfilePic/default.jpg"
+                                    }}
+                                  />
+                                )}
+                                {isFileField ? (
+                                  errorFile[field.recordid] ? (
+                                    <>
+                                      {/* <ImageIcon className="w-8 h-8 flex items-center justify-center text-gray-400" /> */}
+                                    </>
+                                  ) : (
+                                    <img
+                                      src={`/api/media-proxy?url=${field.value}`}
+                                      alt="File field"
+                                      className="w-8 h-8 rounded flex-shrink-0 cursor-zoom-in"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setZoomImg(`/api/media-proxy?url=${field.value}`)
+                                      }}
+                                      onError={(e) => {
+                                        setErrorFile((prev) => ({ ...prev, [field.recordid]: true }))
+                                      }}
+                                    />
+                                  )
+                                ) : isNumberField ? (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="block truncate w-full max-h-[40px] text-right">
+                                        {field.value && !isNaN(Number(field.value))
+                                          ? Number(field.value).toLocaleString("de-CH")
+                                          : field.value}
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      {field.value && !isNaN(Number(field.value))
+                                        ? Number(field.value).toLocaleString("de-CH")
+                                        : field.value}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ) : (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span
+                                        className={`block truncate w-full max-h-[40px]`}
+                                        dangerouslySetInnerHTML={{ __html: field.value }}
+                                      />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <div
+                                        className="max-w-[400px] max-h-[300px] overflow-auto whitespace-normal break-words"
+                                        dangerouslySetInnerHTML={{ __html: field.value }}
+                                      />
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                                {isLinked && (
+                                  <button
+                                    type="button"
+                                    className="z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      addCard && addCard(field.linkedmaster_tableid!, field.linkedmaster_recordid!, "card")
+                                    }}
+                                  >
+                                    <SquareArrowOutUpRight className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
 
-              <tfoot className="z-20 sticky bottom-0 bg-table-header dark:bg-gray-700">
-                <tr>
-                  {response?.columns.map((column, index) => {
-                    const isNumber = column.fieldtypeid === "Numero"
-                    const totalValue = response?.totals?.[column.fieldid] ?? null
-                    const customWidth = column && columnWidths[column.fieldid]
+                  <tfoot className="z-20 sticky bottom-0 bg-table-header dark:bg-gray-700">
+                    <tr>
+                      {response?.columns.map((column, index) => {
+                        const isNumber = column.fieldtypeid === "Numero"
+                        const totalValue = response?.totals?.[column.fieldid] ?? null
+                        const customWidth = column && columnWidths[column.fieldid]
 
-                    return (
-                      <td
-                        key={`total-${column.fieldid}`}
-                        style={customWidth ? {
-                          width: `${customWidth}px`,
-                          minWidth: `${customWidth}px`,
-                          maxWidth: `${customWidth}px`
-                        } : undefined}
-                        className={`
+                        return (
+                          <td
+                            key={`total-${column.fieldid}`}
+                            style={customWidth ? {
+                              width: `${customWidth}px`,
+                              minWidth: `${customWidth}px`,
+                              maxWidth: `${customWidth}px`
+                            } : undefined}
+                            className={`
                           px-2 py-3 align-right font-bold text-gray-900 dark:text-white border-t border-table-border
                           ${!customWidth ? (isNumber ? "min-w-[60px] max-w-[80px] text-right whitespace-nowrap overflow-hidden text-ellipsis" : "min-w-[80px] max-w-[300px] text-left") : ""}
                           ${index === 0 ? "sticky left-0 bg-table-header rounded-bl-xl" : ""}
                         `}
-                        title={isNumber ? Number(totalValue).toLocaleString("de-CH") : ""} // Tooltip per vedere il valore intero
-                      >
-                        {index === 0
-                          ? "Totali"
-                          : isNumber
-                            ? totalValue !== null
-                              ? Number(totalValue).toLocaleString("de-CH")
-                              : ""
-                            : ""}
-                      </td>
-                    )
-                  })}
-                </tr>
-              </tfoot>
-            </table>
-            <AnimatePresence>
-              {contextMenu && (
-                <motion.div
-                  key="context-menu"
-                  initial={{ opacity: 0, scale: 0.95, y: -6 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.97, y: -4 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 250,
-                    damping: 25,
-                    mass: 0.8,
-                  }}
-                  className="
+                            title={isNumber ? Number(totalValue).toLocaleString("de-CH") : ""} // Tooltip per vedere il valore intero
+                          >
+                            {index === 0
+                              ? "Totali"
+                              : isNumber
+                                ? totalValue !== null
+                                  ? Number(totalValue).toLocaleString("de-CH")
+                                  : ""
+                                : ""}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  </tfoot>
+                </table>
+                <AnimatePresence>
+                  {contextMenu && (
+                    <motion.div
+                      key="context-menu"
+                      initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.97, y: -4 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 250,
+                        damping: 25,
+                        mass: 0.8,
+                      }}
+                      className="
                     absolute p-1 z-50
                     bg-white dark:bg-gray-800
                     border border-gray-200 dark:border-gray-600
@@ -901,113 +918,113 @@ export default function RecordsTable({
                     flex flex-col
                     min-w-[160px] overflow-hidden
                   "
-                  style={{
-                    top: contextMenu.y,
-                    left: contextMenu.x,
-                    transformOrigin: "top left",
-                  }}
-                >
-                  <button
-                    onClick={() => {
-                      duplicateRecord(contextMenu.recordid)
-                      setContextMenu(null)
-                    }}
-                    className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Duplica
-                  </button>
-
-                  {isDeleteAble && (
-                    <button
-                      onClick={() => {
-                        handleTrashClick(contextMenu.recordid)
-                        setContextMenu(null)
+                      style={{
+                        top: contextMenu.y,
+                        left: contextMenu.x,
+                        transformOrigin: "top left",
                       }}
-                      className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                      >
-                      <Trash2 className="w-4 h-4" />
-                      Elimina
-                    </button>
-                  )}
-
-                  {context === "linked" && (
-                    <>
-                      <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
-
+                    >
                       <button
                         onClick={() => {
-                          setIsReorderMode(!isReorderMode)
+                          duplicateRecord(contextMenu.recordid)
                           setContextMenu(null)
                         }}
                         className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <GripVertical className="w-4 h-4" />
-                        {isReorderMode ? "Disattiva riordinamento" : "Riordina righe"}
+                        <Copy className="w-4 h-4" />
+                        Duplica
                       </button>
-                    </>
-                  )}
 
-                  {functionsLoading ? (
-                    <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
-                      <span className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-transparent rounded-full" />
-                      Caricamento funzioni...
-                    </div>
-                  ) : (
-                    <>
-                      {visibleFunctions?.fn.filter((fn) => fn.context === 'cards').length > 0 && (
-                        <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
+                      {isDeleteAble && (
+                        <button
+                          onClick={() => {
+                            handleTrashClick(contextMenu.recordid)
+                            setContextMenu(null)
+                          }}
+                          className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Elimina
+                        </button>
                       )}
 
-                      {visibleFunctions?.fn
-                        .filter((fn) => fn.context === 'cards')
-                        .map((originalFn) => {
-                        if (originalFn.context !== 'cards') return null;
+                      {context === "linked" && (
+                        <>
+                          <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
 
-                        // Crea una copia di fn per non modificare lo stato originale
-                        const fn = { ...originalFn };
-
-                        // Tenta di convertire fn.params da stringa JSON a oggetto
-                        try {
-                          if (fn.params && typeof fn.params === 'string') {
-                            fn.params = JSON.parse(fn.params);
-                          }
-                        } catch (error) {
-                          console.error("Errore nel parsing di fn.params:", fn.params, error);
-                          // Se il parsing fallisce, lo lasciamo come stringa o lo impostiamo a null
-                          fn.params = null; 
-                        }
-                        return (
-                          <DynamicMenuItem
-                            key={fn.title}
-                            fn={fn}
-                            params={{
-                              recordid: contextMenu.recordid,
-                              ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                          <button
+                            onClick={() => {
+                              setIsReorderMode(!isReorderMode)
+                              setContextMenu(null)
                             }}
-                          />
-                        )                         
-                      })}
-                    </>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                            className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                            {isReorderMode ? "Disattiva riordinamento" : "Riordina righe"}
+                          </button>
+                        </>
+                      )}
 
-            <AnimatePresence>
-              {columnContextMenu && (
-                <motion.div
-                  key="col-context-menu"
-                  initial={{ opacity: 0, scale: 0.95, y: -6 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.97, y: -4 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 250,
-                    damping: 25,
-                    mass: 0.8,
-                  }}
-                  className="
+                      {functionsLoading ? (
+                        <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
+                          <span className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-transparent rounded-full" />
+                          Caricamento funzioni...
+                        </div>
+                      ) : (
+                        <>
+                          {visibleFunctions?.fn.filter((fn) => fn.context === 'cards').length > 0 && (
+                            <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
+                          )}
+
+                          {visibleFunctions?.fn
+                            .filter((fn) => fn.context === 'cards')
+                            .map((originalFn) => {
+                              if (originalFn.context !== 'cards') return null;
+
+                              // Crea una copia di fn per non modificare lo stato originale
+                              const fn = { ...originalFn };
+
+                              // Tenta di convertire fn.params da stringa JSON a oggetto
+                              try {
+                                if (fn.params && typeof fn.params === 'string') {
+                                  fn.params = JSON.parse(fn.params);
+                                }
+                              } catch (error) {
+                                console.error("Errore nel parsing di fn.params:", fn.params, error);
+                                // Se il parsing fallisce, lo lasciamo come stringa o lo impostiamo a null
+                                fn.params = null;
+                              }
+                              return (
+                                <DynamicMenuItem
+                                  key={fn.title}
+                                  fn={fn}
+                                  params={{
+                                    recordid: contextMenu.recordid,
+                                    ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
+                                  }}
+                                />
+                              )
+                            })}
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {columnContextMenu && (
+                    <motion.div
+                      key="col-context-menu"
+                      initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.97, y: -4 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 250,
+                        damping: 25,
+                        mass: 0.8,
+                      }}
+                      className="
                     absolute p-3 z-50
                     bg-white dark:bg-gray-800
                     border border-gray-200 dark:border-gray-600
@@ -1015,170 +1032,166 @@ export default function RecordsTable({
                     flex flex-col gap-2
                     min-w-[200px] overflow-hidden
                   "
-                  style={{
-                    top: columnContextMenu.y,
-                    left: columnContextMenu.x,
-                    transformOrigin: "top left",
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Larghezza Colonna
-                  </label>
-                  <input
-                    type="range"
-                    min="50"
-                    max="800"
-                    value={columnWidths[columnContextMenu.columnId] || 150}
-                    onChange={(e) => {
-                      setColumnWidths(prev => ({
-                        ...prev,
-                        [columnContextMenu.columnId]: parseInt(e.target.value)
-                      }))
-                    }}
-                    className="w-full accent-primary"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>50px</span>
-                    <span>{columnWidths[columnContextMenu.columnId] || 150}px</span>
-                    <span>800px</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* SEZIONE PAGINAZIONE AGGIORNATA */}
-          <nav
-            aria-label="Page navigation"
-            className="mt-4 flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0"
-          >
-            {/* 1. Conteggio Totale Record a Sinistra (per schermi larghi) */}
-            <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
-              <span className="font-semibold text-gray-800 dark:text-gray-200">Totale Record:</span>
-              <span className="font-medium">{response?.counter}</span>
-            </div>
-
-            {/* 2. Bottoni di Paginazione al Centro */}
-            <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm order-1 sm:order-2">
-              {/* Previous Button */}
-              <button
-                onClick={() => setTablePage(response?.pagination.currentPage - 1)}
-                title="Previous"
-                disabled={response?.pagination.currentPage === 1}
-                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                  response?.pagination.currentPage === 1
-                    ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
-                    : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
-                }`}
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-              </button>
-
-              {/* Page Numbers */}
-              <div className="flex items-center space-x-1">
-                {/* First Page */}
-                <button
-                  onClick={() => setTablePage(1)}
-                  className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${
-                    response?.pagination.currentPage === 1
-                      ? "text-primary-foreground bg-primary shadow-sm"
-                      : "text-foreground bg-transparent hover:bg-muted"
-                  }`}
-                >
-                  1
-                </button>
-
-                {/* Ellipsis */}
-                {response?.pagination.currentPage > 3 && (
-                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">...</span>
-                )}
-
-                {/* Current Page (if not first or last) */}
-                {response?.pagination.currentPage !== 1 &&
-                  response?.pagination.currentPage !== response?.pagination.totalPages && (
-                    <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
-                      {response?.pagination.currentPage}
-                    </button>
+                      style={{
+                        top: columnContextMenu.y,
+                        left: columnContextMenu.x,
+                        transformOrigin: "top left",
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Larghezza Colonna
+                      </label>
+                      <input
+                        type="range"
+                        min="50"
+                        max="800"
+                        value={columnWidths[columnContextMenu.columnId] || 150}
+                        onChange={(e) => {
+                          setColumnWidths(prev => ({
+                            ...prev,
+                            [columnContextMenu.columnId]: parseInt(e.target.value)
+                          }))
+                        }}
+                        className="w-full accent-primary"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>50px</span>
+                        <span>{columnWidths[columnContextMenu.columnId] || 150}px</span>
+                        <span>800px</span>
+                      </div>
+                    </motion.div>
                   )}
-
-                {/* Ellipsis */}
-                {response?.pagination.currentPage < response?.pagination.totalPages - 2 && (
-                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">...</span>
-                )}
-
-                {/* Last Page */}
-                {response?.pagination.totalPages > 1 && (
-                  <button
-                    onClick={() => setTablePage(response?.pagination.totalPages)}
-                    className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${
-                      response?.pagination.currentPage === response?.pagination.totalPages
-                        ? "text-primary-foreground bg-primary shadow-sm"
-                        : "text-foreground bg-transparent hover:bg-muted"
-                    }`}
-                  >
-                    {response?.pagination.totalPages}
-                  </button>
-                )}
+                </AnimatePresence>
               </div>
 
-              {/* Next Button */}
-              <button
-                onClick={() => setTablePage(response?.pagination.currentPage + 1)}
-                disabled={response?.pagination.currentPage === response?.pagination.totalPages}
-                title="Next"
-                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                  response?.pagination.currentPage === response?.pagination.totalPages
-                    ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
-                    : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
-                }`}
+              {/* SEZIONE PAGINAZIONE AGGIORNATA */}
+              <nav
+                aria-label="Page navigation"
+                className="mt-4 flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0"
               >
-                <ArrowRight className="w-4 h-4 ml-1" />
+                {/* 1. Conteggio Totale Record a Sinistra (per schermi larghi) */}
+                <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">Totale Record:</span>
+                  <span className="font-medium">{response?.counter}</span>
+                </div>
+
+                {/* 2. Bottoni di Paginazione al Centro */}
+                <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm order-1 sm:order-2">
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => setTablePage(response?.pagination.currentPage - 1)}
+                    title="Previous"
+                    disabled={response?.pagination.currentPage === 1}
+                    className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === 1
+                        ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                        : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                      }`}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1" />
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {/* First Page */}
+                    <button
+                      onClick={() => setTablePage(1)}
+                      className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === 1
+                          ? "text-primary-foreground bg-primary shadow-sm"
+                          : "text-foreground bg-transparent hover:bg-muted"
+                        }`}
+                    >
+                      1
+                    </button>
+
+                    {/* Ellipsis */}
+                    {response?.pagination.currentPage > 3 && (
+                      <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">...</span>
+                    )}
+
+                    {/* Current Page (if not first or last) */}
+                    {response?.pagination.currentPage !== 1 &&
+                      response?.pagination.currentPage !== response?.pagination.totalPages && (
+                        <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
+                          {response?.pagination.currentPage}
+                        </button>
+                      )}
+
+                    {/* Ellipsis */}
+                    {response?.pagination.currentPage < response?.pagination.totalPages - 2 && (
+                      <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">...</span>
+                    )}
+
+                    {/* Last Page */}
+                    {response?.pagination.totalPages > 1 && (
+                      <button
+                        onClick={() => setTablePage(response?.pagination.totalPages)}
+                        className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === response?.pagination.totalPages
+                            ? "text-primary-foreground bg-primary shadow-sm"
+                            : "text-foreground bg-transparent hover:bg-muted"
+                          }`}
+                      >
+                        {response?.pagination.totalPages}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={() => setTablePage(response?.pagination.currentPage + 1)}
+                    disabled={response?.pagination.currentPage === response?.pagination.totalPages}
+                    title="Next"
+                    className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === response?.pagination.totalPages
+                        ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                        : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                      }`}
+                  >
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+
+                {/* 3. Dettaglio Pagina a Destra (per schermi larghi) */}
+                {limit && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400 order-3 text-center sm:text-right">
+                    Visualizzati: {response?.rows.length} (Pagina {response?.pagination.currentPage} di{" "}
+                    {response?.pagination.totalPages})
+                  </span>
+                )}
+              </nav>
+            </div>
+          );
+        }}
+      </GenericComponent>
+
+      {/* Modal zoom immagine */}
+      {zoomImg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+          onClick={() => setZoomImg(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-end px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setZoomImg(null)}
+                className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* 3. Dettaglio Pagina a Destra (per schermi larghi) */}
-            {limit && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 order-3 text-center sm:text-right">
-                Visualizzati: {response?.rows.length} (Pagina {response?.pagination.currentPage} di{" "}
-                {response?.pagination.totalPages})
-              </span>
-            )}
-          </nav>
-        </div>
-        );
-      }}
-    </GenericComponent>
-
-    {/* Modal zoom immagine */}
-    {zoomImg && (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
-        onClick={() => setZoomImg(null)}
-      >
-        <div
-          className="relative max-w-4xl w-full max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-end px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={() => setZoomImg(null)}
-              className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="overflow-auto p-2 flex items-center justify-center">
-            <img
-              src={zoomImg}
-              alt="Anteprima"
-              className="max-w-full max-h-[80vh] object-contain"
-            />
+            <div className="overflow-auto p-2 flex items-center justify-center">
+              <img
+                src={zoomImg}
+                alt="Anteprima"
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </>
   )
 }
