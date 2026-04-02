@@ -812,40 +812,21 @@ export default function RecordsTable({
                                     />
                                   )
                                 ) : isNumberField ? (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span className="block truncate w-full max-h-[40px] text-right">
-                                        {field.value && !isNaN(Number(field.value))
-                                          ? Number(field.value).toLocaleString("de-CH")
-                                          : field.value}
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {field.value && !isNaN(Number(field.value))
-                                        ? Number(field.value).toLocaleString("de-CH")
-                                        : field.value}
-                                    </TooltipContent>
-                                  </Tooltip>
+                                  <span className="block truncate w-full max-h-[40px] text-right">
+                                    {field.value && !isNaN(Number(field.value))
+                                      ? Number(field.value).toLocaleString("de-CH")
+                                      : field.value}
+                                  </span>
                                 ) : (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span
-                                        className={`block truncate w-full max-h-[40px]`}
-                                        dangerouslySetInnerHTML={{ __html: field.value }}
-                                      />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <div
-                                        className="max-w-[400px] max-h-[300px] overflow-auto whitespace-normal break-words"
-                                        dangerouslySetInnerHTML={{ __html: field.value }}
-                                      />
-                                    </TooltipContent>
-                                  </Tooltip>
+                                  <span
+                                    className={`block truncate w-full max-h-[40px]`}
+                                    dangerouslySetInnerHTML={{ __html: field.value }}
+                                  />
                                 )}
                                 {isLinked && (
                                   <button
                                     type="button"
-                                    className="z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
+                                    className="z-5 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded focus:outline-none"
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       addCard && addCard(field.linkedmaster_tableid!, field.linkedmaster_recordid!, "card")
@@ -1084,8 +1065,8 @@ export default function RecordsTable({
                     title="Previous"
                     disabled={response?.pagination.currentPage === 1}
                     className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === 1
-                        ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
-                        : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                      ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                      : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
                       }`}
                   >
                     <ArrowLeft className="w-4 h-4 mr-1" />
@@ -1097,8 +1078,8 @@ export default function RecordsTable({
                     <button
                       onClick={() => setTablePage(1)}
                       className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === 1
-                          ? "text-primary-foreground bg-primary shadow-sm"
-                          : "text-foreground bg-transparent hover:bg-muted"
+                        ? "text-primary-foreground bg-primary shadow-sm"
+                        : "text-foreground bg-transparent hover:bg-muted"
                         }`}
                     >
                       1
@@ -1127,8 +1108,8 @@ export default function RecordsTable({
                       <button
                         onClick={() => setTablePage(response?.pagination.totalPages)}
                         className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === response?.pagination.totalPages
-                            ? "text-primary-foreground bg-primary shadow-sm"
-                            : "text-foreground bg-transparent hover:bg-muted"
+                          ? "text-primary-foreground bg-primary shadow-sm"
+                          : "text-foreground bg-transparent hover:bg-muted"
                           }`}
                       >
                         {response?.pagination.totalPages}
@@ -1142,8 +1123,8 @@ export default function RecordsTable({
                     disabled={response?.pagination.currentPage === response?.pagination.totalPages}
                     title="Next"
                     className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${response?.pagination.currentPage === response?.pagination.totalPages
-                        ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
-                        : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                      ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                      : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
                       }`}
                   >
                     <ArrowRight className="w-4 h-4 ml-1" />
