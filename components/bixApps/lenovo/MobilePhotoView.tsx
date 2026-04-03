@@ -347,11 +347,11 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                                     fd.append("apiRoute", "lenovo_mobile_handoff");
                                                     fd.append("action", "set");
                                                     fd.append("session_id", sessionId);
-                                                    fd.append("serial", code);
+                                                    fd.append("serial", code.slice(-8));
                                                     await axiosInstanceClient.post("/postApi", fd);
                                                     setScannedSuccess(true);
                                                 } else {
-                                                    window.location.href = `/bixApps/lenovo-intake?serial=${code}`;
+                                                    window.location.href = `/bixApps/lenovo-intake?serial=${code.slice(-8)}`;
                                                 }
                                             }}
                                             onClose={() => {
