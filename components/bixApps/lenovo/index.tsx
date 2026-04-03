@@ -811,6 +811,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     };
 
     const handleSignatureSave = async (signatureData: string) => {
+        toast.loading("Salvataggio firma in corso...");
         // set(true);
         try {
             const formDataLocal = new FormData();
@@ -820,16 +821,19 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
             const res = await axiosInstanceClient.post("/postApi", formDataLocal);
             if (res.data.success) {
+                toast.dismiss();
                 toast.success("Firma salvata!");
                 setFormData(prev => ({ ...prev, signatureUrl: res.data.signatureUrl || "signed" }));
                 setShowSignatureModal(false);
                 // Reload to show signed state
                 // window.location.reload();
             } else {
+                toast.dismiss();
                 toast.error("Impossibile salvare la firma");
             }
         } catch (e) {
             console.error(e);
+            toast.dismiss();
             toast.error("Errore nel salvataggio della firma");
         } finally {
             // setUploading(false);
@@ -931,20 +935,22 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 </div>
                                 {showScanner && (
                                     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4">
-                                        <div className="w-full max-w-lg mb-4 text-center text-white font-bold">Inquadra il Codice a Barre</div>
-                                        <div className="w-full max-w-lg overflow-hidden rounded-2xl relative">
-                                            <BarcodeScanner 
-                                                onDetected={(code) => {
-                                                    const serial = code.slice(-8);
-                                                    setSearchSerial(serial);
-                                                    setShowScanner(false);
-                                                    handleBarcodeSearch(undefined, serial);
-                                                }}
-                                                onClose={() => setShowScanner(false)}
-                                            />
+                                        <div className="w-full max-w-lg mb-4 text-center text-white font-bold">
+                                        Inquadra il Codice a Barre
+                                        </div>
+                                        <div className="w-full max-w-lg h-[70vh] overflow-hidden rounded-2xl relative">
+                                        <BarcodeScanner
+                                            onDetected={(code) => {
+                                            const serial = code.slice(-8);
+                                            setSearchSerial(serial);
+                                            setShowScanner(false);
+                                            handleBarcodeSearch(undefined, serial);
+                                            }}
+                                            onClose={() => setShowScanner(false)}
+                                        />
                                         </div>
                                     </div>
-                                )}
+                                    )}
                                 <div className="grid grid-cols-2 gap-4">
                                     <button 
                                         type="submit"
