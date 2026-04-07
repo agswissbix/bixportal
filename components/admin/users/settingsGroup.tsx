@@ -63,6 +63,24 @@ export default function SettingsGroup({ groupid, users, groups }: { groupid: num
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!window.confirm('Sei sicuro di voler eliminare definitivamente questo gruppo? Tutti gli utenti associati verranno scollegati.')) return;
+    try {
+      const res = await axiosInstanceClient.post('/postApi', {
+        apiRoute: 'delete_group_api',
+        groupid: groupid
+      });
+      if (res.data.success) {
+        toast.success('Gruppo eliminato con successo');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+         toast.error('Errore eliminazione: ' + res.data.error);
+      }
+    } catch (e: any) {
+      toast.error('Errore API: ' + e.message);
+    }
+  };
+
   const handleAddUser = async () => {
     if (!newUser) return;
     try {
@@ -125,8 +143,9 @@ export default function SettingsGroup({ groupid, users, groups }: { groupid: num
                  {users.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
                </select>
           </div>
-          <div className="pt-2">
+          <div className="pt-2 flex space-x-2">
             <button onClick={handleUpdate} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Salva Modifiche</button>
+            <button onClick={handleDeleteGroup} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Elimina Gruppo</button>
           </div>
         </div>
       </div>
