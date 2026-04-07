@@ -77,6 +77,7 @@ const RecordCard = React.memo(({
   const [animationClassMobile, setAnimationClassMobile] = useState('animate-mobile-slide-in'); // mobile animation (if you have it)
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDeleteAble, setIsDeleteAble] = useState(false);
+  const [isDuplicateAble, setIsDuplicateAble] = useState(false);
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>('');
@@ -144,6 +145,12 @@ const RecordCard = React.memo(({
 
     setIsDeleteAble(getIsSettingAllowed(tableid, "delete", recordid));
   }, [tableSettings?.[tableid]?.delete, tableid, recordid]);
+
+  useEffect(() => {
+    if (!tableSettings?.[tableid]?.duplicate) return;
+
+    setIsDuplicateAble(getIsSettingAllowed(tableid, "duplicate", recordid));
+  }, [tableSettings?.[tableid]?.duplicate, tableid, recordid]);
 
   // dimension / responsive detection
   useEffect(() => {
@@ -361,6 +368,7 @@ const RecordCard = React.memo(({
                       <Trash2 className="w-5 h-5 text-red-500 hover:text-red-700" />
                     </button>
                     )}
+                    {isDuplicateAble && (
                     <button
                       className="p-1.5 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-100 ease-in-out"
                       onClick={duplicateRecord}
@@ -368,6 +376,7 @@ const RecordCard = React.memo(({
                     >
                       <Copy className="w-5 h-5 text-gray-500 hover:text-gray-700" />
                     </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -544,6 +553,7 @@ const RecordCard = React.memo(({
                           <Trash2 className="w-6 h-6 text-red-500 hover:text-red-700" />
                         </button>
                           )}
+                          {isDuplicateAble && (
                         <button
                           className="p-1.5 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-100 ease-in-out"
                           onClick={duplicateRecord}
@@ -551,6 +561,7 @@ const RecordCard = React.memo(({
                         >
                           <Copy className="w-5 h-5 text-gray-500 hover:text-gray-700" />
                         </button>
+                          )}
                       </>
                     )}
 
