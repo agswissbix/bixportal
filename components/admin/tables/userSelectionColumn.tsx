@@ -19,9 +19,17 @@ interface User {
   disabled?: string
 }
 
+interface Group {
+  id: string
+  name: string
+  description?: string
+  idmanager: number
+  priority?: number
+}
+
 interface ResponseInterface {
   users: User[];
-  groups: User[];
+  groups: Group[];
 }
 
 const ResponseInterfaceDefault : ResponseInterface = {
@@ -36,22 +44,22 @@ const ResponseInerfaceDev : ResponseInterface = {
     { id: "3", username: "lbianchi", firstname: "Laura", lastname: "Bianchi", description: "Analista dati", disabled: "false", superuser: "false" } as User,
   ],
   groups: [
-    { id: "g_marketing", username: "GRP-MKT", firstname: "Marketing Team", lastname: "Group", description: "Gruppo team Marketing" },
-    { id: "g_dev", username: "GRP-DEV", firstname: "Sviluppo", lastname: "Group", description: "Gruppo team Sviluppo" },
+    { id: "g_marketing", name: "Marketing Team", description: "Gruppo team Marketing", idmanager: 1 } as Group,
+    { id: "g_dev", name: "Sviluppo", description: "Gruppo team Sviluppo", idmanager: 1 } as Group,
   ]
 }
 
 export const UserSelectionColumn: React.FC<{
   users: User[]
-  groups: User[]
+  groups: Group[]
   selectedUserId: string
   onSelectUser: (userId: string) => void
   onUsersUpdate?: (users: User[]) => void
-  onGroupsUpdate?: (groups: User[]) => void
+  onGroupsUpdate?: (groups: Group[]) => void
 }> = ({ selectedUserId, onSelectUser, onUsersUpdate, onGroupsUpdate }) => {
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? ResponseInerfaceDev : ResponseInterfaceDefault)
-  const [users, setUsers] = useState<User[]>(isDev ? ResponseInerfaceDev.users.filter((u) => u.superuser !== "true") : [])
-  const [groups, setGroups] = useState<User[]>(isDev ? ResponseInerfaceDev.groups : [])
+  const [users, setUsers] = useState<User[]>(isDev ? ResponseInerfaceDev.users.filter((u: any) => u.superuser !== "true" && String(u.superuser) !== "1") : [])
+  const [groups, setGroups] = useState<Group[]>(isDev ? ResponseInerfaceDev.groups : [])
 
   const payload = useMemo(() => {
     if (isDev) return null
@@ -63,7 +71,7 @@ export const UserSelectionColumn: React.FC<{
   useEffect(() => {
     if (!isDev && response) {
       setResponseData(response)
-      const normalUsers = response.users.filter(u => u.superuser !== "true")
+      const normalUsers = response.users.filter(u => u.superuser !== "true" && String(u.superuser) !== "1")
       setUsers(normalUsers)
       setGroups(response.groups)
       onUsersUpdate?.(normalUsers)
@@ -97,10 +105,10 @@ export const UserSelectionColumn: React.FC<{
               <>
                 <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">Gruppi</div>
                 {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
+                  <SelectItem key={`group-${group.id}`} value={group.idmanager.toString()}>
                     <div className="flex items-center gap-2">
                       <Badge className="bg-purple-500 text-white">Gruppo</Badge>
-                      <span>{group.firstname}</span>
+                      <span>{group.name}</span>
                     </div>
                   </SelectItem>
                 ))}

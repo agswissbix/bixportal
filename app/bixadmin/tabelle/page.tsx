@@ -21,6 +21,14 @@ interface User {
   disabled?: string
 }
 
+interface Group {
+  id: string
+  name: string
+  description?: string
+  idmanager: number
+  priority?: number
+}
+
 interface TableType {
   id: string
   description: string
@@ -73,7 +81,7 @@ const UserTablesDev = {
 
 const TabellePage: React.FC = () => {
 	const [users, setUsers] = useState<User[]>([])
-	const [groups, setGroups] = useState<User[]>([])
+	const [groups, setGroups] = useState<Group[]>([])
   const [selectedUserId, setSelectedUserId] = useState<string>(isDev ? "2" : "")
   // const [workspaces, setWorkspaces] = useState<Record<string, Workspace> | undefined>(
   //   isDev ? UserTablesDev.workspaces : undefined,

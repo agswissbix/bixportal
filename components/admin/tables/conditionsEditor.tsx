@@ -13,8 +13,10 @@ interface Rule {
 }
 
 interface Conditions {
-  logic: "AND" | "OR"
-  rules: Rule[]
+  logic?: "AND" | "OR"
+  rules?: Rule[]
+  is_merged?: boolean
+  conditions_list?: Conditions[]
 }
 
 interface ConditionsEditorProps {
@@ -33,15 +35,19 @@ const OPERATORS = [
 
 const ConditionsEditor: React.FC<ConditionsEditorProps> = ({ value, onChange, fieldOptions = [] }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const conditions = value || { logic: "AND", rules: [] }
-  const hasConditions = conditions.rules.length > 0
+  
+  const defaultConditions: Conditions = { logic: "AND", rules: [] }
+  const conditions = value || defaultConditions
+  const isMerged = conditions.is_merged
+  const safeRules = conditions.rules || []
+  const hasConditions = safeRules.length > 0
 
   const handleLogicChange = (logic: "AND" | "OR") => {
     onChange({ ...conditions, logic })
   }
 
   const handleRuleChange = (index: number, field: keyof Rule, newValue: string) => {
-    const newRules = [...conditions.rules]
+    const newRules = [...safeRules]
     newRules[index] = { ...newRules[index], [field]: newValue }
     onChange({ ...conditions, rules: newRules })
   }
@@ -49,14 +55,74 @@ const ConditionsEditor: React.FC<ConditionsEditorProps> = ({ value, onChange, fi
   const addRule = () => {
     onChange({
       ...conditions,
-      rules: [...conditions.rules, { field: "", operator: "=", value: "" }],
+      logic: conditions.logic || "AND",
+      rules: [...safeRules, { field: "", operator: "=", value: "" }],
     })
     setIsOpen(true)
   }
 
   const removeRule = (index: number) => {
-    const newRules = conditions.rules.filter((_, i) => i !== index)
+    const newRules = safeRules.filter((_, i) => i !== index)
     onChange({ ...conditions, rules: newRules })
+  }
+
+  if (isMerged) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-sm text-purple-600 hover:text-purple-900 px-0"
+          >
+            {isOpen ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
+            Condizioni ereditate (multiple)
+          </Button>
+        </div>
+
+        {isOpen && (
+          <div className="border rounded-lg p-4 bg-purple-50 space-y-3">
+            <span className="text-xs text-purple-600 block mb-2 font-medium">Condizioni combinate dai vari gruppi a cui appartiene l'utente:</span>
+            <div className="space-y-2">
+               {conditions.conditions_list?.map((sub, i) => (
+                 <div key={i} className="p-2 bg-white rounded border border-purple-100 shadow-sm">
+                    <span className="font-medium text-xs text-purple-700">Gruppo logico ({sub.logic}):</span>
+                    <ul className="list-disc pl-4 mt-1">
+                      {sub.rules?.map((r, idx) => (
+                        <li key={idx} className="text-xs text-gray-700">{r.field} <b>{r.operator}</b> {r.value}</li>
+                      ))}
+                    </ul>
+                 </div>
+               ))}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                 const flattenedRules: Rule[] = [];
+                 conditions.conditions_list?.forEach(sub => {
+                     if (sub.rules) {
+                         flattenedRules.push(...sub.rules);
+                     }
+                 });
+                 onChange({ 
+                     logic: "OR", 
+                     rules: flattenedRules.length > 0 ? flattenedRules : [{ field: "", operator: "=", value: "" }] 
+                 })
+                 setIsOpen(true)
+              }}
+              className="w-full border-dashed bg-white mt-2 text-purple-700 hover:bg-purple-100"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Sovrascrivi e Modifica Regole Ereditate
+            </Button>
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -116,7 +182,7 @@ const ConditionsEditor: React.FC<ConditionsEditorProps> = ({ value, onChange, fi
 
           {/* Rules */}
           <div className="space-y-2">
-            {conditions.rules.map((rule, index) => (
+            {safeRules.map((rule, index) => (
               <div key={index} className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-200">
                 <div className="flex-1 grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
                   {/* Field */}
@@ -190,7 +256,7 @@ const ConditionsEditor: React.FC<ConditionsEditorProps> = ({ value, onChange, fi
             Aggiungi Regola
           </Button>
 
-          {conditions.rules.length === 0 && (
+          {safeRules.length === 0 && (
             <p className="text-sm text-gray-500 text-center py-2">
               Nessuna regola configurata. Clicca "Aggiungi Regola" per iniziare.
             </p>

@@ -5,7 +5,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient'; // Usa la tua istanza
 import NewUserForm from '@/components/admin/users/newUser'; 
-// import NewGroupForm from './NewGroupForm'; 
+import NewGroupForm from '@/components/admin/users/newGroup'; 
+import SettingsGroup from '@/components/admin/users/settingsGroup';
 import {useApi} from '@/utils/useApi';
 import GenericComponent from '@/components/genericComponent';
 import UserProfileSettings from '@/components/admin/users/settingsUser';
@@ -25,6 +26,44 @@ const UserSettings = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [viewMode, setViewMode] = useState('list'); 
   const [responseData, setResponseData] = useState<ResponseInterface | null>(null);
+  
+  // Reorder state
+  const [orderedGroups, setOrderedGroups] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (groups.length > 0) {
+      setOrderedGroups([...groups].sort((a: any,b: any) => (a.priority ?? 9999) - (b.priority ?? 9999)));
+    }
+  }, [groups]);
+
+  const moveGroup = (index: number, direction: number) => {
+      const newArray = [...orderedGroups];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= newArray.length) return;
+      
+      const temp = newArray[index];
+      newArray[index] = newArray[targetIndex];
+      newArray[targetIndex] = temp;
+      
+      setOrderedGroups(newArray);
+  };
+
+  const savePriorities = async () => {
+      const mappedGroups = orderedGroups.map((g, index) => ({ id: g.id, priority: index }));
+      try {
+          const res = await axiosInstanceClient.post('/postApi', {
+             apiRoute: 'update_groups_priority_api',
+             groups: mappedGroups
+          });
+          if (res.data.success) {
+              toast.success('Priorità salvate con successo');
+          } else {
+              toast.error('Errore salvataggio priorità');
+          }
+      } catch (e: any) {
+          toast.error('API Error: ' + e.message);
+      }
+  };
 
   const payloadApi = useMemo(() => {
     if (isDev) return null;
@@ -48,8 +87,8 @@ const UserSettings = () => {
     setViewMode('userSettings');
   };
 
-  const handleGroupClick = (groupUsername) => {
-    setSelectedGroup(groups.find(g => g.username === groupUsername));
+  const handleGroupClick = (groupId: number) => {
+    setSelectedGroup(groups.find((g: any) => g.id === groupId));
     setSelectedUser(null);
     setViewMode('groupSettings');
   };
@@ -85,7 +124,7 @@ const UserSettings = () => {
       case 'newUser':
         return <NewUserForm />;
       case 'newGroup':
-        // return <NewGroupForm />;
+        return <NewGroupForm users={users} />;
       case 'userSettings':
         return (
           <div className="space-y-6">
@@ -98,7 +137,7 @@ const UserSettings = () => {
           </div>
         );
       case 'groupSettings':
-        return <div>Impostazioni Gruppo per: {selectedGroup.username}</div>;
+        return <SettingsGroup groupid={selectedGroup?.id} users={users} groups={groups} />;
       default:
         return (
           <div className="flex flex-col space-y-4">
@@ -115,7 +154,7 @@ const UserSettings = () => {
     <GenericComponent response={responseData} loading={loading} error={error}>
       {(response: ResponseInterface) => (
     <div className="min-h-screen bg-gray-100 p-8">
-      <div className="flex h-full w-full max-w-7xl mx-auto rounded-lg shadow-xl bg-white p-6">
+      <div className="flex h-full w-full mx-auto rounded-lg shadow-xl bg-white p-6">
         {/* Sidebar */}
         <div className="w-1/4 pr-6 border-r border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Gestione Utenti</h2>
@@ -141,17 +180,26 @@ const UserSettings = () => {
           
           <div>
             <h3 className="text-xl font-semibold mb-2">Gruppi</h3>
-            <div className="space-y-2">
-              {groups.map((group) => (
-                <button
-                  key={group.username}
-                  onClick={() => handleGroupClick(group.username)}
-                  className="w-full text-left p-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
-                >
-                  {group.username}
-                </button>
-              ))}
+            <div className="space-y-1 mb-2 max-h-96 overflow-y-auto pr-2">
+              {orderedGroups.map((g, index) => {
+                 const isSelected = selectedGroup?.id === g.id;
+                 return (
+                   <div key={g.id} className={`flex items-center justify-between p-1 rounded-md border ${isSelected ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-50 border-gray-200'}`}>
+                     <div className="flex items-center space-x-2 cursor-pointer w-full overflow-hidden" onClick={() => handleGroupClick(g.id)}>
+                       <span className="font-mono text-xs text-gray-400 w-4">{index}</span>
+                       <span className={`text-sm truncate ${isSelected ? 'font-bold text-indigo-800' : 'text-gray-700'}`}>{g.name}</span>
+                     </div>
+                     <div className="flex space-x-1 shrink-0">
+                       <button onClick={() => moveGroup(index, -1)} disabled={index === 0} className="text-xs px-1 text-gray-500 hover:text-indigo-600 disabled:opacity-30">▲</button>
+                       <button onClick={() => moveGroup(index, 1)} disabled={index === orderedGroups.length - 1} className="text-xs px-1 text-gray-500 hover:text-indigo-600 disabled:opacity-30">▼</button>
+                     </div>
+                   </div>
+                 )
+              })}
             </div>
+            <button onClick={savePriorities} className="w-full mb-4 p-2 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium">
+              Salva Ordine / Priorità
+            </button>
             <button
               onClick={() => setViewMode('newGroup')}
               className="mt-4 w-full p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"

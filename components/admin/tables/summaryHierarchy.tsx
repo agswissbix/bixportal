@@ -12,7 +12,8 @@ export const SummaryHierarchy: React.FC<{ selectedUserId: string }> = ({ selecte
   }
 
   useEffect(() => {
-    if (selectedUserId) {
+    console.log("selectedUserId", selectedUserId)
+    if (selectedUserId && selectedUserId !== "" && selectedUserId.toString() !== "1") {
       axiosInstanceClient.post("/postApi", {
         apiRoute: "settings_user_customizations_summary",
         userid: selectedUserId
