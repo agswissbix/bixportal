@@ -150,7 +150,7 @@ export default function inputLinked({
           setActiveFilters([])
         }
       } catch (err) {
-        setError(err.response?.data?.error || "Error fetching data")
+        setError("Error fetching data")
         setItems([])
         setActiveFilters([])
       } finally {
