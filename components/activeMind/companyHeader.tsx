@@ -13,6 +13,7 @@ const isDev = false;
 				// INTERFACCIA PROPS
 				interface PropsInterface {
 					recordIdTrattativa?: string;
+					onDataLoaded?: (data: ResponseInterface['cliente']) => void;
 				}
 
 				// INTERFACCIA RISPOSTA DAL BACKEND
@@ -21,10 +22,11 @@ const isDev = false;
 						nome: string;
 						indirizzo: string;
 						citta: string;
+						deal_user?: string;
 					}
 				}
 
-export default function CompanyHeader({recordIdTrattativa}: PropsInterface) {
+export default function CompanyHeader({recordIdTrattativa, onDataLoaded}: PropsInterface) {
 	//DATI
 					// DATI PROPS PER LO SVILUPPO
 					const devRecordIdTrattativa = isDev ? "0000001" : recordIdTrattativa;
@@ -68,26 +70,13 @@ export default function CompanyHeader({recordIdTrattativa}: PropsInterface) {
 
 	// AGGIORNAMENTO RESPONSE CON I DATI DEL BACKEND (solo se non in sviluppo) (non)
 	useEffect(() => {
-			if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
+			if (!isDev && response) {
 					setResponseData(response);
+					if (onDataLoaded && response.cliente) {
+							onDataLoaded(response.cliente);
+					}
 			}
-	}, [response, responseData]);
-
-	// PER DEVELOPMENT 
-	useEffect(() => {
-			const interval = setInterval(() => {
-					// forza un setState con lo stesso valore, quindi re-render inutile
-					setResponseData({ 
-						cliente: {
-							nome: "Farmacia MGM Azione Sagl",
-							indirizzo: "Via Franco Zorzi 36a",
-							citta: "Bellinzona"
-						} 
-					}); // stesso valore di prima
-
-			}, 3000);
-			return () => clearInterval(interval);
-	}, []);
+	}, [response]);
 
   return (
 	<GenericComponent response={responseData} loading={loading} error={error}> 

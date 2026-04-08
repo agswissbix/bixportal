@@ -154,6 +154,36 @@ const UserSettings = ({ userid }: { userid: number }) => {
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!window.confirm('Sei sicuro di voler eliminare definitivamente questo utente e tutte le sue associazioni ai gruppi? L\'operazione è irreversibile.')) return;
+    try {
+      setIsSavingProfile(true);
+      const token = localStorage.getItem('token');
+      const response = await axiosInstanceClient.post(
+        '/postApi',
+        {
+          apiRoute: 'delete_user_api',
+          userid: userid,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Utente eliminato con successo!');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        toast.error('Errore eliminazione utente: ' + response.data.error);
+        setIsSavingProfile(false);
+      }
+    } catch (error) {
+      toast.error('Errore API durante l\'eliminazione.');
+      console.error('Delete user error:', error);
+      setIsSavingProfile(false);
+    }
+  };
+
   if (isLoadingTheme || isLoadingProfile) {
     return <div className="text-center text-gray-500 py-4">Caricamento impostazioni utente...</div>;
   }
@@ -213,7 +243,15 @@ const UserSettings = ({ userid }: { userid: number }) => {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={handleDeleteUser}
+              disabled={isSavingProfile}
+              className="inline-flex justify-center rounded-md border border-transparent bg-red-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+            >
+              Elimina Utente
+            </button>
             <button
               type="submit"
               disabled={isSavingProfile}

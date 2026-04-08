@@ -149,7 +149,7 @@ export default function inputLinked({
           setItems([])
           setActiveFilters([])
         }
-      } catch {
+      } catch (err) {
         setError("Error fetching data")
         setItems([])
         setActiveFilters([])

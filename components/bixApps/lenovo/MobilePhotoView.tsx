@@ -32,6 +32,12 @@ export default function MobilePhotoView({ ticketId }: Props) {
     const [photo, setPhoto] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [note, setNote] = useState("");
+    const getAttachmentTypeByStatus = (status: string) => {
+        const s = (status || '').toLowerCase();
+        if (s === 'entrata') return 'foto-diagnostica';
+        if (s === 'diagnostica') return 'foto-riparazione';
+        return 'pre-intervento';
+    };
     const [attachmentType, setAttachmentType] = useState("pre-intervento");
 
     const [activeTab, setActiveTab] = useState<'photo' | 'attachments' | 'signature' | 'summary'>('photo');
@@ -73,6 +79,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
 
             if (ticketRes.data.success) {
                 setTicket(ticketRes.data.ticket);
+                setAttachmentType(getAttachmentTypeByStatus(ticketRes.data.ticket.status));
                 // Determine initial view based on status
                 if (ticketRes.data.ticket.status === 'Ritirato') {
                     setActiveTab('summary');
@@ -340,11 +347,11 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                                     fd.append("apiRoute", "lenovo_mobile_handoff");
                                                     fd.append("action", "set");
                                                     fd.append("session_id", sessionId);
-                                                    fd.append("serial", code);
+                                                    fd.append("serial", code.slice(-8));
                                                     await axiosInstanceClient.post("/postApi", fd);
                                                     setScannedSuccess(true);
                                                 } else {
-                                                    window.location.href = `/bixApps/lenovo-intake?serial=${code}`;
+                                                    window.location.href = `/bixApps/lenovo-intake?serial=${code.slice(-8)}`;
                                                 }
                                             }}
                                             onClose={() => {
@@ -418,7 +425,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
             <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Attachments ({attachments.length})</h3>
                 <button 
-                    onClick={() => setView('upload_attachment')}
+                    onClick={() => { setAttachmentType(getAttachmentTypeByStatus(ticket?.status)); setView('upload_attachment'); }}
                     className="p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors"
                 >
                     <Icons.PlusIcon className="w-5 h-5 text-white" />
@@ -446,7 +453,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                         <Icons.PaperClipIcon className="w-10 h-10 text-zinc-700 mx-auto mb-2" />
                         <p className="text-zinc-500 text-sm">No attachments</p>
                         <button 
-                            onClick={() => setView('upload_attachment')}
+                            onClick={() => { setAttachmentType(getAttachmentTypeByStatus(ticket?.status)); setView('upload_attachment'); }}
                             className="mt-4 text-[#E2231A] font-bold text-sm"
                         >
                             + Add Attachment
@@ -649,7 +656,8 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                         </SelectTrigger>
                                         <SelectContent className="">
                                             <SelectItem className="" value="pre-intervento">Foto pre-intervento</SelectItem>
-                                            <SelectItem className="" value="post-intervento">Foto post-intervento</SelectItem>
+                                            <SelectItem className="" value="foto-diagnostica">Foto diagnostica</SelectItem>
+                                            <SelectItem className="" value="foto-riparazione">Foto riparazione</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

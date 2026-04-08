@@ -335,6 +335,31 @@ export async function POST(request: Request) {
         case "delete_dashboard_block":
             djangoUrl = "/commonapp/delete_dashboard_block/";
             break;
+        case "get_group_detail_api":
+            djangoUrl = "/commonapp/get_group_detail_api/";
+            break;
+        case "save_new_group_api":
+            djangoUrl = "/commonapp/save_new_group_api/";
+            break;
+        case "update_group_api":
+            djangoUrl = "/commonapp/update_group_api/";
+            break;
+        case "update_groups_priority_api":
+            djangoUrl = "/commonapp/update_groups_priority_api/";
+            break;
+        case "add_user_to_group_api":
+            djangoUrl = "/commonapp/add_user_to_group_api/";
+            break;
+        case "remove_user_from_group_api":
+            djangoUrl = "/commonapp/remove_user_from_group_api/";
+            break;
+        case "delete_group_api":
+            djangoUrl = "/commonapp/delete_group_api/";
+            break;
+        case "delete_user_api":
+            djangoUrl = "/commonapp/delete_user_api/";
+            break;
+
         case "get_activemind":
             djangoUrl = "/customapp_swissbix/get_activemind/";
             break;

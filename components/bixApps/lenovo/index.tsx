@@ -47,6 +47,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
+    const stepContentRef = useRef<HTMLDivElement>(null);
 
     // QR State
     const [showQR, setShowQR] = useState(false);
@@ -70,8 +71,49 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     };
 
     // Helper: torna alla ricerca e rimuove il recordid dall'URL
+    const initialFormData = {
+        recordid: "",
+        reception_date: new Date().toISOString().split('T')[0],
+        status: "Draft",
+        company_name: "",
+        name: "",
+        surname: "",
+        email: "",
+        phone: "",
+        recordidcompany_: "",
+        serial: "",
+        product_photo: "",
+        ticket_id: "",
+        problem_description: "",
+        internal_notes: "",
+        replaced_components: "",
+        address: "",
+        place: "",
+        brand: "",
+        model: "",
+        username: "",
+        password: "",
+        warranty: "No" as string,
+        warranty_type: "",
+        technician: "47",
+        auth_factory_reset: "No",
+        request_quote: "No",
+        direct_repair: "No",
+        direct_repair_limit: "",
+        auth_formatting: "No",
+        signatureUrl: "",
+        accessories: [] as string | string[],
+        custom_accessory: "",
+        pick_up: "",
+    };
+
     const goToInitial = () => {
-        setSearchSerial(formData.serial)
+        setFormData(initialFormData);
+        setSearchSerial("");
+        setWarrantyHistory([]);
+        setAttachments([]);
+        setCurrentNote("");
+        setStep(1);
         setAppSection('initial');
         const url = new URL(window.location.href);
         url.searchParams.delete('recordid');
@@ -169,10 +211,9 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
           setLookups(response.lookups?.accessories || [])
           setPickUpLookups(response.lookups?.pick_up || [])
           setUsersLookup(response.lookups?.users || [])
-          if (response.logged_in_userid) {
-            setFormData(prev => prev.technician ? prev : { ...prev, technician: response.logged_in_userid })
+          if (response.field_settings.technician.default) {
+            setFormData(prev => prev.technician ? prev : { ...prev, technician: response.field_settings.technician.default })
           }
-          console.log("Custom functions loaded:", response)
         }
       }, [response])
 
@@ -302,6 +343,13 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         return () => clearInterval(interval);
     }, [step, formData.recordid, formData.product_photo, formData.signatureUrl, showQR]);
 
+    // Scroll step content to top on step change
+    useEffect(() => {
+        if (stepContentRef.current) {
+            stepContentRef.current.scrollTop = 0;
+        }
+    }, [step]);
+
     // Close search on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -368,26 +416,25 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const validateStep = (currentStep: number) => {
         // Step 1: Client
         if (currentStep === 1) {
-            const requiredFields = ['company_name', 'name', 'surname', 'email'];
+            const requiredFields = ['company_name', 'name', 'surname', 'email', 'address', 'place', 'phone'];
             for (const field of requiredFields) {
                 if (fieldSettings[field]?.required && !formData[field as keyof typeof formData]) {
                     toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || field}`);
                     return false;
                 }
             }
-            if (!formData.company_name && !formData.name) {
-                 toast.error("Compila i campi: Azienda o Nome e Cognome");
-                 return false;
-            }
             return true;
         }
 
         // Step 2: Product & Credentials
         if (currentStep === 2) {
-            //  if (!formData.brand && !formData.model && !formData.serial) {
-            //      toast.error("Compila almeno un dettaglio del prodotto (Marca/Modello/Seriale)");
-            //      return false;
-            //  }
+            const requiredFields = ['serial', 'brand', 'model', 'accessories', 'username', 'password', 'pickUpLookups'];
+            for (const field of requiredFields) {
+                if (fieldSettings[field]?.required && !formData[field as keyof typeof formData]) {
+                    toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || field}`);
+                    return false;
+                }
+            }
              return true;
         }
 
@@ -444,7 +491,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         }
     };
 
-    const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>, typeOverride?: string) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             
@@ -461,7 +508,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             body.append("ticket_id", ticketId);
             body.append("file", file);
             body.append("note", attachmentNote);
-            body.append("attachment_type", attachmentType);
+            body.append("attachment_type", typeOverride ?? attachmentType);
 
             try {
                 const res = await axiosInstanceClient.post("/postApi", body, {
@@ -764,6 +811,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     };
 
     const handleSignatureSave = async (signatureData: string) => {
+        toast.loading("Salvataggio firma in corso...");
         // set(true);
         try {
             const formDataLocal = new FormData();
@@ -773,16 +821,19 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
             const res = await axiosInstanceClient.post("/postApi", formDataLocal);
             if (res.data.success) {
+                toast.dismiss();
                 toast.success("Firma salvata!");
                 setFormData(prev => ({ ...prev, signatureUrl: res.data.signatureUrl || "signed" }));
                 setShowSignatureModal(false);
                 // Reload to show signed state
                 // window.location.reload();
             } else {
+                toast.dismiss();
                 toast.error("Impossibile salvare la firma");
             }
         } catch (e) {
             console.error(e);
+            toast.dismiss();
             toast.error("Errore nel salvataggio della firma");
         } finally {
             // setUploading(false);
@@ -826,6 +877,16 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             
             <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 w-full mb-6">
                 <div className="flex items-center gap-3">
+                    {appSection !== 'initial' && (
+                        <button
+                            onClick={() => goToInitial()}
+                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-gray-600 hover:text-[#E2231A] hover:bg-red-50 rounded-lg transition-colors border border-gray-200 mr-2"
+                            title="Torna alla ricerca"
+                        >
+                            <Icons.ArrowLeftIcon className="w-4 h-4" />
+                            <span className="hidden sm:inline">Ricerca</span>
+                        </button>
+                    )}
                     <div className="w-10 h-10 bg-[#E2231A] rounded flex items-center justify-center text-white font-bold text-xl" style={{ display: 'none' }} ref={(el) => {
                         const img = el?.nextElementSibling as HTMLImageElement;
                         if (img && el) {
@@ -871,30 +932,25 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         className="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl text-center text-xl font-mono uppercase tracking-widest focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all outline-none"
                                         autoFocus
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowScanner(true)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#E2231A] transition-colors bg-white p-2 rounded-lg shadow-sm border border-gray-100"
-                                        title="Scannerizza Barcode"
-                                    >
-                                        <Icons.CameraIcon className="w-6 h-6" />
-                                    </button>
                                 </div>
                                 {showScanner && (
                                     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4">
-                                        <div className="w-full max-w-lg mb-4 text-center text-white font-bold">Inquadra il Codice a Barre</div>
-                                        <div className="w-full max-w-lg overflow-hidden rounded-2xl relative">
-                                            <BarcodeScanner 
-                                                onDetected={(code) => {
-                                                    setSearchSerial(code);
-                                                    setShowScanner(false);
-                                                    handleBarcodeSearch(undefined, code);
-                                                }}
-                                                onClose={() => setShowScanner(false)}
-                                            />
+                                        <div className="w-full max-w-lg mb-4 text-center text-white font-bold">
+                                        Inquadra il Codice a Barre
+                                        </div>
+                                        <div className="w-full max-w-lg h-[70vh] overflow-hidden rounded-2xl relative">
+                                        <BarcodeScanner
+                                            onDetected={(code) => {
+                                            const serial = code.slice(-8);
+                                            setSearchSerial(serial);
+                                            setShowScanner(false);
+                                            handleBarcodeSearch(undefined, serial);
+                                            }}
+                                            onClose={() => setShowScanner(false)}
+                                        />
                                         </div>
                                     </div>
-                                )}
+                                    )}
                                 <div className="grid grid-cols-2 gap-4">
                                     <button 
                                         type="submit"
@@ -907,17 +963,21 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     <button 
                                         type="button"
                                         onClick={() => {
-                                            if (showQR) return setShowQR(false);
-                                            const sessionId = Math.random().toString(36).substring(2, 10);
-                                            const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/search?session_id=${sessionId}`;
-                                            setMobileSessionId(sessionId);
-                                            setMobileUrl(url);
-                                            setShowQR(true);
+                                            if (isMobile) {
+                                                setShowScanner(true);
+                                            } else {
+                                                if (showQR) return setShowQR(false);
+                                                const sessionId = Math.random().toString(36).substring(2, 10);
+                                                const url = `${window.location.origin}/bixApps/lenovo-intake/mobile/search?session_id=${sessionId}`;
+                                                setMobileSessionId(sessionId);
+                                                setMobileUrl(url);
+                                                setShowQR(true);
+                                            }
                                         }}
                                         className="w-full bg-white border-2 border-gray-200 text-gray-700 py-4 rounded-xl font-bold text-[15px] sm:text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 outline-none"
                                     >
-                                        <Icons.QrCodeIcon className="w-6 h-6 shrink-0" />
-                                        <span className="truncate">Usa Mobile</span>
+                                        <Icons.CameraIcon className="w-6 h-6 shrink-0" />
+                                        <span className="truncate">Scannerizza</span>
                                     </button>
                                 </div>
                             </form>
@@ -962,7 +1022,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         }
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-1 pb-24 lg:pb-8">
+                    <div ref={stepContentRef} className="flex-1 overflow-y-auto px-1 pb-24 lg:pb-8">
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                             {step === 1 && (
                         <div className="space-y-6">
@@ -997,7 +1057,10 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     )}
                                 </div>
                                 <div>
-                                    <Label field="name" text="Nome Contatto" />
+                                    <div className='flex flex-row gap-2'>
+                                        <Label field="name" text="Nome Contatto" />
+                                        <Label field="surname" text="" />
+                                    </div>
                                     <input 
                                         type="text" 
                                         value={formData.name}
@@ -1496,7 +1559,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="pre-intervento">Foto pre-intervento</SelectItem>
-                                                <SelectItem value="post-intervento">Foto post-intervento</SelectItem>
+                                                <SelectItem value="foto-diagnostica">Foto diagnostica</SelectItem>
+                                                <SelectItem value="foto-riparazione">Foto riparazione</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <div className="relative">
@@ -1744,7 +1808,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             onClick={() => step > 1 ? setStep(step - 1) : goToInitial()}
                             className={`px-6 py-3 rounded-xl font-medium transition-colors ${step >= 1 || appSection !== 'presa_in_consegna' ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' : 'invisible'}`}
                         >
-                            {step === 1 ? 'Torna alla Ricerca' : 'Indietro'}
+                            Indietro
                         </button>
                         <div className="flex gap-3">
                             <button 
@@ -1910,8 +1974,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                             <input 
                                                 type="file" 
                                                 onChange={(e) => {
-                                                    setAttachmentType(appSection === 'diagnostica' ? 'diagnostica' : 'post-intervento');
-                                                    handleAttachmentUpload(e);
+                                                    const t = appSection === 'diagnostica' ? 'foto-diagnostica' : 'foto-riparazione';
+                                                    handleAttachmentUpload(e, t);
                                                 }}
                                                 disabled={isUploadingAttachment}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -1978,13 +2042,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             </div>
 
                             {/* Azioni */}
-                            <div className="flex justify-between items-center pt-8 border-t border-gray-100 mt-8">
-                                <button
-                                    onClick={() => goToInitial()}
-                                    className="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors"
-                                >
-                                    Torna alla ricerca
-                                </button>
+                            <div className="flex justify-end items-center pt-8 border-t border-gray-100 mt-8">
                                 <button
                                     onClick={async () => {
                                         const statusObj = appSection === 'diagnostica' ? 'Diagnostica' : 'Riparato';
@@ -2122,13 +2180,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-center pt-8 border-t border-gray-100">
-                                <button
-                                    onClick={() => goToInitial()}
-                                    className="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors"
-                                >
-                                    Torna alla Ricerca
-                                </button>
+                            <div className="flex justify-end items-center pt-8 border-t border-gray-100">
                                 <button
                                     onClick={async () => {
                                         const res = await handleSave("Riconsegnato");

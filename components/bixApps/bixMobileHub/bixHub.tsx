@@ -298,6 +298,7 @@ export default function BixHub() {
                                                  const theme = getTheme(index);
                                                  return (
                                                     <Link 
+                                                        target="_blank"
                                                         href={app.url} 
                                                         key={index}
                                                         className={`
@@ -432,7 +433,7 @@ export default function BixHub() {
                                     </div>
                                 </div>
 
-                                {/* LENOVO TICKETS */}
+                                {/* LENOVO TICKETS
                                 {lenovoTickets.length > 0 && (
                                     <div className="w-full lg:w-1/2 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                                         <h2 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
@@ -456,7 +457,7 @@ export default function BixHub() {
                                             })}
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                             </div>
 
                         </main>
@@ -467,91 +468,91 @@ export default function BixHub() {
     );
 };
 
-function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetClick, formatDate, isLast }) {
-    const [open, setOpen] = useState(false);
+// function LenovoStatusGroup({ status, tickets, theme, lenovoApp, handleTimesheetClick, formatDate, isLast }) {
+//     const [open, setOpen] = useState(false);
 
-    return (
-        <div className={`${!isLast ? 'border-b border-zinc-100' : ''}`}>
-            {/* Header gruppo status */}
-            <button
-                onClick={() => setOpen(!open)}
-                className={`
-                    w-full flex items-center justify-between px-4 py-3
-                    ${open ? theme?.bg : 'hover:bg-zinc-50'}
-                    transition-colors duration-200
-                `}
-            >
-                <div className="flex items-center gap-2.5">
-                    {/* Dot colorato */}
-                    <span className={`w-2 h-2 rounded-full ${theme?.dot} shrink-0`} />
-                    <span className={`text-sm font-bold ${open ? theme?.text : 'text-zinc-600'} uppercase tracking-wider transition-colors`}>
-                        {status}
-                    </span>
-                    {/* Badge count */}
-                    <span className={`
-                        text-[10px] font-black px-1.5 py-0.5 rounded-full
-                        ${open ? `${theme?.badgeBg} ${theme?.text}` : 'bg-zinc-100 text-zinc-500'}
-                        transition-colors duration-200
-                    `}>
-                        {tickets.length}
-                    </span>
-                </div>
-                <ChevronDownIcon className={`
-                    w-4 h-4 ${open ? theme?.icon : 'text-zinc-400'}
-                    transition-transform duration-300 ${open ? 'rotate-180' : ''}
-                `} />
-            </button>
+//     return (
+//         <div className={`${!isLast ? 'border-b border-zinc-100' : ''}`}>
+//             {/* Header gruppo status */}
+//             <button
+//                 onClick={() => setOpen(!open)}
+//                 className={`
+//                     w-full flex items-center justify-between px-4 py-3
+//                     ${open ? theme?.bg : 'hover:bg-zinc-50'}
+//                     transition-colors duration-200
+//                 `}
+//             >
+//                 <div className="flex items-center gap-2.5">
+//                     {/* Dot colorato */}
+//                     <span className={`w-2 h-2 rounded-full ${theme?.dot} shrink-0`} />
+//                     <span className={`text-sm font-bold ${open ? theme?.text : 'text-zinc-600'} uppercase tracking-wider transition-colors`}>
+//                         {status}
+//                     </span>
+//                     {/* Badge count */}
+//                     <span className={`
+//                         text-[10px] font-black px-1.5 py-0.5 rounded-full
+//                         ${open ? `${theme?.badgeBg} ${theme?.text}` : 'bg-zinc-100 text-zinc-500'}
+//                         transition-colors duration-200
+//                     `}>
+//                         {tickets.length}
+//                     </span>
+//                 </div>
+//                 <ChevronDownIcon className={`
+//                     w-4 h-4 ${open ? theme?.icon : 'text-zinc-400'}
+//                     transition-transform duration-300 ${open ? 'rotate-180' : ''}
+//                 `} />
+//             </button>
 
-            {/* Lista tickets */}
-            <div className={`
-                overflow-hidden transition-all duration-300 ease-in-out
-                ${open ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
-            `}>
-                <div className="divide-y divide-zinc-50">
-                    {tickets.map((ticket) => (
-                        <div
-                            key={ticket.id}
-                            onClick={() => lenovoApp && handleTimesheetClick(lenovoApp, ticket.id)}
-                            className="group/item flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors cursor-pointer"
-                        >
-                            {/* Icona */}
-                            <div className={`
-                                w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-                                ${theme?.bg} ${theme?.icon}
-                                border ${theme?.border}
-                                group-hover/item:scale-110 transition-transform duration-200
-                            `}>
-                                <Computer className="w-4 h-4" />
-                            </div>
+//             {/* Lista tickets */}
+//             <div className={`
+//                 overflow-hidden transition-all duration-300 ease-in-out
+//                 ${open ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
+//             `}>
+//                 <div className="divide-y divide-zinc-50">
+//                     {tickets.map((ticket) => (
+//                         <div
+//                             key={ticket.id}
+//                             onClick={() => lenovoApp && handleTimesheetClick(lenovoApp, ticket.id)}
+//                             className="group/item flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors cursor-pointer"
+//                         >
+//                             {/* Icona */}
+//                             <div className={`
+//                                 w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+//                                 ${theme?.bg} ${theme?.icon}
+//                                 border ${theme?.border}
+//                                 group-hover/item:scale-110 transition-transform duration-200
+//                             `}>
+//                                 <Computer className="w-4 h-4" />
+//                             </div>
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                                <div className={`text-sm font-bold text-zinc-700 group-hover/item:${theme?.text} transition-colors truncate`}>
-                                    {
-                                        ticket.company
-                                            ? `${ticket.company}${
-                                                ticket.name || ticket.surname
-                                                    ? ` - ${[ticket.name, ticket.surname].filter(Boolean).join(" ")}`
-                                                    : ""
-                                            }`
-                                            : [ticket.name, ticket.surname].filter(Boolean).join(" ")
-                                    }
-                                </div>
-                                {ticket.problem_description && (
-                                    <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
-                                        {ticket.serial} - {ticket.problem_description}
-                                    </div>
-                                )}
-                            </div>
+//                             {/* Info */}
+//                             <div className="flex-1 min-w-0">
+//                                 <div className={`text-sm font-bold text-zinc-700 group-hover/item:${theme?.text} transition-colors truncate`}>
+//                                     {
+//                                         ticket.company
+//                                             ? `${ticket.company}${
+//                                                 ticket.name || ticket.surname
+//                                                     ? ` - ${[ticket.name, ticket.surname].filter(Boolean).join(" ")}`
+//                                                     : ""
+//                                             }`
+//                                             : [ticket.name, ticket.surname].filter(Boolean).join(" ")
+//                                     }
+//                                 </div>
+//                                 {ticket.problem_description && (
+//                                     <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
+//                                         {ticket.serial} - {ticket.problem_description}
+//                                     </div>
+//                                 )}
+//                             </div>
 
-                            {/* Data */}
-                            <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-lg shrink-0 group-hover/item:bg-white group-hover/item:shadow-sm transition-all border border-zinc-100">
-                                {formatDate(ticket.date)}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
+//                             {/* Data */}
+//                             <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-lg shrink-0 group-hover/item:bg-white group-hover/item:shadow-sm transition-all border border-zinc-100">
+//                                 {formatDate(ticket.date)}
+//                             </span>
+//                         </div>
+//                     ))}
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }

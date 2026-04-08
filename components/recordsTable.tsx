@@ -257,6 +257,8 @@ export default function RecordsTable({
   const [currentPage, setCurrentPage] = useState(1)
 
   const [isDeleteAble, setIsDeleteAble] = useState(false);
+  const [isDuplicateAble, setIsDuplicateAble] = useState(false);
+  const [canView, setCanView] = useState(false);
 
   const [rowOpen, setRowOpen] = useState<string | null>(null)
 
@@ -383,6 +385,12 @@ export default function RecordsTable({
 
     setTableSettings(tableid, responseSettings.tablesettings ?? {});
   }, [responseSettings, tableid]);
+
+  useEffect(() => {
+    if (!tableSettings?.[tableid]?.view) return;
+
+    setCanView(getIsSettingAllowed(tableid, 'view'))
+  }, [tableSettings?.[tableid]?.view, tableid]);
 
   const payloadFunctions = useMemo(() => {
     if (isDev) return null;
@@ -582,8 +590,12 @@ export default function RecordsTable({
         elapsedTime={elapsedTime}
       >
         {(response: ResponseInterface) => {
-          if (loading) {
+          if (loading || loadingSettings) {
             return <TableSkeleton />;
+          }
+
+          if (!canView) {
+            return <div className="h-full w-full flex items-center justify-center">Non hai il permesso di visualizzare questa tabella</div>;
           }
 
           return (
@@ -728,6 +740,7 @@ export default function RecordsTable({
                           const y = e.clientY - (rect?.top || 0) + scrollY
 
                           setIsDeleteAble(getIsSettingAllowed(tableid, 'delete', row.recordid))
+                          setIsDuplicateAble(getIsSettingAllowed(tableid, 'duplicate', row.recordid))
 
                           if (row.recordid !== contextMenu?.recordid) {
                             setMenuOpenId((v) => v + 1);
@@ -925,6 +938,7 @@ export default function RecordsTable({
                         transformOrigin: "top left",
                       }}
                     >
+                      {isDuplicateAble && (
                       <button
                         onClick={() => {
                           duplicateRecord(contextMenu.recordid)
@@ -934,7 +948,7 @@ export default function RecordsTable({
                       >
                         <Copy className="w-4 h-4" />
                         Duplica
-                      </button>
+                      </button>)}
 
                       {isDeleteAble && (
                         <button

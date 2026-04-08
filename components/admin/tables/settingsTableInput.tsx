@@ -27,12 +27,14 @@ interface TableSettingOption {
 }
 
 interface Conditions {
-  logic: "AND" | "OR"
-  rules: Array<{
+  logic?: "AND" | "OR"
+  rules?: Array<{
     field: string
     operator: string
     value: string
   }>
+  is_merged?: boolean
+  conditions_list?: Conditions[]
 }
 
 interface TableSetting {
@@ -174,8 +176,9 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
           value: Array.isArray(value) ? value.join(",") : value,
         }
 
-        if (conditionsValues[name] && conditionsValues[name].rules.length > 0) {
-          setting.conditions = JSON.stringify(conditionsValues[name])
+        const cond = conditionsValues[name]
+        if (cond && (cond.is_merged || (cond.rules && cond.rules.length > 0))) {
+          setting.conditions = JSON.stringify(cond)
         }
 
         return setting

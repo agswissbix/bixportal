@@ -6,6 +6,7 @@ import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { memoWithDebug } from '@/lib/memoWithDebug';
 import ActiveMindServices from '@/components/activeMind/activeMindServices';
+import { Toaster } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // FLAG PER LO SVILUPPO
@@ -24,6 +25,7 @@ export default function ActiveMind({ recordIdTrattativa }: PropsInterface) {
 
     return (
 			<div className='overflow-y-auto overflow-x-hidden h-screen'>
+        <Toaster position='bottom-right' richColors/>
         <GenericComponent> 
             {() => (
               <ActiveMindServices recordIdTrattativa={devPropRecordIdTrattativa!} />

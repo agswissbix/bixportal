@@ -30,7 +30,7 @@ export const useRecordActions = () => {
       }
     } catch (err) {
       console.error('Errore durante la duplicazione del record', err);
-      toast.error('Errore durante la duplicazione del record', { id: loadingToastId });
+      toast.error(err?.response?.data?.error || 'Errore durante la duplicazione del record', { id: loadingToastId });
       return null;
     } finally {
       setRefreshTable(tableid);
@@ -57,7 +57,7 @@ export const useRecordActions = () => {
       return true;
     } catch (err) {
       console.error('Errore durante l\'eliminazione del record', err);
-      toast.error('Errore durante l\'eliminazione del record', { id: loadingToastId });
+      toast.error(err?.response?.data?.error || 'Errore durante l\'eliminazione del record', { id: loadingToastId });
       return false;
     } finally {
       setRefreshTable(tableid);

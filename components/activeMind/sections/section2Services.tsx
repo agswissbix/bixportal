@@ -11,6 +11,7 @@ import { formatPrice } from "@/utils/formatPrice"
 interface Section2Props {
   data: {
     [key: string]: {
+      idproduct: string
       title: string
       quantity: number
       unitPrice: number
@@ -18,6 +19,7 @@ interface Section2Props {
       total: number
       features?: string[][]
       category?: string
+      subcategory?: string
     }
   }
   dealid: string
@@ -27,6 +29,7 @@ interface Section2Props {
 
 
 interface Service {
+  recordid_product: string
   id: string;
   title: string;
   unitPrice: number;
@@ -36,6 +39,7 @@ interface Service {
   icon: string;
   quantity?: number;
   features: string[][];
+  subcategory?: string;
 }
 
 interface ResponseInterface {
@@ -47,6 +51,7 @@ const isDev = false
 const responseDataDEV: ResponseInterface = {
   services: [
     {
+      recordid_product: "windowsServerVM",
       id: "windowsServerVM",
       title: "Windows server (VM)",
       unitPrice: 250,
@@ -90,6 +95,7 @@ export default function Section2Services({ data, onUpdate, dealid, isBwbix }: Se
         response.services.forEach((service) => {
           if (service.quantity && service.quantity > 0) {
             initialData[service.id] = {
+              idproduct: service.recordid_product,
               id: service.id,
               title: service.title,
               quantity: service.quantity,
@@ -97,6 +103,7 @@ export default function Section2Services({ data, onUpdate, dealid, isBwbix }: Se
               unitCost: service.unitCost ?? 0,
               total: service.quantity * service.unitPrice,
               features: service.features || [],
+              subcategory: service.subcategory
             };
           }
         });
@@ -138,11 +145,13 @@ export default function Section2Services({ data, onUpdate, dealid, isBwbix }: Se
 
     onUpdate({
       [serviceId]: {
+        idproduct: service.recordid_product,
         title: service.title,
         quantity,
         unitPrice: service.unitPrice,
         total: Number(total.toFixed(0)),
-        features: service.features || []
+        features: service.features || [],
+        subcategory: service.subcategory
       },
     })
   }
