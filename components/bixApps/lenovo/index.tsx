@@ -293,7 +293,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     useEffect(() => {
         if (isMobile) return;
         let interval: NodeJS.Timeout;
-        if ((step === 2 || step === 3 || step === 4 || appSection === 'consegna') && formData.recordid) {
+        if ((step === 2 || step === 3 || step === 4 || appSection === 'consegna' || appSection === 'diagnostica' || appSection === 'riparazione') && formData.recordid) {
             interval = setInterval(async () => {
                 try {
                     // 1. Check Ticket/Photo/Signature
@@ -879,7 +879,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 <div className="flex items-center gap-3">
                     {appSection !== 'initial' && (
                         <button
-                            onClick={() => goToInitial()}
+                            onClick={() => {goToInitial(); setSearchSerial(formData.serial);}}
                             className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-gray-600 hover:text-[#E2231A] hover:bg-red-50 rounded-lg transition-colors border border-gray-200 mr-2"
                             title="Torna alla ricerca"
                         >
@@ -1787,20 +1787,31 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         >
                             Indietro
                         </button>
-                        <button
-                            onClick={async () => {
-                                const res = await handleSave("Entrata");
-                                if(res) {
-                                    goToInitial();
-                                    setSearchSerial(formData.serial);
-                                }
-                            }}
-                            disabled={loadingMethod}
-                            className="px-8 py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
-                        >
-                            {loadingMethod ? 'Salvataggio...' : 'Salva e passa a diagnostica'}
-                            <Icons.ArrowRightIcon className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={async () => {
+                                    await handleSave(formData.status || "Draft");
+                                }}
+                                disabled={loadingMethod}
+                                className="px-6 py-4 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                            >
+                                Salva Modifiche
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    const res = await handleSave("Entrata");
+                                    if(res) {
+                                        goToInitial();
+                                        setSearchSerial(formData.serial);
+                                    }
+                                }}
+                                disabled={loadingMethod}
+                                className="px-8 py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {loadingMethod ? 'Salvataggio...' : 'Salva e passa a diagnostica'}
+                                <Icons.ArrowRightIcon className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="flex items-center justify-between sticky bottom-0 bg-gray-50 p-4 border-t border-gray-200 -mx-4 px-4 lg:-mx-0 lg:px-0 lg:p-0 lg:mt-8 lg:sticky lg:inset-auto lg:border-t-0 lg:bg-transparent">
@@ -1811,6 +1822,15 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             Indietro
                         </button>
                         <div className="flex gap-3">
+                            <button
+                                onClick={async () => {
+                                    await handleSave(formData.status || "Draft");
+                                }}
+                                disabled={loadingMethod}
+                                className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 disabled:opacity-50"
+                            >
+                                Salva Modifiche
+                            </button>
                             <button 
                                 onClick={handleNext}
                                 className="px-8 py-3 bg-[#333333] text-white rounded-xl font-bold shadow-lg hover:bg-black transition-all flex items-center gap-2"
@@ -2026,23 +2046,64 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 {/* Lista Allegati (mini) */}
                                 {attachments.length > 0 && (
                                     <div className="mt-6 flex flex-wrap gap-4">
-                                        {attachments.map((att, i) => (
-                                            <div key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 min-w-[200px] flex-1">
-                                                <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0">
-                                                    <Icons.DocumentTextIcon className="w-5 h-5 text-gray-400" />
+                                        {attachments.map((att, i) => {
+                                            // Logica per determinare se è un'immagine e quale icona mostrare
+                                            const extension = att.filename?.split('.').pop()?.toLowerCase() || '';
+                                            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
+                                            const imageSrc = isImage ? `/api/media-proxy?url=${att.url}` : null;
+
+                                            const getFileIcon = (ext) => {
+                                                switch(ext) {
+                                                    case 'pdf': return "📄";
+                                                    case 'doc': case 'docx': return "📝";
+                                                    case 'xls': case 'xlsx': return "📊";
+                                                    case 'zip': case 'rar': return "🗜️";
+                                                    default: return "📎";
+                                                }
+                                            };
+
+                                            return (
+                                                <div key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 min-w-[200px] flex-1">
+                                                    {/* Box Anteprima/Icona */}
+                                                    <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
+                                                        {imageSrc ? (
+                                                            <img 
+                                                                src={imageSrc} 
+                                                                alt={att.filename} 
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-lg">{getFileIcon(extension)}</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Testi */}
+                                                    <div className="overflow-hidden">
+                                                        <p className="text-xs font-bold truncate text-gray-700" title={att.filename}>
+                                                            {att.filename}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400 uppercase">
+                                                            {extension || att.type} {att.note && `- ${att.note}`}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div className="overflow-hidden">
-                                                    <p className="text-xs font-bold truncate text-gray-700">{att.filename}</p>
-                                                    <p className="text-[10px] text-gray-400 uppercase">{att.type} {att.note && `- ${att.note}`}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
 
                             {/* Azioni */}
-                            <div className="flex justify-end items-center pt-8 border-t border-gray-100 mt-8">
+                            <div className="flex justify-end items-center pt-8 border-t border-gray-100 mt-8 gap-4">
+                                <button
+                                    onClick={async () => {
+                                        await handleSave(formData.status);
+                                    }}
+                                    disabled={loadingMethod}
+                                    className="px-8 py-4 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    Salva Modifiche
+                                </button>
                                 <button
                                     onClick={async () => {
                                         const statusObj = appSection === 'diagnostica' ? 'Diagnostica' : 'Riparato';
