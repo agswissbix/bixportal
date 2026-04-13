@@ -674,13 +674,13 @@ export default function CardFields({
       toast.success("Record salvato con successo")
       setInitialFields(updatedFields)
       setUpdatedFields({})
-      setIsSaving(false)
+      setRefreshTable(tableid)
+      removeCard(tableid, recordid)
     } catch (error) {
       console.error("Errore durante il salvataggio del record:", error)
       toast.error("Errore durante il salvataggio del record: " + error?.response?.data?.error)
     } finally {
-      setRefreshTable(tableid)
-      removeCard(tableid, recordid)
+      setIsSaving(false)
     }
   }
 
