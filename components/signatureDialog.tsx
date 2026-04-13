@@ -27,6 +27,7 @@ export const SignatureDialog = ({
   const [savedSignature, setSavedSignature] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [hasSignature, setHasSignature] = useState(false);
 
   const handleSaveSignature = async () => {
     try {
@@ -69,6 +70,7 @@ export const SignatureDialog = ({
     setSavedSignature(null);
     setProgress(0);
     setLoading(false);
+    setHasSignature(false);
     onOpenChange(false);
   };
 
@@ -81,6 +83,7 @@ export const SignatureDialog = ({
           setSavedSignature(null);
           setProgress(0);
           setLoading(false);
+          setHasSignature(false);
         }
         onOpenChange(open);
       }}
@@ -115,7 +118,13 @@ export const SignatureDialog = ({
               </div>
 
               <div className="bg-white border-2 border-gray-200 rounded-lg p-4 shadow-inner">
-                <DigitalSignature onSignatureChange={onSignatureChange} isSignatureModeDefault={true} />
+                <DigitalSignature 
+                  onSignatureChange={(sig) => {
+                    setHasSignature(!!sig);
+                    onSignatureChange?.(sig);
+                  }} 
+                  isSignatureModeDefault={true} 
+                />
               </div>
             </>
           )}
@@ -141,7 +150,7 @@ export const SignatureDialog = ({
                 </button>
                 <button
                   onClick={handleSaveSignature}
-                  disabled={loading}
+                  disabled={loading || !hasSignature}
                   className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors duration-200 font-medium shadow-md hover:shadow-lg disabled:opacity-60"
                 >
                   {loading ? 'Salvataggio in corso...' : 'Salva Firma e genera PDF'}
