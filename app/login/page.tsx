@@ -89,7 +89,7 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm/6 font-medium text-primary"
+                  className="block text-sm/6 font-semibold text-primary"
                 >
                   Username
                 </label>
@@ -108,20 +108,20 @@ export default function Login() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-end justify-between">
                   <label
                     htmlFor="password"
-                    className="block text-sm/6 font-medium text-primary"
+                    className="block text-sm/6 font-semibold text-primary"
                   >
                     Password
                   </label>
-                  <div className="text-sm">
+                  <div className="text-xs ">
                     <button
                       type="button"
                       onClick={() => router.push('/forgot-password')}
                       disabled={isLoading}
                       tabIndex={5}
-                      className="font-semibold text-primary hover:text-primary-hover transition-colors duration-200 disabled:opacity-50"
+                      className="font-medium text-primary hover:text-primary-hover transition-colors duration-200 disabled:opacity-50"
                     >
                       Password dimenticata?
                     </button>
