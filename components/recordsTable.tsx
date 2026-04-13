@@ -833,6 +833,22 @@ export default function RecordsTable({
                                       ? Number(field.value).toLocaleString("de-CH")
                                       : field.value}
                                   </span>
+                                ) : field.value && String(field.value).length > 80 ? (
+                                  <Tooltip delayDuration={300}>
+                                    <TooltipTrigger asChild>
+                                      <span
+                                        className="block truncate w-full max-h-[40px] [&_.deal-details]:hidden [&_table]:hidden cursor-help"
+                                        dangerouslySetInnerHTML={{ __html: field.value }}
+                                      />
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                      side="right"
+                                      align="start"
+                                      className="max-w-[450px] max-h-[600px] overflow-y-auto whitespace-pre-wrap break-words p-4 z-[100] bg-gray-50 border border-gray-300 dark:bg-gray-800 dark:border-gray-600 shadow-xl"
+                                    >
+                                      <div dangerouslySetInnerHTML={{ __html: field.value }} />
+                                    </TooltipContent>
+                                  </Tooltip>
                                 ) : (
                                   <span
                                     className="block truncate w-full max-h-[40px] [&_.deal-details]:hidden [&_table]:hidden"
