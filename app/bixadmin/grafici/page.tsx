@@ -19,9 +19,17 @@ interface User {
   disabled?: string
 }
 
+interface Group {
+  id: string
+  name: string
+  description?: string
+  idmanager: number
+  priority?: number
+}
+
 const GraficiPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
-  const [groups, setGroups] = useState<User[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
   const [selectedUserId, setSelectedUserId] = useState<string>(isDev ? "2" : "")
   const [success, setSuccess] = useState<string | null>(
     isDev ? "Modalità di sviluppo (isDev=true) attiva. Dati mock caricati." : null,
