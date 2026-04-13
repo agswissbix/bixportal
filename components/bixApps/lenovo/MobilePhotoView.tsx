@@ -83,8 +83,14 @@ export default function MobilePhotoView({ ticketId }: Props) {
                 // Determine initial view based on status
                 if (ticketRes.data.ticket.status === 'Ritirato') {
                     setActiveTab('summary');
-                } else if (ticketRes.data.ticket.status != 'Draft' && !ticketRes.data.ticket.signatureUrl) {
+                } else if (ticketRes.data.ticket.status === 'Riparato') {
                     setActiveTab('signature');
+                } else if (ticketRes.data.ticket.status === 'Diagnostica') {
+                    setActiveTab('attachments');
+                } else if (ticketRes.data.ticket.status === 'Entrata') {
+                    setActiveTab('attachments');
+                } else {
+                    setActiveTab('photo');
                 }
             } else {
                 toast.error("Ticket non trovato");
