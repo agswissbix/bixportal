@@ -1,148 +1,150 @@
 import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
+
+const { lightBlue, warmGray, trueGray, coolGray, blueGray, ...stdColors } = colors;
 
 export default {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-  	extend: {
-  		screens: {
-  			'3xl': '2000px'
-  		},
-  		backgroundImage: {
-  			sidebar: 'var(--sidebar-background)'
-  		},
-  		maxHeight: {
-  			'1/2': '50%',
-  			'1/3': '33.333333%',
-  			'2/3': '66.666667%',
-  			'3/4': '75%',
-  			'4/5': '80%',
-  			'5/6': '83.333333%'
-  		},
-  		height: {
-  			'1/12': '8.333333%',
-  			'2/12': '16.666667%',
-  			'3/12': '25%',
-  			'4/12': '33.333333%',
-  			'5/12': '41.666667%',
-  			'6/12': '50%',
-  			'7/12': '58.333333%',
-  			'8/12': '66.666667%',
-  			'9/12': '75%',
-  			'10/12': '83.333333%',
-  			'11/12': '91.666667%',
-  			fill: '-webkit-fill-available'
-  		},
-  		colors: {
-  			navbar: 'var(--navbar-background)',
-  			primary: {
-  				DEFAULT: 'var(--color-primary)',
-  				foreground: 'var(--color-primary-foreground)',
-  				hover: 'var(--color-primary-hover)'
-  			},
-  			secondary: {
-  				DEFAULT: 'var(--color-secondary)',
-  				foreground: 'var(--color-secondary-foreground)',
-  				hover: 'var(--color-secondary-hover)'
-  			},
-  			accent: {
-  				DEFAULT: 'var(--color-accent)',
-  				foreground: 'var(--color-accent-foreground)',
-  				hover: 'var(--color-accent-hover)'
-  			},
-  			muted: {
-  				DEFAULT: 'var(--muted)',
-  				foreground: 'var(--muted-foreground)'
-  			},
-  			destructive: {
-  				DEFAULT: 'var(--destructive)',
-  				foreground: 'var(--destructive-foreground)'
-  			},
-  			background: 'var(--background)',
-  			foreground: 'var(--foreground)',
-  			records: {
-  				background: 'var(--records-background)'
-  			},
-  			card: {
-  				DEFAULT: 'var(--card)',
-  				foreground: 'var(--card-foreground)',
-  				background: 'var(--card-background)',
-  				border: 'var(--card-border)'
-  			},
-  			table: {
-  				background: 'var(--table-background)',
-  				border: 'var(--table-border)',
-  				header: 'var(--table-header)'
-  			},
-  			badge: {
-  				background: 'var(--badge-background)',
-  				border: 'var(--badge-border)'
-  			},
-  			popover: {
-  				DEFAULT: 'var(--popover)',
-  				foreground: 'var(--popover-foreground)'
-  			},
-  			border: 'var(--border)',
-  			input: 'var(--input)',
-  			ring: 'var(--ring)',
-  			chart: {
-  				'1': 'var(--chart-1)',
-  				'2': 'var(--chart-2)',
-  				'3': 'var(--chart-3)',
-  				'4': 'var(--chart-4)',
-  				'5': 'var(--chart-5)'
-  			}
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		},
-  		fontFamily: {
-  			sans: [
-  				'Inter',
-  				'sans-serif'
-  			]
-  		},
-  		keyframes: {
-  			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
-  			},
-  			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
-  			}
-  		},
-  		animation: {
-  			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
-  	}
-  },
-  plugins: [
-	require("tailwindcss-animate"),
-	require('@tailwindcss/typography'),
-  ],
-  /*
-  safelist: [
-    { pattern: /text-(.*)/ },
-    { pattern: /bg-(.*)/ },
-    { pattern: /border-(.*)/ },
-    { pattern: /fill-(.*)/ },
-    { pattern: /stroke-(.*)/ },
-  ],
-  */
+	darkMode: ["class"],
+	content: [
+		"./pages/**/*.{js,ts,jsx,tsx,mdx}",
+		"./components/**/*.{js,ts,jsx,tsx,mdx}",
+		"./app/**/*.{js,ts,jsx,tsx,mdx}",
+	],
+	theme: {
+		extend: {
+			screens: {
+				'3xl': '2000px'
+			},
+			backgroundImage: {
+				sidebar: 'var(--sidebar-background)'
+			},
+			maxHeight: {
+				'1/2': '50%',
+				'1/3': '33.333333%',
+				'2/3': '66.666667%',
+				'3/4': '75%',
+				'4/5': '80%',
+				'5/6': '83.333333%'
+			},
+			height: {
+				'1/12': '8.333333%',
+				'2/12': '16.666667%',
+				'3/12': '25%',
+				'4/12': '33.333333%',
+				'5/12': '41.666667%',
+				'6/12': '50%',
+				'7/12': '58.333333%',
+				'8/12': '66.666667%',
+				'9/12': '75%',
+				'10/12': '83.333333%',
+				'11/12': '91.666667%',
+				fill: '-webkit-fill-available'
+			},
+			colors: {
+				...stdColors,
+				navbar: 'var(--navbar-background)',
+				primary: {
+					DEFAULT: 'var(--color-primary)',
+					foreground: 'var(--color-primary-foreground)',
+					hover: 'var(--color-primary-hover)'
+				},
+				secondary: {
+					DEFAULT: 'var(--color-secondary)',
+					foreground: 'var(--color-secondary-foreground)',
+					hover: 'var(--color-secondary-hover)'
+				},
+				accent: {
+					DEFAULT: 'var(--color-accent)',
+					foreground: 'var(--color-accent-foreground)',
+					hover: 'var(--color-accent-hover)'
+				},
+				muted: {
+					DEFAULT: 'var(--muted)',
+					foreground: 'var(--muted-foreground)'
+				},
+				destructive: {
+					DEFAULT: 'var(--destructive)',
+					foreground: 'var(--destructive-foreground)'
+				},
+				background: 'var(--background)',
+				foreground: 'var(--foreground)',
+				records: {
+					background: 'var(--records-background)'
+				},
+				card: {
+					DEFAULT: 'var(--card)',
+					foreground: 'var(--card-foreground)',
+					background: 'var(--card-background)',
+					border: 'var(--card-border)'
+				},
+				table: {
+					background: 'var(--table-background)',
+					border: 'var(--table-border)',
+					header: 'var(--table-header)'
+				},
+				badge: {
+					background: 'var(--badge-background)',
+					border: 'var(--badge-border)'
+				},
+				popover: {
+					DEFAULT: 'var(--popover)',
+					foreground: 'var(--popover-foreground)'
+				},
+				border: 'var(--border)',
+				input: 'var(--input)',
+				ring: 'var(--ring)',
+				chart: {
+					'1': 'var(--chart-1)',
+					'2': 'var(--chart-2)',
+					'3': 'var(--chart-3)',
+					'4': 'var(--chart-4)',
+					'5': 'var(--chart-5)'
+				}
+			},
+			borderRadius: {
+				lg: 'var(--radius)',
+				md: 'calc(var(--radius) - 2px)',
+				sm: 'calc(var(--radius) - 4px)'
+			},
+			fontFamily: {
+				sans: [
+					'Inter',
+					'sans-serif'
+				]
+			},
+			keyframes: {
+				'accordion-down': {
+					from: {
+						height: '0'
+					},
+					to: {
+						height: 'var(--radix-accordion-content-height)'
+					}
+				},
+				'accordion-up': {
+					from: {
+						height: 'var(--radix-accordion-content-height)'
+					},
+					to: {
+						height: '0'
+					}
+				}
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out'
+			}
+		}
+	},
+	plugins: [
+		require("tailwindcss-animate"),
+		require('@tailwindcss/typography'),
+	],
+	safelist: [
+		{ pattern: /text-(.*)/ },
+		{ pattern: /bg-(.*)/ },
+		{ pattern: /border-(.*)/ },
+		{ pattern: /fill-(.*)/ },
+		{ pattern: /stroke-(.*)/ },
+	],
 } satisfies Config;
