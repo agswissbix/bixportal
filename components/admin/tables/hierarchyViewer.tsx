@@ -15,7 +15,7 @@ interface FieldSetting {
   type: string
   options?: string[]
   value: string
-  conditions?: string | { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> }
+  conditions?: string | { logic: "AND" | "OR" | null; rules: Array<{ field: string; operator: string; value: string }> }
   source?: "user" | "default" | "hardcoded"
   original_default?: string
 }
@@ -81,7 +81,7 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
 
   const handleConditionsChange = (
     key: string,
-    conditions: { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> },
+    conditions: { logic?: "AND" | "OR" | null; rules: Array<{ field: string; operator: string; value: string }> } | any,
   ) => {
     setLocalSettings((prev) => ({
       ...prev,
@@ -104,7 +104,8 @@ const FieldSettingsViewer: React.FC<Props> = ({ tableId, fieldId, userId, curren
   const parseConditions = (
     conditionsValue:
       | string
-      | { logic: "AND" | "OR"; rules: Array<{ field: string; operator: string; value: string }> }
+      | { logic?: "AND" | "OR" | null; rules: Array<{ field: string; operator: string; value: string }> }
+      | any
       | undefined,
   ) => {
     if (!conditionsValue) return null
