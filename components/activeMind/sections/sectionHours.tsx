@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import React from "react"
 
 import { Badge } from "@/components/ui/badge"
-import { Clock, CheckCircle2, AlertCircle, HelpCircle, Ticket, Phone, Key, Truck } from "lucide-react"
+import { Clock, CheckCircle2, AlertCircle, HelpCircle, Ticket, Phone, Key, Truck, InfoIcon } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useApi } from "@/utils/useApi"
 import GenericComponent from "@/components/genericComponent"
@@ -75,6 +75,12 @@ interface ResponseInterface {
     hours: number;
     selected?: boolean;
   }>;
+  monte_ore_existing: {
+    subject: string;
+    contracthours: number;
+    residualhours: number;
+    startdate: string
+  };
 }
 
 const responseDataDEV: ResponseInterface = {
@@ -88,11 +94,23 @@ const responseDataDEV: ResponseInterface = {
       cost: 10,
       hours: 10
     }
-  ]
+  ],
+  monte_ore_existing: {
+    subject: "",
+    contracthours: 0,
+    residualhours: 0,
+    startdate: ""
+  }
 }
 
 const responseDataDEFAULT: ResponseInterface = {
-  options: []
+  options: [],
+  monte_ore_existing: {
+    subject: "",
+    contracthours: 0,
+    residualhours: 0,
+    startdate: ""
+  }
 };
 
 const useApiWrapper = (payload: any) => {
@@ -208,7 +226,18 @@ export default function SectionHours({ data, onUpdate, dealid, isBwbix }: Sectio
             <CardHeader>
               <CardTitle>Seleziona il pacchetto ore</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              {responseData.monte_ore_existing?.residualhours > 0 && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-blue-50 border border-blue-400 text-blue-800">
+                  <InfoIcon className="w-5 h-5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-semibold">Pacchetto ore già attivo</p>
+                    <p className="opacity-90">
+                      {responseData.monte_ore_existing.subject} — {responseData.monte_ore_existing.residualhours} ore residue (su {responseData.monte_ore_existing.contracthours} totali) dal {responseData.monte_ore_existing.startdate}
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="grid md:grid-cols-3 gap-4">
                 {responseData.options.map((option, index) => {
                   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
