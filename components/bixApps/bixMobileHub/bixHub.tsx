@@ -330,7 +330,7 @@ export default function BixHub() {
                                     )}
                             </div>
 
-                            <div className="flex flex-col lg:flex-row gap-8 items-start">
+                            <div className="flex flex-col lg:flex-row gap-8 items-start mb-10">
                                 
                                 {/* TIMESHEETS */}
                                 <div className="w-full lg:w-1/2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">

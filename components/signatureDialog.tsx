@@ -54,7 +54,9 @@ export const SignatureDialog = ({
       
       setTimeout(() => {
         setSavedSignature(result); // Salva il valore ritornato
-        setSignatureSaved(true); // Mostra i nuovi bottoni
+        if (result) {
+          setSignatureSaved(true); // Mostra i nuovi bottoni
+        }
         setProgress(0);
         setLoading(false);
       }, 400);
