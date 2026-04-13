@@ -675,7 +675,9 @@ export default function RecordsTable({
                                   {shouldShowIcon && <div className="w-4 h-4 ml-1">{iconComponent}</div>}
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent>{column.desc}</TooltipContent>
+                              <TooltipContent>
+                                <span>{column.desc}</span>
+                              </TooltipContent>
                             </Tooltip>
                           </th>
                         )
@@ -825,15 +827,27 @@ export default function RecordsTable({
                                     />
                                   )
                                 ) : isNumberField ? (
-                                  <span
-                                    className="block truncate w-full max-h-[40px] text-right"
-                                    title={field.value && !isNaN(Number(field.value)) ? Number(field.value).toLocaleString("de-CH") : field.value}
-                                  >
-                                    {field.value && !isNaN(Number(field.value))
-                                      ? Number(field.value).toLocaleString("de-CH")
-                                      : field.value}
-                                  </span>
-                                ) : field.value && String(field.value).length > 80 ? (
+                                  <Tooltip delayDuration={300}>
+                                    <TooltipTrigger asChild>
+                                    <span
+                                      className="block truncate w-full max-h-[40px] text-right"
+                                      // title={field.value && !isNaN(Number(field.value)) ? Number(field.value).toLocaleString("de-CH") : field.value}
+                                    >
+                                      {field.value && !isNaN(Number(field.value))
+                                        ? Number(field.value).toLocaleString("de-CH")
+                                        : field.value}
+                                    </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        side="right"
+                                        align="start"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="max-w-[450px] max-h-[600px] overflow-y-auto whitespace-pre-wrap break-words p-2 z-[100] bg-gray-50 border text-gray-800 border-gray-300 dark:bg-gray-800 dark:border-gray-600 shadow-xl"
+                                    >
+                                      <div dangerouslySetInnerHTML={{ __html: field.value && !isNaN(Number(field.value)) ? Number(field.value).toLocaleString("de-CH") : field.value }} />
+                                    </TooltipContent>
+                                </Tooltip>
+                                ) : (
                                   <Tooltip delayDuration={300}>
                                     <TooltipTrigger asChild>
                                       <span
@@ -842,19 +856,16 @@ export default function RecordsTable({
                                       />
                                     </TooltipTrigger>
                                     <TooltipContent
-                                      side="right"
+                                      side="bottom"
                                       align="start"
-                                      className="max-w-[450px] max-h-[600px] overflow-y-auto whitespace-pre-wrap break-words p-4 z-[100] bg-gray-50 border border-gray-300 dark:bg-gray-800 dark:border-gray-600 shadow-xl"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className={`max-w-[450px] max-h-[600px] overflow-y-auto whitespace-pre-wrap break-words z-[100] bg-gray-50 border text-gray-800 border-gray-300 dark:bg-gray-800 dark:border-gray-600 shadow-xl ${
+                                        field.value && String(field.value).length > 80 ? "p-4" : "p-2"
+                                      }`}
                                     >
                                       <div dangerouslySetInnerHTML={{ __html: field.value }} />
                                     </TooltipContent>
                                   </Tooltip>
-                                ) : (
-                                  <span
-                                    className="block truncate w-full max-h-[40px] [&_.deal-details]:hidden [&_table]:hidden"
-                                    dangerouslySetInnerHTML={{ __html: field.value }}
-                                    title={field.value ? String(field.value).replace(/<[^>]*>?/gm, '') : ''}
-                                  />
                                 )}
                                 {isLinked && (
                                   <button
