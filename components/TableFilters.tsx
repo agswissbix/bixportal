@@ -605,7 +605,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                         </div>
 
                         {/* Action Footer — sticky bottom */}
-                        <div className="sticky bottom-0 mt-auto flex flex-col gap-4 border-t border-border bg-background/80 px-1 py-3 pb-4 backdrop-blur-lg z-10 -mx-1">
+                        <div className="sticky bottom-0 mt-auto flex flex-col gap-4 border-t border-border bg-background/80 px-1 py-3 pb-4 backdrop-blur-lg -mx-1">
                             
                             {/* Save View Section — Integrata nello sticky */}
                             <div className="rounded-xl border border-border bg-card p-2.5">

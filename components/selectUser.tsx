@@ -22,7 +22,7 @@ const customStyles = {
   control: () =>
     "min-h-[42px] rounded-lg border border-gray-300 bg-gray-50 hover:border-gray-500 focus:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 pl-2 pr-2",
   menu: () =>
-    "mt-1 bg-white rounded-lg shadow-lg max-h-50 overflow-y-auto z-50",
+    "mt-1 bg-white rounded-lg shadow-lg max-h-50 overflow-y-auto z-[9999]",
   option: () =>
     "px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-900",
   singleValue: () => "text-sm text-gray-900",
