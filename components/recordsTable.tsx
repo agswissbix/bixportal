@@ -851,7 +851,7 @@ export default function RecordsTable({
                                   <Tooltip delayDuration={300}>
                                     <TooltipTrigger asChild>
                                       <span
-                                        className="block truncate w-full max-h-[40px] [&_.deal-details]:hidden [&_table]:hidden cursor-help"
+                                        className="block truncate w-full max-h-[40px] [&_.deal-details]:hidden [&_table]:hidden"
                                         dangerouslySetInnerHTML={{ __html: field.value }}
                                       />
                                     </TooltipTrigger>
