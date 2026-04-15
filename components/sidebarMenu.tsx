@@ -106,7 +106,7 @@ export default function Sidebar({}: PropsInterface) {
 
   const router = useRouter()
 
-  const [openDropdown, setOpenDropdown] = useState("")
+  const [openDropdown, setOpenDropdown] = useState("favorites")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const { selectedMenu, setSelectedMenu, setUserid, userid, theme, resetCardsList } = useRecordsStore()
@@ -226,7 +226,7 @@ export default function Sidebar({}: PropsInterface) {
                   <>
                     <li>
                       <span
-                        className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                        className="flex items-center gap-3 px-4 py-2.5 uppercase rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
                         onClick={() => handleMenuClick("Dashboard")}
                       >
                         <Icons.LayoutDashboard className="w-5 h-5"/>
@@ -278,7 +278,7 @@ export default function Sidebar({}: PropsInterface) {
                     <Link
                       href="/bixadmin/admin"
                       target="_blank"
-                      className="flex items-center gap-3 cursor-pointer px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                      className="flex items-center gap-3 cursor-pointer px-4 py-2.5 uppercase tracking-wide rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                     >
                       <SquareArrowOutUpRight className="w-5 h-5"/>
                       Admin Settings
@@ -286,39 +286,36 @@ export default function Sidebar({}: PropsInterface) {
                   </li>
                 )}
 
+                {/* SEZIONE PREFERITI SEMPRE VISIBILE */}
                 {responseData.favoriteTables && responseData.favoriteTables.length > 0 && (
-                  <li className="mt-2">
-                    <button
-                      onClick={() => setOpenDropdown(openDropdown === "favorites" ? "" : "favorites")}
-                      className="w-full text-md flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary hover:text-secondary-foreground focus:text-primary-foreground transition-all duration-200 active:scale-[0.98]"
-                    >
-                      <div className="flex items-center gap-3 min-w-[20px]">
-                        <Star className="w-5 h-5 min-w-[20px]" />
-                        <span className="text-md opacity-100 transition-opacity duration-300">Preferiti</span>
-                      </div>
-                      <ChevronDown
-                        className={`w-5 h-5 transition-transform duration-300 ${openDropdown === "favorites" ? "-rotate-180" : ""}`}
-                      />
-                    </button>
-
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === "favorites" ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
-                    >
-                      <ul className="py-1 ml-3 mt-1 space-y-0.5">
-                        {responseData.favoriteTables.map((table) => (
-                          <li key={table.id}>
-                            <span
-                              className="text-primary-foreground text-sm block px-4 py-2 rounded-md hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
-                              onClick={() => {
-                                handleMenuClick(table.tableid)
-                              }}
-                            >
-                              {table.title}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                  <li className="mt-4 mb-2">
+                    <div className="mx-4 mt-2 mb-2 border-t border-white/20" />
+                    <div className="px-4 py-2 flex items-center gap-3">
+                      <Star className="w-5 h-5 text-[#FFB800]" strokeWidth={2} />
+                      <span className="text-primary-foreground tracking-wide uppercase">
+                        I TUOI PREFERITI
+                      </span>
                     </div>
+
+                    {/* Ripristinata l'indentazione originale più compatta */}
+                    <ul className="mt-1 space-y-0.5 ml-2">
+                      {responseData.favoriteTables.map((table) => (
+                        <li key={table.id}>
+                          <span
+                            className={`block px-4 py-2 text-[15px] rounded-md transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+                              selectedMenu === table.tableid 
+                                ? 'bg-secondary/50 font-medium text-white' 
+                                : 'hover:bg-secondary hover:text-white text-white/90'
+                            }`}
+                            onClick={() => handleMenuClick(table.tableid)}
+                          >
+                            {table.title}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mx-4 mt-2 mb-2 border-t border-white/20" />
                   </li>
                 )}
 
@@ -339,7 +336,7 @@ export default function Sidebar({}: PropsInterface) {
                           >
                             <div className="flex items-center gap-3 min-w-[20px]">
                               <Icon className="w-5 h-5" />
-                              <span className="text-md">{item.title}</span>
+                              <span className="text-md tracking-wide uppercase">{item.title}</span>
                             </div>
                             <ChevronDown
                               className={`w-5 h-5 transition-transform duration-300 ${openDropdown === item.id ? "-rotate-180" : ""}`}
