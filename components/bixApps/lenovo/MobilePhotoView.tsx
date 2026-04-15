@@ -637,8 +637,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                 )}
                                 <input 
                                     type="file" 
-                                    accept="image/*" 
-                                    capture="environment"
+                                    accept={""}
                                     onChange={handleFileChange}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
