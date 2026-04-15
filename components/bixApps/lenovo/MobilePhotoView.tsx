@@ -81,7 +81,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                 setTicket(ticketRes.data.ticket);
                 setAttachmentType(getAttachmentTypeByStatus(ticketRes.data.ticket.status));
                 // Determine initial view based on status
-                if (ticketRes.data.ticket.status === 'Ritirato') {
+                if (ticketRes.data.ticket.status === 'Riconsegnato') {
                     setActiveTab('summary');
                 } else if (ticketRes.data.ticket.status === 'Riparato') {
                     setActiveTab('signature');
@@ -166,6 +166,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
             formData.append("apiRoute", "save_lenovo_signature");
             formData.append("recordid", ticketId);
             formData.append("img_base64", signatureData);
+            formData.append("sig_type", (ticket.status === 'Draft' || ticket.status === 'Entrata' || !ticket.status) ? 'intake' : 'delivery');
 
             const res = await axiosInstanceClient.post("/postApi", formData);
             if (res.data.success) {
@@ -361,7 +362,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                                 }
                                             }}
                                             onClose={() => {
-                                                window.location.href = `/bixApps/bixMobileHub/bixHub`;
+                                                window.location.href = `/bixApps/bixMobileHub`;
                                             }}
                                         />
                                     </div>
@@ -474,7 +475,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
         <div className="flex flex-col h-full justify-center pb-24">
             <div className="bg-white rounded-xl overflow-hidden text-black shadow-lg">
                 <div className="bg-[#E2231A] text-white p-3 font-bold text-center text-sm">
-                    Firma per ritiro del prodotto
+                    Firma per {ticket.status === 'Riparato' ? 'ritiro del prodotto' : 'consegna del prodotto'}
                 </div>
                 <div className="p-4 bg-gray-50 text-xs border-b border-gray-200 space-y-3">
                     <div>
@@ -698,7 +699,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                         
                         <div className="flex flex-col gap-4 mt-8 w-full max-w-xs">
                             <button 
-                                onClick={() => window.location.href = '/bixApps/bixMobileHub/bixHub'}
+                                onClick={() => window.location.href = '/bixApps/bixMobileHub'}
                                 className="px-6 py-4 bg-zinc-800 text-white rounded-xl font-bold shadow hover:bg-zinc-700 transition-all w-full text-center"
                             >
                                 Home
@@ -733,13 +734,13 @@ export default function MobilePhotoView({ ticketId }: Props) {
                     </button>
                     <button 
                         onClick={() => {
-                            if (ticket.status === 'Riparato' || ticket.status === 'Consegnato' || ticket.status === 'Completa ticket') {
+                            if (ticket.status === 'Riparato' || ticket.status === 'Entrata' || ticket.status === 'Draft' || !ticket.status) {
                                 setActiveTab('signature');
                             } else {
-                                toast.error('La firma è accessibile solo quando lo stato è Riparato o Consegnato');
+                                toast.error('La firma è accessibile solo in fase di Ritiro o Consegna');
                             }
                         }}
-                        className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === 'signature' ? 'text-[#E2231A] bg-red-900/10' : 'text-gray-500'} ${(ticket.status === 'Riparato' || ticket.status === 'Consegnato' || ticket.status === 'Completa ticket') ? '' : 'opacity-50 cursor-not-allowed'}`}
+                        className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeTab === 'signature' ? 'text-[#E2231A] bg-red-900/10' : 'text-gray-500'} ${(ticket.status === 'Riparato' || ticket.status === 'Entrata' || ticket.status === 'Draft' || !ticket.status) ? '' : 'opacity-50 cursor-not-allowed'}`}
                     >
                         <Icons.PencilSquareIcon className="w-6 h-6 mb-1" />
                         <span className="text-[10px] font-bold">Sign</span>
