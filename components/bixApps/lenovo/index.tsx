@@ -524,17 +524,25 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     };
 
     const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>, typeOverride?: string) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            
-            // Ensure ticket exists
-            let ticketId = formData.recordid;
-            if (!ticketId) {
-                ticketId = await handleSave('Draft');
-                if(!ticketId) return;
-            }
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
 
-            setIsUploadingAttachment(true);
+        // Ensure ticket exists
+        let ticketId = formData.recordid;
+        if (!ticketId) {
+            ticketId = await handleSave('Draft');
+            if (!ticketId) return;
+        }
+
+        setIsUploadingAttachment(true);
+        const total = files.length;
+        let successCount = 0;
+
+        for (let i = 0; i < total; i++) {
+            const file = files[i];
+            if (total > 1) {
+                toast.loading(`Caricamento ${i + 1}/${total}...`, { id: 'att-upload' });
+            }
             const body = new FormData();
             body.append("apiRoute", "upload_lenovo_attachment");
             body.append("ticket_id", ticketId);
@@ -547,16 +555,24 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     headers: { "Content-Type": "multipart/form-data" }
                 });
                 if (res.data.success) {
-                    toast.success("Allegato caricato!");
                     setAttachments(prev => [res.data.mod, ...prev]);
-                    setAttachmentNote(""); // Reset note
+                    successCount++;
+                } else {
+                    toast.error(`Errore su ${file.name}`);
                 }
             } catch (err) {
-                toast.error("Caricamento allegato fallito");
-            } finally {
-                setIsUploadingAttachment(false);
+                toast.error(`Caricamento fallito: ${file.name}`);
             }
         }
+
+        toast.dismiss('att-upload');
+        if (successCount > 0) {
+            toast.success(total === 1 ? "Allegato caricato!" : `${successCount}/${total} allegati caricati!`);
+            setAttachmentNote("");
+        }
+        setIsUploadingAttachment(false);
+        // Reset input so same files can be re-selected if needed
+        e.target.value = "";
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1587,6 +1603,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         <div className="relative">
                                             <input 
                                                 type="file" 
+                                                multiple
                                                 onChange={(e) => handleAttachmentUpload(e, 'pre-intervento')}
                                                 disabled={isUploadingAttachment}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
