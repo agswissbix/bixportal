@@ -4,6 +4,7 @@ import { FileIcon, Upload, X, Download, ZoomIn } from 'lucide-react';
 interface PropsInterface {
   initialValue?: File | string | null;
   onChange?: (file: File | null) => void;
+  disabled?: boolean;
 }
 
 function getFileType(name: string): 'image' | 'pdf' | 'other' {
@@ -13,7 +14,7 @@ function getFileType(name: string): 'image' | 'pdf' | 'other' {
   return 'other';
 }
 
-export default function InputFile({ initialValue = null, onChange }: PropsInterface) {
+export default function InputFile({ initialValue = null, onChange, disabled = false }: PropsInterface) {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -92,16 +93,19 @@ export default function InputFile({ initialValue = null, onChange }: PropsInterf
           type="file"
           className="hidden"
           onChange={handleFileChange}
+          disabled={disabled}
         />
 
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center px-3 py-2 bg-green-50 text-green-600 rounded-md border border-green-200 hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50 flex-shrink-0"
-        >
-          <Upload className="w-4 h-4 mr-1.5" />
-          <span className="text-sm font-medium">Scegli file</span>
-        </button>
+        {!disabled && (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center px-3 py-2 bg-green-50 text-green-600 rounded-md border border-green-200 hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50 flex-shrink-0"
+          >
+            <Upload className="w-4 h-4 mr-1.5" />
+            <span className="text-sm font-medium">Scegli file</span>
+          </button>
+        )}
 
         <div className="relative flex-1 min-w-0">
           <div className="flex items-center w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
@@ -142,14 +146,16 @@ export default function InputFile({ initialValue = null, onChange }: PropsInterf
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md border border-red-200 hover:bg-red-100 transition-colors"
-              title="Rimuovi il file"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md border border-red-200 hover:bg-red-100 transition-colors"
+                title="Rimuovi il file"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </div>

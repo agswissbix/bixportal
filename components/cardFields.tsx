@@ -349,6 +349,12 @@ export default function CardFields({
                     </div>
                   )}
                 </>
+              ) : field.fieldtype === "Attachment" ? (
+                <InputFile
+                  initialValue={value ? `/api/media-proxy?url=${value}` : null}
+                  onChange={(v) => handleInputChange(field.fieldid, v)}
+                  disabled={true}
+                />
               ) : field.fieldtype === "linkedmaster" && typeof field.value === "object" && field.value?.code ? (
               <InputLinked
                 initialValue={value}
