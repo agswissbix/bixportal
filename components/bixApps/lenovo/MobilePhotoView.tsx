@@ -632,7 +632,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                 ) : (
                                     <div className="text-center p-6 text-gray-500">
                                         <Icons.CameraIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                        <p>Tap to capture</p>
+                                        <p>Tap to capture or upload</p>
                                     </div>
                                 )}
                                 <input 
