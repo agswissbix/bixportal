@@ -293,7 +293,7 @@ export default function Sidebar({}: PropsInterface) {
                     <div className="px-4 py-2 flex items-center gap-3">
                       <Star className="w-5 h-5 text-[#FFB800]" strokeWidth={2} />
                       <span className="text-primary-foreground tracking-wide uppercase">
-                        I TUOI PREFERITI
+                        PREFERITI
                       </span>
                     </div>
 
