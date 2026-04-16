@@ -198,7 +198,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                 {handleRowClick && (
                                     <Button variant="outline" size="sm"
                                         className="font-semibold flex items-center bg-transparent text-accent border border-gray-200 px-4 py-2 rounded-lg 
-                                                    hover:border-accent hover:bg-transparent hover:text-accent transition-all duration-300 transform 
+                                                    hover:border-accent-hover hover:bg-transparent hover:text-accent-hover transition-all duration-300 transform 
                                                     hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
                                         onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}
                                         disabled={!canAdd}
