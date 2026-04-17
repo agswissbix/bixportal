@@ -25,7 +25,9 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronRight,
-  Eye
+  Eye,
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from "framer-motion"
@@ -141,6 +143,7 @@ export default function CustomDeadlines() {
   const [statusFilter, setStatusFilter] = useState('all'); // all, Attivo, In scadenza, Scaduto
   const { handleRowClick, getIsSettingAllowed, setTableSettings, refreshTable, searchTerm, filtersList, tableView } = useRecordsStore();
   const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Payload per il backend
   const payload = useMemo(() => {
@@ -150,8 +153,8 @@ export default function CustomDeadlines() {
       searchTerm: searchTerm,
       view: tableView,
       pagination: {
-        page: 1,
-        limit: 1000,
+        page: currentPage,
+        limit: 20,
       },
       order: {
         fieldid: "date_deadline",
@@ -294,65 +297,9 @@ export default function CustomDeadlines() {
   return (
     <GenericComponent loading={loading} error={error}>
         {(response: ResponseInterface) => (
-    <div className="min-h-screen text-slate-800 font-sans relative">
-
-        {/* Widget Riassuntivi */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* Card Totale */}
-          <div className={`rounded-xl p-5 border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden cursor-pointer ${statusFilter === 'all' ? 'bg-slate-50' : 'bg-white'}`}
-            onClick={() => setStatusFilter('all')}>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-slate-50 rounded-bl-full -z-10"></div>
-            <div className="bg-slate-100 p-3 rounded-lg text-slate-600">
-              <KeySquare className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Totale Scadenze</p>
-              <h3 className="text-2xl font-bold text-slate-900">{metrics.total}</h3>
-            </div>
-          </div>
-
-          {/* Card Attive */}
-          <div className={`rounded-xl p-5 border border-emerald-200 shadow-sm flex items-center gap-4 relative overflow-hidden cursor-pointer ${statusFilter === 'attivo' ? 'bg-emerald-50' : 'bg-white'}`}
-            onClick={() => setStatusFilter('attivo')}>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -z-10"></div>
-            <div className="bg-emerald-100 p-3 rounded-lg text-emerald-600">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Attive</p>
-              <h3 className="text-2xl font-bold text-slate-900">{metrics.active}</h3>
-            </div>
-          </div>
-
-          {/* Card In Scadenza */}
-          <div className={`rounded-xl p-5 border border-amber-200 shadow-sm flex items-center gap-4 relative overflow-hidden cursor-pointer ${statusFilter === 'in scadenza' ? 'bg-amber-50' : 'bg-white'}`}
-            onClick={() => setStatusFilter('in scadenza')}>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-bl-full -z-10"></div>
-            <div className="bg-amber-100 p-3 rounded-lg text-amber-600">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">In Scadenza</p>
-              <h3 className="text-2xl font-bold text-amber-700">{metrics.expiring}</h3>
-            </div>
-          </div>
-
-          {/* Card Scadute */}
-          <div className={`rounded-xl p-5 border border-red-200 shadow-sm flex items-center gap-4 relative overflow-hidden cursor-pointer ${statusFilter === 'scaduto' ? 'bg-red-50' : 'bg-white'}`}
-            onClick={() => setStatusFilter('scaduto')}>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-red-50 rounded-bl-full -z-10"></div>
-            <div className="bg-red-100 p-3 rounded-lg text-red-600">
-              <XCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Scadute</p>
-              <h3 className="text-2xl font-bold text-red-700">{metrics.expired}</h3>
-            </div>
-          </div>
-        </div>
-
+    <div className="flex flex-col h-full text-slate-800 font-sans relative">
     {/* Lista Scadenze */}
-    <div className="space-y-4">
+    <div className="flex flex-col gap-6 min-h-0 overflow-y-auto">
       {filteredDeadlines.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-slate-200 border-dashed">
           <CalendarDays className="mx-auto h-12 w-12 text-slate-300 mb-4" />
@@ -369,21 +316,24 @@ export default function CustomDeadlines() {
           <div 
             key={deadline.recordid_} 
             onClick={() => {handleRowClick('standard', deadline.recordid_, 'deadline',)}}
-            className={`group bg-white rounded-xl border p-5 sm:p-6 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all flex flex-col gap-5 cursor-pointer ${
-              isExpired ? 'border-red-200 bg-red-50/30' : 
-              isExpiring ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 hover:border-indigo-300'
+            className={`group bg-white shrink-0 rounded-xl border p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col gap-5 cursor-pointer relative overflow-hidden ${
+              isExpired 
+                ? 'border-slate-200 border-l-4 border-l-red-500 bg-gradient-to-r from-red-50/40 to-transparent' : 
+              isExpiring 
+                ? 'border-slate-200 border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-50/40 to-transparent' : 
+                'border-slate-200 border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-50/40 to-transparent'
             }`}
           >
             {/* Contenitore Superiore */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               {/* Info Principali */}
               <div className="flex items-start gap-4 flex-1">
-                <div className="p-3 rounded-xl flex-shrink-0 mt-1 bg-indigo-50 text-indigo-600">
+                <div className="p-3 rounded-xl flex-shrink-0 mt-1 bg-indigo-50 text-secondary">
                   <TableIcon tableid={deadline.tableid} className="w-6 h-6" />
                 </div>
               
               <div>
-                <h3 className="text-lg font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors line-clamp-1 w-full">
+                <h3 className="text-lg font-semibold group-hover:text-slate-900 text-secondary transition-colors line-clamp-1 w-full">
                   {deadline.description}
                 </h3>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500">
@@ -438,7 +388,7 @@ export default function CustomDeadlines() {
               {/* Icona Notifica Inviata */}
               <div className="flex flex-col items-center" title="Stato Notifica">
                  {deadline.notification_sent === 'Si' ? (
-                   <BellRing className="w-5 h-5 text-indigo-500" />
+                   <BellRing className="w-5 h-5 text-secondary" />
                  ) : (
                    <BellOff className="w-5 h-5 text-slate-300" />
                  )}
@@ -500,35 +450,35 @@ export default function CustomDeadlines() {
               {/* Action row (se presente) */}
               {deadline.actions && (
                 <div className="mt-4 pt-3 border-t border-slate-100">
-    <div className="group/action relative">
-      <button 
-        onClick={(e) => {
-          e.stopPropagation();
-          const el = document.getElementById(`action-${deadline.recordid_}`);
-          el?.classList.toggle('hidden');
-        }}
-        className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-slate-400 hover:text-indigo-600 transition-all"
-      >
-        <Settings className="w-3 h-3" />
-        <span>Dettagli Azione</span>
-        <Plus className="w-3 h-3 ml-auto opacity-0 group-hover/action:opacity-100 transition-opacity" />
-      </button>
-      
-      <div 
-        id={`action-${deadline.recordid_}`}
-        className="hidden mt-2 animate-in fade-in slide-in-from-top-1 duration-200"
-      >
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center gap-3">
-          <div className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[11px] font-mono text-gray-800 shadow-sm">
-            {deadline.actions}
-          </div>
-          <span className="text-[11px] text-slate-500 italic">
-            Eseguita automaticamente alla scadenza
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
+                  <div className="group/action relative">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const el = document.getElementById(`action-${deadline.recordid_}`);
+                        el?.classList.toggle('hidden');
+                      }}
+                      className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-slate-400 hover:text-secondary transition-all"
+                    >
+                      <Settings className="w-3 h-3" />
+                      <span>Dettagli Azione</span>
+                      <Plus className="w-3 h-3 ml-auto opacity-0 group-hover/action:opacity-100 transition-opacity" />
+                    </button>
+                    
+                    <div 
+                      id={`action-${deadline.recordid_}`}
+                      className="hidden mt-2 animate-in fade-in slide-in-from-top-1 duration-200"
+                    >
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center gap-3">
+                        <div className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[11px] font-mono text-gray-800 shadow-sm">
+                          {deadline.actions}
+                        </div>
+                        <span className="text-[11px] text-slate-500 italic">
+                          Eseguita automaticamente alla scadenza
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -536,6 +486,104 @@ export default function CustomDeadlines() {
         })
       )}
     </div>
+
+    {/* SEZIONE PAGINAZIONE FISSA IN BASSO */}
+          <div className="flex-none bg-card border-t border-slate-200 p-2 sm:p-4 z-50 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] rounded-b-xl">
+            <nav
+              aria-label="Page navigation"
+              className="flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0"
+            >
+            {/* 1. Conteggio Totale Record a Sinistra (per schermi larghi) */}
+            <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
+              <span className="font-semibold text-gray-800 dark:text-gray-200">Totale Record:</span>
+              <span className="font-medium">{response?.counter}</span>
+            </div>
+
+            {/* 2. Bottoni di Paginazione al Centro */}
+            <div className="flex items-center space-x-1 bg-card border border-border rounded-lg p-1 shadow-sm order-1 sm:order-2">
+              {/* Previous Button */}
+              <button
+                onClick={() => setCurrentPage(response?.pagination.currentPage - 1)}
+                title="Previous"
+                disabled={response?.pagination.currentPage === 1}
+                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  response?.pagination.currentPage === 1
+                    ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                    : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center space-x-1">
+                {/* First Page */}
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${
+                    response?.pagination.currentPage === 1
+                      ? "text-primary-foreground bg-primary shadow-sm"
+                      : "text-foreground bg-transparent hover:bg-muted"
+                  }`}
+                >
+                  1
+                </button>
+
+                {/* Ellipsis */}
+                {response?.pagination.currentPage > 3 && (
+                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">...</span>
+                )}
+
+                {/* Current Page (if not first or last) */}
+                {response?.pagination.currentPage !== 1 &&
+                  response?.pagination.currentPage !== response?.pagination.totalPages && (
+                    <button className="flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md text-primary-foreground bg-primary shadow-sm">
+                      {response?.pagination.currentPage}
+                    </button>
+                  )}
+
+                {/* Ellipsis */}
+                {response?.pagination.currentPage < response?.pagination.totalPages - 2 && (
+                  <span className="flex items-center justify-center w-10 h-10 text-muted-foreground">...</span>
+                )}
+
+                {/* Last Page */}
+                {response?.pagination.totalPages > 1 && (
+                  <button
+                    onClick={() => setCurrentPage(response?.pagination.totalPages)}
+                    className={`flex items-center justify-center w-10 h-10 text-sm font-medium rounded-md transition-all duration-200 ${
+                      response?.pagination.currentPage === response?.pagination.totalPages
+                        ? "text-primary-foreground bg-primary shadow-sm"
+                        : "text-foreground bg-transparent hover:bg-muted"
+                    }`}
+                  >
+                    {response?.pagination.totalPages}
+                  </button>
+                )}
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={() => setCurrentPage(response?.pagination.currentPage + 1)}
+                disabled={response?.pagination.currentPage === response?.pagination.totalPages}
+                title="Next"
+                className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  response?.pagination.currentPage === response?.pagination.totalPages
+                    ? "text-muted-foreground bg-transparent cursor-not-allowed opacity-50"
+                    : "text-foreground bg-transparent hover:bg-muted hover:text-primary"
+                }`}
+              >
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+
+            {/* 3. Dettaglio Pagina a Destra (per schermi larghi) */}
+              <span className="text-xs text-gray-500 dark:text-gray-400 order-3 text-center sm:text-right">
+                Visualizzati: {response?.rows.length} (Pagina {response?.pagination.currentPage} di{" "}
+                {response?.pagination.totalPages})
+              </span>
+          </nav>
+          </div>
 
     <AnimatePresence>
       {contextMenu && (
