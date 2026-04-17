@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
+import { Trash2, GripVertical } from 'lucide-react'; // Aggiunto GripVertical
 import { useRecordsStore } from './records/recordsStore';
 import { AppContext } from '@/context/appContext';
 
@@ -16,6 +16,7 @@ interface View {
   name: string;
   userid: number;
   tableid: string;
+  order_ascdesc?: number; // Campo opzionale per l'ordinamento
 }
 
 export default function UserTableViews() {
@@ -28,6 +29,75 @@ export default function UserTableViews() {
   const { setRefreshViewsList } = useRecordsStore();
   const { role } = useContext(AppContext);
   const isAdmin = role.toLowerCase() === 'admin';
+
+  // --- Logica Drag and Drop ---
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+
+  const onDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedItemIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Opzionale: aggiunge trasparenza durante il trascinamento
+    (e.target as HTMLElement).style.opacity = "0.5";
+  };
+
+  const onDragEnd = (e: React.DragEvent) => {
+    (e.target as HTMLElement).style.opacity = "1";
+    setDraggedItemIndex(null);
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Necessario per permettere il drop
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetIndex: number, isSystemView: boolean) => {
+    e.preventDefault();
+    if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+
+    // Determiniamo i due blocchi di liste separatamente per evitare di mischiare 
+    // viste personali e di sistema durante il drop se non desiderato
+    const currentViews = [...views];
+    const filteredViews = isSystemView 
+        ? currentViews.filter(v => v.userid === 1) 
+        : currentViews.filter(v => v.userid !== 1);
+    
+    const otherViews = isSystemView 
+        ? currentViews.filter(v => v.userid !== 1) 
+        : currentViews.filter(v => v.userid === 1);
+
+    // Riordinamento dell'array filtrato
+    const draggedItem = filteredViews[draggedItemIndex];
+    const remainingItems = filteredViews.filter((_, idx) => idx !== draggedItemIndex);
+    const reorderedFiltered = [
+      ...remainingItems.slice(0, targetIndex),
+      draggedItem,
+      ...remainingItems.slice(targetIndex)
+    ];
+
+    // Riuniamo e aggiorniamo gli indici order_ascdesc (1-based)
+    const finalViews = [...reorderedFiltered, ...otherViews].map((view, index) => ({
+        ...view,
+        order_ascdesc: index + 1
+    }));
+
+    // Aggiornamento ottimistico
+    setViews(finalViews);
+
+    // Chiamata API
+    try {
+      const response = await axiosInstanceClient.post('/postApi', {
+        apiRoute: 'reorder_table_views',
+        orders: reorderedFiltered.map((v, i) => ({ id: v.id, order: i + 1 }))
+      });
+      if (!response.data.success) {
+        throw new Error();
+      }
+      setRefreshViewsList();
+    } catch (error) {
+      toast.error("Errore nel salvataggio dell'ordine");
+      fetchViews(selectedTableId); // Rollback
+    }
+  };
+  // --- Fine Logica Drag and Drop ---
 
   useEffect(() => {
     fetchTables();
@@ -94,7 +164,7 @@ export default function UserTableViews() {
       if (delResponse.data.success) {
           toast.success("Vista eliminata con successo");
           setViews(prev => prev.filter(v => v.id !== viewId));
-          setRefreshViewsList(); // Aggiorniamo quickFilters se necessario
+          setRefreshViewsList();
       } else {
           toast.error(delResponse.data.detail || "Errore durante l'eliminazione");
       }
@@ -103,10 +173,58 @@ export default function UserTableViews() {
     }
   }
 
+  // Helper per renderizzare l'item della lista
+  const renderViewItem = (view: View, index: number, isSystem: boolean) => {
+    const canDrag = !isSystem || isAdmin;
+
+    return (
+      <li 
+        key={view.id} 
+        draggable={canDrag}
+        onDragStart={(e) => onDragStart(e, index)}
+        onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
+        onDrop={(e) => handleDrop(e, index, isSystem)}
+        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl shadow-sm hover:shadow-md transition-all border 
+          ${isSystem ? 'bg-white border-gray-200' : 'bg-blue-50/50 border-blue-100'} 
+          ${canDrag ? 'cursor-default' : ''}`}
+      >
+        <div className="flex items-center gap-3">
+          {canDrag && (
+            <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+              <GripVertical className="w-5 h-5" />
+            </div>
+          )}
+          <div className="flex flex-col">
+            <span className="font-semibold text-gray-800">{view.name}</span>
+            <span className="text-xs text-gray-500 mt-1">
+              {isSystem ? 'Vista di sistema (condivisa)' : 'Vista personale'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="mt-3 sm:mt-0 flex items-center gap-2">
+            {(!isSystem || isAdmin) ? (
+              <button
+                onClick={() => handleDeleteView(view.id, view.name)}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                title="Elimina vista"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="text-xs font-medium sm:hidden">Elimina</span>
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 italic px-2">Non eliminabile</span>
+            )}
+        </div>
+      </li>
+    );
+  };
+
   return (
     <div className="p-6 bg-white rounded-2xl shadow-xl max-w-2xl mx-auto my-10 border border-gray-100">
       <p className="text-sm text-gray-600 mb-6 font-medium">
-        Seleziona una tabella per gestire le tue viste personalizzate.
+        Seleziona una tabella per gestire e ordinare le tue viste personalizzate.
       </p>
 
       <div className="mb-6">
@@ -140,64 +258,22 @@ export default function UserTableViews() {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Viste Personali */}
+              {/* Sezione Viste Personali */}
               {views.some(v => v.userid !== 1) && (
                 <div>
                   <h5 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Le tue Viste</h5>
                   <ul className="space-y-3">
-                    {views.filter(v => v.userid !== 1).map(view => (
-                      <li key={view.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-50/50 border border-blue-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-gray-800">{view.name}</span>
-                          <span className="text-xs text-gray-500 mt-1">
-                            Vista personale
-                          </span>
-                        </div>
-                        <div className="mt-3 sm:mt-0 flex items-center gap-2">
-                            <button
-                              onClick={() => handleDeleteView(view.id, view.name)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
-                              title="Elimina la tua vista"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              <span className="text-xs font-medium sm:hidden">Elimina</span>
-                            </button>
-                        </div>
-                      </li>
-                    ))}
+                    {views.filter(v => v.userid !== 1).map((view, index) => renderViewItem(view, index, false))}
                   </ul>
                 </div>
               )}
 
-              {/* Viste di Sistema */}
+              {/* Sezione Viste di Sistema */}
               {views.some(v => v.userid === 1) && (
                 <div>
                   <h5 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Viste di Sistema</h5>
                   <ul className="space-y-3">
-                    {views.filter(v => v.userid === 1).map(view => (
-                      <li key={view.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-gray-800">{view.name}</span>
-                          <span className="text-xs text-gray-500 mt-1">
-                            Vista di sistema (condivisa)
-                          </span>
-                        </div>
-                        <div className="mt-3 sm:mt-0 flex items-center gap-2">
-                            {isAdmin ? (
-                              <button
-                                onClick={() => handleDeleteView(view.id, view.name)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
-                                title="Elimina vista di sistema"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                <span className="text-xs font-medium sm:hidden">Elimina</span>
-                              </button>
-                            ) : (
-                              <span className="text-xs text-gray-400 italic px-2">Non eliminabile</span>
-                            )}
-                        </div>
-                      </li>
-                    ))}
+                    {views.filter(v => v.userid === 1).map((view, index) => renderViewItem(view, index, true))}
                   </ul>
                 </div>
               )}

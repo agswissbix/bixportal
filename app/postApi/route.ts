@@ -227,6 +227,9 @@ export async function POST(request: Request) {
         case "get_table_views":
             djangoUrl = "/commonapp/get_table_views/";
             break;
+        case "reorder_table_views":
+            djangoUrl = "/commonapp/reorder_table_views/";
+            break;
         case "get_record_badge":
             djangoUrl = "/commonapp/get_record_badge/";
             break;
