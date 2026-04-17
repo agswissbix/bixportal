@@ -113,9 +113,11 @@ export default function Sidebar({}: PropsInterface) {
   const { user, activeServer, role } = useContext(AppContext)
 
   const handleMenuClick = (item: string) => {
-    resetCardsList()
-    setSelectedMenu(item)
-    setIsSidebarOpen(false)
+    if (selectedMenu !== item) {
+      resetCardsList()
+      setSelectedMenu(item)
+      setIsSidebarOpen(false)
+    }
   }
 
   const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT)

@@ -302,14 +302,14 @@ export default function RecordsTable({
   // Quando la tabella cambia (es. tableid), resetta la pagina a 1
   useEffect(() => {
     setCurrentPage(1)
-  }, [tableid])
+  }, [tableid,responseData?.pagination?.totalPages])
 
-  useEffect(() => {
-    console.log("total pages", responseData?.pagination?.totalPages, "current page", currentPage)
-    if (responseData?.pagination?.totalPages !== 0 && responseData?.pagination?.totalPages < currentPage) {
-      setCurrentPage(responseData?.pagination?.totalPages)
-    }
-  }, [responseData?.pagination?.totalPages])
+  // useEffect(() => {
+  //   console.log("total pages", responseData?.pagination?.totalPages, "current page", currentPage)
+  //   if (responseData?.pagination?.totalPages !== 0 && responseData?.pagination?.totalPages < currentPage) {
+  //     setCurrentPage(1)
+  //   }
+  // }, [responseData?.pagination?.totalPages])
   const [showContextMenuTip, setShowContextMenuTip] = useState(true)
 
   useEffect(() => {
