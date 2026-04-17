@@ -997,10 +997,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         <div className="w-full max-w-lg h-[70vh] overflow-hidden rounded-2xl relative">
                                         <BarcodeScanner
                                             onDetected={(code) => {
-                                            const serial = code.slice(-8);
-                                            setSearchSerial(serial);
-                                            setShowScanner(false);
-                                            handleBarcodeSearch(undefined, serial);
+                                                if (window.confirm("Codice scansionato: " + code.slice(-8) + " Vuoi inviare i dati al PC (OK) o riprovare (Annulla)?")) {
+                                                    const serial = code.slice(-8);
+                                                    setSearchSerial(serial);
+                                                    setShowScanner(false);
+                                                    handleBarcodeSearch(undefined, serial);
+                                                } else {
+                                                    setShowScanner(true);
+                                                }
                                             }}
                                             onClose={() => setShowScanner(false)}
                                         />

@@ -349,16 +349,20 @@ export default function MobilePhotoView({ ticketId }: Props) {
                                     <div className="w-full h-[60vh] max-w-lg overflow-hidden rounded-2xl relative border-2 border-dashed border-gray-700">
                                         <BarcodeScanner 
                                             onDetected={async (code) => {
-                                                if (sessionId) {
-                                                    const fd = new FormData();
-                                                    fd.append("apiRoute", "lenovo_mobile_handoff");
-                                                    fd.append("action", "set");
-                                                    fd.append("session_id", sessionId);
-                                                    fd.append("serial", code.slice(-8));
-                                                    await axiosInstanceClient.post("/postApi", fd);
-                                                    setScannedSuccess(true);
+                                                if (window.confirm("Codice scansionato: " + code.slice(-8) + " Vuoi inviare i dati al PC (OK) o riprovare (Annulla)?")) {
+                                                    if (sessionId) {
+                                                        const fd = new FormData();
+                                                        fd.append("apiRoute", "lenovo_mobile_handoff");
+                                                        fd.append("action", "set");
+                                                        fd.append("session_id", sessionId);
+                                                        fd.append("serial", code.slice(-8));
+                                                        await axiosInstanceClient.post("/postApi", fd);
+                                                        setScannedSuccess(true);
+                                                    } else {
+                                                        window.location.href = `/bixApps/lenovo-intake?serial=${code.slice(-8)}`;
+                                                    }
                                                 } else {
-                                                    window.location.href = `/bixApps/lenovo-intake?serial=${code.slice(-8)}`;
+                                                    window.location.reload();
                                                 }
                                             }}
                                             onClose={() => {
