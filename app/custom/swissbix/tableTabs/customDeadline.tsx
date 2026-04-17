@@ -295,7 +295,7 @@ export default function CustomDeadlines() {
   }, [processedDeadlines, searchTerm, statusFilter]);
 
   return (
-    <GenericComponent loading={loading} error={error}>
+    <GenericComponent response={response} loading={loading} error={error}>
         {(response: ResponseInterface) => (
     <div className="flex flex-col h-full text-slate-800 font-sans relative">
     {/* Lista Scadenze */}
