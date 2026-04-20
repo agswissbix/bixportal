@@ -248,6 +248,9 @@ export async function POST(request: Request) {
         case "get_input_linked":
             djangoUrl = "/commonapp/get_input_linked/";
             break;
+        case "autocomplete_linked_fields":
+            djangoUrl = "/commonapp/autocomplete_linked_fields/";
+            break;
         case "stampa_bollettini_test":
             djangoUrl = "/commonapp/stampa_bollettini_test/";
             break;

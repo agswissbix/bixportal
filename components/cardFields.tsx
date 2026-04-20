@@ -67,6 +67,7 @@ interface FieldInterface {
   linked_mastertable?: string
   settings: string | { calcolato: string; default: string; nascosto: string; obbligatorio: string, has_dependencies: string, is_editable: string }
   isMulti?: boolean
+  is_deduced?: boolean
 }
 
 interface ResponseInterface {
@@ -111,6 +112,8 @@ export default function CardFields({
 
   const [isCalculating, setIsCalculating] = useState(false)
 
+  const [hasInteracted, setHasInteracted] = useState(false)
+
   const { removeCard, setRefreshTable, theme, tableSettings, getIsSettingAllowed } = useRecordsStore()
 
   const payload = useMemo(() => {
@@ -152,6 +155,8 @@ export default function CardFields({
           return prev
         }
 
+        setHasInteracted(true);
+
         return { ...prev, [fieldid]: newValue }
       })
       if (externalOnFieldChange) {
@@ -163,46 +168,62 @@ export default function CardFields({
     [externalOnFieldChange],
   )
 
-  const handleFieldBlur = async (event: React.FocusEvent<HTMLDivElement>) => {
-    if (event.currentTarget.contains(event.relatedTarget as Node)) {
-      return
-    }
+  const handleFieldBlur = async (
+      event: React.FocusEvent<HTMLDivElement>, 
+      triggeredFieldId: string, 
+      triggerDependencies: boolean, 
+      triggerLinkedAutoFill: boolean
+  ) => {
+      if (event.currentTarget.contains(event.relatedTarget as Node)) return;
+      if (isCalculating || Object.keys(updatedFields).length === 0) return;
 
-    if (isCalculating) {
-      return
-    }
-    if (Object.keys(updatedFields).length === 0) {
-      return
-    }
+      setIsCalculating(true);
+      try {
+          let newUpdatedFields = { ...updatedFields };
 
-    setIsCalculating(true)
-    try {
-      const payload = {
-        apiRoute: "calculate_dependent_fields",
-        tableid,
-        recordid,
-        fields: currentValues,
+          // 1. Chiamata per i calcoli standard (se il campo ha dipendenze)
+          if (triggerDependencies) {
+              const depPayload = {
+                  apiRoute: "calculate_dependent_fields",
+                  tableid,
+                  recordid,
+                  fields: { ...currentValues, ...newUpdatedFields },
+              };
+              const depResponse = await axiosInstanceClient.post("/postApi", depPayload, {
+                  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+              });
+              if (depResponse.data?.updated_fields) {
+                  newUpdatedFields = { ...newUpdatedFields, ...depResponse.data.updated_fields };
+              }
+          }
+
+          // 2. Chiamata per l'autocompilazione a cascata (se è un campo linked)
+          if (triggerLinkedAutoFill) {
+              const linkedPayload = {
+                  apiRoute: "autocomplete_linked_fields",
+                  tableid,
+                  changed_fieldid: triggeredFieldId,
+                  current_value: newUpdatedFields[triggeredFieldId] ?? currentValues[triggeredFieldId],
+                  fields: { ...currentValues, ...newUpdatedFields }, // Inviamo i campi aggiornati
+              };
+              const linkedResponse = await axiosInstanceClient.post("/postApi", linkedPayload, {
+                  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+              });
+              if (linkedResponse.data?.updated_fields) {
+                  newUpdatedFields = { ...newUpdatedFields, ...linkedResponse.data.updated_fields };
+              }
+          }
+
+          // Applichiamo lo stato una sola volta per evitare re-render multipli
+          setUpdatedFields(newUpdatedFields);
+
+      } catch (error: any) {
+          console.error("Errore durante l'aggiornamento dei campi:", error);
+          toast.error("Errore durante l'aggiornamento: " + error?.response?.data?.error);
+      } finally {
+          setIsCalculating(false);
       }
-
-      const response = await axiosInstanceClient.post("/postApi", payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-
-      const data: CalculationResponseInterface = response.data
-
-      if (data && data.updated_fields) {
-        setUpdatedFields((prev) => ({
-          ...prev,
-          ...data.updated_fields,
-        }))
-      }
-    } catch (error) {
-      console.error("Errore durante il calcolo dei campi dipendenti:", error)
-      toast.error("Errore durante l'aggiornamento dei calcoli: " + error?.response?.data?.error)
-    } finally {
-      setIsCalculating(false)
-    }
-  }
+  };
 
   const groupedFields = useMemo(() => {
     return currentFields.reduce((acc: Record<string, FieldInterface[]>, field) => {
@@ -220,23 +241,32 @@ export default function CardFields({
       console.log("[API Response]", response)
       setResponseData(response)
       const init: { [key: string]: string | string[] | File } = {}
+      const updates: { [key: string]: any } = {};
       response.fields.forEach((field) => {
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
         const backendValue =
           typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
 
-        if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
-          init[field.fieldid] = defaultValue
-        } 
+        if (field?.is_deduced) {
+          init[field.fieldid] = ""; 
+        } else {
           if (backendValue !== undefined && backendValue !== null) {
-          init[field.fieldid] = backendValue
+            init[field.fieldid] = backendValue;
+          }
         }
+
+        if (backendValue !== undefined && backendValue !== null) {
+          updates[field.fieldid] = backendValue
+        }
+
         if (prefillData && prefillData[field.fieldid] !== undefined) {
-          init[field.fieldid] = prefillData[field.fieldid]
+          updates[field.fieldid] = prefillData[field.fieldid];
+        } else if (defaultValue !== undefined && defaultValue !== "" && !backendValue) {
+          updates[field.fieldid] = defaultValue;
         }
       })
-      setUpdatedFields(init)
+      setUpdatedFields(updates)
       setInitialFields(init)
     }
   }, [response, isDev, responseData, prefillData])
@@ -244,6 +274,7 @@ export default function CardFields({
   useEffect(() => {
     if (externalFields && externalFields.length > 0) {
       const init: { [key: string]: string | string[] | File } = {}
+      const updates: { [key: string]: string | string[] | File } = {}
       externalFields.forEach((field) => {
         const settings = typeof field.settings === "object" ? field.settings : null
         const defaultValue = settings?.default
@@ -251,17 +282,21 @@ export default function CardFields({
         const backendValue =
           typeof field.value === "object" ? ((field.value as any).code ?? (field.value as any).value) : field.value
 
-        if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
-          init[field.fieldid] = defaultValue
-        } 
-        if (backendValue !== undefined && backendValue !== null) {
-          init[field.fieldid] = backendValue
+        init[field.fieldid] = backendValue ?? "";
+
+        updates[field.fieldid] = backendValue ?? "";
+
+        if (field?.is_deduced) {
+          init[field.fieldid] = "";
         }
+
         if (prefillData && prefillData[field.fieldid] !== undefined) {
-            init[field.fieldid] = prefillData[field.fieldid];
+          updates[field.fieldid] = prefillData[field.fieldid];
+        } else if (defaultValue !== undefined && defaultValue !== "" && !backendValue) {
+          updates[field.fieldid] = defaultValue;
         }
       })
-      setUpdatedFields(init)
+      setUpdatedFields(updates)
       setInitialFields(init)
     }
   }, [externalFields, prefillData])
@@ -287,6 +322,8 @@ export default function CardFields({
         || !isEditInsert
     const isEditableField = (typeof field.settings === "object" && field.settings.is_editable === "true")
         && isEditInsert
+    const isLinkedMaster = field.fieldtype === "linkedmaster" || field.fieldtypewebid === "linkedmaster";
+    const shouldTriggerBlur = hasDependencies || isLinkedMaster;
 
     // console.log("Rendering field:", field.fieldid, "with value:", rawValue, "isRequired:", isRequired, "isCalculated:", isCalculated)
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
@@ -389,9 +426,9 @@ export default function CardFields({
     return (
         <div
             key={`${field.fieldid}-container`}
-            className={`flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group transition-all duration-200 ${isDirty ? "border-l-2 rounded-lg border-amber-400 pl-2" : "border-l-2 border-transparent pl-1"}`}
-            onBlur={hasDependencies ? (e) => handleFieldBlur(e) : undefined}>
-            <div className="w-full lg:w-1/4 pt-2">
+            className={`flex flex-col lg:flex-row items-start space-y-2 lg:space-y-0 lg:space-x-4 w-full group transition-all duration-200 ${isDirty ? (!hasInteracted ? "border-l-2 rounded-lg border-blue-400 pl-2" : "border-l-2 rounded-lg border-amber-400 pl-2") : "border-l-2 border-transparent pl-1"}`}
+            onBlur={shouldTriggerBlur ? (e) => handleFieldBlur(e, field.fieldid, hasDependencies, isLinkedMaster) : undefined}>
+              <div className="w-full lg:w-1/4 pt-2">
                 <div className="flex items-center gap-1">
                     {isRequired && (
                         <div
@@ -605,10 +642,9 @@ export default function CardFields({
 
   const hasUnsavedChanges = useMemo(() => {
     return Object.keys(updatedFields).some((key) => {
-      const current = updatedFields[key] || null
-      const initial = initialFields[key] || null
+      const current = updatedFields[key] ?? ""
+      const initial = initialFields[key] ?? ""
 
-      console.log(current, initial)
       if (current instanceof File) return true
       return JSON.stringify(current) !== JSON.stringify(initial)
     })
@@ -617,13 +653,14 @@ export default function CardFields({
   /** Ripristina tutti i campi ai valori originali ricevuti dal payload */
   const handleDiscardChanges = useCallback(() => {
     setUpdatedFields({ ...initialFields })
+    setHasInteracted(false);
   }, [initialFields])
 
   /** Ritorna true se il valore del campo è diverso da quello iniziale */
   const isFieldDirty = useCallback(
     (fieldid: string) => {
-      const current = updatedFields[fieldid] || null
-      const initial = initialFields[fieldid] || null
+      const current = updatedFields[fieldid] ?? ""
+      const initial = initialFields[fieldid] ?? ""
       if (current instanceof File) return true
       return JSON.stringify(current) !== JSON.stringify(initial)
     },
@@ -680,6 +717,7 @@ export default function CardFields({
       toast.success("Record salvato con successo")
       setInitialFields(updatedFields)
       setUpdatedFields({})
+      setHasInteracted(false);
       setRefreshTable(tableid)
       removeCard(tableid, recordid)
     } catch (error) {
@@ -705,19 +743,44 @@ export default function CardFields({
         <div className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
           <Tooltip id="my-tooltip" className="tooltip" />
           {hasUnsavedChanges && (
-            <div className="flex items-center justify-between gap-2 mb-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-300 text-amber-700 text-xs font-medium">
+            <div 
+              className={`flex items-center justify-between gap-2 mb-2 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors duration-300 ${
+                hasInteracted 
+                  ? "bg-amber-50 border-amber-300 text-amber-700" 
+                  : "bg-blue-50 border-blue-300 text-blue-700"
+              }`}
+            >
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                Ci sono modifiche non salvate
+                {hasInteracted ? (
+                  // Icona Ambra per modifiche manuali
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  // Icona Blu Info per autocompilazione
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                )}
+                
+                {/* Testo dinamico */}
+                <span>
+                  {hasInteracted 
+                    ? "Ci sono modifiche non salvate" 
+                    : "Dati pre-compilati automaticamente. Salva per confermare"}
+                </span>
               </div>
+
               <button
                 type="button"
                 onClick={handleDiscardChanges}
-                className="ml-auto text-amber-700 hover:text-amber-900 underline underline-offset-2 text-xs font-semibold transition-colors"
+                className={`ml-auto underline underline-offset-2 text-xs font-semibold transition-colors ${
+                  hasInteracted 
+                    ? "text-amber-700 hover:text-amber-900" 
+                    : "text-blue-700 hover:text-blue-900"
+                }`}
               >
-                Annulla
+                Ripristina
               </button>
             </div>
           )}
@@ -827,17 +890,42 @@ export default function CardFields({
           <div className={"h-full flex flex-col relative" + (delayedLoading ? " invisible" : "")}>
             <Tooltip id="my-tooltip" className="tooltip" />
             {hasUnsavedChanges && (
-              <div className="flex items-center justify-between gap-2 mb-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-300 text-amber-700 text-xs font-medium">
+              <div 
+                className={`flex items-center justify-between gap-2 mb-2 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors duration-300 ${
+                  hasInteracted 
+                    ? "bg-amber-50 border-amber-300 text-amber-700" 
+                    : "bg-blue-50 border-blue-300 text-blue-700"
+                }`}
+              >
                 <div className="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  Ci sono modifiche non salvate
+                  {hasInteracted ? (
+                    // Icona Ambra per modifiche manuali
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    // Icona Blu Info per autocompilazione
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  
+                  {/* Testo dinamico */}
+                  <span>
+                    {hasInteracted 
+                      ? "Ci sono modifiche non salvate" 
+                      : "Dati pre-compilati automaticamente. Salva per confermare"}
+                  </span>
                 </div>
+
                 <button
                   type="button"
                   onClick={handleDiscardChanges}
-                  className="ml-auto text-amber-700 hover:text-amber-900 underline underline-offset-2 text-xs font-semibold transition-colors"
+                  className={`ml-auto underline underline-offset-2 text-xs font-semibold transition-colors ${
+                    hasInteracted 
+                      ? "text-amber-700 hover:text-amber-900" 
+                      : "text-blue-700 hover:text-blue-900"
+                  }`}
                 >
                   Ripristina
                 </button>
