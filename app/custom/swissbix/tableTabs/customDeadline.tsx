@@ -488,7 +488,7 @@ export default function CustomDeadlines() {
     </div>
 
     {/* SEZIONE PAGINAZIONE FISSA IN BASSO */}
-          <div className="flex-none bg-card border-t border-slate-200 p-2 sm:p-4 z-50 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] rounded-b-xl">
+          <div className="flex-none bg-card border-t border-slate-200 p-2 sm:p-4 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] rounded-b-xl">
             <nav
               aria-label="Page navigation"
               className="flex flex-col sm:flex-row justify-between items-center space-x-2 space-y-2 sm:space-y-0"
