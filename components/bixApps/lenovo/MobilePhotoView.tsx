@@ -34,8 +34,8 @@ export default function MobilePhotoView({ ticketId }: Props) {
     const [note, setNote] = useState("");
     const getAttachmentTypeByStatus = (status: string) => {
         const s = (status || '').toLowerCase();
-        if (s === 'entrata') return 'foto-diagnostica';
-        if (s === 'diagnostica') return 'foto-riparazione';
+        if (s === 'entrata' || s === 'diagnostica') return 'foto-diagnostica';
+        if (s === 'diagnostica completata' || s === 'riparazione in corso' || s === 'ordine componenti' || s === 'attesa componenti') return 'foto-riparazione';
         return 'pre-intervento';
     };
     const [attachmentType, setAttachmentType] = useState("pre-intervento");
@@ -89,8 +89,10 @@ export default function MobilePhotoView({ ticketId }: Props) {
                     setActiveTab('attachments');
                 } else if (ticketRes.data.ticket.status === 'Entrata') {
                     setActiveTab('attachments');
-                } else {
+                } else if (ticketRes.data.ticket.product_photo === null || ticketRes.data.ticket.product_photo === '') {
                     setActiveTab('photo');
+                } else {
+                    setActiveTab('attachments');
                 }
             } else {
                 toast.error("Ticket non trovato");

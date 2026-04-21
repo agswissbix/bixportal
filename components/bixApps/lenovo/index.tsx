@@ -59,14 +59,24 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     // Note Helpers
     const extractNotePart = (notes: string, section: 'diagnostica' | 'riparazione') => {
         if (!notes) return "";
+
         if (section === 'diagnostica') {
-            const match = notes.match(/Diagnostica:\n([\s\S]*?)(?:\nRiparazione:\n|$)/i);
-            // If the note doesn't match the new structure at all, just return everything for diagnostica
-            if (!match && !notes.match(/Riparazione:\n/i)) return notes.trim();
-            return match ? match[1].trim() : "";
+            // Prendi quello che sta tra Diagnostica e Riparazione
+            const match = notes.match(/Diagnostica:\s*([\s\S]*?)(?:\s*Riparazione:|$)/i);
+            let result = match ? match[1].trim() : notes.trim();
+            
+            // Pulizia finale: rimuovi forzatamente il tag se è rimasto (caso fallback)
+            return result.replace(/^Diagnostica:\s*/i, "").split(/Riparazione:/i)[0].trim();
         } else {
-            const match = notes.match(/Riparazione:\n([\s\S]*?)$/i);
-            return match ? match[1].trim() : "";
+            // Prendi quello che sta dopo Riparazione
+            const match = notes.match(/Riparazione:\s*([\s\S]*?)$/i);
+            let result = match ? match[1].trim() : "";
+            
+            // Se non c'è il match ma la stringa contiene Riparazione, pulisci manualmente
+            if (!result && /Riparazione:/i.test(notes)) {
+                result = notes.split(/Riparazione:/i).pop() || "";
+            }
+            return result.trim();
         }
     };
 
@@ -112,7 +122,11 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         if (appSection !== 'initial' && checkSave) {
             const wantsSave = window.confirm("Vuoi salvare i dati prima di tornare alla ricerca?\n\n[OK] = Salva e torna alla ricerca\n[Annulla] = Scegli se uscire senza salvare");
             if (wantsSave) {
-                const savedId = await handleSave(formData.status || 'Draft');
+                let status = 'Draft';
+                if (appSection === 'diagnostica') status = 'Diagnostica';
+                if (appSection === 'riparazione') status = 'Riparazione in corso';
+                if (appSection === 'consegna') status = 'Riparato';
+                const savedId = await handleSave(status);
                 if (!savedId) return; // Don't exit if save fails
             } else {
                 const proceed = window.confirm("Sei sicuro di voler uscire SENZA salvare? Le modifiche andranno perse.");
@@ -289,14 +303,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
                     // DETERMINE SECTION BASED ON STATUS
                     const st = (ticket.status || '').toLowerCase();
-                    if (st === 'entrata') {
+                    if (st === 'entrata' || st === 'diagnostica') {
                         setAppSection('diagnostica');
-                    } else if (st === 'diagnostica') {
+                    } else if (st === 'diagnostica completata' || st === 'riparazione in corso' || st === 'ordine componenti' || st === 'attesa componenti') {
                         setAppSection('riparazione');
-                    } else if (st === 'riparato') {
+                    } else if (st === 'riparato' || st === 'consegna') {
                         setAppSection('consegna');
-                    } else if (st === 'riconsegnato') {
-                        setAppSection('consegna'); // Already delivered, just show it
                     } else {
                         setAppSection('presa_in_consegna');
                     }
@@ -446,8 +458,20 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     };
 
     const validateStep = (currentStep: number) => {
-        // Step 1: Client
+        // Step 1: Product & Warranty
         if (currentStep === 1) {
+            const requiredFields = ['serial', 'brand', 'model', 'accessories', 'pick_up'];
+            for (const field of requiredFields) {
+                if (fieldSettings[field]?.required && !formData[field as keyof typeof formData]) {
+                    toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || field}`);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Step 2: Client
+        if (currentStep === 2) {
             const requiredFields = ['company_name', 'name', 'surname', 'email', 'address', 'place', 'phone'];
             for (const field of requiredFields) {
                 if (fieldSettings[field]?.required && !formData[field as keyof typeof formData]) {
@@ -458,18 +482,6 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             return true;
         }
 
-        // Step 2: Product & Credentials
-        if (currentStep === 2) {
-            const requiredFields = ['serial', 'brand', 'model', 'accessories', 'username', 'password', 'pickUpLookups'];
-            for (const field of requiredFields) {
-                if (fieldSettings[field]?.required && !formData[field as keyof typeof formData]) {
-                    toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || field}`);
-                    return false;
-                }
-            }
-             return true;
-        }
-
         // Step 3: Assistance & Auth
         if (currentStep === 3) {
             const field = 'problem_description';
@@ -478,6 +490,15 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 toast.error(`Compila il campo obbligatorio: ${fieldSettings[field]?.label || 'Descrizione Problema'}`);
                 return false;
             }
+
+            const credFields = ['username', 'password'];
+            for (const f of credFields) {
+                if (fieldSettings[f]?.required && !formData[f as keyof typeof formData]) {
+                    toast.error(`Compila il campo obbligatorio: ${fieldSettings[f]?.label || f}`);
+                    return false;
+                }
+            }
+
             const requiredFields = ['auth_factory_reset', 'request_quote', 'direct_repair', 'auth_formatting'];
             for (const field of requiredFields) {
                  if (fieldSettings[field]?.required && (!formData[field as keyof typeof formData] || formData[field as keyof typeof formData] !== 'Si')) {
@@ -695,11 +716,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             handleSave('Presa in consegna');
         }
     };
-    const handleSerialBlur = async (serialOverride?: string | React.FocusEvent<HTMLInputElement>) => {
+    const handleSerialBlur = async (serialOverride?: string | React.FocusEvent<HTMLInputElement>): Promise<boolean> => {
         // Se l'evento viene dal blur "normale", serialOverride è un oggetto evento e verrà ignorato. 
         const s = typeof serialOverride === 'string' ? serialOverride : formData.serial;
         const currentSerial = s?.trim();
-        if (!currentSerial || currentSerial === lastCheckedSerial) return;
+        if (!currentSerial) return false;
+        if (currentSerial === lastCheckedSerial) return true;
         
         setIsFetchingLenovo(true);
         try {
@@ -741,12 +763,15 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 setFormData(prev => ({ ...prev, ...updates }));
                 setLastCheckedSerial(currentSerial);
                 toast.success("Dati Lenovo recuperati con successo");
+                return true;
             } else {
-                toast.error("Prodotto non trovato");
+                toast.error("Prodotto non trovato o errore ricerca");
+                return false;
             }
         } catch (err) {
             console.error("Lenovo API Error:", err);
             toast.error("Errore nel recupero dati Lenovo");
+            return false;
         } finally {
             setIsFetchingLenovo(false);
         }
@@ -766,10 +791,12 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             if (res.data.success && res.data.found) {
                 window.location.href = `?recordid=${res.data.recordid}`;
             } else {
-                setFormData(prev => ({ ...prev, serial: s }));
-                setAppSection('presa_in_consegna');
-                setStep(1);
-                handleSerialBlur(s);
+                const success = await handleSerialBlur(s);
+                if (success) {
+                    setFormData(prev => ({ ...prev, serial: s }));
+                    setAppSection('presa_in_consegna');
+                    setStep(1);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -798,12 +825,25 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
             // Compose internal_notes
             let finalNotes = formData.internal_notes || "";
+            const currentContent = currentNote.trim();
+
             if (appSection === 'diagnostica') {
+                // Recuperiamo la riparazione esistente (se c'è) per non perderla
                 const ripPart = extractNotePart(finalNotes, 'riparazione');
-                finalNotes = `Diagnostica:\n${currentNote.trim()}` + (ripPart ? `\n\nRiparazione:\n${ripPart}` : "");
-            } else if (appSection === 'riparazione') {
-                const diagPart = extractNotePart(finalNotes, 'diagnostica') || finalNotes.replace(/Riparazione:[\s\S]*/i, "").trim();
-                finalNotes = (diagPart ? `Diagnostica:\n${diagPart}\n\n` : "") + `Riparazione:\n${currentNote.trim()}`;
+                
+                // Costruiamo: Nuova Diagnostica + Vecchia Riparazione
+                finalNotes = `Diagnostica:\n${currentContent}`;
+                if (ripPart) {
+                    finalNotes += `\n\nRiparazione:\n${ripPart}`;
+                }
+            } 
+            else if (appSection === 'riparazione') {
+                // Recuperiamo la diagnostica esistente
+                const diagPart = extractNotePart(finalNotes, 'diagnostica');
+                
+                // Costruiamo: Vecchia Diagnostica + Nuova Riparazione
+                // Se diagPart è vuoto, non mettiamo il tag Diagnostica per evitare blocchi vuoti
+                finalNotes = (diagPart ? `Diagnostica:\n${diagPart}\n\n` : "") + `Riparazione:\n${currentContent}`;
             }
 
             const fields = {
@@ -820,7 +860,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             
             if (res.data.success) {
                 const newId = res.data.recordid;
-                setFormData(prev => ({ ...prev, recordid: newId }));
+                setFormData(prev => ({ ...prev, recordid: newId, status: res.data.new_status }));
                 
                 if (status === 'Draft') {
                     toast.success("Bozza salvata");
@@ -875,7 +915,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             if (res.data.success) {
                 toast.dismiss();
                 toast.success("Firma salvata!");
-                setFormData(prev => ({ ...prev, signatureUrl: res.data.signatureUrl || "signed" }));
+                setFormData(prev => ({ ...prev, deliverySignatureUrl: res.data.signatureUrl || "signed", signatureUrl: res.data.signatureUrl || "signed" }));
                 setShowSignatureModal(false);
                 // Reload to show signed state
                 // window.location.reload();
@@ -1085,6 +1125,206 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                     <div ref={stepContentRef} className="flex-1 overflow-y-auto px-1 pb-24 lg:pb-8">
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                             {step === 1 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                            <h2 className="text-2xl font-bold mb-4">Prodotto</h2>
+                            
+                            {/* Product Fields */}
+                            <div>
+                                <Label field="serial" text="Numero Seriale" />
+                                <div className="flex gap-2">
+                                    <div className="relative w-full">
+                                        <input 
+                                            type="text" 
+                                            value={formData.serial}
+                                            onBlur={handleSerialBlur}
+                                            onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
+                                            className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
+                                            placeholder="PF..."
+                                            disabled={isFetchingLenovo}
+                                        />
+                                        {isFetchingLenovo && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <RefreshCwIcon className="w-4 h-4 text-gray-400 animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div>
+                                    <Label field="brand" text="Marca" />
+                                    <input 
+                                        type="text" 
+                                        value={formData.brand || "Lenovo"}
+                                        onChange={e => setFormData({...formData, brand: e.target.value})}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                        placeholder="Lenovo, HP, Apple..."
+                                    />
+                                </div>
+                                <div>
+                                    <Label field="model" text="Modello" />
+                                    <input 
+                                        type="text" 
+                                        value={formData.model}
+                                        onChange={e => setFormData({...formData, model: e.target.value})}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
+                                        placeholder="ThinkPad X1..."
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label field="accessories" text="Accessori" />
+                                <div className="flex gap-2 w-full flex-col">
+                                    <AccessorySelector
+                                        selectedItems={Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' ? (formData.accessories as string).split(',') : []}
+                                        onToggle={(item) => {
+                                            setFormData(prev => {
+                                                const current = Array.isArray(prev.accessories) ? prev.accessories : typeof prev.accessories === 'string' && prev.accessories ? (prev.accessories as string).split(',') : [];
+                                                const exists = current.includes(item);
+                                                const newAcc = exists 
+                                                    ? current.filter(i => i !== item)
+                                                    : [...current, item];
+                                                return { ...prev, accessories: newAcc };
+                                            });
+                                        }}
+                                        options={[...(lookups || []).map(l => ({ value: l.itemcode, label: l.itemdesc })), { value: 'Altro', label: 'Altro' }]}
+                                    />
+                                    { (Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' && formData.accessories ? (formData.accessories as string).split(',') : []).includes('Altro') && (
+                                        <div className="mt-2 animate-in fade-in slide-in-from-top-2">
+                                            <input 
+                                                type="text" 
+                                                value={formData.custom_accessory || ""}
+                                                onChange={e => setFormData({...formData, custom_accessory: e.target.value})}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] text-sm transition-all"
+                                                placeholder="Specifica l'accessorio personalizzato..."
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <Label field="pick_up" text="Pick Up" />
+                                <Select
+                                    value={formData.pick_up}
+                                    onValueChange={(val) => setFormData({...formData, pick_up: val})}
+                                >
+                                    <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
+                                        <SelectValue placeholder="Seleziona..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {(pickUpLookups || []).map(l => (
+                                            <SelectItem key={l.itemcode} value={l.itemcode} className="focus:bg-red-50 focus:text-[#E2231A]">{l.itemdesc}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                             {/* Warranty */}
+                             <div className="space-y-4 pt-6 border-t border-gray-100">
+                                <h3 className="text-lg font-bold">Garanzia</h3>
+                                
+                                <div className="flex items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <div className="flex items-center gap-2">
+                                        <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
+                                            <Icons.ShieldCheckIcon className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <label htmlFor="warranty" className="font-medium text-gray-700 cursor-pointer select-none">
+                                            In Garanzia? {fieldSettings['warranty']?.required && <span className="text-red-500">*</span>}
+                                        </label>
+                                    </div>
+                                    <Switch 
+                                        id="warranty"
+                                        checked={formData.warranty === 'Si'}
+                                        onCheckedChange={(checked) => setFormData({...formData, warranty: checked ? 'Si' : 'No'})}
+                                        className="data-[state=checked]:bg-[#E2231A]
+                                                data-[state=unchecked]:bg-gray-300
+                                                focus-visible:ring-[#E2231A]
+                                                [&>span]:bg-white"
+                                    />
+                                </div>
+
+                                {formData.warranty === 'Si' && (
+                                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                             <Label field="warranty_type" text="Tipo Garanzia" />
+                                             <Select
+                                                 value={formData.warranty_type}
+                                                 onValueChange={(val) => setFormData({...formData, warranty_type: val})}
+                                             >
+                                             <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
+                                                 <SelectValue placeholder="Seleziona Tipo Garanzia..." />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="OnSite">OnSite Support</SelectItem>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Depot">Depot / Carry-in</SelectItem>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Premium">Premium Care</SelectItem>
+                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="ADP">ADP (Accidental Damage)</SelectItem>
+                                             </SelectContent>
+                                             </Select>
+                                     </div>
+                                 )}
+
+                                 {/* Warranty History Panel */}
+                                 {warrantyHistory.length > 0 && (
+                                     <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl">
+                                         <div 
+                                             className="flex justify-between items-center cursor-pointer mb-2 border-b pb-2"
+                                             onClick={() => setShowWarrantyHistory(!showWarrantyHistory)}
+                                         >
+                                             <h4 className="text-sm font-bold text-gray-700 select-none">Storico Garanzia Lenovo</h4>
+                                             <button type="button" className="text-gray-500 hover:text-gray-700">
+                                                 {showWarrantyHistory ? (
+                                                     <Icons.ChevronUpIcon className="w-5 h-5" />
+                                                 ) : (
+                                                     <Icons.ChevronDownIcon className="w-5 h-5" />
+                                                 )}
+                                             </button>
+                                         </div>
+                                         
+                                         {showWarrantyHistory && (
+                                             <div className="space-y-3 overflow-y-auto mt-3 pr-2">
+                                                 {warrantyHistory.map((w, idx) => (
+                                                     <div key={idx} className="flex flex-col gap-1 p-3 bg-gray-50 rounded-lg text-sm">
+                                                         <div className="flex justify-between items-start">
+                                                             <span className="font-semibold text-gray-800">{w.name} ({w.type})</span>
+                                                             {w.level && (
+                                                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium shrink-0 ml-2">
+                                                                     {w.level}
+                                                                 </span>
+                                                             )}
+                                                         </div>
+                                                         <span className="text-gray-600">{w.deliveryTypeName}</span>
+                                                         <div className="flex justify-between text-gray-500 text-xs mt-1">
+                                                             <span>{w.startDate} da {w.endDate}</span>
+                                                             <span className={`font-medium ${w.remainingDays > 0 ? "text-green-600" : "text-gray-400"}`}>
+                                                                 {w.remainingDays > 0 ? `${w.remainingDays} giorni restanti` : "Scaduta"}
+                                                             </span>
+                                                         </div>
+                                                         {w.description && (
+                                                             <div className="mt-2 text-xs text-gray-500 italic border-t pt-1 border-gray-200">
+                                                                 {w.description}
+                                                             </div>
+                                                         )}
+                                                     </div>
+                                                 ))}
+                                             </div>
+                                         )}
+                                     </div>
+                                 )}
+                             </div>
+                             <div className="flex justify-end mt-4 border-t border-gray-100 pt-4">
+                                <button 
+                                    onClick={() => {validateStep(1); validateStep(2); validateStep(3); validateStep(4); setStep(5)}}
+                                    className="text-sm font-bold text-[#E2231A] hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    Vai al Riepilogo <Icons.PencilSquareIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 2: Dettagli Cliente */}
+                    {step === 2 && (
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold mb-4">Dettagli Cliente</h2>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1179,113 +1419,22 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     />
                                 </div>
                             </div>
-                            <div className="flex justify-end mt-4 border-t border-gray-100 pt-4">
-                                <button 
-                                    onClick={() => setStep(5)}
-                                    className="text-sm font-bold text-[#E2231A] hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                                >
-                                    Vai al Riepilogo <Icons.PencilSquareIcon className="w-4 h-4" />
-                                </button>
-                            </div>
                         </div>
                     )}
 
-                    {/* Step 2: Product & Credentials */}
-                    {step === 2 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                            <h2 className="text-2xl font-bold mb-4">Prodotto e Accesso</h2>
-                            
-                            {/* Product Fields */}
-                            <div>
-                                <Label field="serial" text="Numero Seriale" />
-                                <div className="flex gap-2">
-                                    <div className="relative w-full">
-                                        <input 
-                                            type="text" 
-                                            value={formData.serial}
-                                            onBlur={handleSerialBlur}
-                                            onChange={e => setFormData({...formData, serial: e.target.value.toUpperCase()})}
-                                            className="uppercase w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all font-mono tracking-wider"
-                                            placeholder="PF..."
-                                            disabled={isFetchingLenovo}
-                                        />
-                                        {isFetchingLenovo && (
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                <RefreshCwIcon className="w-4 h-4 text-gray-400 animate-spin" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div>
-                                    <Label field="brand" text="Marca" />
-                                    <input 
-                                        type="text" 
-                                        value={formData.brand || "Lenovo"}
-                                        onChange={e => setFormData({...formData, brand: e.target.value})}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
-                                        placeholder="Lenovo, HP, Apple..."
-                                    />
-                                </div>
-                                <div>
-                                    <Label field="model" text="Modello" />
-                                    <input 
-                                        type="text" 
-                                        value={formData.model}
-                                        onChange={e => setFormData({...formData, model: e.target.value})}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all"
-                                        placeholder="ThinkPad X1..."
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label field="accessories" text="Accessori" />
-                                <div className="flex gap-2 w-full flex-col">
-                                    <AccessorySelector
-                                        selectedItems={Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' ? (formData.accessories as string).split(',') : []}
-                                        onToggle={(item) => {
-                                            setFormData(prev => {
-                                                const current = Array.isArray(prev.accessories) ? prev.accessories : typeof prev.accessories === 'string' && prev.accessories ? (prev.accessories as string).split(',') : [];
-                                                const exists = current.includes(item);
-                                                const newAcc = exists 
-                                                    ? current.filter(i => i !== item)
-                                                    : [...current, item];
-                                                return { ...prev, accessories: newAcc };
-                                            });
-                                        }}
-                                        options={[...(lookups || []).map(l => ({ value: l.itemcode, label: l.itemdesc })), { value: 'Altro', label: 'Altro' }]}
-                                    />
-                                    { (Array.isArray(formData.accessories) ? formData.accessories : typeof formData.accessories === 'string' && formData.accessories ? (formData.accessories as string).split(',') : []).includes('Altro') && (
-                                        <div className="mt-2 animate-in fade-in slide-in-from-top-2">
-                                            <input 
-                                                type="text" 
-                                                value={formData.custom_accessory || ""}
-                                                onChange={e => setFormData({...formData, custom_accessory: e.target.value})}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] text-sm transition-all"
-                                                placeholder="Specifica l'accessorio personalizzato..."
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <Label field="pick_up" text="Pick Up" />
-                                <Select
-                                    value={formData.pick_up}
-                                    onValueChange={(val) => setFormData({...formData, pick_up: val})}
-                                >
-                                    <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
-                                        <SelectValue placeholder="Seleziona..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {(pickUpLookups || []).map(l => (
-                                            <SelectItem key={l.itemcode} value={l.itemcode} className="focus:bg-red-50 focus:text-[#E2231A]">{l.itemdesc}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                    {/* Step 3: Assistance & Auth */}
+                    {step === 3 && (
+                        <div className="space-y-6">
+                             <h2 className="text-2xl font-bold mb-4">Descrizione Problema</h2>
+                             <div>
+                                <Label field="problem_description" text="Descrizione Problema" />
+                                <textarea 
+                                    value={formData.problem_description}
+                                    onChange={e => setFormData({...formData, problem_description: e.target.value})}
+                                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all h-32"
+                                    placeholder="Descrivi il problema, codici errore, danni fisici..."
+                                />
+                             </div>
 
                             {/* Credentials */}
                             <div className="mt-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
@@ -1313,22 +1462,6 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Step 3: Assistance */}
-                    {step === 3 && (
-                        <div className="space-y-6">
-                             <h2 className="text-2xl font-bold mb-4">Descrizione Problema</h2>
-                             <div>
-                                <Label field="problem_description" text="Descrizione Problema" />
-                                <textarea 
-                                    value={formData.problem_description}
-                                    onChange={e => setFormData({...formData, problem_description: e.target.value})}
-                                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] transition-all h-32"
-                                    placeholder="Descrivi il problema, codici errore, danni fisici..."
-                                />
-                             </div>
 
                              {/* Technician */}
                              <div>
@@ -1340,161 +1473,70 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 />
                              </div>
 
-                             {/* Warranty & Authorization */}
+                             {/* Authorization */}
                              <div className="space-y-4 pt-6 border-t border-gray-100">
-                                <h3 className="text-lg font-bold">Garanzia</h3>
-                                
-                                {/* Warranty */}
-                                <div className="flex items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <div className="flex items-center gap-2">
-                                        <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
-                                            <Icons.ShieldCheckIcon className="w-5 h-5 text-gray-500" />
-                                        </div>
-                                        <label htmlFor="warranty" className="font-medium text-gray-700 cursor-pointer select-none">
-                                            In Garanzia? {fieldSettings['warranty']?.required && <span className="text-red-500">*</span>}
-                                        </label>
-                                    </div>
-                                    <Switch 
-                                        id="warranty"
-                                        checked={formData.warranty === 'Si'}
-                                        onCheckedChange={(checked) => setFormData({...formData, warranty: checked ? 'Si' : 'No'})}
-                                        className="data-[state=checked]:bg-[#E2231A]
-                                                data-[state=unchecked]:bg-gray-300
-                                                focus-visible:ring-[#E2231A]
-                                                [&>span]:bg-white"
+                                <h2 className="text-2xl font-bold mb-4">Autorizzazione</h2>
+
+                                {/* ── System Operations ── */}
+                                <div className="">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Operazioni di Sistema</p>
+                                    <div className="space-y-3">
+                                    <AuthCard
+                                        checked={formData.auth_factory_reset === 'Si'}
+                                        onChange={() => setFormData(prev => ({ ...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si' }))}
+                                        title="Autorizza Ripristino Dati di Fabbrica"
+                                        description="Il dispositivo verrà riportato alle impostazioni di fabbrica. I dati personali potrebbero andare persi."
+                                        required={fieldSettings['auth_factory_reset']?.required}
+                                        icon={<Icons.ArrowPathIcon className="w-5 h-5" />}
                                     />
-                                </div>
-
-                                {formData.warranty === 'Si' && (
-                                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                             <Label field="warranty_type" text="Tipo Garanzia" />
-                                             <Select
-                                                 value={formData.warranty_type}
-                                                 onValueChange={(val) => setFormData({...formData, warranty_type: val})}
-                                             >
-                                             <SelectTrigger className="w-full bg-white border-gray-300 h-11 focus:ring-[#E2231A] focus:border-[#E2231A]">
-                                                 <SelectValue placeholder="Seleziona Tipo Garanzia..." />
-                                             </SelectTrigger>
-                                             <SelectContent>
-                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="OnSite">OnSite Support</SelectItem>
-                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Depot">Depot / Carry-in</SelectItem>
-                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="Premium">Premium Care</SelectItem>
-                                                 <SelectItem className="focus:bg-red-50 focus:text-[#E2231A]" value="ADP">ADP (Accidental Damage)</SelectItem>
-                                             </SelectContent>
-                                             </Select>
-                                     </div>
-                                 )}
-
-                                 {/* Warranty History Panel */}
-                                 {warrantyHistory.length > 0 && (
-                                     <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl">
-                                         <div 
-                                             className="flex justify-between items-center cursor-pointer mb-2 border-b pb-2"
-                                             onClick={() => setShowWarrantyHistory(!showWarrantyHistory)}
-                                         >
-                                             <h4 className="text-sm font-bold text-gray-700 select-none">Storico Garanzia Lenovo</h4>
-                                             <button type="button" className="text-gray-500 hover:text-gray-700">
-                                                 {showWarrantyHistory ? (
-                                                     <Icons.ChevronUpIcon className="w-5 h-5" />
-                                                 ) : (
-                                                     <Icons.ChevronDownIcon className="w-5 h-5" />
-                                                 )}
-                                             </button>
-                                         </div>
-                                         
-                                         {showWarrantyHistory && (
-                                             <div className="space-y-3 overflow-y-auto mt-3 pr-2">
-                                                 {warrantyHistory.map((w, idx) => (
-                                                     <div key={idx} className="flex flex-col gap-1 p-3 bg-gray-50 rounded-lg text-sm">
-                                                         <div className="flex justify-between items-start">
-                                                             <span className="font-semibold text-gray-800">{w.name} ({w.type})</span>
-                                                             {w.level && (
-                                                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium shrink-0 ml-2">
-                                                                     {w.level}
-                                                                 </span>
-                                                             )}
-                                                         </div>
-                                                         <span className="text-gray-600">{w.deliveryTypeName}</span>
-                                                         <div className="flex justify-between text-gray-500 text-xs mt-1">
-                                                             <span>{w.startDate} da {w.endDate}</span>
-                                                             <span className={`font-medium ${w.remainingDays > 0 ? "text-green-600" : "text-gray-400"}`}>
-                                                                 {w.remainingDays > 0 ? `${w.remainingDays} giorni restanti` : "Scaduta"}
-                                                             </span>
-                                                         </div>
-                                                         {w.description && (
-                                                             <div className="mt-2 text-xs text-gray-500 italic border-t pt-1 border-gray-200">
-                                                                 {w.description}
-                                                             </div>
-                                                         )}
-                                                     </div>
-                                                 ))}
-                                             </div>
-                                         )}
-                                     </div>
-                                 )}
-
-                                <h2 className="text-2xl font-bold mb-4 border-t border-gray-100 pt-2">Autorizzazione</h2>
-
-                            {/* ── System Operations ── */}
-                            <div className="">
-                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Operazioni di Sistema</p>
-                                <div className="space-y-3">
-                                <AuthCard
-                                    checked={formData.auth_factory_reset === 'Si'}
-                                    onChange={() => setFormData(prev => ({ ...prev, auth_factory_reset: prev.auth_factory_reset === 'Si' ? 'No' : 'Si' }))}
-                                    title="Autorizza Ripristino Dati di Fabbrica"
-                                    description="Il dispositivo verrà riportato alle impostazioni di fabbrica. I dati personali potrebbero andare persi."
-                                    required={fieldSettings['auth_factory_reset']?.required}
-                                    icon={<Icons.ArrowPathIcon className="w-5 h-5" />}
-                                />
-                                <AuthCard
-                                    checked={formData.auth_formatting === 'Si'}
-                                    onChange={() => setFormData(prev => ({ ...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si' }))}
-                                    title="Autorizza Formattazione Completa"
-                                    description="Formattazione completa del disco — tutti i dati verranno cancellati in modo definitivo."
-                                    required={fieldSettings['auth_formatting']?.required}
-                                    icon={<Icons.TrashIcon className="w-5 h-5" />}
-                                />
-                                </div>
-                            </div>
-
-                            {/* ── Financial Authorizations ── */}
-                            <div className="pt-2 border-t border-gray-100">
-                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Autorizzazioni Finanziarie</p>
-                                <div className="space-y-3">
-                                <AuthCard
-                                    checked={formData.request_quote === 'Si'}
-                                    onChange={() => setFormData(prev => ({ ...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si' }))}
-                                    title="Richiedi Preventivo di Riparazione"
-                                    description="Si applica una tariffa diagnostica fino a CHF 50 in caso di rifiuto della riparazione post-valutazione."
-                                    required={fieldSettings['request_quote']?.required}
-                                    icon={<Icons.DocumentTextIcon className="w-5 h-5" />}
-                                />
-                                <AuthCard
-                                    checked={formData.direct_repair === 'Si'}
-                                    onChange={() => setFormData(prev => ({ ...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si' }))}
-                                    title="Autorizza Riparazione Diretta"
-                                    description="La riparazione procede senza preventivo, fino al limite di costo sotto indicato."
-                                    required={fieldSettings['direct_repair']?.required}
-                                    icon={<Icons.WrenchScrewdriverIcon className="w-5 h-5" />}
-                                >
-                                    <div className="flex items-center gap-3 pt-3 border-t border-dashed border-gray-200">
-                                    <label className="text-xs font-semibold text-gray-600 shrink-0">Costo Max (CHF)</label>
-                                    <div className="relative flex-1">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">CHF</span>
-                                        <input
-                                        type="number"
-                                        value={formData.direct_repair_limit}
-                                        onChange={e => setFormData({ ...formData, direct_repair_limit: e.target.value })}
-                                        className="w-full pl-11 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] outline-none"
-                                        placeholder="e.g. 200"
-                                        min={0}
-                                        />
+                                    <AuthCard
+                                        checked={formData.auth_formatting === 'Si'}
+                                        onChange={() => setFormData(prev => ({ ...prev, auth_formatting: prev.auth_formatting === 'Si' ? 'No' : 'Si' }))}
+                                        title="Autorizza Formattazione Completa"
+                                        description="Formattazione completa del disco — tutti i dati verranno cancellati in modo definitivo."
+                                        required={fieldSettings['auth_formatting']?.required}
+                                        icon={<Icons.TrashIcon className="w-5 h-5" />}
+                                    />
                                     </div>
-                                    </div>
-                                </AuthCard>
                                 </div>
-                            </div>
+
+                                {/* ── Financial Authorizations ── */}
+                                <div className="pt-2 border-t border-gray-100">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Autorizzazioni Finanziarie</p>
+                                    <div className="space-y-3">
+                                    <AuthCard
+                                        checked={formData.request_quote === 'Si'}
+                                        onChange={() => setFormData(prev => ({ ...prev, request_quote: prev.request_quote === 'Si' ? 'No' : 'Si' }))}
+                                        title="Richiedi Preventivo di Riparazione"
+                                        description="Si applica una tariffa diagnostica fino a CHF 50 in caso di rifiuto della riparazione post-valutazione."
+                                        required={fieldSettings['request_quote']?.required}
+                                        icon={<Icons.DocumentTextIcon className="w-5 h-5" />}
+                                    />
+                                    <AuthCard
+                                        checked={formData.direct_repair === 'Si'}
+                                        onChange={() => setFormData(prev => ({ ...prev, direct_repair: prev.direct_repair === 'Si' ? 'No' : 'Si' }))}
+                                        title="Autorizza Riparazione Diretta"
+                                        description="La riparazione procede senza preventivo, fino al limite di costo sotto indicato."
+                                        required={fieldSettings['direct_repair']?.required}
+                                        icon={<Icons.WrenchScrewdriverIcon className="w-5 h-5" />}
+                                    >
+                                        <div className="flex items-center gap-3 pt-3 border-t border-dashed border-gray-200">
+                                        <label className="text-xs font-semibold text-gray-600 shrink-0">Costo Max (CHF)</label>
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">CHF</span>
+                                            <input
+                                            type="number"
+                                            value={formData.direct_repair_limit}
+                                            onChange={e => setFormData({ ...formData, direct_repair_limit: e.target.value })}
+                                            className="w-full pl-11 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E2231A] focus:border-[#E2231A] outline-none"
+                                            placeholder="e.g. 200"
+                                            min={0}
+                                            />
+                                        </div>
+                                        </div>
+                                    </AuthCard>
+                                    </div>
+                                </div>
                              </div>
                         </div>
                     )}
@@ -2181,7 +2223,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             <div className="flex justify-end items-center pt-8 border-t border-gray-100 mt-8 gap-4">
                                 <button
                                     onClick={async () => {
-                                        await handleSave(formData.status);
+                                        await handleSave(appSection === 'diagnostica' ? 'Diagnostica' : 'Riparazione in corso');
                                     }}
                                     disabled={loadingMethod}
                                     className="px-8 py-4 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
@@ -2190,7 +2232,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 </button>
                                 <button
                                     onClick={async () => {
-                                        const statusObj = appSection === 'diagnostica' ? 'Diagnostica' : 'Riparato';
+                                        const statusObj = appSection === 'diagnostica' ? 'Ordine componenti' : 'Riparato';
                                         const res = await handleSave(statusObj);
                                         if (res) {
                                             goToInitial();
@@ -2200,7 +2242,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                     disabled={loadingMethod}
                                     className="px-8 py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
                                 >
-                                    {loadingMethod ? 'Salvataggio...' : `Completa e Salva come ${appSection === 'diagnostica' ? 'Diagnostica' : 'Riparato'}`}
+                                    {loadingMethod ? 'Salvataggio...' : `Completa e Salva come ${appSection === 'diagnostica' ? 'Ordine componenti' : 'Riparato'}`}
                                     <Icons.CheckIcon className="w-5 h-5" />
                                 </button>
                             </div>
@@ -2224,9 +2266,9 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center mb-6">
                                 <Icons.CheckBadgeIcon className="w-16 h-16 mx-auto text-green-500 mb-4" />
-                                <h3 className="text-lg font-bold text-gray-800 mb-2">Il ticket è stato processato</h3>
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">La riparazione è stata completata.</h3>
                                 <p className="text-gray-500 text-sm max-w-md mx-auto">
-                                    Le operazioni richieste sono state completate. Rivedi il sommario e procedi con la firma del cliente per la riconsegna.
+                                    Le operazioni richieste sono state completate. Rivedi i dettagli del ticket e procedi con la firma del cliente per la riconsegna.
                                 </p>
                             </div>
 
