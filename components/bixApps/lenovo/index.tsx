@@ -352,6 +352,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             setFormData(prev => ({ ...prev, product_photo: serverPhoto }));
                             if (!formData.product_photo && showQR) {
                                 toast.success("Foto ricevuta!");
+                                setShowQR(false);
                             }
                         }
 
@@ -376,7 +377,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         ticket_id: formData.recordid
                     });
                     if(resAtt.data.success) {
-                         setAttachments(resAtt.data.attachments);
+                        setAttachments(resAtt.data.attachments);
                     }
 
                 } catch (e) {
