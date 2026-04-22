@@ -43,6 +43,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     // Scanner State
     const [showScanner, setShowScanner] = useState(false);
     
+    const [showExitModal, setShowExitModal] = useState(false);
+
     // Search State
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showResults, setShowResults] = useState(false);
@@ -120,20 +122,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
     const goToInitial = async (checkSave = false) => {
         if (appSection !== 'initial' && checkSave) {
-            const wantsSave = window.confirm("Vuoi salvare i dati prima di tornare alla ricerca?\n\n[OK] = Salva e torna alla ricerca\n[Annulla] = Scegli se uscire senza salvare");
-            if (wantsSave) {
-                let status = 'Draft';
-                if (appSection === 'diagnostica') status = 'Diagnostica';
-                if (appSection === 'riparazione') status = 'Riparazione in corso';
-                if (appSection === 'consegna') status = 'Riparato';
-                const savedId = await handleSave(status);
-                if (!savedId) return; // Don't exit if save fails
-            } else {
-                const proceed = window.confirm("Sei sicuro di voler uscire SENZA salvare? Le modifiche andranno perse.");
-                if (!proceed) return;
-            }
+            setShowExitModal(true);
+            return;
         }
 
+        executeGoToInitial();
+    };
+
+    const executeGoToInitial = () => {
         setFormData(initialFormData);
         setSearchSerial("");
         setWarrantyHistory([]);
@@ -234,7 +230,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const [fieldSettings, setFieldSettings] = useState<any>({});
 
     const [warrantyHistory, setWarrantyHistory] = useState<any[]>([]);
-    const [showWarrantyHistory, setShowWarrantyHistory] = useState(false);
+    const [showWarrantyHistory, setShowWarrantyHistory] = useState(true);
 
     const payload = useMemo(() => {
         return {
@@ -307,7 +303,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         setAppSection('diagnostica');
                     } else if (st === 'diagnostica completata' || st === 'riparazione in corso' || st === 'ordine componenti' || st === 'attesa componenti') {
                         setAppSection('riparazione');
-                    } else if (st === 'riparato' || st === 'consegna') {
+                    } else if (st === 'riparato' || st === 'consegna' || st === 'non riparato') {
                         setAppSection('consegna');
                     } else {
                         setAppSection('presa_in_consegna');
@@ -2221,7 +2217,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             </div>
 
                             {/* Azioni */}
-                            <div className="flex justify-end items-center pt-8 border-t border-gray-100 mt-8 gap-4">
+                            <div className="flex justify-end items-center pt-8 border-t border-gray-100 mt-8 gap-4 flex-wrap">
                                 <button
                                     onClick={async () => {
                                         await handleSave(appSection === 'diagnostica' ? 'Diagnostica' : 'Riparazione in corso');
@@ -2231,12 +2227,28 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                 >
                                     Salva Modifiche
                                 </button>
+                                {appSection === 'diagnostica' && (
+                                    <button
+                                        onClick={async () => {
+                                            const res = await handleSave('Non riparato');
+                                            if (res) {
+                                                executeGoToInitial();
+                                                setSearchSerial(formData.serial);
+                                            }
+                                        }}
+                                        disabled={loadingMethod}
+                                        className="px-8 py-4 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition-transform active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                                    >
+                                        {loadingMethod ? 'Salvataggio...' : 'Non riparato'}
+                                        <Icons.XMarkIcon className="w-5 h-5" />
+                                    </button>
+                                )}
                                 <button
                                     onClick={async () => {
                                         const statusObj = appSection === 'diagnostica' ? 'Ordine componenti' : 'Riparato';
                                         const res = await handleSave(statusObj);
                                         if (res) {
-                                            goToInitial();
+                                            executeGoToInitial();
                                             setSearchSerial(formData.serial);
                                         }
                                     }}
@@ -2266,10 +2278,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                             </div>
                             
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center mb-6">
-                                <Icons.CheckBadgeIcon className="w-16 h-16 mx-auto text-green-500 mb-4" />
-                                <h3 className="text-lg font-bold text-gray-800 mb-2">La riparazione è stata completata.</h3>
+                                {formData.status === 'Non riparato' ? (
+                                    <Icons.InformationCircleIcon className="w-16 h-16 mx-auto text-blue-500 mb-4" />
+                                ) : (
+                                    <Icons.CheckBadgeIcon className="w-16 h-16 mx-auto text-green-500 mb-4" />
+                                )}
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">{formData.status === 'Non riparato' ? 'Non è stato possibile effettuare la riparazione.' : 'La riparazione è stata completata.'}</h3>
                                 <p className="text-gray-500 text-sm max-w-md mx-auto">
-                                    Le operazioni richieste sono state completate. Rivedi i dettagli del ticket e procedi con la firma del cliente per la riconsegna.
+                                    {formData.status === 'Non riparato' ? 'Non è stato possibile effettuare la riparazione. Rivedi i dettagli del ticket e procedi con la firma del cliente per la riconsegna.' : 'Le operazioni richieste sono state completate. Rivedi i dettagli del ticket e procedi con la firma del cliente per la riconsegna.'}
                                 </p>
                             </div>
 
@@ -2392,6 +2408,56 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                 )}
             </main>
             
+            {/* Exit Modal */}
+            {showExitModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">Uscita senza salvare?</h3>
+                            <button onClick={() => setShowExitModal(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                                <Icons.XMarkIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <p className="text-gray-600 mb-8 text-sm">
+                            Vuoi salvare le modifiche correnti prima di tornare alla ricerca o uscire scartandole?
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button
+                                onClick={() => setShowExitModal(false)}
+                                className="px-5 py-3 text-gray-700 font-bold bg-white border border-gray-300 rounded-xl hover:bg-gray-50 flex-1 transition-colors"
+                            >
+                                Annulla
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowExitModal(false);
+                                    executeGoToInitial();
+                                }}
+                                className="px-5 py-3 text-[#E2231A] font-bold bg-red-50 hover:bg-red-100 rounded-xl flex-1 border border-red-100 transition-colors"
+                            >
+                                Esci
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    let status = 'Draft';
+                                    if (appSection === 'diagnostica') status = 'Diagnostica';
+                                    if (appSection === 'riparazione') status = 'Riparazione in corso';
+                                    if (appSection === 'consegna') status = 'Riparato';
+                                    const savedId = await handleSave(status);
+                                    if (savedId) {
+                                        setShowExitModal(false);
+                                        executeGoToInitial();
+                                    }
+                                }}
+                                className="px-5 py-3 text-white font-bold bg-green-600 hover:bg-green-700 rounded-xl flex-1 shadow-md transition-colors"
+                            >
+                                Salva modifiche
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* QR Modal for Signature/Mobile */}
             {showSignatureModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
