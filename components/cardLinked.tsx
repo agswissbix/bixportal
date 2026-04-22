@@ -239,6 +239,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                         masterTableid={tableid}
                                         masterRecordid={recordid}
                                         limit={10}
+                                        typepreference='linked_columns'
                                     />
                                 </div>
                             </div>
