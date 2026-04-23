@@ -45,7 +45,10 @@ export const useApi = <T>(
                 if (axios.isCancel(err)) {
                     console.log('Request canceled:', err.message);
                 } else {
-                    setError(err.message || 'Errore durante il recupero dei dati');
+                    if (err.response.status === 401) {
+                        window.location.href = '/login';
+                    }
+                    setError(err?.response?.data?.error || 'Errore durante il recupero dei dati');
                 }
             } finally {
                 const timeTaken = performance.now() - startTime;
