@@ -11,6 +11,7 @@ import React, {
 import { useApi } from "@/utils/useApi";
 import GenericComponent from "../genericComponent";
 import { AppContext } from "@/context/appContext";
+import { createPortal } from "react-dom";
 
 // --- TIPTAP CORE & UI COMPONENTS ---
 import {
@@ -52,7 +53,7 @@ import { TableHeader } from "@tiptap/extension-table-header";
 
 // --- CODICE ---
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import { common, createLowlight } from "lowlight";
+import { all, createLowlight } from "lowlight";
 
 // --- ICONE ---
 import {
@@ -96,7 +97,7 @@ declare module "@tiptap/core" {
     }
 }
 
-const lowlight = createLowlight(common);
+const lowlight = createLowlight(all);
 
 // --- 1. COMPONENTE IMMAGINE ---
 const ResizableImageComponent = ({ node, updateAttributes, selected }: any) => {
@@ -239,14 +240,39 @@ interface ResponseInterface {
     markdownContent: string;
 }
 
-export default function inputSimpleMarkdown({
+interface InnerPropsInterface extends PropsInterface {
+    isFullScreen: boolean;
+    toggleFullScreen: () => void;
+}
+
+export default function inputSimpleMarkdown(props: PropsInterface) {
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [currentValue, setCurrentValue] = useState(props.initialValue || "");
+
+    return (
+        <InputSimpleMarkdownInner 
+            {...props} 
+            initialValue={currentValue}
+            onChange={(val) => {
+                setCurrentValue(val);
+                props.onChange?.(val);
+            }}
+            isFullScreen={isFullScreen} 
+            toggleFullScreen={() => setIsFullScreen(!isFullScreen)} 
+            key={isFullScreen ? "fs" : "normal"}
+        />
+    )
+}
+
+function InputSimpleMarkdownInner({
     initialValue,
     onChange,
     onSaveRequested,
     recordId,
-}: PropsInterface) {
+    isFullScreen,
+    toggleFullScreen,
+}: InnerPropsInterface) {
     const { user } = useContext(AppContext);
-    const [isFullScreen, setIsFullScreen] = useState(false);
     const [isSavingFlash, setIsSavingFlash] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -262,7 +288,7 @@ export default function inputSimpleMarkdown({
     >([]);
 
     // --- GESTIONE DATI ---
-    const isDev = true;
+    const isDev = false;
     const responseDataDEFAULT = { markdownContent: initialValue || "" };
     const responseDataDEV = {
         markdownContent: initialValue || "# Title",
@@ -624,24 +650,8 @@ export default function inputSimpleMarkdown({
         }
     };
 
-    const toggleFullScreen = () => {
-        if (!containerRef.current) return;
-        if (!document.fullscreenElement) {
-            containerRef.current
-                .requestFullscreen()
-                .catch((err) => toast.error(`Errore FS: ${err.message}`));
-        } else {
-            document.exitFullscreen();
-        }
-    };
-
     useEffect(() => {
         setMounted(true);
-        const handleFsChange = () =>
-            setIsFullScreen(!!document.fullscreenElement);
-        document.addEventListener("fullscreenchange", handleFsChange);
-        return () =>
-            document.removeEventListener("fullscreenchange", handleFsChange);
     }, []);
 
     useEffect(() => {
@@ -684,7 +694,8 @@ export default function inputSimpleMarkdown({
             response={responseData}
             loading={loading}
             error={error}>
-            {(data: ResponseInterface) => (
+            {(data: ResponseInterface) => {
+                const content = (
                 <div
                     ref={containerRef}
                     className={`flex flex-col bg-white overflow-hidden transition-all duration-300 ${
@@ -693,7 +704,7 @@ export default function inputSimpleMarkdown({
                             : "relative rounded-2xl border border-slate-200 shadow-lg"
                     }`}>
                     {/* TOP TOOLBAR */}
-                    <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b bg-white/95 backdrop-blur-md no-print">
+                    <div className="sticky top-0 z-50 flex items-center justify-between now px-4 py-3 border-b bg-white/95 backdrop-blur-md no-print">
                         <div className="flex items-center flex-wrap gap-1.5">
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl mr-1">
                                 <button
@@ -1359,7 +1370,9 @@ export default function inputSimpleMarkdown({
                         }
                     `}</style>
                 </div>
-            )}
+                );
+                return isFullScreen && mounted ? createPortal(content, document.body) : content;
+            }}
         </GenericComponent>
     );
 }

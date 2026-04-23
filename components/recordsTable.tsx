@@ -24,6 +24,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import axiosInstanceClient from "@/utils/axiosInstanceClient"
 import DynamicMenuItem, { CustomFunction } from './dynamicMenuItem';
 import { TableSkeleton } from './tableSkeleton';
+import ReadOnlyEditor from './ReadonlyEditor';
+import MarkdownPreview from "./MarkdownPreview"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 // FLAG PER LO SVILUPPO
@@ -769,6 +771,7 @@ export default function RecordsTable({
                           const isFileField = column?.fieldtypeid === "file"
                           const isLinked = field.linkedmaster_tableid && field.linkedmaster_recordid
                           const customWidth = column && columnWidths[column.fieldid]
+                          const isSimpleMarkdown = column?.fieldtypeid === "SimpleMarkdown"
                           // console.log("[DEBUG] Rendering field", { field, column, fieldtypeid: column?.fieldtypeid })
                           return (
                             <td
@@ -779,11 +782,11 @@ export default function RecordsTable({
                                 maxWidth: `${customWidth}px`
                               } : undefined}
                               className={`
-                  px-4 py-3 align-middle
-                  ${field.css}
-                  ${!customWidth ? (isNumberField ? "min-w-[60px] max-w-[80px] text-right" : "min-w-[80px] max-w-[300px] text-left") : ""}
-                  ${isLinked ? "font-bold" : ""}
-                  ${field.css && field.css.includes("bg-")
+                                px-4 py-3 align-middle
+                                ${field.css}
+                                ${!customWidth ? (isNumberField ? "min-w-[60px] max-w-[80px] text-right" : "min-w-[80px] max-w-[300px] text-left") : ""}
+                                ${isLinked ? "font-bold" : ""}
+                                ${field.css && field.css.includes("bg-")
                                   ? " group-hover:bg-records-background"
                                   : String(rowOpen) === String(row.recordid)
                                     ? "bg-records-background group-hover:bg-records-background"
@@ -826,6 +829,27 @@ export default function RecordsTable({
                                       }}
                                     />
                                   )
+                                ) : isSimpleMarkdown ? (
+                                  <Tooltip delayDuration={300}>
+                                    <TooltipTrigger asChild>
+                                      <span className="relative block truncate w-full max-h-[60px] [&_.deal-details]:hidden [&_table]:hidden">
+                                          <div className="break-words whitespace-normal max-h-[4.5em] overflow-hidden">
+                                            <MarkdownPreview content={field.value} />
+                                          </div>
+                                          <div className="pointer-events-none absolute bottom-0 left-0 h-6 w-full bg-gradient-to-t from-white dark:from-gray-900" />
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                      side="bottom"
+                                      align="start"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className={`max-w-[450px] max-h-[600px] overflow-y-auto whitespace-pre-wrap break-words z-[100] bg-gray-50 border text-gray-800 border-gray-300 dark:bg-gray-800 dark:border-gray-600 shadow-xl ${
+                                        field.value && String(field.value).length > 80 ? "p-4" : "p-2"
+                                      }`}
+                                    >
+                                      <ReadOnlyEditor content={field.value} />
+                                    </TooltipContent>
+                                  </Tooltip>
                                 ) : isNumberField ? (
                                   <Tooltip delayDuration={300}>
                                     <TooltipTrigger asChild>
