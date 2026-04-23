@@ -43,7 +43,10 @@ interface ServiceData {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[][]
+      features?: {
+        type: 'title' | 'feature';
+        text: string;
+      }[][];
       category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
       monthlyPrice?: number
       yearlyPrice?: number
@@ -58,7 +61,10 @@ interface ServiceData {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[][]
+      features?: {
+        type: 'title' | 'feature';
+        text: string;
+      }[][];
       subcategory?: string
     }
   }

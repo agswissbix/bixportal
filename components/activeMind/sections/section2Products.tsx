@@ -39,7 +39,10 @@ interface ProductSelectionProps {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[][]
+      features?: {
+        type: 'title' | 'feature';
+        text: string;
+      }[][];
       category?: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
       monthlyPrice?: number
       yearlyPrice?: number
@@ -58,7 +61,10 @@ interface Service {
   unitPrice: number
   unitCost?: number
   icon: string
-  features: string[][]
+  features: {
+    type: 'title' | 'feature';
+    text: string;
+  }[][];
   category: "data_security" | "mobile_security" | "infrastructure" | "sophos" | "microsoft" | "firewall"
   monthlyPrice?: number
   yearlyPrice?: number
@@ -96,15 +102,15 @@ const responseDataDEV: ResponseInterface = {
                     "category": "data_security",
                     "description": "Presidio da remoto automatico con gestione patch e inventario",
                     "features": [
-                        [
-                          "Presidio da remoto (automatico)",
-                          "Gestione delle patch windows"
-                        ],
-                        [
-                          "Attivazione script di controllo",
-                          "Inventario HW/SW e report"
-                        ]
-                    ],
+                      [
+                        { "type": "title", "text": "SUPPORTO DA REMOTO" },
+                        { "type": "feature", "text": "Monitoraggio dei servizi attivi" }
+                      ],
+                      [
+                        { "type": "title", "text": "PRESSO IL CLIENTE" },
+                        { "type": "feature", "text": "Simulazione spegnimento" }
+                      ]
+                    ]
                 },
 
             ]
@@ -178,9 +184,9 @@ export default function ProductSelection({ data, onUpdate, onClientInfoUpdate, d
       const currentQuantity = data[service.id]?.quantity || 0
       const currentBillingType = data[service.id]?.billingType || "monthly"
       // trigger update if quantity > 0
-      if (currentQuantity > 0) {
+      // if (currentQuantity > 0) {
          updateQuantity({...service}, currentQuantity, currentBillingType)
-      }
+      // }
     }
   }
 
@@ -568,16 +574,29 @@ export default function ProductSelection({ data, onUpdate, onClientInfoUpdate, d
         {isExpanded && (
           <CardContent className="pt-0">
             <div className="bg-white/70 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Caratteristiche incluse:</h4>
               <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
                 {service.features.map((col, colIndex) => (
-                  <div key={colIndex} className="space-y-2">
-                    {col.map((feature, fIndex) => (
-                      <div key={fIndex} className="flex items-start space-x-2">
-                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-sm text-gray-700">{feature}</span>
-                      </div>
-                    ))}
+                  <div key={colIndex} className="space-y-3"> {/* Aumentato leggermente lo space-y per i titoli */}
+                    {col.map((item, fIndex) => {
+                      
+                      // Condizione per i Titoli (es. SUPPORTO DA REMOTO)
+                      if (item.type === 'title') {
+                        return (
+                          <h5 key={fIndex} className="font-semibold text-gray-900 mt-2 text-sm uppercase tracking-wide">
+                            {item.text}
+                          </h5>
+                        );
+                      }
+                      
+                      // Condizione standard per l'elenco puntato
+                      return (
+                        <div key={fIndex} className="flex items-start space-x-2">
+                          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-sm text-gray-700">{item.text}</span>
+                        </div>
+                      );
+                      
+                    })}
                   </div>
                 ))}
               </div>

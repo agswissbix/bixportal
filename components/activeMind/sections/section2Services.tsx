@@ -17,7 +17,10 @@ interface Section2Props {
       unitPrice: number
       unitCost?: number
       total: number
-      features?: string[][]
+      features?: {
+        type: 'title' | 'feature';
+        text: string;
+      }[][];
       category?: string
       subcategory?: string
     }
@@ -38,7 +41,10 @@ interface Service {
   selected?: boolean
   icon: string;
   quantity?: number;
-  features: string[][];
+  features: {
+    type: 'title' | 'feature';
+    text: string;
+  }[][];
   subcategory?: string;
 }
 
@@ -56,7 +62,16 @@ const responseDataDEV: ResponseInterface = {
       title: "Windows server (VM)",
       unitPrice: 250,
       icon: "Server",
-      features: [["Aggiornamenti software", "Windows server"]]
+      features: [
+        [
+          { type: "title", text: "SUPPORTO DA REMOTO" }, 
+          { type: "feature", text: "Monitoraggio dei servizi attivi" }
+        ],
+        [
+          { type: "title", text: "PRESSO IL CLIENTE" },
+          { type: "feature", text: "Simulazione spegnimento" }
+        ]
+      ]
     }
   ]
 };
@@ -130,9 +145,9 @@ export default function Section2Services({ data, onUpdate, dealid, isBwbix }: Se
       if (service) {
          service.unitPrice = numValue
          const currentQuantity = data[serviceId]?.quantity || 0
-         if (currentQuantity > 0) {
+        //  if (currentQuantity > 0) {
            updateQuantity(serviceId, currentQuantity)
-         }
+        //  }
       }
     }
   }
@@ -305,16 +320,29 @@ export default function Section2Services({ data, onUpdate, dealid, isBwbix }: Se
                   {isExpanded && (
                     <CardContent className="pt-0">
                       <div className="bg-white/70 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Servizi inclusi:</h4>
                         <div className={`grid gap-4 ${service.features.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
                           {service.features.map((col, colIndex) => (
-                            <div key={colIndex} className="space-y-2">
-                              {col.map((feature, fIndex) => (
-                                <div key={fIndex} className="flex items-start space-x-2">
-                                  <div className={`w-1.5 h-1.5 ${color.bgBold} rounded-full mt-2 flex-shrink-0`}></div>
-                                  <span className="text-sm text-gray-700">{feature}</span>
-                                </div>
-                              ))}
+                            <div key={colIndex} className="space-y-3"> {/* Aumentato leggermente lo space-y per i titoli */}
+                              {col.map((item, fIndex) => {
+                                
+                                // Condizione per i Titoli (es. SUPPORTO DA REMOTO)
+                                if (item.type === 'title') {
+                                  return (
+                                    <h5 key={fIndex} className="font-semibold text-gray-900 mt-2 text-sm uppercase tracking-wide">
+                                      {item.text}
+                                    </h5>
+                                  );
+                                }
+                                
+                                // Condizione standard per l'elenco puntato
+                                return (
+                                  <div key={fIndex} className="flex items-start space-x-2">
+                                    <div className={`w-1.5 h-1.5 ${color.bgBold} rounded-full mt-2 flex-shrink-0`}></div>
+                                    <span className="text-sm text-gray-700">{item.text}</span>
+                                  </div>
+                                );
+                                
+                              })}
                             </div>
                           ))}
                         </div>
