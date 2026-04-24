@@ -276,6 +276,56 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
     }
   }
 
+  const handleMakeIndex = async (fieldid: string) => {
+    try {
+      const payload: any = {
+        apiRoute: "settings_table_fields_make_index",
+        tableid: tableId,
+        userid: userId,
+        fieldid: fieldid
+      }
+
+      const response = await axiosInstanceClient.post("/postApi", payload)
+
+      if (response.data.success) {
+        if (response.data.message) {
+          toast.info(response.data.message)
+        } else {
+          toast.success("Indice creato con successo")
+        }
+      } else {
+        toast.error(response.data.error || "Errore nella creazione dell'indice")
+      }
+    } catch {
+      toast.error("Errore durante la creazione dell'indice")
+    }
+  }
+
+  const handleRemoveIndex = async (fieldid: string) => {
+    try {
+      const payload: any = {
+        apiRoute: "settings_table_fields_remove_index",
+        tableid: tableId,
+        userid: userId,
+        fieldid: fieldid
+      }
+
+      const response = await axiosInstanceClient.post("/postApi", payload)
+
+      if (response.data.success) {
+        if (response.data.message) {
+          toast.info(response.data.message)
+        } else {
+          toast.success("Indice rimosso con successo")
+        }
+      } else {
+        toast.error(response.data.error || "Errore nella rimozione dell'indice")
+      }
+    } catch {
+      toast.error("Errore durante la rimozione dell'indice")
+    }
+  }
+
   const handleConvertLookup = async (fieldid: string) => {
     try {
       const payload: any = {
@@ -578,6 +628,8 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
               setIsSaved={setIsSaved}
               onItemDelete={handleDeleteField}
               onItemConvertLookup={handleConvertLookup}
+              onItemMakeIndex={handleMakeIndex}
+              onItemRemoveIndex={handleRemoveIndex}
             />
           </CardContent>
         </Card>

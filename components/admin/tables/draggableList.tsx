@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
-import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2, MoreVertical, Search } from "lucide-react"
+import { GripVertical, Settings, Eye, EyeOff, ChevronDown, ChevronRight, Trash2, MoreVertical, Search, Database } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -39,6 +39,8 @@ interface DraggableListProps {
   onItemSettings: (itemId: string) => void
   onItemDelete?: (itemId: string) => void
   onItemConvertLookup?: (itemId: string) => void
+  onItemMakeIndex?: (itemId: string) => void
+  onItemRemoveIndex?: (itemId: string) => void
   title?: string
   showGroups?: boolean
   isSaved?: boolean
@@ -51,6 +53,8 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   onItemSettings,
   onItemDelete,
   onItemConvertLookup,
+  onItemMakeIndex,
+  onItemRemoveIndex,
   title,
   showGroups = true,
   isSaved = true,
@@ -462,6 +466,24 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="shadow-lg">
+                      {onItemMakeIndex && (
+                        <DropdownMenuItem
+                          onClick={() => onItemMakeIndex(item.id)}
+                          className="text-purple-600 focus:text-purple-600 focus:bg-purple-50"
+                        >
+                          <Database className="h-4 w-4 mr-2" />
+                          Rendi Indice
+                        </DropdownMenuItem>
+                      )}
+                      {onItemRemoveIndex && (
+                        <DropdownMenuItem
+                          onClick={() => onItemRemoveIndex(item.id)}
+                          className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
+                        >
+                          <Database className="h-4 w-4 mr-2" />
+                          Rimuovi Indice
+                        </DropdownMenuItem>
+                      )}
                       {onItemConvertLookup && item.fieldtypeid !== "lookup" && item.fieldtypeid !== "multiselect" && (
                         <DropdownMenuItem
                           onClick={() => onItemConvertLookup(item.id)}
@@ -519,6 +541,24 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      {onItemMakeIndex && (
+                        <DropdownMenuItem
+                          onClick={() => onItemMakeIndex(item.id)}
+                          className="text-purple-600 focus:text-purple-600 focus:bg-purple-50"
+                        >
+                          <Database className="h-4 w-4 mr-2" />
+                          Rendi Indice
+                        </DropdownMenuItem>
+                      )}
+                      {onItemRemoveIndex && (
+                        <DropdownMenuItem
+                          onClick={() => onItemRemoveIndex(item.id)}
+                          className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
+                        >
+                          <Database className="h-4 w-4 mr-2" />
+                          Rimuovi Indice
+                        </DropdownMenuItem>
+                      )}
                       {onItemConvertLookup && item.fieldtypeid !== "lookup" && item.fieldtypeid !== "multiselect" && (
                         <DropdownMenuItem
                           onClick={() => onItemConvertLookup(item.id)}

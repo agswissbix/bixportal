@@ -580,6 +580,12 @@ export async function POST(request: Request) {
         case "settings_table_usertables":
             djangoUrl = "/commonapp/settings_table_usertables/";
             break;
+        case "settings_table_fields_make_index":
+            djangoUrl = "/commonapp/settings_table_fields_make_index/";
+            break;
+        case "settings_table_fields_remove_index":
+            djangoUrl = "/commonapp/settings_table_fields_remove_index/";
+            break;
         case "settings_table_fields":
             djangoUrl = "/commonapp/settings_table_fields/";
             break;
