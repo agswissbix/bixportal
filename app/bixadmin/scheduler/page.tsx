@@ -334,13 +334,18 @@ export default function SchedulerPage() {
       if (!output)
           return <span className="text-slate-400 italic">Nessun output</span>;
 
+      let sanitizedOutput = output.replace(/"hidden_log":\s*\{[\s\S]*?\}\s*\}/g, '}');
+      sanitizedOutput = sanitizedOutput.replace(/,\s*\}/g, '}');
+
       let parsedOutput: any;
       let isJson = false;
       try {
-          parsedOutput = JSON.parse(cleanPythonString(output));
+          parsedOutput = JSON.parse(cleanPythonString(sanitizedOutput));
           isJson = true;
       } catch (e) {
           parsedOutput = output;
+          console.log("Parsed output:", parsedOutput);
+          console.log("Is JSON:", isJson);
       }
 
       const status = isJson
