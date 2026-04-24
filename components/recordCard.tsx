@@ -15,6 +15,7 @@ import CardBadgeCompany from './customBadges/cardBadgeCompany';
 import CardBadgeDeal from './customBadges/cardBadgeDeal';
 import CardBadgeProject from './customBadges/cardBadgeProject';
 import CardBadgeTimesheet from './customBadges/cardBadgeTimesheet';
+import BadgeManager from './customBadges/badgeManager';
 
 const isDev = false;
 
@@ -78,6 +79,7 @@ const RecordCard = React.memo(({
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDeleteAble, setIsDeleteAble] = useState(false);
   const [isDuplicateAble, setIsDuplicateAble] = useState(false);
+  const [badges, setBadges] = useState<string[]>([]);
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mountedTime, setMountedTime] = useState<string>('');
@@ -151,6 +153,18 @@ const RecordCard = React.memo(({
 
     setIsDuplicateAble(getIsSettingAllowed(tableid, "duplicate", recordid));
   }, [tableSettings?.[tableid]?.duplicate, tableid, recordid]);
+  
+  useEffect(() => {
+    if (!tableSettings?.[tableid]?.badges) return;
+
+    console.log(tableSettings?.[tableid]?.badges)
+
+    if (typeof tableSettings?.[tableid]?.badges?.value === 'string') {
+      setBadges(tableSettings?.[tableid]?.badges?.value.split(',') || []);
+    } else {
+      setBadges(tableSettings?.[tableid]?.badges?.value || []);
+    }
+  }, [tableSettings?.[tableid]?.badges, tableid, recordid]);
 
   // dimension / responsive detection
   useEffect(() => {
@@ -404,15 +418,7 @@ const RecordCard = React.memo(({
                 {!isNewRecord && (
                   <>
                   {activeServer === 'swissbix' ? (
-                    tableid === 'company' ? (
-                      <CardBadgeCompany tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'deal' ? (
-                      <CardBadgeDeal tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'project' ? (
-                      <CardBadgeProject tableid={tableid} recordid={recordid} />
-                    ) : tableid === 'timesheet' ? (
-                      <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
-                    ) : <CardBadge tableid={tableid} recordid={recordid} /> 
+                    <BadgeManager tableid={tableid} recordid={recordid} badges={badges || []} />
                   )
                   : null}
                   {tableid === 'stabile' ? (
@@ -612,15 +618,7 @@ const RecordCard = React.memo(({
                 {!isNewRecord && (
                   <>
                      {activeServer === 'swissbix' ? (
-                        tableid === 'company' ? (
-                          <CardBadgeCompany tableid={tableid} recordid={recordid} />
-                        ) : tableid === 'deal' ? (
-                          <CardBadgeDeal tableid={tableid} recordid={recordid} />
-                        ) : tableid === 'project' ? (
-                          <CardBadgeProject tableid={tableid} recordid={recordid} />
-                        ) : tableid === 'timesheet' ? (
-                          <CardBadgeTimesheet tableid={tableid} recordid={recordid} />
-                        ) : <CardBadge tableid={tableid} recordid={recordid} /> 
+                        <BadgeManager tableid={tableid} recordid={recordid} badges={badges || []} />
                       )
                       : null}
                       {tableid === 'stabile' ? (
