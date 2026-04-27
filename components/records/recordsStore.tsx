@@ -152,7 +152,7 @@ interface RecordsStore {
 
 interface Setting {
   type: string;
-  value: string;
+  value: string | string[];
   valid_records?: string[];
   conditions?: string 
 }

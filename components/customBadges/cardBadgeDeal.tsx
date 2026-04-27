@@ -5,6 +5,7 @@ import { AppContext } from '@/context/appContext';
 import { UserCircle2, ChevronDown, Check } from 'lucide-react';
 import { useRecordsStore } from '../records/recordsStore';
 import { formatPrice } from '@/utils/formatPrice';
+import { BadgeSkeleton } from '../badgeSkeleton';
 
 const isDev = false;
 
@@ -103,9 +104,13 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
   const expectedMarginPercentage = dealAmount > 0 ? ((dealExpectedMargin / dealAmount) * 100).toFixed(0) : '0';
 
   return (
-    <GenericComponent response={responseData} loading={loading} error={error} title="Deal Badge">
+    <GenericComponent response={responseData} error={error} title="Deal Badge">
       {(response: ResponseInterface) => (
-        <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <>
+        {loading ? (
+          <BadgeSkeleton />
+        ) : (
+        <div className="w-full bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Header */}
           <div
             className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
@@ -290,6 +295,8 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
             </div>
           </div>
         </div>
+        )}
+        </>
       )}
     </GenericComponent>
   );
