@@ -23,13 +23,13 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
     const date = new Date(); // Data di oggi
 
     for (let i = 0; i < 5; i++) {
-      // Formatta Anno
       const year = date.getFullYear();
-      // Formatta Mese (aggiunge lo 0 davanti se necessario, es: 05)
-      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const monthNum = String(date.getMonth() + 1).padStart(2, '0');
+      const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+      const monthName = monthNames[date.getMonth()];
       
-      // Aggiunge la stringa "YYYY-MM" all'array
-      options.push(`${year}-${month}`);
+      // Aggiunge la stringa "YYYY MM-Mese" all'array
+      options.push(`${year} ${monthNum}-${monthName}`);
       
       // Sposta la data indietro di 1 mese per il prossimo ciclo
       date.setMonth(date.getMonth() - 1);
