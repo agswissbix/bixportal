@@ -2,6 +2,7 @@ import React, { useMemo, useContext, useState, useEffect } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
+import { useRecordsStore } from '../records/recordsStore';
 import InputEditor from '../input/inputEditor';
 import axiosInstance from '@/utils/axiosInstance';
 import { toast } from 'sonner';
@@ -77,6 +78,7 @@ export default function PopupEmail({ tableid, recordid, type, onClose }: PropsIn
 
             // DATI DEL CONTESTO
             const { user } = useContext(AppContext);
+            const { popupData } = useRecordsStore();
 
     // IMPOSTAZIONE DELLA RESPONSE (non toccare)
     const [responseData, setResponseData] = useState<ResponseInterface>(isDev ? responseDataDEV : responseDataDEFAULT);
@@ -90,8 +92,9 @@ export default function PopupEmail({ tableid, recordid, type, onClose }: PropsIn
             tableid: tableid,
             recordid: recordid,
             type: type,
+            popupData: popupData,
         };
-    }, [tableid, recordid]);
+    }, [tableid, recordid, type, popupData]);
 
     // CHIAMATA AL BACKEND (solo se non in sviluppo) (non toccare)
     const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
@@ -142,6 +145,7 @@ export default function PopupEmail({ tableid, recordid, type, onClose }: PropsIn
                     emailData: emailData,
                     tableid: tableid,
                     recordid: recordid,
+                    popupData: popupData,
                 },
                 {
                     headers: {

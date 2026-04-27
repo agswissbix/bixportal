@@ -51,6 +51,48 @@ export function useFrontendFunctions() {
         toast.error("Errore durante la creazione dei record")
       }
     },
+    aggiorna_lista_ricaldamento: async (mese: string) => {
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "aggiorna_lista_ricaldamento",
+            mese,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        )
+        toast.success("Record creati")
+        return response.data
+      } catch (error) {
+        console.error("Errore durante la creazione dei record", error)
+        toast.error("Errore durante la creazione dei record")
+      }
+    },
+    aggiorna_lista_piscina: async (mese: string) => {
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "aggiorna_lista_piscina",
+            mese,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        )
+        toast.success("Record creati")
+        return response.data
+      } catch (error) {
+        console.error("Errore durante la creazione dei record", error)
+        toast.error("Errore durante la creazione dei record")
+      }
+    },
     // ----------------------- recordCards functions ------------------------
 
     // -----------------------------------------------------------------------

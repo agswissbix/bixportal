@@ -10,7 +10,12 @@ interface PropsInterface {
 }
 
 export default function PopupReportGasolio({ tableid, recordid }: PropsInterface) {
-  const { setPopUpType } = useRecordsStore();
+  const { setPopUpType, setPopupData } = useRecordsStore();
+
+  const handleInviaEmail = () => {
+    setPopupData({ date: selectedOption });
+    setPopUpType('emailGasolio');
+  };
 
   // Calcolo dinamico: Mese corrente + 4 mesi precedenti
   const monthsOptions = useMemo(() => {
@@ -90,7 +95,7 @@ export default function PopupReportGasolio({ tableid, recordid }: PropsInterface
 
       {/* Bottoni */}
       <div className="flex gap-2">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={() => { setPopUpType('emailGasolio') }}>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleInviaEmail}>
           Invia Email
         </button>
         <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={stampaGasoli}>
