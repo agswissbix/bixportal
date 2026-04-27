@@ -281,8 +281,8 @@ export async function POST(request: Request) {
         case "aggiorna_lista_piscina":
             djangoUrl = "/customapp_pitservice/aggiorna_lista_piscina/";
             break;
-        case "aggiorna_lista_ricaldamento":
-            djangoUrl = "/customapp_pitservice/aggiorna_lista_ricaldamento/";
+        case "aggiorna_lista_riscaldamento":
+            djangoUrl = "/customapp_pitservice/aggiorna_lista_riscaldamento/";
             break;
         case "get_record_attachments":
             djangoUrl = "/commonapp/get_record_attachments/";

@@ -51,12 +51,12 @@ export function useFrontendFunctions() {
         toast.error("Errore durante la creazione dei record")
       }
     },
-    aggiorna_lista_ricaldamento: async (mese: string) => {
+    aggiorna_lista_riscaldamento: async (mese: string) => {
       try {
         const response = await axiosInstanceClient.post(
           "/postApi",
           {
-            apiRoute: "aggiorna_lista_ricaldamento",
+            apiRoute: "aggiorna_lista_riscaldamento",
             mese,
           },
           {
