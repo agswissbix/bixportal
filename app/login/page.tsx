@@ -47,17 +47,17 @@ export default function Login() {
             toast.warning('Password scaduta, si prega di cambiarla');
           }, 400);
         } else {
-          if (username === 'mariangela' || username === 'jacqueline' || username === 'marsal') {
+          if (result?.is_2fa_enabled) {
             router.push('/verify-2fa');
             //router.push('/testcomponent/scheduleCalendar');
-            } else {
-              router.push('/custom/ta');
-            }
+          } else {
+            router.push('/custom/ta');
+          }
         }
+      } else if (result?.is_2fa_enabled) {
+        router.push('/verify-2fa');
       } else {
-
-          router.push('/home');
-        
+        router.push('/home');
       }
 
     } else {

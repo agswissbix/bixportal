@@ -23,7 +23,7 @@ const Enable2FA = () => {
         setQrCodeUrl(response.data.qr_code); // usa il base64 dal backend
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          toast.error("Errore nell'abilitare 2FA: " + error.response?.data?.message);
+          toast.error("Errore nell'abilitare 2FA: " + error.response?.data?.error);
         } else {
           toast.error("Errore nell'abilitare 2FA");
         }

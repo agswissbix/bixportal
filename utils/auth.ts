@@ -41,6 +41,7 @@ export async function getCsrfToken(): Promise<boolean> {
 export interface LoginResponse {
   success: boolean;
   detail?: string;
+  is_2fa_enabled?: boolean;
 }
 
 // Effettua il login inviando i dati come form data (endpoint: /auth/login/)

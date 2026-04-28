@@ -68,7 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const result = await checkAuth(pathname);
       console.info(result)
       if (!result.isAuthenticated || !result.username) {
-        if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password') {
+        if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname === '/verify-2fa') {
           setLoadingAuth(false); 
           return; 
         }
@@ -85,12 +85,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setActiveServer(activeServer);
         setIsImpersonating(result.is_impersonating || false);
         setImpersonatorUsername(result.impersonator_username || null);
-        if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password') {
+        if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname === '/verify-2fa') {
           //TODO CUSTOM TELEFONO AMICO
-          if (activeServer!=='telefonoamico') {
+          if (activeServer==='telefonoamico') {
+            router.push('/custom/ta');
+          } else {
             router.push('/home');
-            return            
           }
+          return            
+        }
+        // TODO gestione tramite include condizionale
+        if (activeServer==='telefonoamico' && pathname!=='/custom/ta' && pathname!=='/enable-2fa' && result.role.toLowerCase()!=='amministratore') {
+          router.push('/custom/ta');
+        } else if (activeServer!=='telefonoamico' && pathname.includes('/custom/ta')) {
+          router.push('/home');
         }
       }
       setLoadingAuth(false); // <--- Fine verifica

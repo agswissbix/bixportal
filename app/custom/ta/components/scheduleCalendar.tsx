@@ -39,7 +39,7 @@ const AppLayout = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   // DATI DEL CONTESTO
-  const { user, role, chat, telefono } = useContext(AppContext);
+  const { user, role, chat, telefono, handleLogout : logoutUser } = useContext(AppContext);
   // Determina il tab predefinito
     // Effetto che si occupa di impostare la tab iniziale (o aggiornarla) 
   // ogni volta che telefono o chat cambiano
@@ -56,8 +56,7 @@ const AppLayout = () => {
   }, [telefono, chat]);
 
   const handleLogout = () => {
-    console.log('Logging out...');
-    router.push("/login");
+    logoutUser()
   };
 
   const handleChangePassword = () => {

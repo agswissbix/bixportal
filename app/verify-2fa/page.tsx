@@ -16,19 +16,19 @@ const Verify2FA = () => {
   const verifyOTP = async () => {
 
     try {
-      const response = await axiosInstanceClient.post("/postApi", {
+      const response = await axios.post("/postApi", {
         apiRoute: "verify_2fa",
-        otp: otp,
-        
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-
-      } 
-    );
-    toast.success(response.data.message);
-    router.push('/custom/ta');
+        otp: otp
+      });
+      if (response.data.success) {
+        toast.success("Verifica completata!");
+        router.push('/home');
+      } else {
+        toast.error(response.data.message || "Errore nella verifica del codice OTP");
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.message);
+        toast.error("Errore nella verifica del codice OTP: " + error.response?.data?.error);
       } else {
         toast.error("Errore nella verifica del codice OTP");
       }
