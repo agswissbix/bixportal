@@ -597,6 +597,38 @@ export function useFrontendFunctions() {
       }
     },
 
+    print_lenovo_ticket: async (params: { recordid?: string }) => {
+      console.info("dispatcher: print_lenovo_ticket")
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "print_lenovo_ticket",
+            recordid: params?.recordid || null,
+            print_type: "Ricevuta non firmata"
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        toast.success("Ticket di Lenovo stampato con successo: " + response.data.status);
+
+        const link = document.createElement('a');
+        link.href = response.data.pdf_base64;
+        link.download = `LenovoTicket_${params.recordid}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        return response.data;
+      } catch (error) {
+        console.error("Errore durante la stampa del ticket di Lenovo", error);
+        toast.error("Errore durante la stampa del ticket di Lenovo");
+      }
+    },
+
     //TODO
     //CUSTOM PITSERVICE
     // offertaChiusaVinta: async ({ recordid }: { recordid: string }) => {
