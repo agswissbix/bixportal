@@ -32,7 +32,19 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
 
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const reactToPrintFn = useReactToPrint({ contentRef });
+  const reactToPrintFn = useReactToPrint({
+    contentRef,
+    pageStyle: `
+      @page { size: landscape; margin: 10mm; }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          zoom: 0.5 !important;
+        }
+      }
+    `
+  });
 
   // Funzione per esportare in PDF
   const exportToPDF = () => {
