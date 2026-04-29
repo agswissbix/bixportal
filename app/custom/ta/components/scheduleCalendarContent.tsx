@@ -65,14 +65,14 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const allMonths = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 
   const months = useMemo(() => {
-    // Se l'anno è 2026 E l'utente NON è admin, mostra solo Gennaio
-    if (currentYear === 2026 && !isAdmin) {
-      return ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno'];
+    // Se l'anno è quello in corso E l'utente NON è admin, mostra fino a 2 mesi successivi al mese attuale
+    if (currentYear === realCurrentYear && !isAdmin) {
+      return allMonths.slice(0, realCurrentMonth + 3);
     }
 
-    // In tutti gli altri casi (2025 per tutti, o 2026 per admin), mostra tutti i mesi
+    // In tutti gli altri casi, mostra tutti i mesi
     return allMonths;
-  }, [currentYear, isAdmin]); // Assicurati che le dipendenze siano [currentYear, isAdmin]
+  }, [currentYear, isAdmin, realCurrentYear, realCurrentMonth]);
 
 
 
