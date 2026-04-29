@@ -1,16 +1,27 @@
 'use client'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
+import { getActiveServer } from '@/utils/auth';
 
 
 const Verify2FA = () => {
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
+
+  const [activeServer, setActiveServer] = useState<string>('');
+  
+  useEffect(() => {
+    const fetchActiveServer = async () => {
+      const server = await getActiveServer();
+      setActiveServer(server.activeServer);
+    };
+    fetchActiveServer();
+  }, []);
 
 
   const verifyOTP = async () => {
@@ -22,7 +33,11 @@ const Verify2FA = () => {
       });
       if (response.data.success) {
         toast.success("Verifica completata!");
-        router.push('/home');
+        if (activeServer === 'telefonoamico') {
+          router.push('/custom/ta');
+        } else {
+          router.push('/home');
+        }
       } else {
         toast.error(response.data.message || "Errore nella verifica del codice OTP");
       }

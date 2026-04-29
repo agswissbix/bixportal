@@ -29,7 +29,11 @@ export function AdminProtection({ children }: AdminProtectionProps) {
 		setLoading(true)
 
 		if (role !== 'admin' && !shouldSkipCheck) {
-			router.push('/home');
+			if (activeServer === 'telefonoamico') {
+				router.push('/custom/ta');
+			} else {
+				router.push('/home');
+			}
 		}
 
 		setLoading(false)

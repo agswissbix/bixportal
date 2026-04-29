@@ -97,6 +97,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // TODO gestione tramite include condizionale
         if (activeServer==='telefonoamico' && pathname!=='/custom/ta' && pathname!=='/enable-2fa' && result.role.toLowerCase()!=='amministratore') {
           router.push('/custom/ta');
+        } else if (activeServer==='telefonoamico' && result.role.toLowerCase()=='amministratore' && pathname!=='/home' && pathname!=='/custom/ta' && pathname!=='/enable-2fa') {
+          router.push('/custom/ta');
         } else if (activeServer!=='telefonoamico' && pathname.includes('/custom/ta')) {
           router.push('/home');
         }
