@@ -19,7 +19,7 @@ export default function Login() {
   const router = useRouter();
 
   const [activeServer, setActiveServer] = useState<string>('');
-  
+
   useEffect(() => {
     const fetchActiveServer = async () => {
       const server = await getActiveServer();
@@ -30,7 +30,7 @@ export default function Login() {
 
   useEffect(() => {
     document.documentElement.classList.add('default');
-}, []);
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ export default function Login() {
     // Eseguiamo la chiamata al nostro proxy su /postApi
     const result = await loginUserApi(username, password);
     if (result.success) {
-    
+
       if (activeServer === 'telefonoamico') {
         // Routing in base allo user
         if (password === 'BixTA25!') {
@@ -47,17 +47,17 @@ export default function Login() {
             toast.warning('Password scaduta, si prega di cambiarla');
           }, 400);
         } else {
-          if (username === 'mariangela' || username === 'jacqueline' || username === 'marsal') {
+          if (username === 'mariangela' || username === 'jacqueline' || username === 'marsal' || username === 'alessandro.galli') {
             router.push('/verify-2fa');
             //router.push('/testcomponent/scheduleCalendar');
-            } else {
-              router.push('/custom/ta');
-            }
+          } else {
+            router.push('/custom/ta');
+          }
         }
       } else {
 
-          router.push('/home');
-        
+        router.push('/home');
+
       }
 
     } else {
@@ -65,7 +65,7 @@ export default function Login() {
       console.log(result)
       setError("Username e/o passowrd incorretti.")
       // toast.error(result.detail || 'Errore durante il login');
-  }
+    }
   };
 
   return (
@@ -144,7 +144,7 @@ export default function Login() {
                     title={show ? "Nascondi password" : "Mostra password"}
                     tabIndex={3}
                     className="absolute inset-y-0 right-3 flex items-center text-primary hover:text-primary-hover transition-colors duration-200"
-                    >
+                  >
                     {show ? <EyeClosed size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
@@ -173,7 +173,7 @@ export default function Login() {
           </div>
         </div>
         <div className="mt-6">
-        {isLoading && <LoadingComp />}
+          {isLoading && <LoadingComp />}
         </div>
       </div>
     </>

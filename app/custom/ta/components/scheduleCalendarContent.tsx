@@ -4,6 +4,8 @@ import { useApi } from '@/utils/useApi';
 import axios from 'axios';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
 import { AppContext } from '@/context/appContext';
 const borderClass = "border border-gray-400";
 
@@ -29,87 +31,15 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   });
 
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
+
   // Funzione per esportare in PDF
-  const exportToPDF = async () => {
-    const calendarElement = document.getElementById("calendar-table");
-    if (!calendarElement) return;
-
-    try {
-      const originalStyle = {
-        maxHeight: calendarElement.style.maxHeight,
-        height: calendarElement.style.height,
-        overflow: calendarElement.style.overflow
-      };
-
-      calendarElement.style.height = 'auto';
-      calendarElement.style.maxHeight = 'none';
-      calendarElement.style.overflow = 'visible';
-
-      const originalScrollHeight = calendarElement.scrollHeight;
-      const originalScrollWidth = calendarElement.scrollWidth;
-
-      const canvas = await html2canvas(calendarElement, {
-        scale: 2,
-        height: originalScrollHeight,
-        width: originalScrollWidth,
-        windowHeight: originalScrollHeight,
-        windowWidth: originalScrollWidth,
-        useCORS: true,
-        logging: false,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('calendar-table');
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.maxHeight = 'none';
-            clonedElement.style.overflow = 'visible';
-          }
-        }
-      });
-
-      calendarElement.style.maxHeight = originalStyle.maxHeight;
-      calendarElement.style.height = originalStyle.height;
-      calendarElement.style.overflow = originalStyle.overflow;
-
-      const imgData = canvas.toDataURL('image/png');
-
-      const pdf = new jsPDF('portrait', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      const margin = 10;
-      const availableWidth = pageWidth - 2 * margin;
-      const availableHeight = pageHeight - 2 * margin;
-
-      const aspectRatio = canvas.height / canvas.width;
-      const imgWidth = availableWidth;
-      const imgHeight = imgWidth * aspectRatio;
-
-      if (imgHeight <= availableHeight) {
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-      } else {
-        let heightLeft = imgHeight;
-        let position = 0;
-        let page = 1;
-
-        while (heightLeft > 0) {
-          pdf.addImage(imgData, 'PNG', margin, page === 1 ? margin : -position + margin, imgWidth, imgHeight);
-          heightLeft -= availableHeight;
-          position += availableHeight;
-
-          if (heightLeft > 0) {
-            pdf.addPage();
-            page++;
-          }
-        }
-      }
-
-      pdf.save(`Calendario_${currentYear}_${months[currentMonth]}.pdf`);
-
-    } catch (error) {
-      console.error('Errore nella generazione del PDF:', error);
-    }
+  const exportToPDF = () => {
+    // Al posto di usare jsPDF/html2canvas (che genera l'errore `lab` dei colori di Tailwind v4)
+    // usiamo react-to-print che apre il tool nativo di sistema con i vettoriali
+    reactToPrintFn();
   };
-
 
   const [currentYear, setCurrentYear] = useState(realCurrentYear);
   const [currentMonth, setCurrentMonth] = useState(realCurrentMonth);
@@ -649,7 +579,7 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
               </div>
             </div>
 
-            <div id="calendar-table" className="border rounded overflow-auto h-[70vh]">
+            <div id="calendar-table" ref={contentRef} className="border rounded overflow-auto h-[70vh] print:h-auto print:overflow-visible">
               <table className="w-full min-w-[1000px]">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-blue-600 text-white">
