@@ -23,6 +23,7 @@ export default function PopupImportCsv({
     const [token, setToken] = useState<string | null>(null);
     const [compatible, setCompatible] = useState<CompatibleField[]>([]);
     const [incompatible, setIncompatible] = useState<string[]>([]);
+    const [uniqueFields, setUniqueFields] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
 
     const { setRefreshTable } = useRecordsStore();
@@ -74,7 +75,8 @@ export default function PopupImportCsv({
                 {
                     apiRoute: "import_csv_data",
                     token: token,
-                    tableid: tableid
+                    tableid: tableid,
+                    unique_fields: uniqueFields
                 },
                 {
                     headers: {
@@ -84,7 +86,7 @@ export default function PopupImportCsv({
             );
 
             if (response.data.success) {
-                toast.success(`Importazione completata: ${response.data.imported} record importati, ${response.data.errors} errori.`);
+                toast.success(`Importazione completata: ${response.data.imported} importati, ${response.data.skipped || 0} ignorati (duplicati), ${response.data.errors} errori.`);
                 setRefreshTable(tableid); // Reload table data
                 onClose && onClose();
             } else {
@@ -167,6 +169,41 @@ export default function PopupImportCsv({
                                     </span>
                                 ))}
                                 {incompatible.length === 0 && <span className="text-xs text-gray-400 italic">Nessun campo incompatibile</span>}
+                            </div>
+                        </div>
+                        
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/20 rounded-xl">
+                            <h4 className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Check size={14} /> Chiavi Univoche (Opzionale)
+                            </h4>
+                            <p className="text-[10px] text-purple-600 dark:text-purple-300 mb-2 leading-tight">
+                                Seleziona le colonne per evitare di importare record già esistenti. I record con valori identici in tutte le colonne selezionate verranno ignorati.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {compatible.map((item, idx) => {
+                                    const isSelected = uniqueFields.includes(item.fieldid);
+                                    return (
+                                        <button 
+                                            key={`unique-${idx}`}
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setUniqueFields(uniqueFields.filter(f => f !== item.fieldid));
+                                                } else {
+                                                    setUniqueFields([...uniqueFields, item.fieldid]);
+                                                }
+                                            }}
+                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
+                                                isSelected 
+                                                ? 'bg-purple-600 text-white border-purple-600 shadow-sm' 
+                                                : 'bg-white dark:bg-gray-800 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900/30 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                                            }`}
+                                        >
+                                            {isSelected && <Check size={12} />}
+                                            {item.header}
+                                        </button>
+                                    );
+                                })}
+                                {compatible.length === 0 && <span className="text-xs text-gray-400 italic">Nessun campo disponibile</span>}
                             </div>
                         </div>
                     </div>
