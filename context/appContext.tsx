@@ -95,9 +95,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return            
         }
         // TODO gestione tramite include condizionale
-        if (activeServer==='telefonoamico' && pathname!=='/custom/ta' && pathname!=='/enable-2fa' && result.role.toLowerCase()!=='amministratore') {
+        if (activeServer==='telefonoamico' && pathname!=='/custom/ta' && pathname!=='/enable-2fa' && pathname!=='/change-password' && result.role.toLowerCase()!=='amministratore') {
           router.push('/custom/ta');
-        } else if (activeServer==='telefonoamico' && result.role.toLowerCase()=='amministratore' && pathname!=='/home' && pathname!=='/custom/ta' && pathname!=='/enable-2fa') {
+        } else if (activeServer==='telefonoamico' && result.role.toLowerCase()=='amministratore' && pathname!=='/home' && pathname!=='/custom/ta' && pathname!=='/enable-2fa' && pathname!=='/change-password') {
           router.push('/custom/ta');
         } else if (activeServer!=='telefonoamico' && pathname.includes('/custom/ta')) {
           router.push('/home');

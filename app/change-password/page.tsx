@@ -135,7 +135,7 @@ const ChangePasswordForm = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}
+              disabled={isLoading || newPassword !== confirmPassword}
             >
               {isLoading ? (
                 <>
