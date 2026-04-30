@@ -17,6 +17,7 @@ import { AccessorySelector } from "./AccessorySelector";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label as UiLabel } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -39,6 +40,8 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     
     // Signature State
     const [showSignatureModal, setShowSignatureModal] = useState(false);
+    const [isSavingSignature, setIsSavingSignature] = useState(false);
+    const [signatureProgress, setSignatureProgress] = useState(0);
     
     // Scanner State
     const [showScanner, setShowScanner] = useState(false);
@@ -344,7 +347,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         const serverDeliverySignature = ticket.deliverySignatureUrl;
                         
                         // Auto-update photo
-                        if (serverPhoto !== formData.product_photo) {
+                        if (serverPhoto !== formData.product_photo && step === 4) {
                             setFormData(prev => ({ ...prev, product_photo: serverPhoto }));
                             if (!formData.product_photo && showQR) {
                                 toast.success("Foto ricevuta!");
@@ -353,14 +356,14 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         }
 
                         // Auto-update intake signature
-                        if(serverSignature && !formData.signatureUrl) {
+                        if(serverSignature && !formData.signatureUrl && step === 5) {
                             setFormData(prev => ({ ...prev, signatureUrl: serverSignature }));
                             toast.success("Firma ricevuta!");
                             setShowQR(false);
                         }
 
                         // Auto-update DELIVERY signature (consegna)
-                        if(serverDeliverySignature && !formData.deliverySignatureUrl) {
+                        if(serverDeliverySignature && !formData.deliverySignatureUrl && appSection === 'consegna') {
                             setFormData(prev => ({ ...prev, deliverySignatureUrl: serverDeliverySignature }));
                             toast.success("Firma di consegna ricevuta!");
                             setShowQR(false);
@@ -905,7 +908,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     const handleSaveAndSign = async () => {
         if (validateStep(step)) {
             // Save as 'Aperto' to trigger signature mode on mobile
-            const id = await handleSave('Entrata');
+            const id = await handleSave('Draft');
             if(id) {
                 if (isMobile) {
                     setShowSignatureModal(true);
@@ -920,8 +923,23 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
     };
 
     const handleSignatureSave = async (signatureData: string) => {
-        toast.loading("Salvataggio firma in corso...");
-        // set(true);
+        setIsSavingSignature(true);
+        setSignatureProgress(10);
+        let progressInterval: NodeJS.Timeout | undefined;
+        
+        progressInterval = setInterval(() => {
+            setSignatureProgress((prev) => {
+                if (prev >= 99) {
+                    clearInterval(progressInterval);
+                    return 99;
+                }
+                if (prev >= 90) {
+                    return prev + 1;
+                }
+                return prev + 10;
+            });
+        }, 750);
+
         try {
             const formDataLocal = new FormData();
             formDataLocal.append("apiRoute", "save_lenovo_signature");
@@ -931,22 +949,27 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
             const res = await axiosInstanceClient.post("/postApi", formDataLocal);
             if (res.data.success) {
-                toast.dismiss();
-                toast.success("Firma salvata!");
-                setFormData(prev => ({ ...prev, deliverySignatureUrl: res.data.signatureUrl || "signed", signatureUrl: res.data.signatureUrl || "signed" }));
-                setShowSignatureModal(false);
-                // Reload to show signed state
-                // window.location.reload();
+                clearInterval(progressInterval);
+                setSignatureProgress(100);
+                setTimeout(() => {
+                    setIsSavingSignature(false);
+                    setSignatureProgress(0);
+                    toast.success("Firma salvata!");
+                    setFormData(prev => ({ ...prev, deliverySignatureUrl: res.data.signatureUrl || "signed", signatureUrl: res.data.signatureUrl || "signed" }));
+                    setShowSignatureModal(false);
+                }, 500);
             } else {
-                toast.dismiss();
+                clearInterval(progressInterval);
+                setIsSavingSignature(false);
+                setSignatureProgress(0);
                 toast.error("Impossibile salvare la firma");
             }
         } catch (e) {
+            clearInterval(progressInterval);
+            setIsSavingSignature(false);
+            setSignatureProgress(0);
             console.error(e);
-            toast.dismiss();
             toast.error("Errore nel salvataggio della firma");
-        } finally {
-            // setUploading(false);
         }
     };
 
@@ -2231,7 +2254,6 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                         )}
                                                     </div>
 
-                                                    {/* Testi */}
                                                     <div className="overflow-hidden flex-1">
                                                         <p className="text-xs font-bold truncate text-gray-700" title={att.filename}>
                                                             {att.filename}
@@ -2244,7 +2266,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDeleteAttachment(att.id)}
-                                                        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                                                        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 bg-white/80 backdrop-blur-sm"
                                                         title="Elimina"
                                                     >
                                                         <Icons.TrashIcon className="w-4 h-4" />
@@ -2502,11 +2524,25 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
             {showSignatureModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-                        <h3 className="text-lg font-bold mb-4 text-center">Firma Qui</h3>
-                        <SignaturePad
-                            onSave={handleSignatureSave}
-                            onCancel={() => setShowSignatureModal(false)}
-                        />
+                        {isSavingSignature ? (
+                            <div className="py-8 space-y-4 text-center">
+                                <h3 className="text-xl font-bold mb-4">Salvataggio in corso...</h3>
+                                <div className="flex justify-between text-sm text-gray-500 font-medium px-2">
+                                    <span>Generazione ricevuta in corso</span>
+                                    <span>{signatureProgress}%</span>
+                                </div>
+                                <Progress value={signatureProgress} className="h-3 bg-gray-200 w-full rounded-full" indicatorColor="bg-blue-600" />
+                                <p className="text-xs text-gray-400 mt-4 animate-pulse">Attendere prego, l'operazione potrebbe richiedere alcuni secondi...</p>
+                            </div>
+                        ) : (
+                            <>
+                                <h3 className="text-lg font-bold mb-4 text-center">Firma Qui</h3>
+                                <SignaturePad
+                                    onSave={handleSignatureSave}
+                                    onCancel={() => setShowSignatureModal(false)}
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
             )}
