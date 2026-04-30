@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
         position: "bottom-left",
     },
 
-    allowedDevOrigins: ["localhost", "devstagista.swissbix.com", "devriccardo.swissbix.com", "devale.swissbix.com", "pc-pitgestional"],
+    allowedDevOrigins: ["localhost", "devstagista.swissbix.com", "devriccardo.swissbix.com", "devale.swissbix.com", "pc-pitgestional", "heenergy.bixdata.com", "wegolf.bixdata.com", "demo_gerry.bixdata.com"],
 
     //TODO: Rivedere questa configurazione per la produzione per le porte
     images: {

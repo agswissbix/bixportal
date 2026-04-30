@@ -15,7 +15,7 @@ export async function OPTIONS() {
             "Access-Control-Allow-Origin": corsOrigin,
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers":
-                "Content-Type, Authorization, X-CSRFToken, Cookie",
+                "Content-Type, Authorization, X-CSRFToken, X-Tenant-ID, Cookie",
             "Access-Control-Allow-Credentials": "true",
         },
     });
@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get("csrftoken")?.value;
     const sessionId = cookieStore.get("sessionid")?.value;
+    const tenantId = cookieStore.get("current_tenant")?.value || request.headers.get("x-tenant-id");
 
     const contentType = request.headers.get("content-type") || "";
 
@@ -795,8 +796,9 @@ export async function POST(request: Request) {
         const axiosConfig = {
             headers: {
                 "X-CSRFToken": csrfToken ?? "",
+                ...(tenantId ? { "X-Tenant-ID": tenantId } : {}),
                 Cookie: `sessionid=${sessionId ?? ""}; csrftoken=${csrfToken ?? ""
-                    }`,
+                    };current_tenant=${tenantId ?? ""}  `,
                 ...(rawFormData ? rawFormData.getHeaders() : {}),
             },
             responseType: "arraybuffer" as const,
@@ -828,6 +830,8 @@ export async function POST(request: Request) {
                     "Content-Type": resContentType,
                     "Content-Disposition": contentDisposition,
                     "Access-Control-Allow-Origin": corsOrigin,
+                    "Access-Control-Allow-Methods": "POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRFToken, X-Tenant-ID, Cookie",
                     "Access-Control-Allow-Credentials": "true",
                 },
             });
@@ -839,6 +843,8 @@ export async function POST(request: Request) {
                 status: 200,
                 headers: {
                     "Access-Control-Allow-Origin": corsOrigin,
+                    "Access-Control-Allow-Methods": "POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRFToken, X-Tenant-ID, Cookie",
                     "Access-Control-Allow-Credentials": "true",
                 },
             });

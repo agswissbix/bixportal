@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { consoleDebug } from '@/utils/develop';
 import axios from 'axios';
+import axiosInstanceClient from '@/utils/axiosInstanceClient';
 
 export const useApi = <T>(
     payload: Record<string, any> | null
@@ -31,7 +32,7 @@ export const useApi = <T>(
                 const currentPayload = JSON.parse(serializedPayload);
                 consoleDebug('Fetching data with payload:', currentPayload);
 
-                const res = await axios.post<T>('/postApi', currentPayload, {
+                const res = await axiosInstanceClient.post<T>('/postApi', currentPayload, {
                     headers: {
                         'Content-Type': 'application/json',
                     },

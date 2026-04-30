@@ -2,6 +2,28 @@ import axiosInstance from '@/utils/axiosInstance';
 import axios from 'axios';
 import axiosInstanceClient from './axiosInstanceClient';
 
+// Funzione per determinare il tenant_id dal dominio
+export function getTenantIdFromDomain(): string {
+  if (typeof window === 'undefined') return 'default';
+  
+  const hostname = window.location.hostname;
+  
+  // Se localhost, usa 'default'
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'default';
+  }
+  
+  // Se il dominio ha sottodomini, il primo è il tenant_id
+  // Es: tenant1.bixportal.com -> tenant1
+  const parts = hostname.split('.');
+  if (parts.length > 2) {
+    return parts[0];
+  }
+  
+  // Altrimenti, usa il dominio principale come tenant_id
+  return hostname.split('.')[0] || 'default';
+}
+
 // Funzione per leggere il valore di un cookie (ad es. "csrftoken")
 export function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -41,6 +63,8 @@ export async function getCsrfToken(): Promise<boolean> {
 export interface LoginResponse {
   success: boolean;
   detail?: string;
+  tenant_id?: string;
+  ruolo?: string;
 }
 
 // Effettua il login inviando i dati come form data (endpoint: /auth/login/)
@@ -96,12 +120,16 @@ export async function loginUserApi(
   try {
     await getCsrf();
 
-    const response = await axios.post('/postApi', {
+    const tenantId = getTenantIdFromDomain();
+
+    const response = await axiosInstanceClient.post('/postApi', {
       apiRoute: 'login',
       username,
       password,
+      tenant_id: tenantId,  // Passa il tenant_id nel body
     });
-    return response.data; // Deve ritornare { success: boolean, detail?: string }
+    // Ritorna tutti i dati della risposta inclusi tenant_id e ruolo
+    return response.data;
   } catch (error: any) {
     // Se il server restituisce 401 (credenziali errate) o altri errori
     const detail = error.response?.data?.error || 'Errore di rete';
@@ -118,7 +146,7 @@ export interface GetActiveServerResponse {
 
 export async function getActiveServer(): Promise<GetActiveServerResponse> {
   try {
-    const response = await axios.post('/postApi', {
+    const response = await axiosInstanceClient.post('/postApi', {
       apiRoute: 'getActiveServer',
     });
     const activeServer = response.data.activeServer;
@@ -146,7 +174,7 @@ export interface CheckAuthResponse {
 export async function checkAuth(page?: string): Promise<CheckAuthResponse> {
   try {
     console.info('Verifica autenticazione...checkAuth');
-    const response = await axios.post('/postApi', {
+    const response = await axiosInstanceClient.post('/postApi', {
       apiRoute: 'checkAuth',
       page,
     });

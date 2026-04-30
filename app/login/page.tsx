@@ -4,7 +4,6 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import Image from 'next/image';
-import '../globals.css';
 import { loginUserApi, getActiveServer } from '@/utils/auth';
 import LoadingComp from '@/components/loading';
 import { useRecordsStore } from '@/components/records/recordsStore';
@@ -35,9 +34,15 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    
     // Eseguiamo la chiamata al nostro proxy su /postApi
     const result = await loginUserApi(username, password);
     if (result.success) {
+      // Salva il tenant_id in localStorage per le successive richieste
+      if (result.tenant_id) {
+        localStorage.setItem('tenant_id', result.tenant_id);
+        (window as any).__TENANT_ID__ = result.tenant_id;
+      }
     
       if (activeServer === 'telefonoamico') {
         // Routing in base allo user

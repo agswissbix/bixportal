@@ -57,6 +57,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Rilevamento tenant dal sottodominio
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !(window as any).__TENANT_ID__) {
+      const hostname = window.location.hostname;
+      const parts = hostname.split('.');
+      let tenant = null;
+      if (parts.length >= 3 && parts[0] !== 'www' && parts[0] !== 'localhost') {
+        tenant = parts[0];
+      } else if (parts.length === 2 && parts[0] !== 'localhost') {
+        // Per localhost o domini senza sottodominio, forse default
+        tenant = 'default'; // o null
+      }
+      (window as any).__TENANT_ID__ = tenant;
+      console.log('Tenant rilevato:', tenant);
+    }
+  }, []);
+
   useEffect(() => {
     if (pathname === '/testConnection') {
       setLoadingAuth(false);
