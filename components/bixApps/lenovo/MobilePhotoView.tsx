@@ -739,7 +739,7 @@ export default function MobilePhotoView({ ticketId }: Props) {
                     </button>
                     <button 
                         onClick={() => {
-                            if (ticket.status === 'Riparato' || ticket.status === 'Entrata' || ticket.status === 'Draft' || !ticket.status) {
+                            if (ticket.status === 'Riparato' || ticket.status === 'Non riparato' || ticket.status === 'Entrata' || ticket.status === 'Draft' || !ticket.status) {
                                 setActiveTab('signature');
                             } else {
                                 toast.error('La firma è accessibile solo in fase di Ritiro o Consegna');

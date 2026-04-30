@@ -628,6 +628,27 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
         }
     };
 
+    const handleDeleteAttachment = async (attachmentId: string) => {
+        if (!confirm("Sei sicuro di voler eliminare questo allegato?")) return;
+        try {
+            const body = {
+                apiRoute: "delete_record",
+                tableid: "attachment",
+                recordid: attachmentId
+            };
+            const res = await axiosInstanceClient.post("/postApi", body);
+            if (res.data.success) {
+                setAttachments(prev => prev.filter(att => att.id !== attachmentId));
+                toast.success("Allegato eliminato con successo.");
+            } else {
+                toast.error("Errore durante l'eliminazione dell'allegato: " + (res.data.detail || "Errore sconosciuto"));
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Si è verificato un errore durante l'eliminazione.");
+        }
+    };
+
     // Helper for labels with required asterisk
     const Label = ({ field, text, className }: { field: string, text: string, className?: string }) => (
         <label className={className || "block text-sm font-medium text-gray-700 mb-1"}>
@@ -1711,15 +1732,25 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <a 
-                                                    href={`/api/media-proxy?url=${att.url}`} 
-                                                    target="_blank" 
-                                                    rel="noreferrer" 
-                                                    className="ml-4 p-2 text-gray-400 hover:text-[#E2231A] transition-colors rounded-lg hover:bg-red-50"
-                                                    title="Download/View"
-                                                >
-                                                    <Icons.ArrowDownTrayIcon className="w-5 h-5" />
-                                                </a>
+                                                <div className="flex items-center gap-2 ml-4">
+                                                    <a 
+                                                        href={`/api/media-proxy?url=${att.url}`} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                                                        title="Download/View"
+                                                    >
+                                                        <Icons.ArrowDownTrayIcon className="w-5 h-5" />
+                                                    </a>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteAttachment(att.id)}
+                                                        className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                                                        title="Elimina"
+                                                    >
+                                                        <Icons.TrashIcon className="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </div>
                                             );
                                         })}
@@ -2186,7 +2217,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                             };
 
                                             return (
-                                                <div key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 min-w-[200px] flex-1">
+                                                <div key={i} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 min-w-[200px] flex-1 relative group">
                                                     {/* Box Anteprima/Icona */}
                                                     <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
                                                         {imageSrc ? (
@@ -2201,7 +2232,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                     </div>
 
                                                     {/* Testi */}
-                                                    <div className="overflow-hidden">
+                                                    <div className="overflow-hidden flex-1">
                                                         <p className="text-xs font-bold truncate text-gray-700" title={att.filename}>
                                                             {att.filename}
                                                         </p>
@@ -2209,6 +2240,15 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                                             {extension || att.type} {att.note && `- ${att.note}`}
                                                         </p>
                                                     </div>
+                                                    
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteAttachment(att.id)}
+                                                        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                                                        title="Elimina"
+                                                    >
+                                                        <Icons.TrashIcon className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             );
                                         })}
