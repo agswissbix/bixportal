@@ -17,6 +17,7 @@ import {
   FileText
 } from "lucide-react"
 import { useRecordsStore } from "../records/recordsStore"
+import { BadgeSkeleton } from "../badgeSkeleton"
 
 const isDev = false
 
@@ -124,8 +125,12 @@ export default function CardBadgeTimesheet({ tableid, recordid }: PropsInterface
   const progressPercentage = Math.min((totalWorktime / 8) * 100, 100)
 
   return (
-    <GenericComponent response={responseData} loading={loading} error={error} title="Timesheet Badge">
+    <GenericComponent response={responseData} error={error} title="Timesheet Badge">
       {(response: ResponseInterface) => (
+        <>
+        {loading ? (
+          <BadgeSkeleton />
+        ) : (
         <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Header */}
           <div
@@ -296,6 +301,8 @@ export default function CardBadgeTimesheet({ tableid, recordid }: PropsInterface
             </div>
           </div>
         </div>
+        )}
+        </>
       )}
     </GenericComponent>
   )

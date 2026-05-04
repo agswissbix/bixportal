@@ -4,6 +4,7 @@ import GenericComponent from '../genericComponent';
 import { AppContext } from '@/context/appContext';
 import { UserCircle2, ChevronDown, Check, Clock, AlertTriangle } from 'lucide-react'; // Aggiunto Clock per le ore
 import { useRecordsStore } from '../records/recordsStore';
+import { BadgeSkeleton } from '../badgeSkeleton';
 
 const isDev = false; // Imposta a true per usare i dati di sviluppo
 
@@ -115,8 +116,12 @@ export default function CardBadgeProject({ tableid, recordid }: PropsInterface) 
   const residualPercentage = expectedHours > 0 ? ((residualHours / expectedHours) * 100).toFixed(0) : '0';
 
   return (
-    <GenericComponent response={responseData} loading={loading} error={error} title="Project Badge">
+    <GenericComponent response={responseData} error={error} title="Project Badge">
       {(response: ResponseInterface) => (
+        <>
+        {loading ? (
+          <BadgeSkeleton />
+        ) : (
         <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Header */}
           <div
@@ -303,6 +308,8 @@ export default function CardBadgeProject({ tableid, recordid }: PropsInterface) 
             </div>
           </div>
         </div>
+        )}
+        </>
       )}
     </GenericComponent>
   );

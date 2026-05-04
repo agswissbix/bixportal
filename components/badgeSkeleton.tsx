@@ -25,11 +25,11 @@ export function BadgeSkeleton() {
       <div className="flex flex-col gap-2 mt-2">
         <div className="flex justify-between items-end">
           <div className="flex flex-col gap-2">
-            <Skeleton className="h-5 w-48" /> {/* Analisi Margine Label */}
+            {/* <Skeleton className="h-5 w-48" /> Analisi Margine Label */}
             <Skeleton className="h-4 w-24" /> {/* Previsto Label */}
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Skeleton className="h-8 w-20" /> {/* Percentage */}
+            {/* <Skeleton className="h-8 w-20" /> Percentage */}
             <Skeleton className="h-3 w-16" /> {/* Effettivo Label */}
           </div>
         </div>
