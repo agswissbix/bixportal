@@ -177,15 +177,14 @@ export default function Sidebar({}: PropsInterface) {
           >
             {/* HEADER FISSO - Logo */}
             <div className="flex-shrink-0 py-6 px-6">
-              <Image
+              <img
                 src={
                     theme === "bixhub"
                         ? `/bixdata/logos/bixhub.png`
                         : `/bixdata/logos/bixdata.png`
                 }
                 alt="Logo"
-                width={1000}
-                height={1000}
+                loading="eager"
                 className="h-16 w-auto m-auto hover:cursor-pointer hover:scale-105 hover:translate-y-1 transition-all duration-200"
                 onClick={() => window.location.reload()}
               />
@@ -387,11 +386,9 @@ export default function Sidebar({}: PropsInterface) {
               <HMenu as="div" className="relative mx-4 my-4">
                 <div className="flex items-center gap-3">
                   <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-sidebar transition-all hover:scale-105 active:scale-95">
-                    <Image
+                    <img
                       src={userid ? `/api/media-proxy?url=userProfilePic/${userid}.png` : "/api/media-proxy?url=userProfilePic/default.jpg"}
                       alt="profile"
-                      width={40}
-                      height={40}
                       className="w-10 h-10 rounded-full object-cover border-2 border-gray-300"
                       onError={(e) => {
                         const target = e.currentTarget

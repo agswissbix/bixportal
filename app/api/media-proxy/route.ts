@@ -12,29 +12,46 @@ export async function GET(req: NextRequest) {
         return new NextResponse("Missing URL parameter", { status: 400 });
     }
     
+    // 1. Estrai il cookie del tenant in ingresso (se presente)
+    const tenantCookie = req.cookies.get("current_tenant");
+    const tenantId = tenantCookie?.value;
+    console.log("🍪 Tenant ID dal cookie:", tenantId || "Nessun cookie trovato");
+
     let remoteUrl = `${API_BASE_URL}/commonapp/uploads/${urlParam}`;
     
     if (urlParam.startsWith("commonapp/static")) {
         remoteUrl = `${API_BASE_URL}/commonapp/tempfile/${urlParam}`;
     } 
-    else{}
     
     console.log("🌐 remoteUrl:", remoteUrl);
 
+    const sessionId = req.cookies.get("sessionid")?.value;
+
     try {
-        // Aggiunta header per forzare il bypass di cache eventuale lato backend/proxy
+
+        const cookieHeader = req.headers.get('cookie') || '';
+        // 2. Prepara gli headers per Django
+        const headersForDjango: HeadersInit = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+            "Cookie": cookieHeader
+        };
+
+        // 3. Se hai trovato il tenant, aggiungilo come header custom
+        if (tenantId) {
+            headersForDjango["X-Tenant-ID"] = tenantId;
+        }
+
+        // 4. Fai la chiamata passando gli headers
         const response = await fetch(remoteUrl, {
             method: "GET",
-            headers: {
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache",
-            },
+            headers: headersForDjango,
         });
 
         console.log("🔁 fetch status:", response.status);
 
         if (!response.ok) {
-            return new NextResponse("Failed to fetch remote image", { status: 500 });
+            return new NextResponse(`Failed to fetch remote image (Status: ${response.status})`, { status: response.status });
         }
 
         const contentType = response.headers.get("content-type") || "application/octet-stream";
