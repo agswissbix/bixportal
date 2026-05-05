@@ -35,12 +35,12 @@ const ScheduleCalendarContent = ({ tipologia }: ScheduleCalendarContentProps) =>
   const reactToPrintFn = useReactToPrint({
     contentRef,
     pageStyle: `
-      @page { size: landscape; margin: 10mm; }
+      @page { size: auto; margin: 0mm; }
       @media print {
         body {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
-          zoom: 0.5 !important;
+          zoom: 0.45 !important;
         }
       }
     `
