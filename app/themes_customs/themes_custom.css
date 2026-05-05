@@ -163,55 +163,62 @@
 
 /* ----------------Pitservice ------------------------------- */
 .pittheme {
-  /* Primary brand colors - Green vitality */
-  --color-primary: #63b55a;
-  --color-primary-hover: #4caf50;
+  /* Primary brand colors - Verde del logo */
+  --color-primary: #5c8b2f; /* Adattato per essere più fedele al logo */
+  --color-primary-hover: #4a7026;
   --color-primary-foreground: #ffffff;
 
   /* Secondary colors - Dark neutral */
-  --color-secondary: #282828;
-  --color-secondary-hover: #1f1f1f;
+  --color-secondary: #00283d;
+  --color-secondary-hover: #002235;
   --color-secondary-foreground: #ffffff;
 
-  /* Accent color - Teal */
-  --color-accent: #00bcd4;
-  --color-accent-hover: #155e6e;
+  /* Accent color - Blu scuro del logo (sostituisce il ciano) */
+  --color-accent: #005a8c;
+  --color-accent-hover: #004368;
   --color-accent-foreground: #ffffff;
 
   /* Neutral backgrounds */
-  --background: #282828;
-  --foreground: #ffffff;
-  --card-background: #f8f9fa;
+  --background: #f8f9fa; /* Meglio uno sfondo chiaro per l'app generale */
+  --foreground: #1f1f1f;
+  --card-background: #ffffff;
   --card-border: #dee2e6;
   --records-background: #f5f5f5;
 
-  /* Navigation and sidebar */
-  --navbar-background: #181818;
-  --sidebar-background: linear-gradient(180deg, #00bcd4 90%, #155e6e 200%);
-  --sidebar-text: #4400ff;
+  /* Navigation and sidebar - Passaggio al Blu scuro istituzionale */
+  --navbar-background: #ffffff;
+  --sidebar-background: linear-gradient(180deg, #005a8c 0%, #004368 100%);
+  --sidebar-text: #ffffff;
 
   /* Table styling */
   --table-background: #ffffff;
   --table-border: #dee2e6;
-  --table-header: #ebe9e5;
+  --table-header: #f8f9fa;
 
   /* Badge styling */
-  --badge-background: #63b55a;
-  --badge-border: #4caf50;
+  --badge-background: #5c8b2f;
+  --badge-border: #4a7026;
 
   /* shadcn/ui variables */
-  --primary: 123 39% 53%;
+  /* Verde primario per bottoni principali */
+  --primary: 91 49% 36%; 
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 16%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 22%;
-  --muted-foreground: 0 0% 100%;
-  --accent: 187 100% 42%;
+  
+  /* Grigio chiaro per bottoni secondari (Filtri, Ricarica) */
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  
+  /* Blu per accenti o bottoni informativi */
+  --accent: 201 100% 27%; 
   --accent-foreground: 0 0% 100%;
+  
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 210 16% 90%;
-  --input: 210 16% 90%;
-  --ring: 123 39% 53%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 91 49% 36%; /* Focus ring verde */
   --radius: 0.5rem;
 }
