@@ -606,7 +606,7 @@ useEffect(() => {
         <>
           <div className="sticky top-0 z-20 flex flex-wrap gap-3 items-center justify-start px-4 py-4 bg-[#f9fafb]">
             <button 
-              className='hidden md:flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
+              className='hidden md:flex items-center theme-accent focus:ring-2 focus:ring-accent font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
               onClick={onOpenPopup}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -616,7 +616,7 @@ useEffect(() => {
             </button>
 
             <button 
-              className='hidden md:flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
+              className='hidden md:flex items-center theme-primary focus:ring-2 focus:ring-primary font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
               onClick={saveDashboardDisposition}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -626,7 +626,7 @@ useEffect(() => {
             </button>
 
             <button 
-                className='hidden md:flex items-center text-white bg-[#2dad6e] hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
+                className='hidden md:flex items-center theme-secondary focus:ring-2 focus:ring-secondary font-medium rounded-md text-sm px-5 py-2.5 transition-colors duration-200 w-full sm:w-auto justify-center'
               onClick={printDashboard} 
             >
                 <PrinterIcon className="h-5 w-5 mr-2" />

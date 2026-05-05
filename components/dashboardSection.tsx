@@ -311,7 +311,7 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
           onClick={() => setActiveTab(id)}
           className={`flex items-center gap-2 px-4 py-2 text-base font-semibold transition-all duration-200 focus:outline-none cursor-pointer ${
             isActive
-              ? "border-b-2 border-green-600 text-gray-800"
+              ? "border-b-2 border-primary text-gray-800"
               : "text-gray-500 border-b-2 border-transparent hover:text-gray-700"
           }`}
         >
@@ -393,7 +393,7 @@ function DashboardSection({ initialTab, initialYears, dashboardCategory, showFil
               />
           ))}
           <button
-              className="bg-green-600 hover:bg-green-700 text-white rounded-full p-2 shadow-lg transition-colors duration-200"
+              className="bg-primary hover:bg-primary/90 text-white rounded-full p-2 shadow-lg transition-colors duration-200"
               title={"Crea Dashboard"}
               onClick={() => {
                   setShowPopup(true);
