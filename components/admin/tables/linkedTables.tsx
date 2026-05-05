@@ -23,6 +23,7 @@ interface LinkedTable {
   description: string;
   fieldorder?: number | null;
   visible?: boolean;
+  is_polymorphic?: boolean; // <-- NUOVO CAMPO
 }
 
 interface ResponseInterface {
@@ -39,7 +40,7 @@ const LinkedTablesDev: ResponseInterface = {
   success: true,
   linked_tables: [
     { tablelinkid: "tab_users", description: "Utenti", fieldorder: 0, visible: true },
-    { tablelinkid: "tab_orders", description: "Ordini", fieldorder: 1, visible: true },
+    { tablelinkid: "tab_orders", description: "Ordini", fieldorder: 1, visible: true, is_polymorphic: true }, // <-- Esempio mockato
     { tablelinkid: "tab_invoices", description: "Fatture", fieldorder: 2, visible: false },
   ],
 };
@@ -63,12 +64,11 @@ export default function LinkedTables({ tableId, userId }: PropsLinkedTables) {
 
   useEffect(() => {
     if (!isDev && response) {
-      console.log(response.linked_tables)
+      console.log(response.linked_tables);
       setLinkedTables(response.linked_tables);
     }
   }, [response]);
 
-  // 🔹 Mappa i dati in formato DraggableList
   const filteredTables = useMemo(() => {
     if (!searchTerm.trim()) return linkedTables;
     const lower = searchTerm.toLowerCase();
@@ -85,9 +85,12 @@ export default function LinkedTables({ tableId, userId }: PropsLinkedTables) {
         name: "linked",
         items: filteredTables.map((t) => ({
           id: t.tablelinkid,
-          description: t.description,
+          // Modifica visiva temporanea/rapida se DraggableList supporta solo stringhe. 
+          // Rimuovi il "⚡ [Dinamica]" se modificherai DraggableList per gestire render custom.
+          description: t.is_polymorphic ? `${t.description} ⚡ [Dinamica]` : t.description, 
           order: t.fieldorder ?? null,
           visible: t.visible ?? true,
+          is_polymorphic: t.is_polymorphic, // Passato in caso DraggableList venga espanso
         })),
       },
     };
@@ -96,9 +99,10 @@ export default function LinkedTables({ tableId, userId }: PropsLinkedTables) {
   const handleFieldsChange = (groups: Record<string, any>) => {
     const updated = groups.linked.items.map((item: any, index: number) => ({
       tablelinkid: item.id,
-      description: item.description,
+      description: item.description.replace(' ⚡ [Dinamica]', ''), // Ripuliamo la stringa al salvataggio
       fieldorder: item.order,
       visible: item.visible,
+      is_polymorphic: item.is_polymorphic
     }));
     setLinkedTables(updated);
     setIsSaved(false);
@@ -128,7 +132,6 @@ export default function LinkedTables({ tableId, userId }: PropsLinkedTables) {
       );
 
       if (response.data.success) {
-
         toast.success("Ordine salvato con successo!");
         setIsSaved(true);
       }
