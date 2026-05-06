@@ -16,6 +16,7 @@ import CardBadgeDeal from './customBadges/cardBadgeDeal';
 import CardBadgeProject from './customBadges/cardBadgeProject';
 import CardBadgeTimesheet from './customBadges/cardBadgeTimesheet';
 import BadgeManager from './customBadges/badgeManager';
+import LoadingComp from './loading';
 
 const isDev = false;
 
@@ -268,7 +269,7 @@ const RecordCard = React.memo(({
     if (ro) ro.disconnect();
     cancelAnimationFrame(rafId);
   };
-}, []);
+}, [loadingSettings]);
 
   // COMMON: keep header (info, funzioni, maximize, trash, close) and CardTabs below
   // Pass mobileView to CardTabs to allow child to adapt (if implemented)
@@ -449,6 +450,11 @@ const RecordCard = React.memo(({
               } transition-all duration-300`}
               style={containerStyleDesktop}
             >
+              <>
+              {loadingSettings ? (
+                <LoadingComp />
+              ) : (
+                <>
               {/* optional small info popup */}
               {showInfoPopup && (
                 <div className="absolute top-5 left-5 z-30 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-72">
@@ -552,7 +558,7 @@ const RecordCard = React.memo(({
 
                           {isDeleteAble && (
                         <button
-                          className="p-2 rounded-full hover:bg-red-100 hover:scale-110 transition-colors hover:scale-110"
+                          className="p-2 rounded-full hover:bg-red-100 transition-colors hover:scale-110"
                           onClick={handleTrashClick}
                           title="Elimina"
                         >
@@ -646,6 +652,9 @@ const RecordCard = React.memo(({
                   // mobileView={false}
                 />
                 </div>
+                </>
+              )}
+              </>
             </div>
           )}
         </>

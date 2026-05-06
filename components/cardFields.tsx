@@ -104,7 +104,7 @@ export default function CardFields({
   const [updatedFields, setUpdatedFields] = useState<{ [key: string]: string | string[] | File }>({})
   const [initialFields, setInitialFields] = useState<{ [key: string]: string | string[] | File }>({})
   const [isSaveDisabled, setIsSaveDisabled] = useState(true)
-  const [isEditable, setIsEditable] = useState(false)
+  const [isEditable, setIsEditable] = useState(null)
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({})
   const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 

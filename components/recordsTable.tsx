@@ -260,7 +260,7 @@ export default function RecordsTable({
 
   const [isDeleteAble, setIsDeleteAble] = useState(false);
   const [isDuplicateAble, setIsDuplicateAble] = useState(false);
-  const [canView, setCanView] = useState(false);
+  const [canView, setCanView] = useState(null);
 
   const [rowOpen, setRowOpen] = useState<string | null>(null)
 
@@ -389,7 +389,7 @@ export default function RecordsTable({
   }, [responseSettings, tableid]);
 
   useEffect(() => {
-    if (!tableSettings?.[tableid]?.view) return;
+    if (!tableSettings || tableSettings[tableid] === undefined) return;
 
     setCanView(getIsSettingAllowed(tableid, 'view'))
   }, [tableSettings?.[tableid]?.view, tableid]);
@@ -596,7 +596,7 @@ export default function RecordsTable({
             return <TableSkeleton />;
           }
 
-          if (!canView) {
+          if (canView === false) {
             return <div className="h-full w-full flex items-center justify-center">Non hai il permesso di visualizzare questa tabella</div>;
           }
 
