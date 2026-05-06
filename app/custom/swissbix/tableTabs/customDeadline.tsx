@@ -257,8 +257,8 @@ export default function CustomDeadlines() {
         frequency_months: getField('frequency_months'),
         actions: getField('actions'),
         notice_days: parseInt(getField('notice_days') || '0', 10),
-        tableid: getField('tableid'),
-        recordidtable: getField('recordidtable'),
+        tableid: row.fields.find(f => f.fieldid === 'recordidtable')?.linkedmaster_tableid || '',
+        recordidtable: row.fields.find(f => f.fieldid === 'recordidtable')?.recordid || '',
         notification_sent: getField('notification_sent') === '1' || getField('notification_sent')?.toLowerCase() === 'si' ? 'Si' : 'No'
       };
 
