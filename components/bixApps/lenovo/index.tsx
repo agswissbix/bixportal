@@ -1057,7 +1057,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center max-w-md w-full">
                             <Icons.QrCodeIcon className="w-16 h-16 mx-auto text-gray-400 mb-6" />
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Ricerca Dispositivo</h2>
-                            <p className="text-gray-500 mb-8 text-sm">Scannerizza o inserisci il Seriale (SN) del dispositivo per iniziare o riprendere la lavorazione.</p>
+                            <p className="text-gray-500 mb-8 text-sm">Scansiona o inserisci il Seriale (SN) del dispositivo per iniziare o riprendere la lavorazione.</p>
                             
                             <form onSubmit={(e) => handleBarcodeSearch(e)} className="flex flex-col gap-4">
                                 <div className="relative">
@@ -1118,7 +1118,7 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
                                         className="w-full bg-white border-2 border-gray-200 text-gray-700 py-4 rounded-xl font-bold text-[15px] sm:text-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 outline-none"
                                     >
                                         <Icons.CameraIcon className="w-6 h-6 shrink-0" />
-                                        <span className="truncate">Scannerizza</span>
+                                        <span className="truncate">Scansiona</span>
                                     </button>
                                 </div>
                             </form>
