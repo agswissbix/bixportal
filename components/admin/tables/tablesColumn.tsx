@@ -126,8 +126,8 @@ export const TablesColumn: React.FC<{
         setNewTable({ id: "", description: "", workspace: "" })
         setShowAddTable(false)
       }
-    } catch (error) {
-      toast.error("Errore durante la creazione della tabella")
+    } catch (error: any) {
+      toast.error("Errore durante la creazione della tabella " + error.response.data.error)
     }
   }
 

@@ -95,7 +95,7 @@ export const UserSelectionColumn: React.FC<{
           <Users className="h-5 w-5 text-gray-600" />
           Seleziona Utente/Gruppo
         </h2>
-        <Select value={selectedUserId} onValueChange={onSelectUser} defaultValue={users.find(u => u.username === "superuser")?.id ?? ""}>
+        <Select value={selectedUserId} onValueChange={onSelectUser} defaultValue={users.find(u => u.username === 'default')?.id ?? ""}>
           <SelectTrigger>
             <SelectValue className='text-black' placeholder="Seleziona utente..." />
           </SelectTrigger>
@@ -122,7 +122,7 @@ export const UserSelectionColumn: React.FC<{
                 </div>
                 {users.map((user) => (
                   <SelectItem key={`user-${user.id}`} value={user.id}>
-                    {user.username === "superuser" ? (
+                    {user.username === "default" ? (
                       <div className="flex items-center gap-2">
                         <Badge className="bg-orange-500 text-white">Default</Badge>
                         <span>{user.username}</span>
