@@ -124,10 +124,36 @@ export default function CardFields({
 	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
   // 2) Calcola l'editabilità quando cambia tableSettings o recordid
+  // 2) Calcola l'editabilità quando cambia tableSettings o recordid
   useEffect(() => {
-    const setting_name = mastertableid && masterrecordid ? getIsSettingAllowed(mastertableid, 'edit_linked', masterrecordid) : getIsSettingAllowed(tableid, 'edit', recordid)
+    let setting_name = false;
+
+    // 1. Controllo edit sulla tabella corrente (la collegata, o la normale)
+    const canEditThisTable = getIsSettingAllowed(tableid, 'edit', recordid);
+
+    if (!canEditThisTable) {
+        setting_name = false;
+    } else if (mastertableid && masterrecordid) {
+        // 2. Se in contesto linked, controlliamo che la master conceda l'edit_linked per questa tabella
+        const canEditLinked = getIsSettingAllowed(mastertableid, 'edit_linked', masterrecordid);
+        
+        let whichLinkedToEdit = tableSettings?.[mastertableid]?.['which_linked_to_edit']?.value;
+        if (typeof whichLinkedToEdit === 'string') {
+            whichLinkedToEdit = whichLinkedToEdit.split(',').map((x: string) => x.trim());
+        } else if (!Array.isArray(whichLinkedToEdit)) {
+            whichLinkedToEdit = [];
+        }
+        
+        const isTableAllowed = Array.isArray(whichLinkedToEdit) ? whichLinkedToEdit.includes(tableid) : false;
+        
+        setting_name = canEditLinked && isTableAllowed;
+    } else {
+        // Se non in contesto linked e l'edit è consentito
+        setting_name = true;
+    }
+
     setIsEditable(setting_name);
-  }, [tableSettings, recordid]);
+  }, [tableSettings, recordid, mastertableid, masterrecordid, tableid, getIsSettingAllowed]);
 
 
   const currentFields = useMemo(() => {

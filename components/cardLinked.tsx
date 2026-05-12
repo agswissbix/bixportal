@@ -1,4 +1,4 @@
-import React, { useMemo, useContext, useState, useEffect } from 'react';
+import React, { useMemo, useContext, useState, useEffect, useCallback } from 'react';
 import { useApi } from '@/utils/useApi';
 import GenericComponent from './genericComponent';
 import { AppContext } from '@/context/appContext';
@@ -75,11 +75,24 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
 
     const [openCards, setOpenCards] = useState<boolean[]>(responseDataDEV.linkedTables.map(table => !!table.isOpen) || []);
 
-    const {handleRowClick, getIsSettingAllowed, columnOrder} = useRecordsStore();
+    const {handleRowClick, tableSettings, getIsSettingAllowed, columnOrder} = useRecordsStore();
 
-    const canAdd = useMemo(() => {
-        return getIsSettingAllowed(tableid, 'add_linked', recordid);
-    }, [tableid, recordid]);
+    const canAddLinked = useCallback((linkedTableId: string) => {
+        const canAddThisTable = getIsSettingAllowed(linkedTableId, 'add', '');
+        if (!canAddThisTable) return false;
+
+        const canAddLinkedMaster = getIsSettingAllowed(tableid, 'add_linked', recordid);
+        if (!canAddLinkedMaster) return false;
+
+        let whichLinkedToAdd = tableSettings?.[tableid]?.['which_linked_to_add']?.value;
+        if (typeof whichLinkedToAdd === 'string') {
+            whichLinkedToAdd = whichLinkedToAdd.split(',').map((x: string) => x.trim());
+        } else if (!Array.isArray(whichLinkedToAdd)) {
+            whichLinkedToAdd = [];
+        }
+
+        return Array.isArray(whichLinkedToAdd) && whichLinkedToAdd.includes(linkedTableId);
+    }, [tableid, recordid, tableSettings, getIsSettingAllowed]);
 
     const handleCollapse = (index: number) => {
         setOpenCards(prev => {
@@ -201,7 +214,7 @@ export default function CardLinked({ tableid,recordid }: PropsInterface) {
                                                     hover:border-accent-hover hover:bg-transparent hover:text-accent-hover transition-all duration-300 transform 
                                                     hover:scale-[1.05] active:scale-[0.98] shadow-md hover:shadow-lg"
                                         onClick={() => handleRowClick('linked', '', table.tableid, tableid, recordid)}
-                                        disabled={!canAdd}
+                                        disabled={!canAddLinked(table.tableid)}
                                     >
                                         <SquarePlus name="Plus" className="mr-2 h-5 w-5" /> 
                                         Aggiungi
