@@ -330,7 +330,7 @@ export default function Sidebar({}: PropsInterface) {
                   
                   return (
                     <li key={item.id} className="mt-1">
-                      {item.subItems ? (
+                      {item.subItems && item.subItems.filter((subItem) => subItem.order !== null).length > 0 ? (
                         <div>
                           <button
                             onClick={() => setOpenDropdown(openDropdown === item.id ? "" : item.id)}
@@ -367,14 +367,15 @@ export default function Sidebar({}: PropsInterface) {
                           </div>
                         </div>
                       ) : (
-                        <a
-                          href={item.href}
-                          className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
-                          onClick={() => item.id && handleMenuClick(item.id)}
-                        >
-                          <Icon className="w-5 h-5" />
-                          <span>{item.title}</span>
-                        </a>
+                        // <a
+                        //   href={item.href}
+                        //   className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                        //   onClick={() => item.id && handleMenuClick(item.id)}
+                        // >
+                        //   <Icon className="w-5 h-5" />
+                        //   <span>{item.title}</span>
+                        // </a>
+                        <></>
                       )}
                     </li>
                   )
