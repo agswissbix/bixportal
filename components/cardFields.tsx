@@ -124,7 +124,6 @@ export default function CardFields({
 	const { response, loading, error } = !isDev && payload ? useApi<ResponseInterface>(payload) : { response: null, loading: false, error: null };
 
   // 2) Calcola l'editabilità quando cambia tableSettings o recordid
-  // 2) Calcola l'editabilità quando cambia tableSettings o recordid
   useEffect(() => {
     let setting_name = false;
 
@@ -355,7 +354,8 @@ export default function CardFields({
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
 
     const currentValue = currentValues[field.fieldid]
-    const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
+    const isStrictlyNumeric = currentValue !== undefined && currentValue !== null && /^\d+$/.test(String(currentValue));
+    const isEmpty = isLinkedMaster ? !isStrictlyNumeric : !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
     const isRequiredEmpty = isRequired && isEmpty
     const isRequiredFilled = isRequired && !isEmpty
 
@@ -602,9 +602,9 @@ export default function CardFields({
                             tableid={tableid}
                             linkedmaster_tableid={field.linked_mastertable}
                             linkedmaster_recordid={
-                                typeof field.value === "object"
-                                    ? field.value?.code
-                                    : ""
+                                typeof field.value === "object" && field.value?.code !== "" && isEmpty
+                                    ? field.value?.code || ""
+                                    : value || ""
                             }
                             fieldid={field.fieldid}
                             formValues={currentValues}
@@ -655,6 +655,11 @@ export default function CardFields({
 
     const allRequiredFilled = requiredFields.every((field) => {
       const value = currentValues[field.fieldid]
+      const isLinkedMaster = field.fieldtype === "linkedmaster"
+      const isStrictlyNumeric = value !== undefined && value !== null && /^\d+$/.test(String(value));
+      if(isLinkedMaster) {
+        return isStrictlyNumeric 
+      }
       return value !== null && value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0)
     })
 
