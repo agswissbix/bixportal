@@ -125,9 +125,34 @@ export default function CardFields({
 
   // 2) Calcola l'editabilità quando cambia tableSettings o recordid
   useEffect(() => {
-    const setting_name = mastertableid && masterrecordid ? getIsSettingAllowed(mastertableid, 'edit_linked', masterrecordid) : getIsSettingAllowed(tableid, 'edit', recordid)
+    let setting_name = false;
+
+    // 1. Controllo edit sulla tabella corrente (la collegata, o la normale)
+    const canEditThisTable = getIsSettingAllowed(tableid, 'edit', recordid);
+
+    if (!canEditThisTable) {
+        setting_name = false;
+    } else if (mastertableid && masterrecordid) {
+        // 2. Se in contesto linked, controlliamo che la master conceda l'edit_linked per questa tabella
+        const canEditLinked = getIsSettingAllowed(mastertableid, 'edit_linked', masterrecordid);
+        
+        let whichLinkedToEdit = tableSettings?.[mastertableid]?.['which_linked_to_edit']?.value;
+        if (typeof whichLinkedToEdit === 'string') {
+            whichLinkedToEdit = whichLinkedToEdit.split(',').map((x: string) => x.trim());
+        } else if (!Array.isArray(whichLinkedToEdit)) {
+            whichLinkedToEdit = [];
+        }
+        
+        const isTableAllowed = Array.isArray(whichLinkedToEdit) ? whichLinkedToEdit.includes(tableid) : false;
+        
+        setting_name = canEditLinked && isTableAllowed;
+    } else {
+        // Se non in contesto linked e l'edit è consentito
+        setting_name = true;
+    }
+
     setIsEditable(setting_name);
-  }, [tableSettings, recordid]);
+  }, [tableSettings, recordid, mastertableid, masterrecordid, tableid, getIsSettingAllowed]);
 
 
   const currentFields = useMemo(() => {
@@ -329,7 +354,8 @@ export default function CardFields({
     const value = currentValues[field.fieldid] ?? rawValue ?? ""
 
     const currentValue = currentValues[field.fieldid]
-    const isEmpty = !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
+    const isStrictlyNumeric = currentValue !== undefined && currentValue !== null && /^\d+$/.test(String(currentValue));
+    const isEmpty = isLinkedMaster ? !isStrictlyNumeric : !currentValue || currentValue === "" || (Array.isArray(currentValue) && currentValue.length === 0)
     const isRequiredEmpty = isRequired && isEmpty
     const isRequiredFilled = isRequired && !isEmpty
 
@@ -576,9 +602,9 @@ export default function CardFields({
                             tableid={tableid}
                             linkedmaster_tableid={field.linked_mastertable}
                             linkedmaster_recordid={
-                                typeof field.value === "object"
-                                    ? field.value?.code
-                                    : ""
+                                typeof field.value === "object" && field.value?.code !== "" && isEmpty
+                                    ? field.value?.code || ""
+                                    : value || ""
                             }
                             fieldid={field.fieldid}
                             formValues={currentValues}
@@ -629,6 +655,11 @@ export default function CardFields({
 
     const allRequiredFilled = requiredFields.every((field) => {
       const value = currentValues[field.fieldid]
+      const isLinkedMaster = field.fieldtype === "linkedmaster"
+      const isStrictlyNumeric = value !== undefined && value !== null && /^\d+$/.test(String(value));
+      if(isLinkedMaster) {
+        return isStrictlyNumeric 
+      }
       return value !== null && value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0)
     })
 

@@ -5,7 +5,7 @@ import { useRecordsStore } from '../components/records/recordsStore';
 export const useRecordActions = () => {
   const setRefreshTable = useRecordsStore((state) => state.setRefreshTable);
 
-  const duplicateRecordAction = async (tableid: string, recordid: string) => {
+  const duplicateRecordAction = async (tableid: string, recordid: string, mastertableid?: string, masterrecordid?: string) => {
     const loadingToastId = toast.loading('Duplicazione in corso...');
     try {
       const response = await axiosInstanceClient.post(
@@ -14,6 +14,8 @@ export const useRecordActions = () => {
           apiRoute: 'duplicate_record',
           tableid,
           recordid,
+          mastertableid: mastertableid || null,
+          masterrecordid: masterrecordid || null,
         },
         {
           headers: {
@@ -37,7 +39,7 @@ export const useRecordActions = () => {
     }
   };
 
-  const deleteRecordAction = async (tableid: string, recordid: string) => {
+  const deleteRecordAction = async (tableid: string, recordid: string, mastertableid?: string, masterrecordid?: string) => {
     const loadingToastId = toast.loading('Eliminazione in corso...');
     try {
       await axiosInstanceClient.post(
@@ -46,6 +48,8 @@ export const useRecordActions = () => {
           apiRoute: 'delete_record',
           tableid,
           recordid,
+          mastertableid,
+          masterrecordid,
         },
         {
           headers: {

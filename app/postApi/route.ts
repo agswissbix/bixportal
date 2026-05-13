@@ -674,6 +674,9 @@ export async function POST(request: Request) {
         case "get_permissions_matrix":
             djangoUrl = "/commonapp/get_permissions_matrix/";
             break;
+        case "get_orders_matrix":
+            djangoUrl = "/commonapp/get_orders_matrix/";
+            break;
 
         case "get_job_status_summary_api":
             djangoUrl = "/commonapp/get_job_status_summary_api/";

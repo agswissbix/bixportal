@@ -146,14 +146,58 @@ const RecordCard = React.memo(({
   useEffect(() => {
     if (!tableSettings?.[tableid]?.delete) return;
 
-    setIsDeleteAble(getIsSettingAllowed(tableid, "delete", recordid));
-  }, [tableSettings?.[tableid]?.delete, tableid, recordid]);
+    let setting_name = false;
+    const canDeleteThisTable = getIsSettingAllowed(tableid, "delete", recordid);
+
+    if (!canDeleteThisTable) {
+      setting_name = false;
+    } else if (mastertableid && masterrecordid) {
+      const canDeleteLinked = getIsSettingAllowed(mastertableid, "delete_linked", masterrecordid);
+      
+      let whichLinkedToDelete = tableSettings?.[mastertableid]?.["which_linked_to_delete"]?.value;
+      if (typeof whichLinkedToDelete === "string") {
+        whichLinkedToDelete = whichLinkedToDelete.split(",").map((x: string) => x.trim());
+      } else if (!Array.isArray(whichLinkedToDelete)) {
+        whichLinkedToDelete = [];
+      }
+      
+      const isTableAllowed = Array.isArray(whichLinkedToDelete) ? whichLinkedToDelete.includes(tableid) : false;
+      
+      setting_name = canDeleteLinked && isTableAllowed;
+    } else {
+      setting_name = true;
+    }
+
+    setIsDeleteAble(setting_name);
+  }, [tableSettings, tableid, recordid, mastertableid, masterrecordid, getIsSettingAllowed]);
 
   useEffect(() => {
     if (!tableSettings?.[tableid]?.duplicate) return;
 
-    setIsDuplicateAble(getIsSettingAllowed(tableid, "duplicate", recordid));
-  }, [tableSettings?.[tableid]?.duplicate, tableid, recordid]);
+    let setting_name = false;
+    const canDuplicateThisTable = getIsSettingAllowed(tableid, "duplicate", recordid);
+
+    if (!canDuplicateThisTable) {
+      setting_name = false;
+    } else if (mastertableid && masterrecordid) {
+      const canDuplicateLinked = getIsSettingAllowed(mastertableid, "duplicate_linked", masterrecordid);
+      
+      let whichLinkedToDuplicate = tableSettings?.[mastertableid]?.["which_linked_to_duplicate"]?.value;
+      if (typeof whichLinkedToDuplicate === "string") {
+        whichLinkedToDuplicate = whichLinkedToDuplicate.split(",").map((x: string) => x.trim());
+      } else if (!Array.isArray(whichLinkedToDuplicate)) {
+        whichLinkedToDuplicate = [];
+      }
+      
+      const isTableAllowed = Array.isArray(whichLinkedToDuplicate) ? whichLinkedToDuplicate.includes(tableid) : false;
+      
+      setting_name = canDuplicateLinked && isTableAllowed;
+    } else {
+      setting_name = true;
+    }
+
+    setIsDuplicateAble(setting_name);
+  }, [tableSettings, tableid, recordid, mastertableid, masterrecordid, getIsSettingAllowed]);
   
   useEffect(() => {
     if (!tableSettings?.[tableid]?.badges) return;
@@ -206,14 +250,14 @@ const RecordCard = React.memo(({
   const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
 
   const duplicateRecord = async () => {
-    const result = await duplicateRecordAction(tableid, recordid);
+    const result = await duplicateRecordAction(tableid, recordid, mastertableid, masterrecordid);
     if (result && result.success) {
       handleRowClick('standard', result.new_recordid, tableid);
     }
   };
 
   const deleteRecord = async () => {
-    const success = await deleteRecordAction(tableid, recordid);
+    const success = await deleteRecordAction(tableid, recordid, mastertableid, masterrecordid);
     if (success) {
       handleRemoveCard();
     }

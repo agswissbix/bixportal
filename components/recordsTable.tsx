@@ -472,7 +472,7 @@ export default function RecordsTable({
   const { duplicateRecordAction, deleteRecordAction } = useRecordActions();
 
   const duplicateRecord = async (recordid: string) => {
-    await duplicateRecordAction(tableid, recordid);
+    await duplicateRecordAction(tableid, recordid, masterTableid, masterRecordid);
   }
 
   const handleTrashClick = (recordid: string) => {
@@ -480,7 +480,7 @@ export default function RecordsTable({
       action: {
         label: "Conferma",
         onClick: async () => {
-          await deleteRecordAction(tableid, recordid);
+          await deleteRecordAction(tableid, recordid, masterTableid, masterRecordid);
         },
       },
     })
@@ -743,8 +743,41 @@ export default function RecordsTable({
                           const x = e.clientX - (rect?.left || 0) + scrollX
                           const y = e.clientY - (rect?.top || 0) + scrollY
 
-                          setIsDeleteAble(getIsSettingAllowed(tableid, 'delete', row.recordid))
-                          setIsDuplicateAble(getIsSettingAllowed(tableid, 'duplicate', row.recordid))
+                          let canDelete = false;
+                          const canDeleteThisTable = getIsSettingAllowed(tableid, 'delete', row.recordid);
+                          if (!canDeleteThisTable) {
+                            canDelete = false;
+                          } else if (masterTableid && masterRecordid) {
+                            const canDeleteLinked = getIsSettingAllowed(masterTableid, 'delete_linked', masterRecordid);
+                            let whichLinkedToDelete = tableSettings?.[masterTableid]?.['which_linked_to_delete']?.value;
+                            if (typeof whichLinkedToDelete === 'string') {
+                              whichLinkedToDelete = whichLinkedToDelete.split(',').map((x: string) => x.trim());
+                            } else if (!Array.isArray(whichLinkedToDelete)) {
+                              whichLinkedToDelete = [];
+                            }
+                            canDelete = canDeleteLinked && Array.isArray(whichLinkedToDelete) && whichLinkedToDelete.includes(tableid);
+                          } else {
+                            canDelete = true;
+                          }
+                          setIsDeleteAble(canDelete);
+
+                          let canDuplicate = false;
+                          const canDuplicateThisTable = getIsSettingAllowed(tableid, 'duplicate', row.recordid);
+                          if (!canDuplicateThisTable) {
+                            canDuplicate = false;
+                          } else if (masterTableid && masterRecordid) {
+                            const canDuplicateLinked = getIsSettingAllowed(masterTableid, 'duplicate_linked', masterRecordid);
+                            let whichLinkedToDuplicate = tableSettings?.[masterTableid]?.['which_linked_to_duplicate']?.value;
+                            if (typeof whichLinkedToDuplicate === 'string') {
+                              whichLinkedToDuplicate = whichLinkedToDuplicate.split(',').map((x: string) => x.trim());
+                            } else if (!Array.isArray(whichLinkedToDuplicate)) {
+                              whichLinkedToDuplicate = [];
+                            }
+                            canDuplicate = canDuplicateLinked && Array.isArray(whichLinkedToDuplicate) && whichLinkedToDuplicate.includes(tableid);
+                          } else {
+                            canDuplicate = true;
+                          }
+                          setIsDuplicateAble(canDuplicate);
 
                           if (row.recordid !== contextMenu?.recordid) {
                             setMenuOpenId((v) => v + 1);

@@ -78,6 +78,7 @@ export default function inputLinked({
   const [items, setItems] = useState<LinkedItem[]>([])
   const [activeFilters, setActiveFilters] = useState<{field: string, value: string, convertedvalue?: string}[]>([])
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const isDirty = useRef(false)
   const { handleRowClick } = useRecordsStore()
 
   linkedmaster_tableid = linkedmaster_tableid ? String(linkedmaster_tableid) : ""
@@ -180,30 +181,41 @@ export default function inputLinked({
     console.info("handleChange")
     const newValue = e.target.value
     setValue(newValue)
+    isDirty.current = true
     setIsOpen(true)
     debouncedSearch(newValue)
-    if (onChange) {
+    if (newValue === "" && onChange) {
       onChange(newValue)
+      isDirty.current = false
     }
   }
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.select()
     setIsOpen(true)
-    debouncedSearch("")
+    debouncedSearch(value)
   }
 
   const handleSelectOption = (item: LinkedItem) => {
     console.info("handleSelectOption")
     setValue(item.name)
     setIsOpen(false)
+    isDirty.current = false
     if (onChange) {
       onChange(item.recordid)
     }
   }
-  console.info("test inputLinked:", valuecode)
+
+  const handleBlur = () => {
+    if (isDirty.current && onChange) {
+      onChange(value)
+      isDirty.current = false
+    }
+  }
+
   useEffect(() => {
     if (onChange && valuecode?.code) {
+      console.info("test inputLinked:", valuecode)
       onChange(valuecode?.code)
     }
   }, [valuecode?.code])
@@ -218,6 +230,7 @@ export default function inputLinked({
             value={value}
             onChange={handleChange}
             onFocus={handleFocus}
+            onBlur={handleBlur}
             disabled={disabled}
             autoComplete="off"
             placeholder={disabled ? "" : "Cerca..."}
@@ -230,6 +243,7 @@ export default function inputLinked({
               if (linkedmaster_tableid && linkedmaster_recordid) {
                 handleRowClick("linked", linkedmaster_recordid, linkedmaster_tableid)
               } else {
+                // handleRowClick("linked", , linkedmaster_tableid) 
                 toast.error("Nessun dato collegato selezionato.")
               }
             }}
