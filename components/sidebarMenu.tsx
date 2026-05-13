@@ -27,7 +27,7 @@ import { logoutUser } from "@/utils/auth"
 
 const isDev = false
 
-interface PropsInterface {}
+interface PropsInterface { }
 
 interface ResponseInterface {
   menuItems: Record<string, MenuItem>;
@@ -64,7 +64,7 @@ const iconMap: Record<string, any> = {
   Mail: Mail,
 }
 
-export default function Sidebar({}: PropsInterface) {
+export default function Sidebar({ }: PropsInterface) {
   const responseDataDEFAULT: ResponseInterface = {
     menuItems: {},
     otherItems: [],
@@ -135,15 +135,15 @@ export default function Sidebar({}: PropsInterface) {
   useEffect(() => {
     if (!isDev && response && JSON.stringify(response) !== JSON.stringify(responseData)) {
       setResponseData(response)
-      
+
       if (response.userid) {
         setTimeout(() => {
-            setUserid(response.userid!)
+          setUserid(response.userid!)
         }, 0);
       }
       console.log(response)
     }
-  }, [response, responseData, setUserid]) 
+  }, [response, responseData, setUserid])
 
   return (
     <GenericComponent response={responseData} loading={loading} error={error} title="Sidebar" elapsedTime={elapsedTime}>
@@ -179,9 +179,9 @@ export default function Sidebar({}: PropsInterface) {
             <div className="flex-shrink-0 py-6 px-6">
               <Image
                 src={
-                    theme === "bixhub"
-                        ? `/bixdata/logos/bixhub.png`
-                        : `/bixdata/logos/bixdata.png`
+                  theme === "bixhub"
+                    ? `/bixdata/logos/bixhub.png`
+                    : `/bixdata/logos/bixdata.png`
                 }
                 alt="Logo"
                 width={1000}
@@ -231,13 +231,13 @@ export default function Sidebar({}: PropsInterface) {
                         className="flex items-center gap-3 px-4 py-2.5 uppercase rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 cursor-pointer active:scale-[0.98]"
                         onClick={() => handleMenuClick("Dashboard")}
                       >
-                        <Icons.LayoutDashboard className="w-5 h-5"/>
+                        <Icons.LayoutDashboard className="w-5 h-5" />
                         Dashboard
                       </span>
                     </li>
                   </>
                 ) : null}
-                
+
                 {activeServer === "belotti" ? (
                   <>
                     {responseData.otherItems.map((item) => (
@@ -258,7 +258,15 @@ export default function Sidebar({}: PropsInterface) {
                         className="cursor-pointer block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                         onClick={() => router.push("/custom/winteler")}
                       >
-                        Winteler custom
+                        Wip barcode app
+                      </span>
+                    </li>
+                    <li>
+                      <span
+                        className="cursor-pointer block px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                        onClick={() => router.push("/testcomponent/pageWinteler")}
+                      >
+                        Mobile App
                       </span>
                     </li>
                   </>
@@ -269,7 +277,7 @@ export default function Sidebar({}: PropsInterface) {
                       target="_blank"
                       className="flex items-center gap-3 cursor-pointer px-4 py-2.5 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                     >
-                      <SquareArrowOutUpRight className="w-5 h-5"/>
+                      <SquareArrowOutUpRight className="w-5 h-5" />
                       Users Settings
                     </Link>
                   </li>
@@ -282,7 +290,7 @@ export default function Sidebar({}: PropsInterface) {
                       target="_blank"
                       className="flex items-center gap-3 cursor-pointer px-4 py-2.5 uppercase tracking-wide rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
                     >
-                      <SquareArrowOutUpRight className="w-5 h-5"/>
+                      <SquareArrowOutUpRight className="w-5 h-5" />
                       Admin Settings
                     </Link>
                   </li>
@@ -304,11 +312,10 @@ export default function Sidebar({}: PropsInterface) {
                       {responseData.favoriteTables.map((table) => (
                         <li key={table.id}>
                           <span
-                            className={`block px-4 py-2 text-[15px] rounded-md transition-all duration-200 cursor-pointer active:scale-[0.98] ${
-                              selectedMenu === table.tableid 
-                                ? 'bg-secondary/50 font-medium text-white' 
-                                : 'hover:bg-secondary hover:text-white text-white/90'
-                            }`}
+                            className={`block px-4 py-2 text-[15px] rounded-md transition-all duration-200 cursor-pointer active:scale-[0.98] ${selectedMenu === table.tableid
+                              ? 'bg-secondary/50 font-medium text-white'
+                              : 'hover:bg-secondary hover:text-white text-white/90'
+                              }`}
                             onClick={() => handleMenuClick(table.tableid)}
                           >
                             {table.title}
@@ -325,60 +332,60 @@ export default function Sidebar({}: PropsInterface) {
                   .filter(([, item]) => item.order !== null)
                   .sort(([, a], [, b]) => a.order - b.order)
                   .map(([key, item]) => {
-                  const Icon = (Icons as any)[item.icon] || Home
-                  const isActive = item.subItems?.find((subitem) => subitem.id === selectedMenu && openDropdown !== item.id)
-                  
-                  return (
-                    <li key={item.id} className="mt-1">
-                      {item.subItems ? (
-                        <div>
-                          <button
-                            onClick={() => setOpenDropdown(openDropdown === item.id ? "" : item.id)}
-                            className={`w-full text-md flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98] ${isActive ? 'bg-secondary text-secondary-foreground' : ''}`}
-                          >
-                            <div className="flex items-center gap-3 min-w-[20px]">
-                              <Icon className="w-5 h-5" />
-                              <span className="text-md tracking-wide uppercase">{item.title}</span>
-                            </div>
-                            <ChevronDown
-                              className={`w-5 h-5 transition-transform duration-300 ${openDropdown === item.id ? "-rotate-180" : ""}`}
-                            />
-                          </button>
+                    const Icon = (Icons as any)[item.icon] || Home
+                    const isActive = item.subItems?.find((subitem) => subitem.id === selectedMenu && openDropdown !== item.id)
 
-                          <div
-                            className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "opacity-100" : "max-h-0 opacity-0"}`}
-                          >
-                            <ul className="py-1 ml-3 mt-1 space-y-0.5">
-                              {item.subItems
-                                .filter((subItem) => subItem.order !== null)
-                                .sort((a, b) => a.order - b.order)
-                                .map((subItem) => (
-                                <li key={subItem.id} className="cursor-pointer">
-                                  <span
-                                    className={`text-sm block px-4 py-2 rounded-md hover:bg-secondary 
+                    return (
+                      <li key={item.id} className="mt-1">
+                        {item.subItems ? (
+                          <div>
+                            <button
+                              onClick={() => setOpenDropdown(openDropdown === item.id ? "" : item.id)}
+                              className={`w-full text-md flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98] ${isActive ? 'bg-secondary text-secondary-foreground' : ''}`}
+                            >
+                              <div className="flex items-center gap-3 min-w-[20px]">
+                                <Icon className="w-5 h-5" />
+                                <span className="text-md tracking-wide uppercase">{item.title}</span>
+                              </div>
+                              <ChevronDown
+                                className={`w-5 h-5 transition-transform duration-300 ${openDropdown === item.id ? "-rotate-180" : ""}`}
+                              />
+                            </button>
+
+                            <div
+                              className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.id ? "opacity-100" : "max-h-0 opacity-0"}`}
+                            >
+                              <ul className="py-1 ml-3 mt-1 space-y-0.5">
+                                {item.subItems
+                                  .filter((subItem) => subItem.order !== null)
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((subItem) => (
+                                    <li key={subItem.id} className="cursor-pointer">
+                                      <span
+                                        className={`text-sm block px-4 py-2 rounded-md hover:bg-secondary 
                                       hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98] ${selectedMenu === subItem.id ? 'bg-secondary text-secondary-foreground font-medium' : ''}`}
-                                    onClick={() => handleMenuClick(subItem.id)}
-                                  >
-                                    {subItem.title}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
+                                        onClick={() => handleMenuClick(subItem.id)}
+                                      >
+                                        {subItem.title}
+                                      </span>
+                                    </li>
+                                  ))}
+                              </ul>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <a
-                          href={item.href}
-                          className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
-                          onClick={() => item.id && handleMenuClick(item.id)}
-                        >
-                          <Icon className="w-5 h-5" />
-                          <span>{item.title}</span>
-                        </a>
-                      )}
-                    </li>
-                  )
-                })}
+                        ) : (
+                          <a
+                            href={item.href}
+                            className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-secondary hover:text-secondary-foreground transition-all duration-200 active:scale-[0.98]"
+                            onClick={() => item.id && handleMenuClick(item.id)}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.title}</span>
+                          </a>
+                        )}
+                      </li>
+                    )
+                  })}
               </ul>
             </div>
 
