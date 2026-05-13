@@ -14,8 +14,8 @@ export const useRecordActions = () => {
           apiRoute: 'duplicate_record',
           tableid,
           recordid,
-          mastertableid,
-          masterrecordid,
+          mastertableid: mastertableid || null,
+          masterrecordid: masterrecordid || null,
         },
         {
           headers: {
