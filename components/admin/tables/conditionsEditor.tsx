@@ -28,9 +28,12 @@ interface ConditionsEditorProps {
 const OPERATORS = [
   { value: "=", label: "=" },
   { value: "!=", label: "≠" },
+  { value: "= or null", label: "= o NULL" },
+  { value: "!= or null", label: "≠ o NULL" },
   { value: ">", label: ">" },
   { value: "<", label: "<" },
   { value: "in", label: "in" },
+  { value: "not in", label: "non in" },
 ]
 
 const ConditionsEditor: React.FC<ConditionsEditorProps> = ({ value, onChange, fieldOptions = [] }) => {
