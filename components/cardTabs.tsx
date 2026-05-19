@@ -6,6 +6,7 @@ import { useRecordsStore } from './records/recordsStore';
 import CardFields from './cardFields';
 import CardLinked from './cardLinked';
 import RecordAttachments from './recordAttachments';
+import RecordUserLog from './recordUserLog';
 import RecordAttachmentsDemo from './recordAttachmentsDemo';
 import { set } from 'lodash';
 import DynamicTableBridge from './customCardFields/dynamicCardFieldsBridge';
@@ -225,10 +226,13 @@ export default function CardTabs({ tableid,recordid,mastertableid, masterrecordi
                             limit={8}
                           />
                         )}
+                        {activeTab === 'Storico' && (
+                          <RecordUserLog tableid={tableid} recordid={recordid} />
+                        )}
                         {activeTab === 'AttachmentsDemo' && (
                           <RecordAttachmentsDemo tableid={tableid} recordid={recordid} />
                         )}
-                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Steps', "Checklist"].indexOf(activeTab) === -1 && (
+                        {['Campi', 'Collegati', 'Allegati', 'AttachmentsDemo', 'Steps', "Checklist", "Storico"].indexOf(activeTab) === -1 && (
                           <div className="text-gray-400 italic">Nessun contenuto da mostrare {activeTab}</div>
                         )}
                       </>
