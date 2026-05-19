@@ -126,6 +126,31 @@ export default function RecordAttachments({ tableid, recordid }: PropsInterface)
           <div className="grid grid-cols-4 3xl:grid-cols-5 lg:grid-cols-3 md:grid-cols-3  gap-4">
             {response.attachments.map((attachment, index) => {
               const filePath = attachment.file;
+              if (!filePath) return (
+                <div key={index} className="group relative bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-100 transition-all duration-300 overflow-hidden flex flex-col items-center justify-center min-h-[170px]">
+                  
+                  {/* Icona e Testo Errore */}
+                  <div className="flex flex-col items-center justify-center p-4 w-full">
+                    <div className="text-3xl mb-2 opacity-50">⚠️</div>
+                    <p className="text-sm font-semibold text-gray-500 text-center mb-1">
+                      File mancante
+                    </p>
+                    <p className="text-xs text-gray-400 text-center w-full px-2 truncate" title={attachment.note || 'Nessun file associato'}>
+                      {attachment.note || 'Nessun file associato'}
+                    </p>
+                  </div>
+                  
+                  {/* Actions Area - Appare in hover */}
+                  <div className="absolute inset-0 bg-gray-800 bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button
+                      onClick={() => handleRowClick('linked', attachment.recordid, 'attachment', tableid, recordid)}
+                      className="bg-white text-gray-800 hover:bg-gray-100 rounded-full px-4 py-2 text-xs font-semibold flex items-center shadow-md hover:shadow-lg transition-all"
+                    >
+                      Apri record
+                    </button>
+                  </div>
+                </div>
+              )
               const extension = filePath.split('.').pop()?.toLowerCase();
               const filename = filePath.split('/').pop();
               
