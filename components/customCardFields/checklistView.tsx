@@ -102,6 +102,7 @@ export function ChecklistView({
       tableid: tableid,
       searchTerm: searchTerm,
       view: view,
+      typepreference: "linked_columns",
       pagination: {
         page: currentPage,
         limit: limit,
@@ -110,7 +111,7 @@ export function ChecklistView({
       filtersList: filtersList,
       masterTableid: masterTableid,
       masterRecordid: masterRecordid,
-      _refreshTick: refreshTable,
+      _refreshTick: refreshTable[tableid] ?? 0,
     }
   }, [
     tableid,
@@ -122,7 +123,7 @@ export function ChecklistView({
     filtersList,
     masterTableid,
     masterRecordid,
-    refreshTable,
+    refreshTable[tableid],
     isDev,
   ])
 
@@ -132,6 +133,7 @@ export function ChecklistView({
     if (!isDev && response) {
       if (JSON.stringify(response) !== JSON.stringify(responseData)) {
         setResponseData(response)
+        console.log(response)
       }
     }
   }, [response, isDev])
