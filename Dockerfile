@@ -15,6 +15,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Il comando per il dev è gestito dal docker-compose.dev.yml
 
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Rome
+
 # 4. Builder stage (fondamentale per GitHub Actions)
 FROM base AS builder
 WORKDIR /app
