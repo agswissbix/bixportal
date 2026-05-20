@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useReactToPrint } from "react-to-print"
 import type { CalendarChildProps } from "./calendarBase"
 import {
@@ -42,6 +42,25 @@ export default function RecordsView({
   const MAX_VISIBLE_LANES = 4;
 
   const hoverTimeoutRef = useRef(null);
+
+  const weekScrollRef = useRef<HTMLDivElement>(null);
+  const dayScrollRef = useRef<HTMLDivElement>(null);
+  const DEFAULT_START_HOUR = 7;
+
+  useEffect(() => {
+    // Usiamo setTimeout a 0 per assicurarci che il DOM sia stato renderizzato
+    const timer = setTimeout(() => {
+      if (viewMode === "week" && weekScrollRef.current) {
+        // In renderWeekView hai impostato hourHeight = 60
+        weekScrollRef.current.scrollTop = DEFAULT_START_HOUR * 60;
+      } else if (viewMode === "day" && dayScrollRef.current) {
+        // In renderDayView hai impostato hourHeight = 64
+        dayScrollRef.current.scrollTop = DEFAULT_START_HOUR * 64;
+      }
+    }, 0);
+    
+    return () => clearTimeout(timer);
+  }, [viewMode, currentDate]); // L'effetto scatta al cambio di vista o data
 
   const handlePrintFn = useReactToPrint({
     pageStyle: `
@@ -176,8 +195,17 @@ const calculateLayout = (events, dayOffset, daysInMonth, year, month) => {
   }).sort((a, b) => {
     const isAMulti = isMultiDayEvent(a);
     const isBMulti = isMultiDayEvent(b);
+    const isAFullDay = new Date(a.start).getHours() === 0 && new Date(a.end || a.start).getHours() === 0;
+    const isBFullDay = new Date(b.start).getHours() === 0 && new Date(b.end || b.start).getHours() === 0;
+
+    const isAAllDayOrMulti = isAMulti || isAFullDay;
+    const isBAllDayOrMulti = isBMulti || isBFullDay;
+
+    // PRIORITÀ 1: Multi-day e Tutto-il-giorno sempre SOPRA quelli con orario specifico
+    if (isAAllDayOrMulti && !isBAllDayOrMulti) return -1;
+    if (!isAAllDayOrMulti && isBAllDayOrMulti) return 1;
     
-    // PRIORITÀ 1: Multi-day sopra i Single-day
+    // PRIORITÀ 2: A parità, i Multi-day stanno sopra i Tutto-il-giorno di un solo giorno
     if (isAMulti && !isBMulti) return -1;
     if (!isAMulti && isBMulti) return 1;
     
@@ -193,14 +221,26 @@ const calculateLayout = (events, dayOffset, daysInMonth, year, month) => {
   const eventToLane = {};
 
   filtered.forEach(event => {
-    const eventStart = new Date(event.start).getTime();
-    const eventEnd = new Date(event.end || event.start).getTime();
+    const dStart = new Date(event.start);
+    dStart.setHours(0, 0, 0, 0);
+    const eventStart = dStart.getTime();
+
+    const dEnd = new Date(event.end || event.start);
+    dEnd.setHours(23, 59, 59, 999);
+    const eventEnd = dEnd.getTime();
 
     let laneIndex = lanes.findIndex(lane => {
       // Un evento può stare in questa corsia se non interseca NESSUN evento già presente
       return !lane.some(e => {
-        const eS = new Date(e.start).getTime();
-        const eE = new Date(e.end || e.start).getTime();
+        // Normalizziamo anche le date degli eventi già inseriti in corsia
+        const eDStart = new Date(e.start);
+        eDStart.setHours(0, 0, 0, 0);
+        const eS = eDStart.getTime();
+        
+        const eDEnd = new Date(e.end || e.start);
+        eDEnd.setHours(23, 59, 59, 999);
+        const eE = eDEnd.getTime();
+        
         return eventStart <= eE && eventEnd >= eS;
       });
     });
@@ -811,7 +851,7 @@ const renderMonthView = () => {
         )}
 
         {/* Timed events grid */}
-        <div className="flex-grow overflow-auto">
+        <div className="flex-grow overflow-auto" ref={weekScrollRef}>
           <div className="flex">
             {/* Hour labels column */}
             <div className="w-20 flex-shrink-0">
@@ -1168,7 +1208,7 @@ const renderMonthView = () => {
         )}
 
         {/* Timed events grid */}
-        <div className="flex flex-grow overflow-auto">
+        <div className="flex flex-grow overflow-auto" ref={dayScrollRef}>
           <div className="w-20 text-right pr-2 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
             {hours.map((hour) => (
               <div key={hour} className="flex items-start justify-end pt-1" style={{ height: `${hourHeight}px` }}>
