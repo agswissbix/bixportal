@@ -15,6 +15,7 @@ export interface CalendarEvent {
   start: string
   end: string
   color?: string
+  event_color?: string
   description?: string
   resourceId?: string
   disabled?: boolean

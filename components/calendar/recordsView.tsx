@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { useReactToPrint } from "react-to-print"
 import type { CalendarChildProps } from "./calendarBase"
 import {
@@ -281,6 +281,17 @@ const handleMouseLeaveWithDelay = () => {
     setHoveredEvent(null);
   }, 100);
 };
+
+const legendItems = useMemo(() => {
+    const categories = new Map<string, string>()
+    // Assicurati che in data.events ci sia un campo testuale (qui assumo si chiami event_color come nella sidebar)
+    data.events.forEach((ev) => {
+      if (ev.color && ev.event_color) {
+        categories.set(ev.event_color, ev.color)
+      }
+    })
+    return Array.from(categories.entries())
+  }, [data.events])
 
 const renderMonthView = () => {
   const { eventToLane, totalLanes, filteredEvents } = calculateLayout(data.events, dayOffset, daysInMonth, year, month);
@@ -1290,8 +1301,34 @@ const renderMonthView = () => {
           {viewMode === "day" && renderDayView()}
         </main>
 
-        <footer className="text-right p-2 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
-          <span className="font-medium">Eventi totali:</span> {data.events.length}
+        <footer className="flex items-center justify-between p-2 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+          {/* LEGENDA SU SINGOLA RIGA */}
+          <div className="flex items-center gap-4 flex-1 overflow-hidden mr-4">
+            {legendItems.length > 0 ? (
+              legendItems.map(([label, color]) => (
+                <div 
+                  key={label} 
+                  className="flex items-center gap-1.5 min-w-0 cursor-default"
+                  title={label} // Tooltip nativo al passaggio del mouse
+                >
+                  <span 
+                    className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0" 
+                    style={{ backgroundColor: color }} 
+                  />
+                  <span className="text-[11px] font-medium truncate">
+                    {label}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <span className="text-[11px] italic opacity-70">Nessuna categoria</span>
+            )}
+          </div>
+
+          {/* CONTEGGIO EVENTI */}
+          <div className="flex-shrink-0">
+            <span className="font-medium">Eventi totali:</span> {data.events.length}
+          </div>
         </footer>
       </div>
       )}
