@@ -38,11 +38,16 @@ interface ResponseInterface {
   activeTab: TableTab;
 }
 
+interface TableSetting {
+  tablesettings: Record<string, { type: string; value: string }>;
+}
+
 export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
   const { user } = useContext(AppContext);
-  const [calendarType, setCalendarType] = useState<"calendar" | "planner">(
-      "calendar"
-  );
+  const [calendarType, setCalendarType] = useState<"calendar" | "planner">("calendar");
+  const [showUnplannedEvents, setShowUnplannedEvents] = useState<boolean>(false);
+  const [defaultViewModeRecords, setDefaultViewModeRecords] = useState<"day" | "week" | "month">("month");
+  const [defaultViewModeMatrix, setDefaultViewModeMatrix] = useState<"day" | "week" | "month">("week");
 
   const responseDataDEFAULT: ResponseInterface = {
     tableTabs: [
@@ -95,10 +100,47 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
     }
   }, [response]);
 
-  const { searchTerm, tableView, filtersList } = useRecordsStore();
+  const { searchTerm, tableView, filtersList, tableSettings, setTableSettings, getIsSettingAllowed } = useRecordsStore();
+
+  const payloadSettings = useMemo(() => {
+      if (isDev) return null;
+      return {
+        apiRoute: 'settings_table_settings',
+        tableid,
+      };
+    }, [tableid]);
+  
+  const { response: responseSettings, loading: loadingSettings, error: errorSettings } = !isDev && payloadSettings ? useApi<TableSetting>(payloadSettings) : { response: null, loading: false, error: null };
+
+  useEffect(() => {
+    if (!responseSettings || !tableid) return;
+
+    setTableSettings(tableid, responseSettings.tablesettings ?? {});
+  }, [responseSettings, tableid]);
+
+  useEffect(() => {
+    if (!tableSettings || tableSettings[tableid] === undefined) return;
+
+    setShowUnplannedEvents(getIsSettingAllowed(tableid, 'table_planner_show_unplanned'))
+
+    const settingViewRecords = tableSettings[tableid]['table_planner_default_view_calendar'];
+    if (settingViewRecords && settingViewRecords.value) {
+        setDefaultViewModeRecords(settingViewRecords.value as any);
+    }
+
+    const settingViewMatrix = tableSettings[tableid]['table_planner_default_view_matrix'];
+    if (settingViewMatrix && settingViewMatrix.value) {
+        setDefaultViewModeMatrix(settingViewMatrix.value as any);
+    }
+
+    const settingView = tableSettings[tableid]['table_planner_default_view'];
+    if (settingView && settingView.value) {
+        setCalendarType(settingView.value as any);
+    }
+  }, [tableSettings, tableid]);
 
   return (
-      <GenericComponent response={responseData} loading={loading} error={error}>
+      <GenericComponent response={responseData} loading={loading && loadingSettings} error={error || errorSettings}>
           {(data : ResponseInterface) => (
               <div className="h-full flex flex-col">
                   {/* Tabs */}
@@ -166,8 +208,10 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                       {activeTab === "Calendario" && (
                           <UnifiedCalendar
                               tableid={tableid}
-                              showUnplannedEvents={true}
-                              defaultView="calendar"
+                              showUnplannedEvents={showUnplannedEvents}
+                              defaultView={calendarType}
+                              defaultViewModeRecords={defaultViewModeRecords}
+                              defaultViewModeMatrix={defaultViewModeMatrix}
                           />
                           // <RecordsCalendar tableid={tableid} context='standard' view={tableView} searchTerm={searchTerm} />
                       )}

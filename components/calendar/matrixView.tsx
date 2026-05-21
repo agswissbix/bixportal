@@ -18,6 +18,7 @@ import CalendarHeader from "./calendarHeader"
 interface MatrixViewProps extends CalendarChildProps {
   calendarType: "planner" | "calendar"
   onCalendarTypeChange: (type: "planner" | "calendar") => void
+  defaultViewMode?: "day" | "week" | "month"
 }
 
 export default function MatrixView({
@@ -33,12 +34,19 @@ export default function MatrixView({
   calendarType,
   onCalendarTypeChange,
   requestEventsForTable,
+  defaultViewMode = "week",
 }: MatrixViewProps) {
-  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("week")
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">(defaultViewMode)
+
+  React.useEffect(() => {
+    if (defaultViewMode) {
+      setViewMode(defaultViewMode)
+    }
+  }, [defaultViewMode])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedWeek, setSelectedWeek] = useState(0)
   const [selectedExtraTable, setSelectedExtraTable] = useState<string>("")
-  const { handleRowClick } = useRecordsStore()
+  const { handleRowClick, getIsSettingAllowed } = useRecordsStore()
   const calendarRef = useRef<HTMLDivElement>(null)
 
   const handlePrintFn = useReactToPrint({
@@ -322,12 +330,13 @@ export default function MatrixView({
 
         // Calculate top position based on resource row and lane
         const topPosition = resourceIndex * rowHeight + headerHeight + (lane * laneHeight) + 4
+        const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
 
         return (
           <div
             key={`event-${event.recordid}-${resourceId}`}
-            draggable={!resizingEvent && !event.disabled}
-            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            draggable={canEditEvent && !resizingEvent && !event.disabled}
+            onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
             onClick={(e) => {
               e.stopPropagation()
               if (!event.disabled) handleRowClick?.("standard", event.recordid, tableid)
@@ -367,7 +376,7 @@ export default function MatrixView({
               {isActualStart && isMulti && <span className="text-[9px] opacity-70">({getEventDaySpan(event)}g)</span>}
             </div>
 
-            {!event.disabled && isActualEnd && (
+            {canEditEvent && !event.disabled && isActualEnd && (
               <div
                 className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity"
                 onMouseDown={(e) => {
@@ -599,12 +608,13 @@ export default function MatrixView({
         const eventEnd = new Date(event.end || event.start)
         const isActualStart = eventStart >= currentDayStart
         const isActualEnd = eventEnd <= currentDayEnd
+        const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
 
         return (
           <div
             key={`fullday-${event.recordid}`}
-            draggable={!resizingEvent && !event.disabled}
-            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            draggable={canEditEvent && !resizingEvent && !event.disabled}
+            onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
             onClick={(e) => {
               e.stopPropagation()
               if (!event.disabled) handleRowClick?.("standard", event.recordid, tableid)
@@ -626,7 +636,7 @@ export default function MatrixView({
               <span className="font-semibold">{event.title}</span>
               {isMultiDayEvent(event) && <span className="text-[9px] opacity-70">({getEventDaySpan(event)}g)</span>}
             </div>
-            {!event.disabled && isActualEnd && (
+            {canEditEvent && !event.disabled && isActualEnd && (
               <div
                 className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity"
                 onMouseDown={(e) => {
@@ -664,12 +674,13 @@ export default function MatrixView({
 
         const isFirst = eventStart >= currentDayStart && eventStart <= currentDayEnd
         const isLast = eventEnd >= currentDayStart && eventEnd <= currentDayEnd
+        const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
 
         return (
           <div
             key={`timed-${event.recordid}`}
-            draggable={!resizingEvent && !event.disabled}
-            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            draggable={canEditEvent && !resizingEvent && !event.disabled}
+            onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
             onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
             className="absolute group p-2 text-xs cursor-pointer text-white shadow-md rounded pointer-events-auto hover:shadow-lg transition-shadow"
             style={{
@@ -691,7 +702,7 @@ export default function MatrixView({
               pointerEvents: event.disabled ? "none" : "auto",
             }}
           >
-            {!event.disabled && isFirst && (
+            {canEditEvent && !event.disabled && isFirst && (
               <div
                 className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t pointer-events-auto"
                 onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
@@ -707,7 +718,7 @@ export default function MatrixView({
               </p>
             )}
 
-            {!event.disabled && isLast && (
+            {canEditEvent && !event.disabled && isLast && (
               <div
                 className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b pointer-events-auto"
                 onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}

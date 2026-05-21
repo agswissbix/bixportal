@@ -10,6 +10,8 @@ interface UnifiedCalendarProps {
   apiRoute?: string
   showUnplannedEvents?: boolean
   defaultView?: "planner" | "calendar"
+  defaultViewModeRecords?: "day" | "week" | "month"
+  defaultViewModeMatrix?: "day" | "week" | "month"
 }
 
 export default function UnifiedCalendar({
@@ -17,6 +19,8 @@ export default function UnifiedCalendar({
   apiRoute = "get_records_matrixcalendar",
   showUnplannedEvents = true,
   defaultView = "calendar",
+  defaultViewModeRecords = "month",
+  defaultViewModeMatrix = "week",
 }: UnifiedCalendarProps) {
   const [viewType, setViewType] = useState<"planner" | "calendar">(defaultView)
 
@@ -27,9 +31,9 @@ export default function UnifiedCalendar({
         <CalendarBase tableid={tableid} apiRoute={apiRoute} showUnplannedEvents={showUnplannedEvents} viewType="matrix">
           {(calendarProps) =>
             viewType === "planner" ? (
-              <MatrixView {...calendarProps} calendarType={viewType} onCalendarTypeChange={setViewType} />
+              <MatrixView {...calendarProps} calendarType={viewType} onCalendarTypeChange={setViewType} defaultViewMode={defaultViewModeMatrix} />
             ) : (
-              <RecordsView {...calendarProps} calendarType={viewType} onCalendarTypeChange={setViewType} />
+              <RecordsView {...calendarProps} calendarType={viewType} onCalendarTypeChange={setViewType} defaultViewMode={defaultViewModeRecords} />
             )
           }
         </CalendarBase>

@@ -15,6 +15,7 @@ import { ArrowRight } from "lucide-react"
 interface RecordsViewProps extends CalendarChildProps {
   calendarType: "planner" | "calendar"
   onCalendarTypeChange: (type: "planner" | "calendar") => void
+  defaultViewMode?: "day" | "week" | "month"
 }
 
 export default function RecordsView({
@@ -30,10 +31,17 @@ export default function RecordsView({
   calendarType,
   onCalendarTypeChange,
   requestEventsForTable,
+  defaultViewMode = "month",
 }: RecordsViewProps) {
-  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("month")
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">(defaultViewMode)
+
+  useEffect(() => {
+    if (defaultViewMode) {
+      setViewMode(defaultViewMode)
+    }
+  }, [defaultViewMode])
   const [currentDate, setCurrentDate] = useState(new Date())
-  const { handleRowClick } = useRecordsStore()
+  const { handleRowClick, getIsSettingAllowed } = useRecordsStore()
   const [selectedExtraTable, setSelectedExtraTable] = useState<string>("")
   const calendarRef = useRef<HTMLDivElement>(null)
 
@@ -367,13 +375,15 @@ const renderMonthView = () => {
         const isActualStart = currentIdx === startIndex;
         const isActualEnd = segmentEnd === endIndex;
 
+        const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
+
         segments.push(
           <div
             key={`${event.recordid}-${currentIdx}`}
-            draggable={!resizingEvent && !event.disabled}
+            draggable={canEditEvent && !resizingEvent && !event.disabled}
             onMouseEnter={(e) => handleMouseEnterWithDelay(e, event)}
             onMouseLeave={handleMouseLeaveWithDelay}
-            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
             onClick={(e) => {
               e.stopPropagation();
               if (!event.disabled) handleRowClick?.("standard", event.recordid, tableid);
@@ -408,7 +418,7 @@ const renderMonthView = () => {
             </div>
 
             {/* RESIZE HANDLE: Solo laterale (destra) per i giorni, come richiesto */}
-            {!event.disabled && isActualEnd && (
+            {canEditEvent && !event.disabled && isActualEnd && (
               <div
                 className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity"
                 onMouseDown={(e) => {
@@ -670,13 +680,15 @@ const renderMonthView = () => {
         const isActualStart = eventStart >= weekStart
         const isActualEnd = eventEnd <= weekEnd
 
+        const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
+
         return (
           <div
             key={`fullday-${event.recordid}`}
-            draggable={!resizingEvent && !event.disabled}
+            draggable={canEditEvent && !resizingEvent && !event.disabled}
             onMouseEnter={(e) => handleMouseEnterWithDelay(e, event)}
             onMouseLeave={handleMouseLeaveWithDelay}
-            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
             onClick={(e) => {
               e.stopPropagation()
               if (!event.disabled) handleRowClick?.("standard", event.recordid, tableid)
@@ -699,7 +711,7 @@ const renderMonthView = () => {
               <span className="font-semibold">{event.title}</span>
               {isActualStart && colSpan > 1 && <span className="text-[9px] opacity-70">({colSpan}g)</span>}
             </div>
-            {!event.disabled && isActualEnd && (
+            {canEditEvent && !event.disabled && isActualEnd && (
               <div
                 className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity"
                 onMouseDown={(e) => {
@@ -748,14 +760,15 @@ const renderMonthView = () => {
 
           const isFirstDay = eventStart >= dayStart && eventStart <= dayEnd
           const isLastDay = eventEnd >= dayStart && eventEnd <= dayEnd
+          const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
 
           return (
             <div
               key={`timed-${event.recordid}-${day.toISOString()}`}
-              draggable={!resizingEvent && !event.disabled}
+              draggable={canEditEvent && !resizingEvent && !event.disabled}
               onMouseEnter={(e) => handleMouseEnterWithDelay(e, event)}
               onMouseLeave={handleMouseLeaveWithDelay}
-              onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+              onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
               onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
               className="absolute group p-1.5 text-xs cursor-pointer select-none hover:opacity-80 transition-opacity rounded"
               style={{
@@ -770,7 +783,7 @@ const renderMonthView = () => {
                 pointerEvents: event.disabled ? "none" : "auto",
               }}
             >
-              {!event.disabled && isFirstDay && (
+              {canEditEvent && !event.disabled && isFirstDay && (
                 <div
                   className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t"
                   onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
@@ -786,7 +799,7 @@ const renderMonthView = () => {
                 </p>
               )}
 
-              {!event.disabled && isLastDay && (
+              {canEditEvent && !event.disabled && isLastDay && (
                 <div
                   className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b"
                   onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}
@@ -1138,14 +1151,15 @@ const renderMonthView = () => {
 
         const isFirst = eventStart >= currentDayStart && eventStart <= currentDayEnd
         const isLast = eventEnd >= currentDayStart && eventEnd <= currentDayEnd
+        const canEditEvent = getIsSettingAllowed(tableid, 'edit', event.recordid);
 
         return (
           <div
             key={`timed-${event.recordid}`}
-            draggable={!resizingEvent && !event.disabled}
+            draggable={canEditEvent && !resizingEvent && !event.disabled}
             onMouseEnter={(e) => handleMouseEnterWithDelay(e, event)}
             onMouseLeave={handleMouseLeaveWithDelay}
-            onDragStart={() => !resizingEvent && !event.disabled && handleDragStart(event)}
+            onDragStart={() => canEditEvent && !resizingEvent && !event.disabled && handleDragStart(event)}
             onClick={() => !event.disabled && handleRowClick?.("standard", event.recordid, tableid)}
             className="absolute group p-2 text-xs cursor-pointer text-white shadow pointer-events-auto rounded"
             style={{
@@ -1160,7 +1174,7 @@ const renderMonthView = () => {
               pointerEvents: event.disabled ? "none" : "auto",
             }}
           >
-            {!event.disabled && isFirst && (
+            {canEditEvent && !event.disabled && isFirst && (
               <div
                 className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-t pointer-events-auto"
                 onMouseDown={(e) => handleResizeStart(event, "top", e.clientY, e.clientX)}
@@ -1176,7 +1190,7 @@ const renderMonthView = () => {
               </p>
             )}
 
-            {!event.disabled && isLast && (
+            {canEditEvent && !event.disabled && isLast && (
               <div
                 className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 bg-white/30 rounded-b pointer-events-auto"
                 onMouseDown={(e) => handleResizeStart(event, "bottom", e.clientY, e.clientX)}

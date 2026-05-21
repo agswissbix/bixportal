@@ -99,7 +99,7 @@ export function CalendarBase({
   children,
 }: CalendarBaseProps) {
 
-  const { searchTerm, filtersList, refreshTable, tableView, handleRowClick } = useRecordsStore()
+  const { searchTerm, filtersList, refreshTable, tableView, handleRowClick, getIsSettingAllowed } = useRecordsStore()
 
   // State management
   const [responseData, setResponseData] = useState<CalendarResponseInterface>({
@@ -205,6 +205,7 @@ export function CalendarBase({
 
   // Drag start handler
   const handleDragStart = useCallback((event: CalendarEvent) => {
+    if (!getIsSettingAllowed(tableid, 'edit', event.recordid)) return;
     setDraggedEvent({
       ...event,
       originalStart: new Date(event.start),
@@ -215,7 +216,7 @@ export function CalendarBase({
   // Drop handler
   const handleDrop = useCallback(
     (dropDate: Date, dropHour?: number, resourceId?: string) => {
-      if (!draggedEvent) return
+      if (!draggedEvent || !getIsSettingAllowed(tableid, 'edit', draggedEvent.recordid)) return
 
       const isAlreadyPlanned = responseData.events.some((ev) => ev.recordid === draggedEvent.recordid)
 
@@ -280,6 +281,7 @@ export function CalendarBase({
   // Resize start handler
   const handleResizeStart = useCallback(
     (event: CalendarEvent, handle: "top" | "bottom" | "right", clientY: number, clientX: number) => {
+      if (!getIsSettingAllowed(tableid, 'edit', event.recordid)) return;
       setResizingEvent({
         ...event,
         originalStart: new Date(event.start),
