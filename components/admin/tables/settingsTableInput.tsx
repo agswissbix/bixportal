@@ -104,6 +104,7 @@ const TableSettingsForm: React.FC<Props> = ({ tableId, userId }) => {
       apiRoute: "settings_table_settings",
       tableid: tableId,
       userid: userId,
+      with_option: true,
     }
   }, [tableId])
 
