@@ -29,6 +29,7 @@ interface UnplannedEventsSidebarProps {
   events: UnplannedEvent[]
   onDragStart: (event: UnplannedEvent) => void
   onRowClick?: (recordid: string) => void
+  onUnplanEvent?: () => void // NUOVA PROP: Callback per notificare il padre del drop
 }
 
 // Mappa colori a nomi leggibili
@@ -43,40 +44,38 @@ const COLOR_LABELS: Record<string, string> = {
   "#14b8a6": "Ciano",
 }
 
-function getColorLabel(color: string): string {
-  return COLOR_LABELS[color.toLowerCase()] || color
-}
-
 export function UnplannedEventsSidebar({ 
   events, 
   onDragStart,
-  onRowClick 
+  onRowClick,
+  onUnplanEvent 
 }: UnplannedEventsSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedColors, setSelectedColors] = useState<string[]>([])
+  
+  // NUOVO STATO: Gestisce l'effetto visivo quando ci passi sopra con un evento
+  const [isDragOver, setIsDragOver] = useState(false)
 
   // Estrai i colori unici dagli eventi
   const uniqueCategories = useMemo(() => {
-    const categories = new Map<string, string>() // event_color -> color
+    const categories = new Map<string, string>()
     events.forEach((ev) => {
       if (ev.color) {
         categories.set(ev.event_color, ev.color)
       }
     })
-    return Array.from(categories.entries()) // [[label, color], ...]
+    return Array.from(categories.entries())
   }, [events])
 
   // Filtra gli eventi
   const filteredEvents = useMemo(() => {
     return events.filter((ev) => {
-      // Filtro ricerca
       const matchesSearch =
         searchQuery === "" ||
         ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ev.description?.toLowerCase().includes(searchQuery.toLowerCase())
 
-      // Filtro categorie (event_color)
       const matchesColor =
         selectedColors.length === 0 ||
         (selectedColors.includes(ev.event_color))
@@ -100,28 +99,66 @@ export function UnplannedEventsSidebar({
 
   const hasActiveFilters = searchQuery !== "" || selectedColors.length > 0
 
+  // GESTORI DRAG & DROP PER LA SIDEBAR
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault() // Obbligatorio per permettere il drop
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    if (onUnplanEvent) onUnplanEvent()
+  }
+
   if (!events || events.length === 0) {
     return (
-      <div className="w-64 border-l bg-muted flex flex-col">
+      <div 
+        className={cn(
+          "w-64 border-l flex flex-col transition-colors",
+          isDragOver ? "bg-primary/5 border-primary" : "bg-muted"
+        )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="p-3 border-b bg-background backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-muted-foreground" />
             <h3 className="font-semibold text-sm">Eventi Non Pianificati</h3>
           </div>
         </div>
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
           <p className="text-sm text-muted-foreground text-center">
             Nessun evento da pianificare
           </p>
+          {isDragOver && (
+            <p className="text-xs font-bold text-primary mt-2">
+              Rilascia qui per spianificare
+            </p>
+          )}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="w-1/4 border-l bg-muted flex flex-col">
+    <div 
+      className={cn(
+        "w-1/4 border-l flex flex-col transition-colors duration-200",
+        isDragOver ? "bg-primary/10 border-primary border-l-2 shadow-inner" : "bg-muted"
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {/* Header */}
-      <div className="p-3 border-b bg-background backdrop-blur-sm space-y-2">
+      <div className="p-3 border-b bg-background backdrop-blur-sm space-y-2 pointer-events-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
@@ -216,6 +253,15 @@ export function UnplannedEventsSidebar({
         )}
       </div>
 
+      {/* Riquadro di feedback visivo durante il trascinamento */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-[1px] pointer-events-none">
+           <Badge variant="default" className="text-sm shadow-lg scale-110 animate-in zoom-in-95">
+             Rilascia per rimuovere dal calendario
+           </Badge>
+        </div>
+      )}
+
       {/* Events List */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1.5">
@@ -245,7 +291,7 @@ export function UnplannedEventsSidebar({
                   <GripVertical className="h-3.5 w-3.5" />
                 </div>
 
-                <div className="pr-4">
+                <div className="pr-4 pointer-events-none">
                   <div className="font-medium leading-tight line-clamp-2">
                     {ev.title}
                   </div>
@@ -263,8 +309,11 @@ export function UnplannedEventsSidebar({
 
       {/* Footer */}
       <div className="p-2 border-t bg-background text-center">
-        <p className="text-[10px] text-muted-foreground">
-          Trascina per pianificare
+        <p className={cn(
+          "text-[10px] transition-colors font-medium",
+          isDragOver ? "text-primary" : "text-muted-foreground"
+        )}>
+          {isDragOver ? "Rilascia per spianificare" : "Trascina per pianificare o spianificare"}
         </p>
       </div>
     </div>

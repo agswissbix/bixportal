@@ -417,7 +417,11 @@ export function CalendarBase({
     <div className="flex h-full w-full">
       <div className="flex-1 overflow-auto">{children(childProps)}</div>
       {showUnplannedEvents && (
-        <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} onRowClick={(recordid: string) => {handleRowClick("records", recordid, tableid)}} />
+        <UnplannedEventsSidebar events={responseData.unplannedEvents || []} onDragStart={handleDragStart} onRowClick={(recordid: string) => {handleRowClick("records", recordid, tableid)}} onUnplanEvent={() => {
+     if (draggedEvent) {
+        unscheduleEvent(draggedEvent.recordid);
+     }
+  }}/>
       )}
     </div>
       )}
