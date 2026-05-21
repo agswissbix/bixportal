@@ -117,9 +117,17 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             <div className="flex-1 flex flex-wrap items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {response.badgeItems.deal_name || 'Titolo Trattativa'}
-              </h2>
+              
+              {/* AGGIUNTA QUI: Colonna con Company Name e Deal Name */}
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-500">
+                  {response.badgeItems.company_name || 'Azienda'}
+                </span>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {response.badgeItems.deal_name || 'Titolo Trattativa'}
+                </h2>
+              </div>
+
               {/* Sales User in a compact layout */}
               <div className="flex items-center gap-2 mt-1 mr-2">
                 <div className="flex-shrink-0">
@@ -219,79 +227,78 @@ export default function CardBadgeDeal({ tableid, recordid }: PropsInterface) {
               </div>
 
               {/* Stepper */}
-              {/* Stepper con Pallini Sotto */}
-<div className="mb-4">
-  <div className="text-xs text-gray-500 mb-2">Stato della Trattativa</div>
-  
-  <div className="relative">
-    {/* Segmenti discreti */}
-    <div className="flex justify-between gap-1 mb-4">
-      {stages.map((stage, index) => {
-        const isActive = index <= currentIndex;
-        return (
-          <div
-            key={index}
-            className={`
-              flex-1 h-2 rounded-full transition-all duration-300
-              ${isActive ? 'bg-primary' : 'bg-gray-200'}
-            `}
-          ></div>
-        );
-      })}
-    </div>
-    
-    {/* Indicatori circolari sotto i segmenti */}
-    <div className="flex justify-between mb-3">
-      {stages.map((_, index) => {
-        const isCompleted = index < currentIndex;
-        const isCurrent = index === currentIndex;
-        
-        return (
-          <div key={index} className="flex justify-center" style={{ width: `${100/stages.length}%` }}>
-            <div
-              className={`
-                w-4 h-4 rounded-full border-2 bg-white transition-all duration-200 flex items-center justify-center
-                ${isCompleted || isCurrent 
-                  ? 'border-primary' 
-                  : 'border-gray-300'
-                }
-              `}
-            >
-              {isCompleted && (
-                <Check className="w-2 h-2 text-primary m-0.5" strokeWidth={3} />
-              )}
-              {isCurrent && (
-                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-    
-    <div className="flex justify-between mb-3">
-      {stages.map((_, index) => {
-        const isCompleted = index < currentIndex;
-        const isCurrent = index === currentIndex;
-        
-        return (
-          <div key={index} className="flex justify-center" style={{ width: `${100/stages.length}%` }}>
-            <div
-              className={`text-xs text-center w-20 overflow-hidden text-ellipsis
-                  ${isCompleted || isCurrent 
-                    ? 'text-primary' 
-                    : 'text-gray-300'
-                  }
-                `}
-            >
-              <span>{stages[index]}</span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-</div>
+              <div className="mb-4">
+                <div className="text-xs text-gray-500 mb-2">Stato della Trattativa</div>
+                
+                <div className="relative">
+                  {/* Segmenti discreti */}
+                  <div className="flex justify-between gap-1 mb-4">
+                    {stages.map((stage, index) => {
+                      const isActive = index <= currentIndex;
+                      return (
+                        <div
+                          key={index}
+                          className={`
+                            flex-1 h-2 rounded-full transition-all duration-300
+                            ${isActive ? 'bg-primary' : 'bg-gray-200'}
+                          `}
+                        ></div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Indicatori circolari sotto i segmenti */}
+                  <div className="flex justify-between mb-3">
+                    {stages.map((_, index) => {
+                      const isCompleted = index < currentIndex;
+                      const isCurrent = index === currentIndex;
+                      
+                      return (
+                        <div key={index} className="flex justify-center" style={{ width: `${100/stages.length}%` }}>
+                          <div
+                            className={`
+                              w-4 h-4 rounded-full border-2 bg-white transition-all duration-200 flex items-center justify-center
+                              ${isCompleted || isCurrent 
+                                ? 'border-primary' 
+                                : 'border-gray-300'
+                              }
+                            `}
+                          >
+                            {isCompleted && (
+                              <Check className="w-2 h-2 text-primary m-0.5" strokeWidth={3} />
+                            )}
+                            {isCurrent && (
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="flex justify-between mb-3">
+                    {stages.map((_, index) => {
+                      const isCompleted = index < currentIndex;
+                      const isCurrent = index === currentIndex;
+                      
+                      return (
+                        <div key={index} className="flex justify-center" style={{ width: `${100/stages.length}%` }}>
+                          <div
+                            className={`text-xs text-center w-20 overflow-hidden text-ellipsis
+                                ${isCompleted || isCurrent 
+                                  ? 'text-primary' 
+                                  : 'text-gray-300'
+                                }
+                              `}
+                          >
+                            <span>{stages[index]}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
