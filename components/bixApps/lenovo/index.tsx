@@ -783,7 +783,11 @@ export default function LenovoIntake({ initialRecordId }: { initialRecordId?: st
 
                 setFormData(prev => ({ ...prev, ...updates }));
                 setLastCheckedSerial(currentSerial);
-                toast.success("Dati Lenovo recuperati con successo");
+                if(res.data.data?.error){
+                    toast.warning(res.data.data?.error);
+                } else {
+                    toast.success("Dati Lenovo recuperati con successo");
+                }
                 return true;
             } else {
                 toast.error("Prodotto non trovato o errore ricerca");
