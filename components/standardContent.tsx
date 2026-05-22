@@ -291,6 +291,7 @@ export default function StandardContent({ tableid }: PropsInterface) {
                                   key={fn.title}
                                   fn={fn}
                                   params={{
+                                    tableid: tableid,
                                     ...(typeof fn.params === 'object' && fn.params ? fn.params : {})
                                   }}
                                 />
