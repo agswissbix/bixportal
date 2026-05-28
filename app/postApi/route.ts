@@ -371,6 +371,12 @@ export async function POST(request: Request) {
         case "delete_user_api":
             djangoUrl = "/commonapp/delete_user_api/";
             break;
+        case "create_partial":
+            djangoUrl = "/commonapp/create_partial/";
+            break;
+        case "delete_partial":
+            djangoUrl = "/commonapp/delete_partial/";
+            break;
 
         case "get_activemind":
             djangoUrl = "/customapp_swissbix/get_activemind/";

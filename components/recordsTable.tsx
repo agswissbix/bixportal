@@ -69,6 +69,7 @@ interface ResponseInterface {
   rows: Array<{
     recordid: string
     css: string
+    is_partial?: boolean
     linkedorder?: number // Added linkedorder field
     fields: Array<{
       recordid?: string
@@ -582,6 +583,61 @@ export default function RecordsTable({
       setRefreshTable(tableid)
     }
   }
+
+  const createPartial = async (recordid: string) => {
+    const description = window.prompt("Inserisci la descrizione per questo parziale:", "Nuovo Parziale")
+    if (description === null) {
+      return // User cancelled
+    }
+    
+    const loadingToastId = toast.loading("Creazione parziale in corso...")
+    try {
+      await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "create_partial",
+          tableid: tableid,
+          recordid: recordid,
+          description: description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Parziale creato", { id: loadingToastId })
+      setRefreshTable(tableid)
+    } catch (error: any) {
+      toast.dismiss(loadingToastId)
+      toast.error("Errore durante la creazione del parziale")
+    }
+  }
+
+  const removePartial = async (recordid: string) => {
+    const loadingToastId = toast.loading("Eliminazione parziale in corso...")
+    try {
+      await axiosInstanceClient.post(
+        "/postApi",
+        {
+          apiRoute: "delete_partial",
+          tableid: tableid,
+          recordid: recordid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+      toast.success("Parziale eliminato", { id: loadingToastId })
+      setRefreshTable(tableid)
+    } catch (error: any) {
+      toast.dismiss(loadingToastId)
+      toast.error("Errore durante l'eliminazione del parziale")
+    }
+  }
+
   return (
     <>
       <GenericComponent
@@ -692,40 +748,45 @@ export default function RecordsTable({
                     {(localRows?.length > 0 ? localRows : response?.rows)?.map((row, rowIndex) => (
                       <tr
                         key={row.recordid}
-                        draggable={isReorderMode}
+                        draggable={isReorderMode && !row.is_partial}
                         onDragStart={(e) => {
-                          if (isReorderMode) {
+                          if (isReorderMode && !row.is_partial) {
                             setDraggedRow(row.recordid)
                             e.currentTarget.style.opacity = "0.5"
+                          } else if (row.is_partial) {
+                            e.preventDefault()
                           }
                         }}
                         onDragEnd={(e) => {
-                          if (isReorderMode) {
+                          if (isReorderMode && !row.is_partial) {
                             e.currentTarget.style.opacity = "1"
                             setDraggedRow(null)
                             setDragOverRow(null)
                           }
                         }}
                         onDragOver={(e) => {
-                          if (isReorderMode) {
+                          if (isReorderMode && !row.is_partial) {
                             e.preventDefault()
                             setDragOverRow(row.recordid)
                           }
                         }}
                         onDrop={async (e) => {
-                          e.preventDefault()
-                          handleDrop(row.recordid)
+                          if (!row.is_partial) {
+                            e.preventDefault()
+                            handleDrop(row.recordid)
+                          }
                         }}
                         className={`
                       group theme-table border-b
                       ${row.css === "red" ? "bg-red-50 dark:bg-red-950/20" : ""}
                       ${row.css === "green" ? "bg-green-50 dark:bg-green-950/20" : ""}
                       ${row.css === "blue" ? "bg-blue-50 dark:bg-blue-950/20" : ""}
-                      ${isReorderMode ? "cursor-move" : "cursor-pointer"}
+                      ${row.is_partial ? "bg-gray-100 dark:bg-gray-800/60 cursor-default" : (isReorderMode ? "cursor-move" : "cursor-pointer")}
                       ${dragOverRow === row.recordid ? "border-t-2 border-blue-500" : ""}
-                      hover:bg-records-background transition-colors
+                      ${row.is_partial ? "" : "hover:bg-records-background"} transition-colors
                     `}
                         onClick={() =>
+                          !row.is_partial &&
                           !isReorderMode &&
                           handleRowClick &&
                           tableid &&
@@ -1018,10 +1079,12 @@ export default function RecordsTable({
                         Duplica
                       </button>)}
 
-                      {isDeleteAble && (
+                      {isDeleteAble && contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && (
                         <button
                           onClick={() => {
-                            handleTrashClick(contextMenu.recordid)
+                            if (contextMenu?.recordid) {
+                              handleTrashClick(contextMenu.recordid)
+                            }
                             setContextMenu(null)
                           }}
                           className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
@@ -1031,7 +1094,37 @@ export default function RecordsTable({
                         </button>
                       )}
 
-                      {context === "linked" && (
+                      {contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && (
+                        <button
+                          onClick={() => {
+                            if (contextMenu?.recordid) {
+                              createPartial(contextMenu.recordid)
+                            }
+                            setContextMenu(null)
+                          }}
+                          className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                        >
+                          <SquareArrowOutUpRight className="w-4 h-4" />
+                          Crea parziale qui
+                        </button>
+                      )}
+
+                      {contextMenu?.recordid && String(contextMenu.recordid).startsWith("partial_") && (
+                        <button
+                          onClick={() => {
+                            if (contextMenu?.recordid) {
+                              removePartial(contextMenu.recordid)
+                            }
+                            setContextMenu(null)
+                          }}
+                          className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Elimina parziale
+                        </button>
+                      )}
+
+                      {context === "linked" && contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && (
                         <>
                           <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
 
