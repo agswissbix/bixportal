@@ -172,15 +172,26 @@ export default function TableFilters({ tableid }: PropsInterface) {
 
     async function applyFilters() {
         const filters = responseData.filters.map(filter => {
-            const valuesArray = filterValues[filter.fieldid] || [];
+            let valuesArray = filterValues[filter.fieldid];
+            if (!valuesArray || valuesArray.length === 0) {
+                if (filter.type === "Numero" || filter.type === "Ora") {
+                    valuesArray = [{ min: '', max: '' }];
+                } else if (filter.type === "Data") {
+                    valuesArray = [{ from: '', to: '' }];
+                } else if (filter.type === "Utente" || filter.type === 'lookup' || (filter.type || '').toLowerCase() === 'checkbox') {
+                    valuesArray = [];
+                } else {
+                    valuesArray = [''];
+                }
+            }
             const conditionsArray = valuesArray.map((_, idx) =>
-                filterConditions[`${filter.fieldid}_${idx}`] || (filter.type === 'Ora' ? 'Tra' : 'Valore esatto')
+                filterConditions[`${filter.fieldid}_${idx}`] || (filter.type === 'Ora' ? 'Tra' : (filter.type === 'Parola' || filter.type === 'Memo' || filter.type === 'html' || filter.type === 'Markdown' || filter.type === 'SimpleMarkdown' ? 'Contiene' : 'Valore esatto'))
             );
 
             let combinedValue;
             if (filter.type === "Numero" || filter.type === "Data" || filter.type === "Ora") {
                 combinedValue = JSON.stringify(valuesArray);
-            } else if (filter.type === "Parola" || filter.type === "text") {
+            } else if (filter.type === "Parola" || filter.type === "Memo" || filter.type === "html" || filter.type === "Markdown" || filter.type === "SimpleMarkdown") {
                 combinedValue = valuesArray.join('|');
             } else if (filter.type === "Utente" || filter.type === 'lookup') {
                 combinedValue = JSON.stringify(valuesArray);
@@ -188,7 +199,9 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 combinedValue = valuesArray.join('|');
             }
 
-            if (combinedValue === '[]' || combinedValue === '' || combinedValue === '||') {
+            const hasSpecialCondition = conditionsArray.some(c => c === 'Nessun valore' || c === 'Almeno un valore');
+
+            if (!hasSpecialCondition && (combinedValue === '[]' || combinedValue === '' || combinedValue === '||')) {
                 return null;
             }
 
@@ -287,6 +300,8 @@ export default function TableFilters({ tableid }: PropsInterface) {
             allConditions = timeConditions;
         } else if (type === 'Numero') {
             allConditions = [...baseConditions, ...numberConditions];
+        } else if (type === 'Parola' || type === 'Memo' || type === 'html' || type === 'Markdown' || type === 'SimpleMarkdown') {
+            allConditions = ['Contiene', ...baseConditions];
         }
 
         return (
@@ -393,7 +408,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                                             />
                                         )}
 
-                                        {(!isLookupField && !isUserField) && (filter.type === "Parola" || filter.type === "text") && (
+                                        {(!isLookupField && !isUserField) && (filter.type === "Parola" || filter.type === "Memo" || filter.type === "html" || filter.type === "Markdown" || filter.type === "SimpleMarkdown") && (
                                             <div className="flex flex-col gap-2">
                                                 {(filterValues[filter.fieldid] || ['']).map((val, idx) => (
                                                     <div key={idx} className="flex flex-col gap-1">

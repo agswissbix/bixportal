@@ -173,6 +173,43 @@ export function useFrontendFunctions() {
       }
     },
 
+    heenergyExportExcel: async (params: any) => {
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "heenergy_export_excel",
+            ...params
+          },
+          {
+            responseType: "blob",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        const contentDisposition = response.headers['content-disposition'] || '';
+        let filename = 'export.xlsx';
+
+        const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+        if (match && match[1]) {
+          filename = decodeURIComponent(match[1]);
+        }
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        toast.success('Excel esportato con successo');
+
+      } catch (error) {
+        console.error('Errore durante l\'esportazione excel', error);
+        toast.error('Errore durante l\'esportazione excel');
+      }
+    },
+
     // -----------------------------------------------------------------------
     //                                 SWISSBIX
     // -----------------------------------------------------------------------

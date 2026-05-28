@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { Upload, Check, AlertTriangle, FileText, CheckCircle2, XCircle } from 'lucide-react';
+import { Upload, Check, AlertTriangle, FileText, CheckCircle2, XCircle, Terminal } from 'lucide-react';
 import axiosInstanceClient from '../../utils/axiosInstanceClient';
 import { useRecordsStore } from '../records/recordsStore';
 
@@ -25,8 +25,35 @@ export default function PopupImportCsv({
     const [incompatible, setIncompatible] = useState<string[]>([]);
     const [uniqueFields, setUniqueFields] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+    const [consoleLines, setConsoleLines] = useState<string[]>([]);
+    const consoleEndRef = useRef<HTMLDivElement>(null);
 
     const { setRefreshTable } = useRecordsStore();
+
+    useEffect(() => {
+        if (step === 'importing' && loading) {
+            setConsoleLines(['[SYSTEM] Inizializzazione processo di importazione...', '[SYSTEM] Preparazione dati CSV...']);
+            let counter = 0;
+            const interval = setInterval(() => {
+                counter += 1;
+                const actions = ['Lettura record dal server', 'Validazione formato campi per riga', 'Controllo chiavi univoche record', 'Elaborazione logica di inserimento per'];
+                const action = actions[Math.floor(Math.random() * actions.length)];
+                const msg = `[INFO] ${action} ~${counter}...`;
+                setConsoleLines(prev => {
+                    const newLines = [...prev, msg];
+                    return newLines.slice(-40);
+                });
+            }, 700);
+
+            return () => clearInterval(interval);
+        }
+    }, [step, loading]);
+
+    useEffect(() => {
+        if (consoleEndRef.current) {
+            consoleEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [consoleLines]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -69,6 +96,7 @@ export default function PopupImportCsv({
     const handleImport = async () => {
         if (!token || !tableid) return;
 
+        setStep('importing');
         setLoading(true);
         try {
             const response = await axiosInstanceClient.post('/postApi', 
@@ -86,15 +114,21 @@ export default function PopupImportCsv({
             );
 
             if (response.data.success) {
-                toast.success(`Importazione completata: ${response.data.imported} importati, ${response.data.skipped || 0} ignorati (duplicati), ${response.data.errors} errori.`);
+                setConsoleLines(prev => [...prev, `[SUCCESS] Importazione completata! Inseriti: ${response.data.inserted || 0}, Aggiornati: ${response.data.updated || 0}, Errori: ${response.data.errors || 0}`]);
+                toast.success(`Importazione completata: ${response.data.inserted || 0} inseriti, ${response.data.updated || 0} aggiornati, ${response.data.errors || 0} errori.`);
                 setRefreshTable(tableid); // Reload table data
-                onClose && onClose();
+                setLoading(false);
+                setTimeout(() => {
+                    onClose && onClose();
+                }, 2500);
             } else {
+                setConsoleLines(prev => [...prev, `[ERROR] ${response.data.error || 'Errore durante l\'importazione'}`]);
                 toast.error(response.data.error || 'Errore durante l\'importazione');
+                setLoading(false);
             }
         } catch (error: any) {
+            setConsoleLines(prev => [...prev, `[ERROR] ${error.response?.data?.error || 'Errore di connessione'}`]);
             toast.error(error.response?.data?.error || 'Errore di connessione');
-        } finally {
             setLoading(false);
         }
     };
@@ -214,6 +248,30 @@ export default function PopupImportCsv({
                 </div>
             )}
 
+            {step === 'importing' && (
+                <div className="flex flex-col gap-4 flex-1 overflow-hidden max-h-[400px]">
+                    <div className="p-4 bg-gray-900 dark:bg-black rounded-xl border border-gray-800 flex-1 overflow-hidden flex flex-col font-mono text-xs shadow-inner">
+                        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-800 text-gray-400">
+                            <Terminal size={14} />
+                            <span className="font-semibold uppercase tracking-wider text-[10px]">Console Importazione</span>
+                            {loading && <span className="ml-auto flex h-2 w-2 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>}
+                        </div>
+                        <div className="flex-1 overflow-auto flex flex-col gap-1 pr-2 custom-scrollbar" style={{ scrollbarWidth: 'thin' }}>
+                            {consoleLines.map((line, idx) => (
+                                <div key={idx} className={`leading-relaxed break-all ${line.startsWith('[ERROR]') ? 'text-red-400' : line.startsWith('[SUCCESS]') ? 'text-green-400 font-bold' : 'text-green-500/80'}`}>
+                                    <span className="text-gray-600 mr-2 select-none">[{new Date().toLocaleTimeString()}]</span>
+                                    {line}
+                                </div>
+                            ))}
+                            <div ref={consoleEndRef} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex gap-3 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                 {step === 'select' ? (
                     <>
@@ -229,7 +287,7 @@ export default function PopupImportCsv({
                             {loading ? 'Analisi in corso...' : 'Analizza CSV'}
                         </button>
                     </>
-                ) : (
+                ) : step === 'review' ? (
                     <>
                          <button
                             className={`flex-1 px-4 py-3 font-bold rounded-xl transition-all active:scale-95 shadow-sm flex items-center justify-center gap-2 ${
@@ -240,7 +298,16 @@ export default function PopupImportCsv({
                             onClick={handleImport}
                             disabled={loading}
                         >
-                             {loading ? 'Importazione...' : 'Conferma Importazione'}
+                             Conferma Importazione
+                        </button>
+                    </>
+                ) : (
+                    <>
+                         <button
+                            className="flex-1 px-4 py-3 font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                            disabled={true}
+                        >
+                             {loading ? 'Elaborazione in corso...' : 'Completato'}
                         </button>
                     </>
                 )}

@@ -581,6 +581,9 @@ export async function POST(request: Request) {
         case "heenergy_print_deal":
             djangoUrl = "/customapp_heenergy/heenergy_print_deal/";
             break;
+        case "heenergy_export_excel":
+            djangoUrl = "/customapp_heenergy/heenergy_export_excel/";
+            break;
 
         // SETTINGS
         case "settings_table_usertables":
