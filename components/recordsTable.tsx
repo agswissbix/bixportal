@@ -598,6 +598,7 @@ export default function RecordsTable({
         {
           apiRoute: "create_partial",
           tableid: tableid,
+          mastertableid: masterTableid || "",
           recordid: recordid,
           description: description,
         },
@@ -623,6 +624,7 @@ export default function RecordsTable({
         {
           apiRoute: "delete_partial",
           tableid: tableid,
+          mastertableid: masterTableid || "",
           recordid: recordid,
         },
         {
@@ -1055,7 +1057,7 @@ export default function RecordsTable({
                         mass: 0.8,
                       }}
                       className="
-                    absolute p-1 z-50
+                    absolute p-1 z-[9999]
                     bg-white dark:bg-gray-800
                     border border-gray-200 dark:border-gray-600
                     rounded-lg shadow-2xl shadow-gray-500
@@ -1125,7 +1127,7 @@ export default function RecordsTable({
                             {isReorderMode ? "Disattiva riordinamento" : "Riordina righe"}
                           </button>
 
-                          {contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && (
+                          {contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && response?.columns?.find((column) => column?.fieldtypeid === "Numero") && (
                             <button
                               onClick={() => {
                                 if (contextMenu?.recordid) {
