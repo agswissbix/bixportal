@@ -188,18 +188,42 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 filterConditions[`${filter.fieldid}_${idx}`] || (filter.type === 'Ora' ? 'Tra' : (filter.type === 'Parola' || filter.type === 'Memo' || filter.type === 'html' || filter.type === 'Markdown' || filter.type === 'SimpleMarkdown' ? 'Contiene' : 'Valore esatto'))
             );
 
-            let combinedValue;
-            if (filter.type === "Numero" || filter.type === "Data" || filter.type === "Ora") {
-                combinedValue = JSON.stringify(valuesArray);
-            } else if (filter.type === "Parola" || filter.type === "Memo" || filter.type === "html" || filter.type === "Markdown" || filter.type === "SimpleMarkdown") {
-                combinedValue = valuesArray.join('|');
-            } else if (filter.type === "Utente" || filter.type === 'lookup') {
-                combinedValue = JSON.stringify(valuesArray);
-            } else {
-                combinedValue = valuesArray.join('|');
+            // Filtriamo i valori vuoti per i range (Data, Numero, Ora) se la loro condizione non è speciale
+            let filteredValuesArray = [...valuesArray];
+            let filteredConditionsArray = [...conditionsArray];
+
+            if (filter.type === "Data") {
+                const indicesToKeep = valuesArray.map((val, idx) => {
+                    const cond = conditionsArray[idx];
+                    const isSpecial = ['Nessun valore', 'Almeno un valore', 'Oggi', 'Questa settimana', 'Questo mese', 'Passato', 'Futuro'].includes(cond);
+                    const isFilled = val && (val.from !== '' || val.to !== '');
+                    return isSpecial || isFilled;
+                });
+                filteredValuesArray = valuesArray.filter((_, idx) => indicesToKeep[idx]);
+                filteredConditionsArray = conditionsArray.filter((_, idx) => indicesToKeep[idx]);
+            } else if (filter.type === "Numero" || filter.type === "Ora") {
+                const indicesToKeep = valuesArray.map((val, idx) => {
+                    const cond = conditionsArray[idx];
+                    const isSpecial = ['Nessun valore', 'Almeno un valore'].includes(cond);
+                    const isFilled = val && (val.min !== '' || val.max !== '');
+                    return isSpecial || isFilled;
+                });
+                filteredValuesArray = valuesArray.filter((_, idx) => indicesToKeep[idx]);
+                filteredConditionsArray = conditionsArray.filter((_, idx) => indicesToKeep[idx]);
             }
 
-            const hasSpecialCondition = conditionsArray.some(c => c === 'Nessun valore' || c === 'Almeno un valore');
+            let combinedValue;
+            if (filter.type === "Numero" || filter.type === "Data" || filter.type === "Ora") {
+                combinedValue = JSON.stringify(filteredValuesArray);
+            } else if (filter.type === "Parola" || filter.type === "Memo" || filter.type === "html" || filter.type === "Markdown" || filter.type === "SimpleMarkdown") {
+                combinedValue = filteredValuesArray.join('|');
+            } else if (filter.type === "Utente" || filter.type === 'lookup') {
+                combinedValue = JSON.stringify(filteredValuesArray);
+            } else {
+                combinedValue = filteredValuesArray.join('|');
+            }
+
+            const hasSpecialCondition = filteredConditionsArray.some(c => c === 'Nessun valore' || c === 'Almeno un valore');
 
             if (!hasSpecialCondition && (combinedValue === '[]' || combinedValue === '' || combinedValue === '||')) {
                 return null;
@@ -210,7 +234,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
                 type: filter.type,
                 label: filter.label,
                 value: combinedValue,
-                conditions: conditionsArray,
+                conditions: filteredConditionsArray,
             };
         }).filter(Boolean);
 
@@ -621,7 +645,7 @@ export default function TableFilters({ tableid }: PropsInterface) {
 
                         {/* Action Footer — sticky bottom */}
                         <div className="sticky bottom-0 mt-auto flex flex-col gap-4 border-t border-border bg-background/80 px-1 py-3 pb-4 backdrop-blur-lg -mx-1">
-                            
+
                             {/* Save View Section — Integrata nello sticky */}
                             <div className="rounded-xl border border-border bg-card p-2.5">
                                 <label className="flex cursor-pointer items-center gap-2.5">
