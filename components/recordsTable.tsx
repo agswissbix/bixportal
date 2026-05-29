@@ -17,6 +17,7 @@ import {
   ArrowRight,
   GripVertical,
   X,
+  CirclePlus,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
@@ -1067,7 +1068,7 @@ export default function RecordsTable({
                         transformOrigin: "top left",
                       }}
                     >
-                      {isDuplicateAble && (
+                      {isDuplicateAble && contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") &&  (
                       <button
                         onClick={() => {
                           duplicateRecord(contextMenu.recordid)
@@ -1091,21 +1092,6 @@ export default function RecordsTable({
                         >
                           <Trash2 className="w-4 h-4" />
                           Elimina
-                        </button>
-                      )}
-
-                      {contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && (
-                        <button
-                          onClick={() => {
-                            if (contextMenu?.recordid) {
-                              createPartial(contextMenu.recordid)
-                            }
-                            setContextMenu(null)
-                          }}
-                          className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
-                        >
-                          <SquareArrowOutUpRight className="w-4 h-4" />
-                          Crea parziale qui
                         </button>
                       )}
 
@@ -1138,6 +1124,21 @@ export default function RecordsTable({
                             <GripVertical className="w-4 h-4" />
                             {isReorderMode ? "Disattiva riordinamento" : "Riordina righe"}
                           </button>
+
+                          {contextMenu?.recordid && !String(contextMenu.recordid).startsWith("partial_") && (
+                            <button
+                              onClick={() => {
+                                if (contextMenu?.recordid) {
+                                  createPartial(contextMenu.recordid)
+                                }
+                                setContextMenu(null)
+                              }}
+                              className="w-full text-left rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <CirclePlus className="w-4 h-4" />
+                              Crea parziale
+                            </button>
+                          )}
                         </>
                       )}
 
