@@ -3,8 +3,8 @@ import CardBadgeCompany from './cardBadgeCompany';
 import CardBadgeProject from './cardBadgeProject';
 import CardBadgeTimesheet from './cardBadgeTimesheet';
 import CardBadgeDeal from './cardBadgeDeal';
+import CardBadgeNoMoney from './cardBadgeCompanyNoMoney';
 import CardBadge from '@/components/cardBadge';
-import { MoveRight } from 'lucide-react';
 
 interface PropsInterface {
   tableid: string;
@@ -21,8 +21,9 @@ export default function BadgeManager({ tableid, recordid, badges }: PropsInterfa
     const key = `badge-${badge}-${recordid}`;
     switch (badge) {
       case 'company':
-      case 'marginality':
         return <CardBadgeCompany key={key} tableid={tableid} recordid={recordid} />;
+      case 'no_money':
+        return <CardBadgeNoMoney key={key} tableid={tableid} recordid={recordid} />;
       case 'project':
         return <CardBadgeProject key={key} tableid={tableid} recordid={recordid} />;
       case 'timesheet':
