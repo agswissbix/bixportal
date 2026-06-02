@@ -187,6 +187,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({ tableId, userId, selecte
           userid: userId, 
           tableid: tableId, 
           fields, 
+          master_tableid: typePreference === "linked_columns" ? masterTableId : undefined,
           typepreference: typePreference
         },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
