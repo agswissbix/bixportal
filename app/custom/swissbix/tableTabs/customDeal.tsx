@@ -34,7 +34,9 @@ import {
   ChevronRight,
   Sliders,
   HelpCircle,
-  Percent
+  Percent,
+  Box,
+  Timer
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from "framer-motion"
@@ -843,7 +845,10 @@ export default function CustomDeal() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                           {/* Coppietta Fatturato */}
                           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-2 justify-between">
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">Fatturato Globale</p>
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="w-4 h-4 text-slate-600" />
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">Fatturato Globale</p>
+                            </div>
                             <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-2">
                               <div>
                                 <span className="text-[9px] text-slate-400 block uppercase font-medium">Previsto</span>
@@ -858,7 +863,10 @@ export default function CustomDeal() {
 
                           {/* Coppietta Margine (Previsto vs Lordo Effettivo) */}
                           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-2 justify-between">
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">Margine di Base</p>
+                            <div className="flex items-center gap-2">
+                              <Percent className="w-4 h-4 text-slate-600" />
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">Margine di Base</p>
+                            </div>
                             <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-2">
                               <div>
                                 <span className="text-[9px] text-slate-400 block uppercase font-medium">Previsto</span>
@@ -873,7 +881,14 @@ export default function CustomDeal() {
 
                           {/* Coppietta Margine Netto Effettivo (Valore vs Pct) */}
                           <div className={`bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-2 justify-between border-l-4 ${currentDeal.total_actual_margin_net >= 0 ? 'border-l-emerald-500' : 'border-l-rose-500'}`}>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">Margine Netto Finale</p>
+                            <div className="flex items-center gap-2">
+                              {currentDeal.total_actual_margin_net >= 0 ? (
+                                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                              ) : (
+                                <TrendingDown className="w-4 h-4 text-rose-600" />
+                              )}
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">Margine Netto Finale</p>
+                            </div>
                             <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-2">
                               <div>
                                 <span className="text-[9px] text-slate-400 block uppercase font-medium">Valore</span>
@@ -894,6 +909,7 @@ export default function CustomDeal() {
                           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
                             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
                               <div className="flex items-center gap-2.5">
+                                <Box className="w-4 h-4 text-indigo-600" />
                                 <h4 className="text-sm font-bold text-slate-800">Hardware / Software</h4>
                               </div>
                               <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full uppercase tracking-wider">HW/SW</span>
@@ -942,6 +958,7 @@ export default function CustomDeal() {
                           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
                             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
                               <div className="flex items-center gap-2.5">
+                                <Timer className="w-4 h-4 text-amber-600" />
                                 <h4 className="text-sm font-bold text-slate-800">Lavoro</h4>
                               </div>
                               <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
