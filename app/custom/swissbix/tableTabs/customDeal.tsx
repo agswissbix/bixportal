@@ -225,6 +225,7 @@ export default function CustomDeal() {
       
       const expectedmargin = parseFloat(getField('expectedmargin')) || 0;
       const effectivemargin = parseFloat(getField('effectivemargin')) || 0;
+      const annualprice = parseFloat(getField('annualprice')) || 0;
       const annualmargin = parseFloat(getField('annualmargin')) || 0;
       const bankhours = parseFloat(getField('bankhours')) || 0;
       const fixedpricehours = parseFloat(getField('fixedpricehours')) || 0;
@@ -265,12 +266,14 @@ export default function CustomDeal() {
       const actualcost = parseFloat(getField('actualcost')) || 0;
       const actualgrossmargin = parseFloat(getField('actualgrossmargin')) || 0;
       const actualnetmargin = parseFloat(getField('actualnetmargin')) || 0;
+      const totalcontractnetmargin = parseFloat(getField('totalcontractnetmargin')) || 0;
       const totalcontractvalue = parseFloat(getField('totalcontractvalue')) || 0;
       
       return {
         recordid_: row.recordid,
         expectedmargin,
         effectivemargin,
+        annualprice,
         annualmargin,
         bankhours,
         fixedpricehours,
@@ -286,7 +289,7 @@ export default function CustomDeal() {
         performancePercent,
         expectedhwserviceprice, expectedhwservicecost, actualhwservicecost, expectedhwservicemargin, actualhwservicemargin,
         expectedlaborprice, expectedlaborcost, actuallaborcost, expectedhours, usedhours, nonbillablehours, expectedlabormargin, actuallabormargin,
-        amount, grossamount, expectedcost, actualcost, actualgrossmargin, actualnetmargin, totalcontractvalue
+        amount, grossamount, expectedcost, actualcost, actualgrossmargin, actualnetmargin, totalcontractnetmargin, totalcontractvalue
       };
     });
   }, [response]);
@@ -384,7 +387,12 @@ export default function CustomDeal() {
       total_actual_margin_net: totalActualMarginNet,
       total_planned_margin_pct: totalPlannedMarginPct,
       total_actual_margin_gross_pct: totalActualMarginGrossPct,
-      total_actual_margin_net_pct: totalActualMarginNetPct
+      total_actual_margin_net_pct: totalActualMarginNetPct,
+      
+      annualprice: Number(data.annualprice) || 0,
+      annualmargin: Number(data.annualmargin) || 0,
+      totalcontractnetmargin: Number(data.totalcontractnetmargin) || 0,
+      totalcontractvalue: Number(data.totalcontractvalue) || 0
     };
   };
 
@@ -544,7 +552,7 @@ export default function CustomDeal() {
           </div>
 
           {/* Area scrollabile */}
-          <div className="flex-1 overflow-y-auto min-h-0 bg-slate-50/50">
+          <div className="flex-1 overflow-auto min-h-0 bg-slate-50/50">
             {filteredDeals.length === 0 ? (
               <div className="text-center py-16 m-4 bg-white rounded-xl border border-slate-200 border-dashed">
                 <Briefcase className="mx-auto h-12 w-12 text-slate-300 mb-4" />
@@ -554,13 +562,15 @@ export default function CustomDeal() {
             ) : viewMode === 'table' ? (
               <div className="min-w-max border-b border-slate-200">
                 <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-slate-50 text-slate-500 sticky top-0 z-10 border-y border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 sticky top-0 z-20 border-y border-slate-200">
                     <tr>
-                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Trattativa</th>
+                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap sticky left-0 z-30 bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]">Trattativa</th>
                       <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Hardware / Software</th>
-                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Lavoro</th>
+                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Costi e Margini Lavoro</th>
+                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Ore Lavorate</th>
                       <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Totali</th>
-                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap w-10"></th>
+                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Contratti</th>
+                      <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap w-10 sticky right-0 z-30 bg-slate-50 shadow-[-1px_0_0_0_#e2e8f0]"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
@@ -568,24 +578,24 @@ export default function CustomDeal() {
                       <tr 
                         key={deal.recordid_} 
                         onClick={() => handleRowClick('standard', deal.recordid_, 'deal')}
-                        className={`even:bg-slate-50/80 hover:bg-slate-100/80 cursor-pointer transition-colors group ${
-                          deal.isGoodMargin ? 'border-l-4 border-l-emerald-400' : 'border-l-4 border-l-rose-400'
-                        }`}
+                        className={`bg-white even:bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors group`}
                       >
-                        <td className="px-5 py-4 align-top">
+                        <td className={`px-5 py-4 align-top sticky left-0 z-10 bg-white group-even:bg-slate-50 group-hover:bg-slate-100 shadow-[1px_0_0_0_#e2e8f0] ${
+                          deal.isGoodMargin ? 'border-l-4 border-l-emerald-400' : 'border-l-4 border-l-rose-400'
+                        }`}>
                           <div className="space-y-1.5 max-w-[300px] truncate">
                             <div className="font-bold text-slate-900 text-base flex items-center gap-2 ">
-                              {deal.dealname || 'Senza Nome'}
+                              {deal.name || 'Senza Nome'}
                             </div>
                             <div className="flex items-center gap-1.5 text-xs text-indigo-700 font-semibold bg-indigo-50 w-fit px-2 py-0.5 rounded border border-indigo-100">
                               <Building2 className="w-3.5 h-3.5" /> {deal.company || 'N/A'}
                             </div>
                             <div className="flex flex-col gap-1 mt-2 text-xs text-slate-500">
-                              {deal.dealstage && (
-                                <span className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-slate-400"/> {deal.dealstage}</span>
+                              {deal.status && (
+                                <span className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-slate-400"/> {deal.status}</span>
                               )}
-                              {deal.dealuser1 && (
-                                <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400"/> {deal.dealuser1}</span>
+                              {deal.seller && (
+                                <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400"/> {deal.seller}</span>
                               )}
                             </div>
                           </div>
@@ -595,19 +605,19 @@ export default function CustomDeal() {
                           <div className="space-y-1.5 text-xs min-w-[160px]">
                             <div className="flex justify-between items-center gap-6">
                               <span className="text-slate-500">Vendita</span>
-                              <span className="font-mono text-slate-700 font-bold text-xs">{formatCHF(deal.expectedhwserviceprice)}</span>
+                              <span className="font-mono text-slate-700 font-bold text-xs">{formatCHF(deal.hw_sales_price)}</span>
                             </div>
                             <div className="flex justify-between items-center gap-6">
                               <span className="text-slate-500">Costo Prev.</span>
-                              <span className="font-mono text-slate-500">{formatCHF(deal.expectedhwservicecost)}</span>
+                              <span className="font-mono text-slate-500">{formatCHF(deal.hw_planned_cost)}</span>
                             </div>
                             <div className="flex justify-between items-center gap-6">
                               <span className="text-slate-500">Costo Eff.</span>
-                              <span className={`font-mono text-xs font-bold ${deal.actualhwservicecost > deal.expectedhwservicecost ? "text-rose-600" : "text-slate-700"}`}>{formatCHF(deal.actualhwservicecost)}</span>
+                              <span className={`font-mono text-xs font-bold ${deal.hw_actual_cost > deal.hw_planned_cost ? "text-rose-600" : "text-slate-700"}`}>{formatCHF(deal.hw_actual_cost)}</span>
                             </div>
                             <div className="flex justify-between items-center gap-6 pt-1.5 border-t border-slate-100 mt-1">
                               <span className="text-slate-400 font-semibold">Margine</span>
-                              <span className={`font-mono font-bold text-xs ${deal.actualhwservicemargin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCHF(deal.actualhwservicemargin)}</span>
+                              <span className={`font-mono font-bold text-xs ${deal.hw_actual_margin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCHF(deal.hw_actual_margin)}</span>
                             </div>
                           </div>
                         </td>
@@ -615,20 +625,37 @@ export default function CustomDeal() {
                         <td className="px-5 py-4 align-top">
                           <div className="space-y-1.5 text-xs min-w-[160px]">
                             <div className="flex justify-between items-center gap-6">
-                              <span className="text-slate-500">Ore Prev.</span>
-                              <span className="font-mono text-slate-500">{deal.expectedhours}h</span>
+                              <span className="text-slate-500">Vendita</span>
+                              <span className="font-mono text-slate-700 font-bold text-xs">{formatCHF(deal.labor_planned_sales)}</span>
                             </div>
                             <div className="flex justify-between items-center gap-6">
-                              <span className="text-slate-500">Ore Eff.</span>
-                              <span className={`font-mono text-xs font-bold ${deal.usedhours > deal.expectedhours ? "text-amber-600" : "text-slate-700"}`}>{deal.usedhours}h</span>
+                              <span className="text-slate-500">Costo Prev.</span>
+                              <span className="font-mono text-slate-500">{formatCHF(deal.labor_planned_cost)}</span>
                             </div>
                             <div className="flex justify-between items-center gap-6">
-                              <span className="text-slate-500">Ore Extra</span>
-                              <span className={`font-mono text-xs font-bold ${deal.nonbillablehours > 0 ? "text-rose-600" : "text-slate-500"}`}>{deal.nonbillablehours}h</span>
+                              <span className="text-slate-500">Costo Eff.</span>
+                              <span className={`font-mono text-xs font-bold ${deal.labor_actual_cost_gross > deal.labor_planned_cost ? "text-rose-600" : "text-slate-700"}`}>{formatCHF(deal.labor_actual_cost_gross)}</span>
                             </div>
                             <div className="flex justify-between items-center gap-6 pt-1.5 border-t border-slate-100 mt-1">
                               <span className="text-slate-400 font-semibold">Mrg Netto</span>
-                              <span className={`font-mono font-bold text-xs ${deal.actuallabormargin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCHF(deal.actuallabormargin)}</span>
+                              <span className={`font-mono font-bold text-xs ${deal.labor_actual_margin_gross >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCHF(deal.labor_actual_margin_gross)}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4 align-top">
+                          <div className="space-y-1.5 text-xs min-w-[140px]">
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-slate-500">Ore Prev.</span>
+                              <span className="font-mono text-slate-500">{deal.labor_planned_hours}h</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-slate-500">Ore Eff.</span>
+                              <span className={`font-mono text-xs font-bold ${deal.labor_actual_hours > deal.labor_planned_hours ? "text-amber-600" : "text-slate-700"}`}>{deal.labor_actual_hours}h</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-slate-500">Ore Extra</span>
+                              <span className={`font-mono text-xs font-bold ${deal.labor_extra_hours > 0 ? "text-rose-600" : "text-slate-500"}`}>{deal.labor_extra_hours}h</span>
                             </div>
                           </div>
                         </td>
@@ -649,16 +676,31 @@ export default function CustomDeal() {
                                 {deal.total_actual_margin_net_pct.toFixed(1)}% <span className="text-[10px] text-slate-400 ml-1 font-normal">({formatCHF(deal.total_actual_margin_net)})</span>
                               </span>
                             </div>
-                            {deal.totalcontractvalue > 0 && (
-                              <div className="flex justify-between items-center gap-6 pt-1.5 border-t border-slate-100 mt-1">
-                                <span className="text-purple-400 font-semibold text-[10px] uppercase tracking-wider">Contratto</span>
-                                <span className="font-mono text-purple-700 font-semibold text-xs">{formatCHF(deal.totalcontractvalue)}</span>
-                              </div>
-                            )}
                           </div>
                         </td>
 
-                        <td className="px-5 py-4 align-top text-right">
+                        <td className="px-5 py-4 align-top">
+                          <div className="space-y-1.5 text-xs min-w-[160px]">
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-slate-500">Canone Annuo</span>
+                              <span className="font-mono text-slate-700 font-bold text-xs">{formatCHF(deal.annualprice)}</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-slate-500">Margine Annuo</span>
+                              <span className={`font-mono text-xs font-bold ${deal.annualmargin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCHF(deal.annualmargin)}</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-slate-500">Valore Contr. Tot.</span>
+                              <span className="font-mono text-purple-700 font-bold text-xs">{formatCHF(deal.totalcontractvalue)}</span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6 pt-1.5 border-t border-slate-100 mt-1">
+                              <span className="text-slate-400 font-semibold">Margine Contr.</span>
+                              <span className={`font-mono font-bold text-xs ${deal.totalcontractnetmargin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{formatCHF(deal.totalcontractnetmargin)}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-4 align-top text-right sticky right-0 z-10 bg-white group-even:bg-slate-50 group-hover:bg-slate-100 shadow-[-1px_0_0_0_#e2e8f0]">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 transition-colors opacity-0 group-hover:opacity-100"
