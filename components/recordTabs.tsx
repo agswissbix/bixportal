@@ -20,6 +20,7 @@ import UnifiedCalendar from './calendar/unifiedCalendar';
 import RecordsGroupedTable from './recordsGroupedTable';
 import CustomDeadlines from '@/app/custom/swissbix/tableTabs/customDeadline';
 import TabsManager from '@/app/custom/swissbix/tableTabs/tabsManager';
+import RecordsGrafici from './recordsGrafici';
 
 const isDev = false;
 
@@ -57,7 +58,8 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
       { id: 'Calendario', name: 'Calendario' },
       { id: 'Timeline', name: 'Timeline' },
       { id: 'Gallery', name: 'Gallery' },
-      { id: 'Pivot', name: 'Pivot' }
+      { id: 'Pivot', name: 'Pivot' },
+      { id: 'Grafici', name: 'Grafici' }
     ],
     activeTab: { id: 'Tabella', name: 'Tabella' }
   };
@@ -70,7 +72,8 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
       { id: 'Calendario', name: 'Calendario' },
       { id: 'Timeline', name: 'Timeline' },
       { id: 'Gallery', name: 'Gallery' },
-      { id: 'Pivot', name: 'Pivot' }
+      { id: 'Pivot', name: 'Pivot' },
+      { id: 'Grafici', name: 'Grafici' }
     ],
     activeTab: { id: 'Tabella', name: 'Tabella' }
   };
@@ -224,6 +227,15 @@ export default function RecordTabs({ tableid, contentRef }: PropsInterface) {
                               context="standard"
                               view={tableView}
                               searchTerm={searchTerm}
+                          />
+                      )}
+                      {activeTab === "Grafici" && (
+                          <RecordsGrafici
+                              tableid={tableid}
+                              context="standard"
+                              view={tableView}
+                              searchTerm={searchTerm}
+                              filtersList={filtersList}
                           />
                       )}
                       {activeTab === "Custom" && (
