@@ -15,11 +15,17 @@ interface TaskBixAppProps {
 export default async function TaskBixApp(props: TaskBixAppProps) {
   const searchParams = await props.searchParams;
 
-  const oggetto = typeof searchParams.oggetto === 'string' ? searchParams.oggetto : null;
-  const mailmittente = typeof searchParams.mailmittente === 'string' ? searchParams.mailmittente : null;
-  const usermittente = typeof searchParams.usermittente === 'string' ? searchParams.usermittente : null;
-  const dataricezione = typeof searchParams.dataricezione === 'string' ? searchParams.dataricezione : null;
-  const idmail = typeof searchParams.idmail === 'string' ? searchParams.idmail : null;
+  const oggetto = typeof searchParams.subject === 'string' ? searchParams.subject : null;
+  const mailmittente = typeof searchParams.sender === 'string' ? searchParams.sender : null;
+  const usermittente = typeof searchParams.senderName === 'string' ? searchParams.senderName : null;
+  const dataricezione = typeof searchParams.date === 'string' ? searchParams.date : null;
+  const idmail = typeof searchParams.mailId === 'string' ? searchParams.mailId : null;
+
+    const deepLink =
+    "https://outlook.office.com/owa/?ItemID=" +
+    encodeURIComponent(idmail) +                  // re-encode
+    "&exvsurl=1&viewmodel=ReadMessageItem";	      // exvsurl=1 --> Makes sure that the link resolves to the correct mailbox
+						                                      // viewmodel=ReadMessageItem --> Makes the link know this is a mail (not calendar or other stuff) and that it needs to open it
 
   return (
     <TaskApp 
@@ -27,7 +33,7 @@ export default async function TaskBixApp(props: TaskBixAppProps) {
         mailmittente={mailmittente} 
         usermittente={usermittente} 
         dataricezione={dataricezione} 
-        idmail={idmail} 
+        linkToMail={deepLink} 
     />
   );
 }

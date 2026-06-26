@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
+import { PenIcon } from "lucide-react";
+import { setDate } from "date-fns";
 
 // INTERFACCE
 interface TaskProps {
@@ -11,13 +13,17 @@ interface TaskProps {
     mailmittente?: string | null;
     usermittente?: string | null;
     dataricezione?: string | null;
-    idmail?: string | null;
+    linkToMail?: string | null;
 }
 
 interface CompanyDetails {
     id: string;
     name: string;
 }
+
+// Formatta una Date in stringa YYYY-MM-DD (ora locale) per gli <input type="date">
+const toInputDate = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 export default function TaskApp(props: TaskProps) {
     return (
@@ -27,15 +33,26 @@ export default function TaskApp(props: TaskProps) {
     );
 }
 
-function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, idmail }: TaskProps) {
+function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail }: TaskProps) {
     const [isLoadingCompany, setIsLoadingCompany] = useState(false);
     const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
+    const [priority, setPriority] = useState<number | null>(null);
+    const [description, setDescription] = useState('');
+    const [expiration, setExpiration] = useState<Date>();
+    const [plannedDate, setPlannedDate] = useState<Date>();
+    const [duration, setDuration] = useState<Number>();
 
     useEffect(() => {
         if (mailmittente) {
             fetchCompanyByEmail(mailmittente);
         }
     }, [mailmittente]);
+
+    // Pre-compila le date con oggi (in useEffect per evitare mismatch di hydration)
+    useEffect(() => {
+        setExpiration(new Date());
+        setPlannedDate(new Date());
+    }, []);
 
     const fetchCompanyByEmail = async (emailToSearch: string) => {
         setIsLoadingCompany(true);
@@ -131,8 +148,87 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     <HashtagIcon className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">ID Mail</div>
-                                    <div className="text-sm font-mono text-zinc-600 mt-0.5 break-all">{idmail || "N/A"}</div>
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Link alla mail</div>
+                                    {linkToMail ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(linkToMail, "_blank", "noopener,noreferrer")}
+                                            className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-sm font-bold rounded-lg transition-colors"
+                                        >
+                                            <EnvelopeIcon className="w-4 h-4" />
+                                            Apri la mail
+                                        </button>
+                                    ) : (
+                                        <div className="text-sm font-mono text-zinc-600 mt-0.5 break-all">N/A</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                    <PenIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Descrizione</div>
+
+                                    <textarea 
+                                        name="description"
+                                        value={description ?? ""}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    >    
+
+                                    </textarea>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                    <HashtagIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Priorità</div>
+
+                                    <select
+                                        aria-label="Priorità"
+                                        value={priority ?? ""}
+                                        onChange={(e) => setPriority(e.target.value ? Number(e.target.value) : null)}
+                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    >
+
+                                        <option value="1">Richiesta di Davide</option>
+                                        <option value="2">Alta</option>
+                                        <option value="3">Media</option>
+                                        <option value="4">Bassa</option>
+                                        <option value="5">Richiesta di Mauro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                    <CalendarIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Data di scadenza</div>
+
+                                    <input
+                                        type="date"
+                                        name="expiration"
+                                        value={expiration ? toInputDate(expiration) : ""}
+                                        onChange={(e) => setExpiration(e.target.value ? new Date(e.target.value) : undefined)}
+                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    />
+
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mt-4">Data pianificata</div>
+
+                                    <input
+                                        type="date"
+                                        name="plannedDate"
+                                        value={plannedDate ? toInputDate(plannedDate) : ""}
+                                        onChange={(e) => setPlannedDate(e.target.value ? new Date(e.target.value) : undefined)}
+                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -171,7 +267,6 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                             )}
                         </div>
                     </div>
-                    
                 </div>
              </main>
         </div>
