@@ -794,7 +794,7 @@ function SingleChartWrapper({
             </div>
         ) : chartDataError ? (
             <div className="w-full h-full flex items-center justify-center text-red-500">
-                Errore: {chartDataError.message || "Impossibile caricare i dati del grafico"}
+                Errore: {typeof chartDataError === 'string' ? chartDataError : (chartDataError as any)?.message || "Impossibile caricare i dati del grafico"}
             </div>
         ) : parsedChartData ? (
             <GenericApexChart 

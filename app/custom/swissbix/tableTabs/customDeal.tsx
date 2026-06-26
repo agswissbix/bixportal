@@ -120,6 +120,7 @@ export default function CustomDeal() {
   const [filterStatus, setFilterStatus] = useState('Tutti');
   const [simulationActive, setSimulationActive] = useState(false);
   const [simData, setSimData] = useState<any>(null);
+  const [openHoursPopupId, setOpenHoursPopupId] = useState<string | null>(null);
 
   // Payload per il backend
   const payload = useMemo(() => {
@@ -266,6 +267,7 @@ export default function CustomDeal() {
       const saleshours = parseFloat(getField('saleshours')) || 0;
       const unbilledhours = parseFloat(getField('unbilledhours')) || 0;
       const totalhours = parseFloat(getField('totalhours')) || 0;
+      const deductedhours = parseFloat(getField('deductedhours')) || 0;
 
       // TOTALI
       const amount = parseFloat(getField('amount')) || 0;
@@ -569,26 +571,26 @@ export default function CustomDeal() {
                   <p className="mt-1 text-slate-500">Prova a modificare i filtri o i termini di ricerca.</p>
                 </div>
               ) : (
-                <div className="min-w-max border-b border-slate-200">
-                  <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-slate-50 text-slate-500 sticky top-0 z-20 border-y border-slate-200">
+                <div className="min-w-max pb-4 px-4 bg-[#f4f7f9]">
+                  <table className="w-full text-left text-sm whitespace-nowrap border-separate" style={{ borderSpacing: '0 12px' }}>
+                    <thead className="text-slate-500 sticky top-0 z-20">
                       <tr>
-                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap sticky left-0 z-30 bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]">Trattativa</th>
-                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Hardware / Software</th>
-                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Costi e Margini Lavoro</th>
-                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Ore Lavorate</th>
-                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">Contratti</th>
-                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-right text-slate-400">Risultato Netto</th>
+                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap sticky left-0 z-30 bg-[#f4f7f9]">Trattativa</th>
+                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap bg-[#f4f7f9]">Hardware / Software</th>
+                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap bg-[#f4f7f9]">Costi e Margini Lavoro</th>
+                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap bg-[#f4f7f9]">Ore Lavorate</th>
+                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap bg-[#f4f7f9]">Contratti</th>
+                        <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-right text-slate-400 bg-[#f4f7f9]">Risultato Netto</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 bg-white">
+                    <tbody>
                       {filteredDeals.map((deal) => (
                         <tr
                           key={deal.recordid_}
                           onClick={() => handleRowClick('standard', deal.recordid_, 'deal')}
-                          className={`bg-white hover:bg-slate-50 cursor-pointer transition-colors group`}
+                          className={`cursor-pointer group`}
                         >
-                          <td className={`px-5 py-4 align-top sticky left-0 z-10 bg-white group-hover:bg-slate-50 shadow-[1px_0_0_0_#e2e8f0]`}>
+                          <td className={`px-5 py-4 align-top sticky left-0 z-10 bg-white group-hover:bg-indigo-50/40 border-y border-l border-slate-200/80 group-hover:border-indigo-200 rounded-l-xl shadow-sm transition-all duration-200`}>
                             <div className="space-y-1.5 max-w-[300px] truncate">
                               <div className="font-bold text-slate-900 text-base flex items-center gap-2 ">
                                 {deal.name || 'Senza Nome'}
@@ -614,8 +616,8 @@ export default function CustomDeal() {
                             </div>
                           </td>
 
-                          <td className="px-5 py-4 align-top bg-white group-hover:bg-[#fcfcfc] border-y border-slate-200/80 shadow-sm transition-colors relative">
-                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100"></div>
+                          <td className="px-5 py-4 align-top bg-white group-hover:bg-indigo-50/40 border-y border-slate-200/80 group-hover:border-indigo-200 shadow-sm transition-all duration-200 relative">
+                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors"></div>
                             <div className="flex flex-col gap-2 min-w-[190px]">
                               {/* VENDITA */}
                               <div className="flex justify-between items-center bg-[#e0eaf5]/80 px-3 py-2 rounded-xl border border-blue-100/50">
@@ -670,8 +672,8 @@ export default function CustomDeal() {
                             </div>
                           </td>
 
-                          <td className="px-5 py-4 align-top bg-white group-hover:bg-[#fcfcfc] border-y border-slate-200/80 shadow-sm transition-colors relative">
-                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100"></div>
+                          <td className="px-5 py-4 align-top bg-white group-hover:bg-indigo-50/40 border-y border-slate-200/80 group-hover:border-indigo-200 shadow-sm transition-all duration-200 relative">
+                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors"></div>
                             <div className="flex flex-col gap-2 min-w-[190px]">
                               {/* VENDITA */}
                               <div className="flex justify-between items-center bg-[#e0eaf5]/80 px-3 py-2 rounded-xl border border-blue-100/50">
@@ -750,8 +752,8 @@ export default function CustomDeal() {
 
 
 
-                          <td className="px-5 py-4 align-top bg-white group-hover:bg-[#fcfcfc] border-y border-slate-200/80 shadow-sm transition-colors relative">
-                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100"></div>
+                          <td className="px-5 py-4 align-top bg-white group-hover:bg-indigo-50/40 border-y border-slate-200/80 group-hover:border-indigo-200 shadow-sm transition-all duration-200 relative">
+                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors"></div>
                             <div className="space-y-1.5 text-xs min-w-[140px]">
                               {deal.labor_type === 'progetto' && (
                                 <div className="mb-2.5 flex items-center gap-1.5 w-fit px-2 py-0.5 rounded border border-indigo-200/60 bg-indigo-50/80 text-indigo-700">
@@ -759,12 +761,22 @@ export default function CustomDeal() {
                                   <span className="text-[9px] font-bold uppercase tracking-widest">Fixed Price</span>
                                 </div>
                               )}
+                              
                               <div className="flex justify-between items-center gap-6">
-                                <span className="text-slate-500">Ore Prev.</span>
+                                <span className="text-slate-500">Ore Previste</span>
                                 <span className="font-mono text-slate-500">{deal.labor_planned_hours}h</span>
                               </div>
-                              <div className="flex justify-between items-center gap-6">
-                                <span className="text-slate-500">Ore Eff.</span>
+                              <div className="flex justify-between items-center gap-6 relative">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-slate-500">Ore Usate</span>
+                                  <Info 
+                                    className="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-indigo-600 transition-colors"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenHoursPopupId(openHoursPopupId === deal.recordid_ ? null : deal.recordid_);
+                                    }}
+                                  />
+                                </div>
                                 <div className="text-right">
                                   {(() => {
                                     const isFixedPrice = deal.labor_type === 'progetto';
@@ -784,9 +796,51 @@ export default function CustomDeal() {
                                     );
                                   })()}
                                 </div>
+                                
+                                {openHoursPopupId === deal.recordid_ && (
+                                  <div 
+                                    className="absolute top-6 left-0 z-50 w-[220px] bg-white border border-slate-200 shadow-xl rounded-lg p-3 cursor-default"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="flex justify-between items-center mb-2 pb-2 border-b border-slate-100">
+                                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block">Distribuzione Ore Usate</span>
+                                      <X 
+                                        className="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-slate-600" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setOpenHoursPopupId(null);
+                                        }}
+                                      />
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4 mb-1.5">
+                                      <span className="text-slate-500 text-[11px]">A Progetto</span>
+                                      <span className="font-mono text-slate-500 text-[11px]">{deal.fixedpricehours}h</span>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4 mb-1.5">
+                                      <span className="text-slate-500 text-[11px]">Monte Ore</span>
+                                      <span className="font-mono text-slate-500 text-[11px]">{deal.bankhours}h</span>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4 mb-1.5">
+                                      <span className="text-slate-500 text-[11px]">Scalate</span>
+                                      <span className="font-mono text-slate-500 text-[11px]">{deal.deductedhours}h</span>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4 mb-1.5">
+                                      <span className="text-slate-500 text-[11px]">Fatturate</span>
+                                      <span className="font-mono text-slate-500 text-[11px]">{deal.labor_billed_hours}h</span>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4 mb-1.5">
+                                      <span className="text-slate-500 text-[11px]">Da Fatturare</span>
+                                      <span className="font-mono text-amber-600 font-medium text-[11px]">{deal.unbilledhours}h</span>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4">
+                                      <span className="text-slate-500 text-[11px]">Non Fatturabili</span>
+                                      <span className="font-mono text-rose-600 font-medium text-[11px]">{deal.labor_extra_hours}h</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               {deal.labor_planned_hours > 0 && (
-                                <div className="mt-1 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className="mt-0.5 mb-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                   {(() => {
                                     const isFixedPrice = deal.labor_type === 'progetto';
                                     const isExceeded = deal.labor_actual_hours > deal.labor_planned_hours;
@@ -803,59 +857,23 @@ export default function CustomDeal() {
                                   })()}
                                 </div>
                               )}
-                              <div className="flex justify-between items-center gap-6 mt-1">
-                                <span className="text-slate-500">Ore Extra</span>
-                                {(() => {
-                                  const isFixedPrice = deal.labor_type === 'progetto';
-                                  const hasExtra = deal.labor_extra_hours > 0;
-                                  const extraColor = isFixedPrice && hasExtra ? "text-rose-600" : "text-slate-500";
-
-                                  return (
-                                    <span className={`font-mono text-xs font-bold ${extraColor}`}>{deal.labor_extra_hours}h</span>
-                                  );
-                                })()}
+                              <div className="flex justify-between items-center gap-6">
+                                <span className="text-slate-500">Ore Commerciali</span>
+                                <span className="font-mono text-slate-500">{deal.saleshours}h</span>
                               </div>
-
-                              {/* Dettaglio altre ore dal backend */}
-                              {(deal.residualhours !== 0 || deal.travelhours > 0 || deal.saleshours > 0 || deal.unbilledhours > 0 || deal.totalhours > 0) && (
-                                <div className="pt-2 mt-2 border-t border-slate-100/80 space-y-1">
-                                  {deal.residualhours !== 0 && (
-                                    <div className="flex justify-between items-center gap-4">
-                                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Residue</span>
-                                      <span className="font-mono text-slate-500 text-[11px]">{deal.residualhours}h</span>
-                                    </div>
-                                  )}
-                                  {deal.travelhours > 0 && (
-                                    <div className="flex justify-between items-center gap-4">
-                                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Viaggio</span>
-                                      <span className="font-mono text-slate-500 text-[11px]">{deal.travelhours}h</span>
-                                    </div>
-                                  )}
-                                  {deal.saleshours > 0 && (
-                                    <div className="flex justify-between items-center gap-4">
-                                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Commerciali</span>
-                                      <span className="font-mono text-slate-500 text-[11px]">{deal.saleshours}h</span>
-                                    </div>
-                                  )}
-                                  {deal.unbilledhours > 0 && (
-                                    <div className="flex justify-between items-center gap-4">
-                                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Da Fatturare</span>
-                                      <span className="font-mono text-amber-600 font-medium text-[11px]">{deal.unbilledhours}h</span>
-                                    </div>
-                                  )}
-                                  {deal.totalhours > 0 && (
-                                    <div className="flex justify-between items-center gap-4">
-                                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Totali Assolute</span>
-                                      <span className="font-mono text-slate-600 font-medium text-[11px]">{deal.totalhours}h</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              <div className="flex justify-between items-center gap-6">
+                                <span className="text-slate-500">Ore Viaggio</span>
+                                <span className="font-mono text-slate-500">{deal.travelhours}h</span>
+                              </div>
+                              <div className="flex justify-between items-center gap-6 pt-1 border-t border-slate-100/80 mt-1">
+                                <span className="text-slate-700 font-medium">Ore Totali</span>
+                                <span className="font-mono text-slate-700 font-bold">{deal.totalhours}h</span>
+                              </div>
                             </div>
                           </td>
 
-                          <td className="px-5 py-4 align-top bg-white group-hover:bg-[#fcfcfc] border-y border-slate-200/80 shadow-sm transition-colors relative">
-                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100"></div>
+                          <td className="px-5 py-4 align-top bg-white group-hover:bg-indigo-50/40 border-y border-slate-200/80 group-hover:border-indigo-200 shadow-sm transition-all duration-200 relative">
+                            <div className="absolute left-0 inset-y-6 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors"></div>
                             {(() => {
                               const contractMarginPct = deal.totalcontractvalue > 0 ? (deal.totalcontractnetmargin / deal.totalcontractvalue) * 100 : 0;
                               const isPositive = deal.totalcontractnetmargin >= 0;
@@ -915,8 +933,8 @@ export default function CustomDeal() {
                             }
 
                             return (
-                              <td className={`p-5 align-top w-64 border-y border-r border-slate-200/80 rounded-r-xl shadow-sm transition-colors relative ${bgClass}`}>
-                                <div className="absolute left-0 inset-y-6 w-px bg-slate-100"></div>
+                              <td className={`p-5 align-top w-64 border-y border-r border-slate-200/80 group-hover:border-indigo-200 rounded-r-xl shadow-sm transition-all duration-200 relative group-hover:brightness-95 ${bgClass}`}>
+                                <div className="absolute left-0 inset-y-6 w-px bg-slate-100 group-hover:bg-indigo-200 transition-colors"></div>
                                 <div className="flex flex-col h-full min-w-[180px]">
                                   <div className="flex items-baseline gap-0.5 mb-3">
                                     <span className={`text-[32px] leading-[1.1] font-black tracking-tight ${valueClass}`}>
