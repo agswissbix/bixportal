@@ -83,7 +83,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             body.append("email", emailToSearch);
 
             const res = await axiosInstanceClient.post("/postApi", body);
-            
+            console.log(res.data);
             if (res.data && res.data.recordid) {
                 setCompanyDetails({
                     id: res.data.recordid,
@@ -95,6 +95,16 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
         } finally {
             setIsLoadingCompany(false);
         }
+    };
+
+    const searchCompanies = async (value: string) => {
+        const params = new FormData();
+        params.append("apiRoute", "search_timesheet_entities");
+        params.append("target", "azienda");
+        params.append("q", value);
+        const res = await axiosInstanceClient.post("/postApi", params);
+        console.log(res.data);
+        return res.data.companies;
     };
 
     return (
