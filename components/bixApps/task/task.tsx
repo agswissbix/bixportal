@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
 import { setDate } from "date-fns";
+import { toast, Toaster } from "sonner";
 
 // INTERFACCE
 interface TaskProps {
@@ -36,11 +37,16 @@ export default function TaskApp(props: TaskProps) {
 function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail }: TaskProps) {
     const [isLoadingCompany, setIsLoadingCompany] = useState(false);
     const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
-    const [priority, setPriority] = useState<number | null>(null);
+    const [priority, setPriority] = useState<number | null>(1);
     const [description, setDescription] = useState('');
     const [expiration, setExpiration] = useState<Date>();
     const [plannedDate, setPlannedDate] = useState<Date>();
     const [duration, setDuration] = useState<Number>();
+
+    // Ricerca azienda (autocomplete)
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showResults, setShowResults] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (mailmittente) {
@@ -54,25 +60,59 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
         setPlannedDate(new Date());
     }, []);
 
-    const handleSave = () => {
-        const params = new URLSearchParams();
-        // Campi impostati in questa pagina
-        params.set("priority", priority != null ? String(priority) : "");
-        params.set("description", description ?? "");
-        params.set("expiration", expiration ? toInputDate(expiration) : "");
-        params.set("plannedDate", plannedDate ? toInputDate(plannedDate) : "");
-        params.set("duration", duration != null ? String(duration) : "");
-        params.set("companyId", companyDetails ? companyDetails.id : "");
-        // Info mail ricevute come props
-        params.set("oggetto", oggetto ?? "");
-        params.set("mailmittente", mailmittente ?? "");
-        params.set("usermittente", usermittente ?? "");
-        params.set("dataricezione", dataricezione ?? "");
-        params.set("linkToMail", linkToMail ?? "");
+    const handleSave = async () => {
+        // const params = new URLSearchParams();
+        // // Campi impostati in questa pagina
+        // params.set("priority", priority != null ? String(priority) : "");
+        // params.set("description", description ?? "");
+        // params.set("expiration", expiration ? toInputDate(expiration) : "");
+        // params.set("plannedDate", plannedDate ? toInputDate(plannedDate) : "");
+        // params.set("duration", duration != null ? String(duration) : "");
+        // params.set("companyId", companyDetails ? companyDetails.id : "");
+        // // Info mail ricevute come props
+        // params.set("oggetto", oggetto ?? "");
+        // params.set("mailmittente", mailmittente ?? "");
+        // params.set("usermittente", usermittente ?? "");
+        // params.set("dataricezione", dataricezione ?? "");
+        // params.set("linkToMail", linkToMail ?? "");
 
-        const baseUrl = "https://example.com"; // TODO: replace with the real destination
-        const url = `${baseUrl}?${params.toString()}`;
-        window.open(url, "_blank", "noopener,noreferrer");
+        // const baseUrl = "https://example.com"; // TODO: replace with the real destination
+        // const url = `${baseUrl}?${params.toString()}`;
+        // window.open(url, "_blank", "noopener,noreferrer");
+
+        if(priority < 1 || !priority || priority > 5)
+        {
+            toast.error("La priorità deve essere tra 1 e 5")
+        }
+
+        // Blocca il salvataggio se scadenza o data pianificata sono precedenti a oggi
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const isBeforeToday = (d?: Date) => {
+            if (!d) return false;
+            const day = new Date(d);
+            day.setHours(0, 0, 0, 0);
+            return day < startOfToday;
+        };
+        if (isBeforeToday(expiration) || isBeforeToday(plannedDate)) {
+            toast.error("La data di scadenza e la data pianificata non possono essere precedenti a oggi.");
+            return;
+        }
+
+        const res = await axiosInstanceClient.post("/postApi", {
+            apiRoute: "save_mail_ticket",
+            priority: priority ?? 1,
+            description: description ?? "",
+            expiration: expiration ?? new Date(),
+            plannedDate: plannedDate ?? new Date(),
+            duration: duration ?? 0,
+            companyId: companyDetails.id ?? "",
+            object: oggetto ?? "",
+            mailSender: mailmittente ?? "",
+            userSender: usermittente ?? "",
+            receivedDate: dataricezione ?? "",
+            linkToMail: linkToMail ?? "",
+        });
     };
 
     const fetchCompanyByEmail = async (emailToSearch: string) => {
@@ -84,10 +124,12 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
 
             const res = await axiosInstanceClient.post("/postApi", body);
             console.log(res.data);
-            if (res.data && res.data.recordid) {
+            // Il backend restituisce un array: prendiamo solo la prima azienda
+            const firstCompany = Array.isArray(res.data) ? res.data[0] : res.data;
+            if (firstCompany && firstCompany.recordid) {
                 setCompanyDetails({
-                    id: res.data.recordid,
-                    name: res.data.name || "Azienda Trovata"
+                    id: firstCompany.recordid,
+                    name: firstCompany.name || "Azienda Trovata"
                 });
             }
         } catch (err) {
@@ -97,18 +139,46 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
         }
     };
 
-    const searchCompanies = async (value: string) => {
-        const params = new FormData();
-        params.append("apiRoute", "search_timesheet_entities");
-        params.append("target", "azienda");
-        params.append("q", value);
-        const res = await axiosInstanceClient.post("/postApi", params);
-        console.log(res.data);
-        return res.data.companies;
+    // Cerca le aziende mentre si digita (min 2 caratteri)
+    const searchCompanies = async (query: string) => {
+        if (!query || query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "search_timesheet_entities");
+            body.append("target", "azienda");
+            body.append("q", query);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            setSearchResults(res.data.results || []);
+            setShowResults(true);
+        } catch (err) {
+            console.error(err);
+        }
     };
+
+    // Seleziona un'azienda dalla lista dei risultati
+    const handleSelectCompany = (company: any) => {
+        setCompanyDetails({ id: company.id, name: company.name });
+        setShowResults(false);
+    };
+
+    // Chiude la lista dei risultati cliccando fuori
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowResults(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <div className="min-h-screen relative overflow-x-hidden selection:bg-indigo-100 pb-10">
+             <Toaster richColors position="top-right" />
              <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none" />
              <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
              <div className="absolute top-24 -left-24 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
@@ -315,6 +385,36 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     </div>
                                 </div>
                             )}
+
+                            <div className="relative" ref={searchRef}>
+                                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Azienda</div>
+                                <input
+                                    type="text"
+                                    value={companyDetails?.name ?? ""}
+                                    onChange={e => {
+                                        setCompanyDetails({ id: companyDetails?.id ?? "", name: e.target.value });
+                                        searchCompanies(e.target.value);
+                                    }}
+                                    onFocus={() => { if (searchResults.length > 0) setShowResults(true); }}
+                                    className="w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    placeholder="Cerca Azienda..."
+                                />
+
+                                {showResults && searchResults.length > 0 && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                        {searchResults.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                onClick={() => handleSelectCompany(item)}
+                                                className="p-3 hover:bg-zinc-50 cursor-pointer border-b border-zinc-100 last:border-0"
+                                            >
+                                                <p className="font-bold text-sm text-zinc-800">{item.name}</p>
+                                                {item.details && <p className="text-xs text-zinc-500">{item.details}</p>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

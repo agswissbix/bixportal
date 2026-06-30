@@ -819,6 +819,9 @@ export async function POST(request: Request) {
         case "upload_timesheet_in_bexio":
             djangoUrl = "/customapp_swissbix/upload_timesheet_in_bexio/";
             break;
+        case "save_mail_ticket":
+            djangoUrl = "/customapp_swissbix/save_mail_ticket/";
+            break
 
         default:
             return NextResponse.json(
