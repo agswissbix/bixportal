@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
-import { PenIcon } from "lucide-react";
+import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
 import { setDate } from "date-fns";
 
 // INTERFACCE
@@ -53,6 +53,27 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
         setExpiration(new Date());
         setPlannedDate(new Date());
     }, []);
+
+    const handleSave = () => {
+        const params = new URLSearchParams();
+        // Campi impostati in questa pagina
+        params.set("priority", priority != null ? String(priority) : "");
+        params.set("description", description ?? "");
+        params.set("expiration", expiration ? toInputDate(expiration) : "");
+        params.set("plannedDate", plannedDate ? toInputDate(plannedDate) : "");
+        params.set("duration", duration != null ? String(duration) : "");
+        params.set("companyId", companyDetails ? companyDetails.id : "");
+        // Info mail ricevute come props
+        params.set("oggetto", oggetto ?? "");
+        params.set("mailmittente", mailmittente ?? "");
+        params.set("usermittente", usermittente ?? "");
+        params.set("dataricezione", dataricezione ?? "");
+        params.set("linkToMail", linkToMail ?? "");
+
+        const baseUrl = "https://example.com"; // TODO: replace with the real destination
+        const url = `${baseUrl}?${params.toString()}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
 
     const fetchCompanyByEmail = async (emailToSearch: string) => {
         setIsLoadingCompany(true);
@@ -145,7 +166,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
 
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-                                    <HashtagIcon className="w-5 h-5" />
+                                    <LinkIcon className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Link alla mail</div>
@@ -231,6 +252,25 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     />
                                 </div>
                             </div>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                    <ClockIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Durata</div>
+
+                                    <input
+                                        type="number"
+                                        aria-label="Durata"
+                                        min={0}
+                                        step={0.1}
+                                        onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : null)}
+                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    >
+                                    </input>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Sezione Azienda Collegata */}
@@ -267,6 +307,14 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                             )}
                         </div>
                     </div>
+
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    className="mt-8 w-full flex items-center justify-center px-6 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">
+                    Salva
+                </button>
+                
                 </div>
              </main>
         </div>
