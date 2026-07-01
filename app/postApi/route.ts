@@ -585,6 +585,9 @@ export async function POST(request: Request) {
         case "get_company_by_contact":
             djangoUrl = "/customapp_swissbix/get_company_by_contact/";
             break;
+        case "get_company_details":
+            djangoUrl = "/customapp_swissbix/get_company_details/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":
@@ -819,8 +822,8 @@ export async function POST(request: Request) {
         case "upload_timesheet_in_bexio":
             djangoUrl = "/customapp_swissbix/upload_timesheet_in_bexio/";
             break;
-        case "save_mail_ticket":
-            djangoUrl = "/customapp_swissbix/save_mail_ticket/";
+        case "save_mail_task":
+            djangoUrl = "/customapp_swissbix/save_mail_task/";
             break
 
         default:

@@ -37,7 +37,7 @@ export default function TaskApp(props: TaskProps) {
 function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail }: TaskProps) {
     const [isLoadingCompany, setIsLoadingCompany] = useState(false);
     const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
-    const [priority, setPriority] = useState<number | null>(1);
+    const [priority, setPriority] = useState('1.Richiesta di Davide');
     const [description, setDescription] = useState('');
     const [expiration, setExpiration] = useState<Date>();
     const [plannedDate, setPlannedDate] = useState<Date>();
@@ -47,6 +47,9 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
+
+    // Stato del salvataggio (per feedback sul bottone)
+    const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         if (mailmittente) {
@@ -61,28 +64,13 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
     }, []);
 
     const handleSave = async () => {
-        // const params = new URLSearchParams();
-        // // Campi impostati in questa pagina
-        // params.set("priority", priority != null ? String(priority) : "");
-        // params.set("description", description ?? "");
-        // params.set("expiration", expiration ? toInputDate(expiration) : "");
-        // params.set("plannedDate", plannedDate ? toInputDate(plannedDate) : "");
-        // params.set("duration", duration != null ? String(duration) : "");
-        // params.set("companyId", companyDetails ? companyDetails.id : "");
-        // // Info mail ricevute come props
-        // params.set("oggetto", oggetto ?? "");
-        // params.set("mailmittente", mailmittente ?? "");
-        // params.set("usermittente", usermittente ?? "");
-        // params.set("dataricezione", dataricezione ?? "");
-        // params.set("linkToMail", linkToMail ?? "");
 
-        // const baseUrl = "https://example.com"; // TODO: replace with the real destination
-        // const url = `${baseUrl}?${params.toString()}`;
-        // window.open(url, "_blank", "noopener,noreferrer");
+        const allowedPriority = ['1.Richiesta di Davide', '2.Alta', '3.Media', '4.Bassa' ,'5.Richiesta di Mauro']
 
-        if(priority < 1 || !priority || priority > 5)
+        if(!allowedPriority.includes(priority))
         {
             toast.error("La priorità deve essere tra 1 e 5")
+            return
         }
 
         // Blocca il salvataggio se scadenza o data pianificata sono precedenti a oggi
@@ -99,20 +87,30 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             return;
         }
 
-        const res = await axiosInstanceClient.post("/postApi", {
-            apiRoute: "save_mail_ticket",
-            priority: priority ?? 1,
-            description: description ?? "",
-            expiration: expiration ?? new Date(),
-            plannedDate: plannedDate ?? new Date(),
-            duration: duration ?? 0,
-            companyId: companyDetails.id ?? "",
-            object: oggetto ?? "",
-            mailSender: mailmittente ?? "",
-            userSender: usermittente ?? "",
-            receivedDate: dataricezione ?? "",
-            linkToMail: linkToMail ?? "",
-        });
+        try {
+            const res = await axiosInstanceClient.post("/postApi", {
+                apiRoute: "save_mail_task",
+                priority: priority ?? "1.Richiesta di Davide",
+                description: description ?? "",
+                expiration: expiration ?? new Date(),
+                plannedDate: plannedDate ?? new Date(),
+                duration: duration ?? 0,
+                companyId: companyDetails.id ?? "",
+                object: oggetto ?? "",
+                mailSender: mailmittente ?? "",
+                userSender: usermittente ?? "",
+                receivedDate: dataricezione ?? "",
+                linkToMail: linkToMail ?? "",
+            });
+
+            if (res.data?.success) {
+                setSaved(true);
+            } else {
+                toast.error(res.data?.message || "Errore durante il salvataggio del task.");
+            }
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || "Errore durante il salvataggio del task.");
+        }
     };
 
     const fetchCompanyByEmail = async (emailToSearch: string) => {
@@ -293,15 +291,15 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     <select
                                         aria-label="Priorità"
                                         value={priority ?? ""}
-                                        onChange={(e) => setPriority(e.target.value ? Number(e.target.value) : null)}
+                                        onChange={(e) => setPriority(e.target.value)}
                                         className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
                                     >
 
-                                        <option value="1">Richiesta di Davide</option>
-                                        <option value="2">Alta</option>
-                                        <option value="3">Media</option>
-                                        <option value="4">Bassa</option>
-                                        <option value="5">Richiesta di Mauro</option>
+                                        <option value="1.Richiesta di Davide">Richiesta di Davide</option>
+                                        <option value="2.Alta">Alta</option>
+                                        <option value="3.Media">Media</option>
+                                        <option value="4.Bassa">Bassa</option>
+                                        <option value="5.Richiesta di Mauro">Richiesta di Mauro</option>
                                     </select>
                                 </div>
                             </div>
@@ -421,8 +419,20 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                 <button
                     type="button"
                     onClick={handleSave}
-                    className="mt-8 w-full flex items-center justify-center px-6 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">
-                    Salva
+                    disabled={saved}
+                    className={`mt-8 w-full flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                        saved
+                            ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
+                            : "bg-indigo-600 shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] focus:ring-indigo-400"
+                    }`}>
+                    {saved ? (
+                        <>
+                            <ClipboardDocumentCheckIcon className="w-4 h-4" />
+                            Task salvata con successo!
+                        </>
+                    ) : (
+                        "Salva"
+                    )}
                 </button>
                 
                 </div>

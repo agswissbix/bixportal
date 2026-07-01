@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { BuildingOfficeIcon, MagnifyingGlassIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
+import { tr } from "date-fns/locale";
+import { set } from "lodash";
 
 // INTERFACCE
 interface CompanyProps {
@@ -32,12 +35,17 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<ListItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [fetchedDetails, setFetchedDetails] = useState(false);
+
+    const router = useRouter();
 
     // If a recordid is passed initially, we should fetch its details.
     useEffect(() => {
         if (recordid) {
+            setFetchedDetails(true)
             fetchCompanyDetails(recordid);
         } else if (email || telefono) {
+            setFetchedDetails(true)
             fetchCompanyByContact(email, telefono);
         }
     }, [recordid, email, telefono]);
@@ -45,21 +53,29 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
     const fetchCompanyByContact = async (emailToSearch: string | null | undefined, telefonoToSearch: string | null | undefined) => {
         setIsLoading(true);
         try {
-            // Placeholder: In futuro chiameremo l'endpoint del backend per recuperare il recordid
             const body = new FormData();
             body.append("apiRoute", "get_company_by_contact"); 
-            if (emailToSearch) body.append("email", emailToSearch);
-            if (telefonoToSearch) body.append("telefono", telefonoToSearch);
+            body.append("email", emailToSearch);
+            body.append("telefono", telefonoToSearch);
 
             const res = await axiosInstanceClient.post("/postApi", body);
-            
-            if (res.data && res.data.recordid) {
-                fetchCompanyDetails(res.data.recordid);
-            } else {
-                console.log("Nessuna azienda trovata per contatti:", { email: emailToSearch, telefono: telefonoToSearch });
+            console.log(res.data);
+            // Il backend restituisce un array: prendiamo solo la prima azienda
+            const firstCompany = Array.isArray(res.data) ? res.data[0] : res.data;
+            if (res && Array.isArray(res.data)) 
+            {
+                let companies = res.data
+                console.log(companies)
+                let companiesList: ListItem[] = []
+                companies.forEach(company => {
+                    let newCompany: ListItem = { id: company['recordid'], name: company['name'] }
+                    companiesList.push(newCompany)
+                });
+
+                setSearchResults(companiesList)
             }
         } catch (err) {
-            console.error("Error fetching company by contact", err);
+            console.error("Error fetching company by email", err);
         } finally {
             setIsLoading(false);
         }
@@ -74,24 +90,14 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
             body.append("id", id);
 
             const res = await axiosInstanceClient.post("/postApi", body);
-            
-            if (res.data && res.data.record) {
-                setCompany({ 
-                    id: res.data.record.id, 
-                    name: res.data.record.descrizione || res.data.record.name || 'Dettaglio Azienda',
-                    details: res.data.record.indirizzo || ""
-                });
-            } else {
-                // Fallback attempt if get_record is not the exact standard
-                const searchBody = new FormData();
-                searchBody.append("apiRoute", "search_timesheet_entities");
-                searchBody.append("target", "azienda");
-                searchBody.append("id", id); // Using ID in search if possible
 
-                const searchRes = await axiosInstanceClient.post("/postApi", searchBody);
-                if (searchRes.data && searchRes.data.results && searchRes.data.results.length > 0) {
-                    setCompany(searchRes.data.results[0]);
-                }
+            // Il backend restituisce i campi "flat" (id, companyName, address, ...)
+            if (res.data && res.data.id) {
+                setCompany({
+                    id: res.data.id,
+                    name: res.data.companyName || 'Dettaglio Azienda',
+                    details: res.data.address || ""
+                });
             }
         } catch (err) {
             console.error("Error fetching company details", err);
@@ -130,6 +136,12 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
         setCompanyId(selected.id);
         setSearchQuery("");
         setSearchResults([]);
+
+        // Aggiunge l'id come segmento di path all'URL corrente (currentURL/id) senza reload.
+        // Quando si cerca un'altra azienda l'URL è già stato riportato alla base,
+        // quindi qui basta accodare l'id.
+        const basePath = window.location.pathname.replace(/\/$/, "");
+        router.push(`${basePath}/${selected.id}`);
     };
 
     return (
@@ -168,8 +180,14 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
                             )}
                             
                             <div className="flex gap-4">
-                                <button 
-                                    onClick={() => { setCompany(null); setCompanyId(null); }}
+                                <button
+                                    onClick={() => {
+                                        setCompany(null);
+                                        setCompanyId(null);
+                                        // Rimuove l'id dall'URL tornando alla pagina di ricerca (senza reload)
+                                        const basePath = window.location.pathname.replace(/\/$/, "");
+                                        router.push(basePath.substring(0, basePath.lastIndexOf("/")));
+                                    }}
                                     className="px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
                                 >
                                     <MagnifyingGlassIcon className="w-5 h-5" />
@@ -188,7 +206,7 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
                                     className="block w-full pl-14 pr-6 py-5 bg-zinc-50/50 border-0 rounded-2xl text-zinc-900 ring-1 ring-inset ring-zinc-200 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-lg sm:leading-6 transition-all placeholder:text-zinc-400 font-medium shadow-sm hover:bg-zinc-50"
                                     placeholder="Digita il nome dell'azienda da cercare..."
                                     value={searchQuery}
-                                    onChange={(e) => handleSearch(e.target.value)}
+                                    onChange={(e) => {handleSearch(e.target.value)}}
                                 />
                             </div>
 
