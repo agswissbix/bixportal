@@ -7,6 +7,7 @@ import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, Hasht
 import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
 import { setDate } from "date-fns";
 import { toast, Toaster } from "sonner";
+import { tr } from "date-fns/locale";
 
 // INTERFACCE
 interface TaskProps {
@@ -15,6 +16,8 @@ interface TaskProps {
     usermittente?: string | null;
     dataricezione?: string | null;
     linkToMail?: string | null;
+    companyRecordId?: string | null;
+    comingFrom?: string | null;
 }
 
 interface CompanyDetails {
@@ -34,7 +37,7 @@ export default function TaskApp(props: TaskProps) {
     );
 }
 
-function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail }: TaskProps) {
+function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail, companyRecordId, comingFrom }: TaskProps) {
     const [isLoadingCompany, setIsLoadingCompany] = useState(false);
     const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
     const [priority, setPriority] = useState('1.Richiesta di Davide');
@@ -42,6 +45,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
     const [expiration, setExpiration] = useState<Date>();
     const [plannedDate, setPlannedDate] = useState<Date>();
     const [duration, setDuration] = useState<Number>();
+    const [isIdValid, setIsIdValid] = useState(true)
 
     // Ricerca azienda (autocomplete)
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -52,7 +56,11 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
-        if (mailmittente) {
+        if (companyRecordId)
+        {
+            fetchCompanyById(companyRecordId);
+        }
+        else if (mailmittente) {
             fetchCompanyByEmail(mailmittente);
         }
     }, [mailmittente]);
@@ -87,6 +95,18 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             return;
         }
 
+        if(!companyDetails || !companyDetails.id || !companyDetails.name)
+        {
+            toast.error("Selezionare un'azienda prima di salvare");
+            return;
+        }
+
+        if(!isIdValid)
+        {
+            toast.error("Selezionare un'azienda valida");
+            return;
+        }
+
         try {
             const res = await axiosInstanceClient.post("/postApi", {
                 apiRoute: "save_mail_task",
@@ -112,6 +132,30 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             toast.error(err?.response?.data?.message || "Errore durante il salvataggio del task.");
         }
     };
+
+    const fetchCompanyById = async (companyId: string) => {
+        setIsLoadingCompany(true)
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_company_details")
+            body.append("id", companyId)
+
+            const res = await axiosInstanceClient.post("/postApi", body)
+            console.log(res.data);
+
+            if(!res.data.companyName)
+            {
+                setIsIdValid(false)
+            }
+            
+            setCompanyDetails( { id: companyId, name: res.data.companyName } )
+        }
+        catch (err) {
+            console.error("Error fetching company by email", err);
+        } finally {
+            setIsLoadingCompany(false);
+        }
+    }
 
     const fetchCompanyByEmail = async (emailToSearch: string) => {
         setIsLoadingCompany(true);
@@ -147,7 +191,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             const body = new FormData();
             body.append("apiRoute", "search_timesheet_entities");
             body.append("target", "azienda");
-            body.append("q", query);
+            body.append("searchTerm", query);
 
             const res = await axiosInstanceClient.post("/postApi", body);
             setSearchResults(res.data.results || []);
@@ -159,6 +203,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
 
     // Seleziona un'azienda dalla lista dei risultati
     const handleSelectCompany = (company: any) => {
+        setIsIdValid(true)
         setCompanyDetails({ id: company.id, name: company.name });
         setShowResults(false);
     };
@@ -191,7 +236,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                         Dettaglio Task
                     </h1>
                     <p className="text-zinc-500 mt-2 font-medium">
-                        Informazioni estratte dalla mail ricevuta.
+                        Creazione task con informazioni ricevute
                     </p>
                 </header>
 
@@ -200,8 +245,10 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Sezione Dettagli Mail */}
                         <div className="space-y-6">
-                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Informazioni Ricezione</h3>
+                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Informazioni Task</h3>
                             
+                            {!comingFrom && (
+                            <>
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
                                     <HashtagIcon className="w-5 h-5" />
@@ -262,6 +309,8 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     )}
                                 </div>
                             </div>
+                            </>
+                            )}
 
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
@@ -368,9 +417,6 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     <div>
                                         <div className="text-lg font-bold text-zinc-800">{companyDetails.name}</div>
                                         <div className="text-xs font-mono text-zinc-400 mt-1">ID: {companyDetails.id}</div>
-                                        <div className="mt-3 inline-block px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-lg uppercase tracking-wider">
-                                            Trovata tramite Email
-                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -416,24 +462,43 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                         </div>
                     </div>
 
-                <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saved}
-                    className={`mt-8 w-full flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        saved
-                            ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
-                            : "bg-indigo-600 shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] focus:ring-indigo-400"
-                    }`}>
-                    {saved ? (
-                        <>
-                            <ClipboardDocumentCheckIcon className="w-4 h-4" />
-                            Task salvata con successo!
-                        </>
-                    ) : (
-                        "Salva"
+                <div className="mt-8 flex gap-4">
+                    {comingFrom && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                // Torna alla bixApp di provenienza (root-relative: funziona in locale e in prod)
+                                const backPath = companyRecordId
+                                    ? `/bixApps/${comingFrom}/${companyRecordId}`
+                                    : `/bixApps/${comingFrom}`;
+                                window.location.href = backPath;
+                            }}
+                            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-bold rounded-xl transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2"
+                        >
+                            <BuildingOfficeIcon className="w-4 h-4" />
+                            Torna a {comingFrom}
+                        </button>
                     )}
-                </button>
+
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={saved}
+                        className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            saved
+                                ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
+                                : "bg-indigo-600 shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] focus:ring-indigo-400"
+                        }`}>
+                        {saved ? (
+                            <>
+                                <ClipboardDocumentCheckIcon className="w-4 h-4" />
+                                Task salvata con successo!
+                            </>
+                        ) : (
+                            "Salva"
+                        )}
+                    </button>
+                </div>
                 
                 </div>
              </main>

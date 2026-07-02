@@ -5,6 +5,7 @@ import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { BuildingOfficeIcon, MagnifyingGlassIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
+import CardBadgeCompany from "@/components/customBadges/cardBadgeCompany";
 import { tr } from "date-fns/locale";
 import { set } from "lodash";
 
@@ -144,58 +145,29 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
         router.push(`${basePath}/${selected.id}`);
     };
 
-    return (
-        <div className="min-h-screen relative overflow-x-hidden selection:bg-blue-100 pb-10">
-             <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none" />
-             <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
-             <div className="absolute top-24 -left-24 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
-            
-             <main className="relative z-10 w-full max-w-4xl mx-auto px-6 py-8 md:py-16">
-                 <header className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="flex items-center gap-2 text-blue-500 text-xs font-bold uppercase tracking-widest mb-2">
-                        <BuildingOfficeIcon className="w-4 h-4" />
-                        BixData App
-                    </div>
-                    <h1 className="text-3xl md:text-5xl font-black text-zinc-900 tracking-tight leading-tight">
-                        {company ? "Scheda Azienda" : "Ricerca Azienda"}
-                    </h1>
-                    <p className="text-zinc-500 mt-2 font-medium">
-                        {company ? "Visualizza i dettagli dell'azienda selezionata." : "Cerca un'azienda nel database per visualizzarne la scheda."}
-                    </p>
-                </header>
-
-                <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-200/40 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                    {company ? (
-                        <div className="p-8 md:p-12">
-                             <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 rounded-3xl mb-8 shadow-inner ring-1 ring-black/5">
-                                <BuildingOfficeIcon className="w-12 h-12" />
-                            </div>
-                            <h2 className="text-3xl font-black text-zinc-800 mb-3">{company.name}</h2>
-                            {company.details ? (
-                                <p className="text-zinc-500 text-lg mb-10">{company.details}</p>
-                            ) : (
-                                <div className="inline-block px-3 py-1 bg-zinc-100 text-zinc-500 text-sm font-medium rounded-lg mb-10">
-                                    Nessun dettaglio aggiuntivo disponibile
-                                </div>
-                            )}
-                            
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={() => {
-                                        setCompany(null);
-                                        setCompanyId(null);
-                                        // Rimuove l'id dall'URL tornando alla pagina di ricerca (senza reload)
-                                        const basePath = window.location.pathname.replace(/\/$/, "");
-                                        router.push(basePath.substring(0, basePath.lastIndexOf("/")));
-                                    }}
-                                    className="px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
-                                >
-                                    <MagnifyingGlassIcon className="w-5 h-5" />
-                                    Cerca un'altra azienda
-                                </button>
-                            </div>
+    if(company == null)
+    {
+        return (
+            <div className="min-h-screen relative overflow-x-hidden selection:bg-blue-100 pb-10">
+                <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none" />
+                <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
+                <div className="absolute top-24 -left-24 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
+                
+                <main className="relative z-10 w-full max-w-4xl mx-auto px-6 py-8 md:py-16">
+                    <header className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+                        <div className="flex items-center gap-2 text-blue-500 text-xs font-bold uppercase tracking-widest mb-2">
+                            <BuildingOfficeIcon className="w-4 h-4" />
+                            BixData App
                         </div>
-                    ) : (
+                        <h1 className="text-3xl md:text-5xl font-black text-zinc-900 tracking-tight leading-tight">
+                            Ricerca Azienda
+                        </h1>
+                        <p className="text-zinc-500 mt-2 font-medium">
+                            Cerca un'azienda nel database per visualizzarne la scheda.
+                        </p>
+                    </header>
+
+                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-200/40 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
                         <div className="p-6 md:p-8">
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
@@ -242,7 +214,7 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
                                 </div>
                             )}
 
-                             {!isLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
+                            {!isLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
                                 <div className="text-center py-16 text-zinc-500">
                                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 mb-4">
                                         <BuildingOfficeIcon className="w-8 h-8 text-zinc-400" />
@@ -252,9 +224,51 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
                                 </div>
                             )}
                         </div>
-                    )}
+                    </div>
+                </main>
+            </div>
+        );
+    }
+    else
+    {
+        return (
+            <div className="w-full max-w-4xl mx-auto px-6 py-8 md:py-16 flex flex-col items-center gap-6">
+                <CardBadgeCompany tableid="company" recordid={companyId ?? undefined} />
+
+                <div className="flex gap-4">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setCompany(null);
+                            setCompanyId(null);
+                            // Rimuove l'id dall'URL tornando alla pagina di ricerca (senza reload)
+                            const basePath = window.location.pathname.replace(/\/$/, "");
+                            router.push(basePath.substring(0, basePath.lastIndexOf("/")));
+                        }}
+                        className="px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        <MagnifyingGlassIcon className="w-5 h-5" />
+                        Cerca un'altra azienda
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            // Ricava dinamicamente il nome della bixApp dal path (.../bixApps/<app>/...)
+                            const segments = window.location.pathname.split("/").filter(Boolean);
+                            const bixIdx = segments.indexOf("bixApps");
+                            const comingFrom = bixIdx !== -1 ? (segments[bixIdx + 1] ?? "company") : "company";
+                            // Full reload cambiando bixApp (root-relative: funziona in locale e in prod)
+                            window.location.href =
+                                `/bixApps/task?companyRecordId=${encodeURIComponent(companyId ?? "")}&comingFrom=${encodeURIComponent(comingFrom)}`;
+                        }}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        <ArrowRightIcon className="w-5 h-5" />
+                        Crea task
+                    </button>
                 </div>
-             </main>
-        </div>
-    );
+            </div>
+        );
+    }
 }
