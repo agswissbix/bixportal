@@ -588,6 +588,12 @@ export async function POST(request: Request) {
         case "get_company_details":
             djangoUrl = "/customapp_swissbix/get_company_details/";
             break;
+        case "normalize_phone":
+            djangoUrl = "/customapp_swissbix/normalize_phone/";
+            break;
+        case "get_contact_by_phone":
+            djangoUrl = "/customapp_swissbix/get_contact_by_phone/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":

@@ -5,9 +5,7 @@ import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
-import { setDate } from "date-fns";
 import { toast, Toaster } from "sonner";
-import { tr } from "date-fns/locale";
 
 // INTERFACCE
 interface TaskProps {
