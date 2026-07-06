@@ -23,17 +23,27 @@ interface Contact {
     companyRecordId?: string | null;
 }
 
-// Riga "etichetta / valore". Non renderizza nulla se il valore è vuoto,
-// così non lascia spazi vuoti nella colonna.
-const Field = ({ label, value }: { label: string; value?: string | null }) => {
-    if (!value) return null;
-    return (
-        <div>
-            <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{label}</div>
-            <div className="text-sm font-semibold text-zinc-800 mt-0.5 break-all">{value}</div>
-        </div>
-    );
-};
+// Riga contatto: input sempre modificabile che scrive nello stato del contatto.
+const ContactField = ({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value?: string | null;
+    onChange: (v: string) => void;
+}) => (
+    <div>
+        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{label}</div>
+        <input
+            type="text"
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={`Inserisci ${label.toLowerCase()}`}
+            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+        />
+    </div>
+);
 
 async function normalizePhone(phone: string): Promise<string | null> {
     const body = new FormData();
@@ -45,24 +55,33 @@ async function normalizePhone(phone: string): Promise<string | null> {
     return res.data.normalizedPhone ?? null;
 }
 
-async function getContact(phone: string) {
+async function getContact(phone: string): Promise<Contact> {
     const body = new FormData();
     body.append("apiRoute", "get_contact_by_phone");
     body.append("phone", phone);
 
-    const res = (await axiosInstanceClient.post("/postApi", body)).data;
+    try {
+        const res = (await axiosInstanceClient.post("/postApi", body)).data;
 
-    const contact: Contact = { 
-        id: res.recordid,
-        name: res.name,
-        surname: res.surname,
-        email: res.email,
-        phone: res.phone,
-        mobilePhone: res.mobilePhone,
-        companyRecordId: res.companyRecordId
+        return {
+            id: res.recordid,
+            name: res.name,
+            surname: res.surname,
+            email: res.email,
+            phone: res.phone,
+            mobilePhone: res.mobilePhone,
+            companyRecordId: res.companyRecordId
+        };
+    } catch (err: any) {
+        // 404 = nessun contatto trovato: caso normale, mostriamo un modulo vuoto
+        // per crearne uno nuovo (senza errori).
+        if (err?.response?.status === 404) {
+            return {};
+        }
+        // Altri errori (500, rete, ...): avvisiamo l'utente con un toast.
+        toast.error(err?.response?.data?.message || "Errore durante il caricamento del contatto.");
+        return {};
     }
-
-    return contact;
 }
 
 export default function ContactApp(props: ContactProps) {
@@ -75,6 +94,14 @@ export default function ContactApp(props: ContactProps) {
 
 function ContactDisplay({ phoneNumber }: ContactProps) {
     const [contact, setContact] = useState<Contact>({});
+    const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success">("idle");
+
+    // Aggiorna un singolo campo del contatto senza toccare gli altri
+    const updateContact = <K extends keyof Contact>(key: K, value: Contact[K]) => {
+        setContact((prev) => ({ ...prev, [key]: value }));
+        // Dopo una modifica il salvataggio non è più aggiornato -> torna a "Salva"
+        setSaveStatus((s) => (s === "success" ? "idle" : s));
+    };
 
     // Ricerca azienda (autocomplete) - mostrata solo se il contatto non ha un'azienda
     const [companyQuery, setCompanyQuery] = useState("");
@@ -93,6 +120,32 @@ function ContactDisplay({ phoneNumber }: ContactProps) {
             });
         });
     }, [phoneNumber]);
+
+    async function saveContact(contact:Contact) {
+        const body = new FormData();
+        body.append("apiRoute", "save_contact");
+        body.append("id", contact.id ?? "");
+        body.append("name", contact.name ?? "");
+        body.append("surname", contact.surname ?? "");
+        body.append("email", contact.email ?? "");
+        body.append("phone", contact.phone ?? "");
+        body.append("mobilePhone", contact.mobilePhone ?? "");
+        body.append("companyRecordId", contact.companyRecordId ?? "");
+
+        setSaveStatus("saving");
+        try {
+            const res = await axiosInstanceClient.post("/postApi", body);
+            if (res.data?.success) {
+                setSaveStatus("success");
+            } else {
+                setSaveStatus("idle");
+                toast.error(res.data?.message || "Errore durante il salvataggio del contatto.");
+            }
+        } catch (err: any) {
+            setSaveStatus("idle");
+            toast.error(err?.response?.data?.message || "Errore durante il salvataggio del contatto.");
+        }
+    }
 
     // Cerca le aziende mentre si digita (min 2 caratteri)
     const searchCompanies = async (query: string) => {
@@ -119,6 +172,8 @@ function ContactDisplay({ phoneNumber }: ContactProps) {
         setContact((prev) => ({ ...prev, companyRecordId: company.id }));
         setCompanyQuery(company.name);   // riempie la barra col nome selezionato
         setShowResults(false);
+        // Cambiare azienda è una modifica -> il salvataggio torna a "Salva"
+        setSaveStatus((s) => (s === "success" ? "idle" : s));
     };
 
     // Chiude la lista dei risultati cliccando fuori
@@ -134,6 +189,7 @@ function ContactDisplay({ phoneNumber }: ContactProps) {
 
     return (
         <div className="min-h-screen relative overflow-x-hidden selection:bg-indigo-100 pb-10">
+            <Toaster richColors position="top-right" />
             <main className="relative z-10 w-full max-w-7xl mx-auto px-6 py-8 md:py-16">
                 <header className="mb-10">
                     <div className="flex items-center gap-2 text-indigo-500 text-xs font-bold uppercase tracking-widest mb-2">
@@ -155,10 +211,13 @@ function ContactDisplay({ phoneNumber }: ContactProps) {
                             <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Contatto</h3>
 
                             {/* Nome e cognome sulla stessa riga */}
-                            <Field label="Nome" value={[contact.name, contact.surname].filter(Boolean).join(" ")} />
-                            <Field label="Email" value={contact.email} />
-                            <Field label="Telefono" value={contact.phone} />
-                            <Field label="Cellulare" value={contact.mobilePhone} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <ContactField label="Nome" value={contact.name} onChange={(v) => updateContact("name", v)} />
+                                <ContactField label="Cognome" value={contact.surname} onChange={(v) => updateContact("surname", v)} />
+                            </div>
+                            <ContactField label="Email" value={contact.email} onChange={(v) => updateContact("email", v)} />
+                            <ContactField label="Telefono" value={contact.phone} onChange={(v) => updateContact("phone", v)} />
+                            <ContactField label="Cellulare" value={contact.mobilePhone} onChange={(v) => updateContact("mobilePhone", v)} />
                         </div>
 
                         {/* Colonna Azienda */}
@@ -201,6 +260,21 @@ function ContactDisplay({ phoneNumber }: ContactProps) {
                             </div>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => saveContact(contact)}
+                        disabled={saveStatus === "saving" || saveStatus === "success"}
+                        className={`mt-8 w-full flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            saveStatus === "success"
+                                ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
+                                : saveStatus === "saving"
+                                ? "bg-zinc-400 shadow-zinc-400/20 cursor-wait"
+                                : "bg-blue-600 shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.99] focus:ring-blue-400"
+                        }`}
+                    >
+                        {saveStatus === "success" ? "Salvato" : saveStatus === "saving" ? "Salvando" : "Salva"}
+                    </button>
                 </div>
             </main>
         </div>
