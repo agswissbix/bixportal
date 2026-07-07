@@ -251,7 +251,7 @@ function ChartsList({
                   </div>
 
                   <div className="inline-block w-full rounded-lg overflow-hidden">
-                    <ChartPreview chartId={selectedBlock.chartid} viewId={selectedBlock.viewid}/>
+                    <ChartPreview chartId={selectedBlock.chartid} viewId={selectedBlock.viewid} dashboardId={dashboardId}/>
                   </div>
                   
                   <div className="space-y-2">

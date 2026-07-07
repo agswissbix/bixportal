@@ -752,6 +752,10 @@ export async function POST(request: Request) {
         case "renew_servicecontract":
             djangoUrl = "/customapp_swissbix/renew_servicecontract/";
             break;
+        case "disposizione_conferma_lettura":
+            djangoUrl = "/customapp_swissbix/disposizione_conferma_lettura/";
+            break;
+
 
         case "get_timetracking":
             djangoUrl = "/customapp_swissbix/get_timetracking/";
