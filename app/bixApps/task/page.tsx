@@ -20,20 +20,28 @@ export default async function TaskBixApp(props: TaskBixAppProps) {
   const usermittente = typeof searchParams.senderName === 'string' ? searchParams.senderName : null;
   const dataricezione = typeof searchParams.date === 'string' ? searchParams.date : null;
   const idmail = typeof searchParams.mailId === 'string' ? searchParams.mailId : null;
-
-    const deepLink =
-    "https://outlook.office.com/owa/?ItemID=" +
-    encodeURIComponent(idmail) +                  // re-encode
-    "&exvsurl=1&viewmodel=ReadMessageItem";	      // exvsurl=1 --> Makes sure that the link resolves to the correct mailbox
-						                                      // viewmodel=ReadMessageItem --> Makes the link know this is a mail (not calendar or other stuff) and that it needs to open it
+  const companyRecordId = typeof searchParams.companyRecordId === 'string' ? searchParams.companyRecordId : null;
+  const comingFrom = typeof searchParams.comingFrom === 'string' ? searchParams.comingFrom : null;
+  let deepLink = null
+  
+  if(idmail)
+  {
+      deepLink =
+      "https://outlook.office.com/owa/?ItemID=" +
+      encodeURIComponent(idmail) +                  // re-encode
+      "&exvsurl=1&viewmodel=ReadMessageItem";	      // exvsurl=1 --> Makes sure that the link resolves to the correct mailbox
+                                                    // viewmodel=ReadMessageItem --> Makes the link know this is a mail (not calendar or other stuff) and that it needs to open it
+  }
 
   return (
     <TaskApp 
         oggetto={oggetto} 
         mailmittente={mailmittente} 
         usermittente={usermittente} 
-        dataricezione={dataricezione} 
-        linkToMail={deepLink} 
+        dataricezione={dataricezione}
+        linkToMail={deepLink}
+        companyRecordId={companyRecordId}
+        comingFrom={comingFrom}
     />
   );
 }

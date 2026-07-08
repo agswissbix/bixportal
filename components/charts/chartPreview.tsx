@@ -5,7 +5,8 @@ import GenericComponent from "../genericComponent";
 
 interface ChartPreviewProps {
   chartId: number;
-  viewId: number
+  viewId: number;
+  dashboardId?: string | number;
 }
 
 interface ChartResponse {
@@ -16,14 +17,15 @@ interface ChartResponse {
   config?: any;
 }
 
-const ChartPreview: React.FC<ChartPreviewProps> = ({ chartId,viewId }) => {
+const ChartPreview: React.FC<ChartPreviewProps> = ({ chartId, viewId, dashboardId }) => {
   const payload = useMemo(() => {
     return {
         apiRoute: "get_chart_data",
         chart_id: chartId,
-        viewid: viewId
+        viewid: viewId,
+        dashboardid: dashboardId
     }
-  }, [chartId, viewId])
+  }, [chartId, viewId, dashboardId])
 
   const { response, loading, error } = useApi<ChartResponse>(payload);
 

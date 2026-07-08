@@ -585,6 +585,18 @@ export async function POST(request: Request) {
         case "get_company_by_contact":
             djangoUrl = "/customapp_swissbix/get_company_by_contact/";
             break;
+        case "get_company_details":
+            djangoUrl = "/customapp_swissbix/get_company_details/";
+            break;
+        case "normalize_phone":
+            djangoUrl = "/customapp_swissbix/normalize_phone/";
+            break;
+        case "get_contact_by_phone":
+            djangoUrl = "/customapp_swissbix/get_contact_by_phone/";
+            break;
+        case "save_contact":
+            djangoUrl = "/customapp_swissbix/save_contact/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":
@@ -743,6 +755,10 @@ export async function POST(request: Request) {
         case "renew_servicecontract":
             djangoUrl = "/customapp_swissbix/renew_servicecontract/";
             break;
+        case "disposizione_conferma_lettura":
+            djangoUrl = "/customapp_swissbix/disposizione_conferma_lettura/";
+            break;
+
 
         case "get_timetracking":
             djangoUrl = "/customapp_swissbix/get_timetracking/";
@@ -819,8 +835,8 @@ export async function POST(request: Request) {
         case "upload_timesheet_in_bexio":
             djangoUrl = "/customapp_swissbix/upload_timesheet_in_bexio/";
             break;
-        case "save_mail_ticket":
-            djangoUrl = "/customapp_swissbix/save_mail_ticket/";
+        case "save_mail_task":
+            djangoUrl = "/customapp_swissbix/save_mail_task/";
             break
 
         default:

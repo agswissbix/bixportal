@@ -5,7 +5,6 @@ import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
-import { setDate } from "date-fns";
 import { toast, Toaster } from "sonner";
 
 // INTERFACCE
@@ -15,6 +14,8 @@ interface TaskProps {
     usermittente?: string | null;
     dataricezione?: string | null;
     linkToMail?: string | null;
+    companyRecordId?: string | null;
+    comingFrom?: string | null;
 }
 
 interface CompanyDetails {
@@ -34,22 +35,30 @@ export default function TaskApp(props: TaskProps) {
     );
 }
 
-function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail }: TaskProps) {
+function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail, companyRecordId, comingFrom }: TaskProps) {
     const [isLoadingCompany, setIsLoadingCompany] = useState(false);
     const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
-    const [priority, setPriority] = useState<number | null>(1);
+    const [priority, setPriority] = useState('1.Richiesta di Davide');
     const [description, setDescription] = useState('');
     const [expiration, setExpiration] = useState<Date>();
     const [plannedDate, setPlannedDate] = useState<Date>();
     const [duration, setDuration] = useState<Number>();
+    const [isIdValid, setIsIdValid] = useState(true)
 
     // Ricerca azienda (autocomplete)
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
 
+    // Stato del salvataggio (per feedback sul bottone)
+    const [saved, setSaved] = useState(false);
+
     useEffect(() => {
-        if (mailmittente) {
+        if (companyRecordId)
+        {
+            fetchCompanyById(companyRecordId);
+        }
+        else if (mailmittente) {
             fetchCompanyByEmail(mailmittente);
         }
     }, [mailmittente]);
@@ -61,28 +70,13 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
     }, []);
 
     const handleSave = async () => {
-        // const params = new URLSearchParams();
-        // // Campi impostati in questa pagina
-        // params.set("priority", priority != null ? String(priority) : "");
-        // params.set("description", description ?? "");
-        // params.set("expiration", expiration ? toInputDate(expiration) : "");
-        // params.set("plannedDate", plannedDate ? toInputDate(plannedDate) : "");
-        // params.set("duration", duration != null ? String(duration) : "");
-        // params.set("companyId", companyDetails ? companyDetails.id : "");
-        // // Info mail ricevute come props
-        // params.set("oggetto", oggetto ?? "");
-        // params.set("mailmittente", mailmittente ?? "");
-        // params.set("usermittente", usermittente ?? "");
-        // params.set("dataricezione", dataricezione ?? "");
-        // params.set("linkToMail", linkToMail ?? "");
 
-        // const baseUrl = "https://example.com"; // TODO: replace with the real destination
-        // const url = `${baseUrl}?${params.toString()}`;
-        // window.open(url, "_blank", "noopener,noreferrer");
+        const allowedPriority = ['1.Richiesta di Davide', '2.Alta', '3.Media', '4.Bassa' ,'5.Richiesta di Mauro']
 
-        if(priority < 1 || !priority || priority > 5)
+        if(!allowedPriority.includes(priority))
         {
             toast.error("La priorità deve essere tra 1 e 5")
+            return
         }
 
         // Blocca il salvataggio se scadenza o data pianificata sono precedenti a oggi
@@ -99,21 +93,67 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             return;
         }
 
-        const res = await axiosInstanceClient.post("/postApi", {
-            apiRoute: "save_mail_ticket",
-            priority: priority ?? 1,
-            description: description ?? "",
-            expiration: expiration ?? new Date(),
-            plannedDate: plannedDate ?? new Date(),
-            duration: duration ?? 0,
-            companyId: companyDetails.id ?? "",
-            object: oggetto ?? "",
-            mailSender: mailmittente ?? "",
-            userSender: usermittente ?? "",
-            receivedDate: dataricezione ?? "",
-            linkToMail: linkToMail ?? "",
-        });
+        if(!companyDetails || !companyDetails.id || !companyDetails.name)
+        {
+            toast.error("Selezionare un'azienda prima di salvare");
+            return;
+        }
+
+        if(!isIdValid)
+        {
+            toast.error("Selezionare un'azienda valida");
+            return;
+        }
+
+        try {
+            const res = await axiosInstanceClient.post("/postApi", {
+                apiRoute: "save_mail_task",
+                priority: priority ?? "1.Richiesta di Davide",
+                description: description ?? "",
+                expiration: expiration ?? new Date(),
+                plannedDate: plannedDate ?? new Date(),
+                duration: duration ?? 0,
+                companyId: companyDetails.id ?? "",
+                object: oggetto ?? "",
+                mailSender: mailmittente ?? "",
+                userSender: usermittente ?? "",
+                receivedDate: dataricezione ?? "",
+                linkToMail: linkToMail ?? "",
+            });
+
+            if (res.data?.success) {
+                setSaved(true);
+            } else {
+                toast.error(res.data?.message || "Errore durante il salvataggio del task.");
+            }
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || "Errore durante il salvataggio del task.");
+        }
     };
+
+    const fetchCompanyById = async (companyId: string) => {
+        setIsLoadingCompany(true)
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_company_details")
+            body.append("id", companyId)
+
+            const res = await axiosInstanceClient.post("/postApi", body)
+            console.log(res.data);
+
+            if(!res.data.companyName)
+            {
+                setIsIdValid(false)
+            }
+            
+            setCompanyDetails( { id: companyId, name: res.data.companyName } )
+        }
+        catch (err) {
+            console.error("Error fetching company by email", err);
+        } finally {
+            setIsLoadingCompany(false);
+        }
+    }
 
     const fetchCompanyByEmail = async (emailToSearch: string) => {
         setIsLoadingCompany(true);
@@ -149,7 +189,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
             const body = new FormData();
             body.append("apiRoute", "search_timesheet_entities");
             body.append("target", "azienda");
-            body.append("q", query);
+            body.append("searchTerm", query);
 
             const res = await axiosInstanceClient.post("/postApi", body);
             setSearchResults(res.data.results || []);
@@ -161,6 +201,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
 
     // Seleziona un'azienda dalla lista dei risultati
     const handleSelectCompany = (company: any) => {
+        setIsIdValid(true)
         setCompanyDetails({ id: company.id, name: company.name });
         setShowResults(false);
     };
@@ -193,7 +234,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                         Dettaglio Task
                     </h1>
                     <p className="text-zinc-500 mt-2 font-medium">
-                        Informazioni estratte dalla mail ricevuta.
+                        Creazione task con informazioni ricevute
                     </p>
                 </header>
 
@@ -202,8 +243,10 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Sezione Dettagli Mail */}
                         <div className="space-y-6">
-                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Informazioni Ricezione</h3>
+                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Informazioni Task</h3>
                             
+                            {!comingFrom && (
+                            <>
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
                                     <HashtagIcon className="w-5 h-5" />
@@ -264,6 +307,8 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     )}
                                 </div>
                             </div>
+                            </>
+                            )}
 
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
@@ -293,15 +338,15 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     <select
                                         aria-label="Priorità"
                                         value={priority ?? ""}
-                                        onChange={(e) => setPriority(e.target.value ? Number(e.target.value) : null)}
+                                        onChange={(e) => setPriority(e.target.value)}
                                         className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
                                     >
 
-                                        <option value="1">Richiesta di Davide</option>
-                                        <option value="2">Alta</option>
-                                        <option value="3">Media</option>
-                                        <option value="4">Bassa</option>
-                                        <option value="5">Richiesta di Mauro</option>
+                                        <option value="1.Richiesta di Davide">Richiesta di Davide</option>
+                                        <option value="2.Alta">Alta</option>
+                                        <option value="3.Media">Media</option>
+                                        <option value="4.Bassa">Bassa</option>
+                                        <option value="5.Richiesta di Mauro">Richiesta di Mauro</option>
                                     </select>
                                 </div>
                             </div>
@@ -370,9 +415,6 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     <div>
                                         <div className="text-lg font-bold text-zinc-800">{companyDetails.name}</div>
                                         <div className="text-xs font-mono text-zinc-400 mt-1">ID: {companyDetails.id}</div>
-                                        <div className="mt-3 inline-block px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-lg uppercase tracking-wider">
-                                            Trovata tramite Email
-                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -418,12 +460,43 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                         </div>
                     </div>
 
-                <button
-                    type="button"
-                    onClick={handleSave}
-                    className="mt-8 w-full flex items-center justify-center px-6 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">
-                    Salva
-                </button>
+                <div className="mt-8 flex gap-4">
+                    {comingFrom && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                // Torna alla bixApp di provenienza (root-relative: funziona in locale e in prod)
+                                const backPath = companyRecordId
+                                    ? `/bixApps/${comingFrom}/${companyRecordId}`
+                                    : `/bixApps/${comingFrom}`;
+                                window.location.href = backPath;
+                            }}
+                            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-bold rounded-xl transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2"
+                        >
+                            <BuildingOfficeIcon className="w-4 h-4" />
+                            Torna a {comingFrom}
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={saved}
+                        className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            saved
+                                ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
+                                : "bg-indigo-600 shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] focus:ring-indigo-400"
+                        }`}>
+                        {saved ? (
+                            <>
+                                <ClipboardDocumentCheckIcon className="w-4 h-4" />
+                                Task salvata con successo!
+                            </>
+                        ) : (
+                            "Salva"
+                        )}
+                    </button>
+                </div>
                 
                 </div>
              </main>

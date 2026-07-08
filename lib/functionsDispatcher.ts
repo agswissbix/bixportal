@@ -892,6 +892,31 @@ export function useFrontendFunctions() {
       }
     },
 
+    disposizione_conferma_lettura: async (params: object) => {
+      console.info("dispatcher: disposizione_conferma_lettura")
+      try {
+        const response = await axiosInstanceClient.post(
+          "/postApi",
+          {
+            apiRoute: "disposizione_conferma_lettura",
+            params: params,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        )
+        toast.success("Lettura confermata")
+        if ((params as any)?.tableid) setRefreshTable((params as any).tableid)
+        removeCard((params as any)?.tableid, (params as any)?.recordid)
+        return response.data
+      } catch (error) {
+        console.error("Errore durante la conferma della lettura", error)
+        toast.error("Errore durante il salvataggio")
+      }
+    },
+
     swissbix_summarize_day: async (params: object) => {
       console.info("dispatcher: swissbix_summarize_day");
 
