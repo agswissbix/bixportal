@@ -27,6 +27,22 @@ interface CompanyDetails {
 const toInputDate = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+// Costruisce l'URL di ritorno alla bixApp di provenienza, in base a 'comingFrom'.
+// Ogni app può avere il proprio formato: aggiungere qui i nuovi casi.
+function buildBackPath(comingFrom: string | null | undefined, companyRecordId?: string | null): string {
+    const base = `/bixApps/${comingFrom ?? ""}`;
+    
+    switch (comingFrom) {
+        case "company": {
+            if (!companyRecordId) return base;
+            const data = { id: companyRecordId };
+            return `${base}?reference=id&data=${encodeURIComponent(JSON.stringify(data))}`;
+        }
+        default:
+            return `/bixApps/${comingFrom ?? ""}`;
+    }
+}
+
 export default function TaskApp(props: TaskProps) {
     return (
         <div className="overflow-y-auto overflow-x-hidden h-screen bg-slate-50">
@@ -465,11 +481,8 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                         <button
                             type="button"
                             onClick={() => {
-                                // Torna alla bixApp di provenienza (root-relative: funziona in locale e in prod)
-                                const backPath = companyRecordId
-                                    ? `/bixApps/${comingFrom}/${companyRecordId}`
-                                    : `/bixApps/${comingFrom}`;
-                                window.location.href = backPath;
+                                // Torna alla bixApp di provenienza (root-relative: funziona in locale e in prod).
+                                window.location.href = buildBackPath(comingFrom, companyRecordId);
                             }}
                             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-bold rounded-xl transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2"
                         >

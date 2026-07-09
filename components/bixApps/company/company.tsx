@@ -14,6 +14,7 @@ interface CompanyProps {
     recordid?: string | null;
     email?: string | null;
     telefono?: string | null;
+    reference?: string | null;
 }
 
 interface ListItem {
@@ -22,15 +23,25 @@ interface ListItem {
     details?: string;
 }
 
-export default function CompanyApp({ recordid, email, telefono }: CompanyProps) {
+// Normalizza un numero di telefono usando l'endpoint backend 'normalize_phone'.
+// Ritorna il numero in formato E.164, oppure null se non normalizzabile.
+async function normalizePhone(phone: string): Promise<string | null> {
+    const body = new FormData();
+    body.append("apiRoute", "normalize_phone");
+    body.append("phone", phone);
+    const res = await axiosInstanceClient.post("/postApi", body);
+    return res.data.normalizedPhone ?? null;
+}
+
+export default function CompanyApp({ recordid, email, telefono, reference }: CompanyProps) {
     return (
         <div className="overflow-y-auto overflow-x-hidden h-screen bg-slate-50">
-            <GenericComponent>{() => <CompanyRegistration recordid={recordid} email={email} telefono={telefono} />}</GenericComponent>
+            <GenericComponent>{() => <CompanyRegistration recordid={recordid} email={email} telefono={telefono} reference={reference} />}</GenericComponent>
         </div>
     );
 }
 
-function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
+function CompanyRegistration({ recordid, email, telefono, reference }: CompanyProps) {
     const [companyId, setCompanyId] = useState<string | null>(recordid || null);
     const [company, setCompany] = useState<ListItem | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -40,24 +51,44 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
 
     const router = useRouter();
 
-    // If a recordid is passed initially, we should fetch its details.
+    // In base al 'reference' scegliamo quale campo di 'data' usare per la ricerca.
     useEffect(() => {
-        if (recordid) {
-            setFetchedDetails(true)
-            fetchCompanyDetails(recordid);
-        } else if (email || telefono) {
-            setFetchedDetails(true)
-            fetchCompanyByContact(email, telefono);
+        switch (reference) {
+            case 'id':
+                if (recordid) {
+                    setFetchedDetails(true);
+                    fetchCompanyDetails(recordid);
+                }
+                break;
+            case 'email':
+                if (email) {
+                    setFetchedDetails(true);
+                    fetchCompanyByContact(email, null);
+                }
+                break;
+            case 'telefono':
+                if (telefono) {
+                    setFetchedDetails(true);
+                    fetchCompanyByContact(null, telefono);
+                }
+                break;
         }
-    }, [recordid, email, telefono]);
+    }, [reference, recordid, email, telefono]);
 
     const fetchCompanyByContact = async (emailToSearch: string | null | undefined, telefonoToSearch: string | null | undefined) => {
         setIsLoading(true);
         try {
+            // Rimuove eventuali apici/spazi attorno al valore (artefatti da copia-incolla dal DB)
+            const clean = (v: string | null | undefined) => (v ?? "").replace(/^['"\s]+|['"\s]+$/g, "");
+
+            // Normalizza il telefono col backend (fallback al valore pulito se non normalizzabile)
+            const cleanTelefono = clean(telefonoToSearch);
+            const telefono = cleanTelefono ? (await normalizePhone(cleanTelefono)) ?? cleanTelefono : "";
+
             const body = new FormData();
-            body.append("apiRoute", "get_company_by_contact"); 
-            body.append("email", emailToSearch);
-            body.append("telefono", telefonoToSearch);
+            body.append("apiRoute", "get_company_by_contact");
+            body.append("email", clean(emailToSearch));
+            body.append("telefono", telefono);
 
             const res = await axiosInstanceClient.post("/postApi", body);
             console.log(res.data);
@@ -73,7 +104,14 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
                     companiesList.push(newCompany)
                 });
 
-                setSearchResults(companiesList)
+                if (companiesList.length === 1) {
+                    // Un solo risultato: andiamo direttamente alla scheda (badge)
+                    setCompany(companiesList[0]);
+                    setCompanyId(companiesList[0].id);
+                } else {
+                    // Più risultati (o nessuno): mostriamo la lista per far scegliere
+                    setSearchResults(companiesList);
+                }
             }
         } catch (err) {
             console.error("Error fetching company by email", err);
@@ -138,11 +176,15 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
         setSearchQuery("");
         setSearchResults([]);
 
-        // Aggiunge l'id come segmento di path all'URL corrente (currentURL/id) senza reload.
-        // Quando si cerca un'altra azienda l'URL è già stato riportato alla base,
-        // quindi qui basta accodare l'id.
+        // I parametri sono serializzati in un unico JSON nel query param 'data'.
+        // 'reference' sta FUORI da 'data' e indica quale campo di 'data' identifica
+        // l'entità da cercare (qui 'id' -> l'azienda è determinata da data.id).
+        const reference = "id";
+        const data = { id: selected.id };
         const basePath = window.location.pathname.replace(/\/$/, "");
-        router.push(`${basePath}/${selected.id}`);
+        router.push(
+            `${basePath}?reference=${encodeURIComponent(reference)}&data=${encodeURIComponent(JSON.stringify(data))}`
+        );
     };
 
     if(company == null)
@@ -241,9 +283,9 @@ function CompanyRegistration({ recordid, email, telefono }: CompanyProps) {
                         onClick={() => {
                             setCompany(null);
                             setCompanyId(null);
-                            // Rimuove l'id dall'URL tornando alla pagina di ricerca (senza reload)
-                            const basePath = window.location.pathname.replace(/\/$/, "");
-                            router.push(basePath.substring(0, basePath.lastIndexOf("/")));
+                            // Torna alla pagina di ricerca rimuovendo i query param (?id / ?data),
+                            // cioè navigando allo stesso path senza query string.
+                            router.push(window.location.pathname);
                         }}
                         className="px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
                     >
