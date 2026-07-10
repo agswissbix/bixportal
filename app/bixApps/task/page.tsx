@@ -15,33 +15,23 @@ interface TaskBixAppProps {
 export default async function TaskBixApp(props: TaskBixAppProps) {
   const searchParams = await props.searchParams;
 
-  const oggetto = typeof searchParams.subject === 'string' ? searchParams.subject : null;
-  const mailmittente = typeof searchParams.sender === 'string' ? searchParams.sender : null;
-  const usermittente = typeof searchParams.senderName === 'string' ? searchParams.senderName : null;
-  const dataricezione = typeof searchParams.date === 'string' ? searchParams.date : null;
-  const idmail = typeof searchParams.mailId === 'string' ? searchParams.mailId : null;
-  const companyRecordId = typeof searchParams.companyRecordId === 'string' ? searchParams.companyRecordId : null;
-  const comingFrom = typeof searchParams.comingFrom === 'string' ? searchParams.comingFrom : null;
-  let deepLink = null
-  
-  if(idmail)
-  {
-      deepLink =
-      "https://outlook.office.com/owa/?ItemID=" +
-      encodeURIComponent(idmail) +                  // re-encode
-      "&exvsurl=1&viewmodel=ReadMessageItem";	      // exvsurl=1 --> Makes sure that the link resolves to the correct mailbox
-                                                    // viewmodel=ReadMessageItem --> Makes the link know this is a mail (not calendar or other stuff) and that it needs to open it
+  // Tutti i parametri della mail sono serializzati in un unico JSON nel query param 'data'.
+  let data: { [key: string]: any } = {};
+  if (typeof searchParams.data === 'string') {
+    try {
+      data = JSON.parse(searchParams.data);
+    } catch {
+      data = {};
+    }
   }
 
+  // 'reference' e 'comingFrom' stanno FUORI da 'data'.
+  const reference = typeof searchParams.reference === 'string' ? searchParams.reference : null;
+  const comingFrom = typeof searchParams.comingFrom === 'string' ? searchParams.comingFrom : null;
+
+  // Passiamo l'intero JSON 'data' + reference + comingFrom: il componente estrae i campi
+  // e costruisce il deeplink alla mail.
   return (
-    <TaskApp 
-        oggetto={oggetto} 
-        mailmittente={mailmittente} 
-        usermittente={usermittente} 
-        dataricezione={dataricezione}
-        linkToMail={deepLink}
-        companyRecordId={companyRecordId}
-        comingFrom={comingFrom}
-    />
+    <TaskApp data={data} reference={reference} comingFrom={comingFrom} />
   );
 }

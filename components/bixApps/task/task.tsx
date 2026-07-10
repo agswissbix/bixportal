@@ -3,18 +3,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
+import CardBadgeCompany from "@/components/customBadges/cardBadgeCompany";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 // INTERFACCE
 interface TaskProps {
-    oggetto?: string | null;
-    mailmittente?: string | null;
-    usermittente?: string | null;
-    dataricezione?: string | null;
-    linkToMail?: string | null;
-    companyRecordId?: string | null;
+    data?: { [key: string]: any } | null;
+    reference?: string | null;
     comingFrom?: string | null;
 }
 
@@ -26,6 +23,10 @@ interface CompanyDetails {
 // Formatta una Date in stringa YYYY-MM-DD (ora locale) per gli <input type="date">
 const toInputDate = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+// Sorgenti esterne (es. add-in di Outlook) che non hanno una pagina di ritorno nel sito:
+// per queste NON mostriamo il bottone "Torna a ...". Aggiungerne di nuove qui.
+const EXTERNAL_SOURCES = ["email"];
 
 // Costruisce l'URL di ritorno alla bixApp di provenienza, in base a 'comingFrom'.
 // Ogni app può avere il proprio formato: aggiungere qui i nuovi casi.
@@ -51,7 +52,20 @@ export default function TaskApp(props: TaskProps) {
     );
 }
 
-function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, linkToMail, companyRecordId, comingFrom }: TaskProps) {
+function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
+    // Campi estratti dal JSON 'data' (arrivano dal query param serializzato).
+    const oggetto = data?.subject ?? null;
+    const mailmittente = data?.email ?? null;
+    const usermittente = data?.senderName ?? null;
+    const dataricezione = data?.date ?? null;
+    const mailId = data?.mailId ?? null;
+    const companyRecordId = data?.companyRecordId ?? null;
+
+    // Deeplink alla mail (costruzione spostata qui dalla pagina).
+    const linkToMail = mailId
+        ? "https://outlook.office.com/owa/?ItemID=" + encodeURIComponent(mailId) + "&exvsurl=1&viewmodel=ReadMessageItem"
+        : null;
+
     const [isLoadingCompany, setIsLoadingCompany] = useState(false);
     const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
     const [priority, setPriority] = useState('1.Richiesta di Davide');
@@ -69,17 +83,19 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
     // Stato del salvataggio (per feedback sul bottone)
     const [saved, setSaved] = useState(false);
 
+    // In base al 'reference' scegliamo come recuperare l'azienda collegata.
     useEffect(() => {
-        if (companyRecordId)
-        {
-            fetchCompanyById(companyRecordId);
+        switch (reference) {
+            case 'id':
+                if (companyRecordId) fetchCompanyById(companyRecordId);
+                break;
+            case 'email':
+                if (mailmittente) fetchCompanyByEmail(mailmittente);
+                break;
         }
-        else if (mailmittente) {
-            fetchCompanyByEmail(mailmittente);
-        }
-    }, [mailmittente]);
+    }, [reference, companyRecordId, mailmittente]);
 
-    // Pre-compila le date con oggi (in useEffect per evitare mismatch di hydration)
+    // Pre-compila le date con oggi
     useEffect(() => {
         setExpiration(new Date());
         setPlannedDate(new Date());
@@ -240,7 +256,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
              <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
              <div className="absolute top-24 -left-24 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
             
-             <main className="relative z-10 w-full max-w-4xl mx-auto px-6 py-8 md:py-16">
+             <main className="relative z-10 w-full max-w-7xl mx-auto px-6 py-8 md:py-16">
                  <header className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
                     <div className="flex items-center gap-2 text-indigo-500 text-xs font-bold uppercase tracking-widest mb-2">
                         <ClipboardDocumentCheckIcon className="w-4 h-4" />
@@ -256,12 +272,12 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
 
                 <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-200/40 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 p-8 md:p-10">
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
                         {/* Sezione Dettagli Mail */}
                         <div className="space-y-6">
                             <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Informazioni Task</h3>
                             
-                            {!comingFrom && (
+                            {comingFrom === "email" && (
                             <>
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
@@ -424,15 +440,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                                     <div className="text-sm font-bold text-zinc-500">Ricerca azienda per email in corso...</div>
                                 </div>
                             ) : companyDetails ? (
-                                <div className="p-6 border border-zinc-100 rounded-2xl bg-white shadow-sm flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-                                        <BuildingOfficeIcon className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <div className="text-lg font-bold text-zinc-800">{companyDetails.name}</div>
-                                        <div className="text-xs font-mono text-zinc-400 mt-1">ID: {companyDetails.id}</div>
-                                    </div>
-                                </div>
+                                <CardBadgeCompany tableid="company" recordid={companyDetails.id} />
                             ) : (
                                 <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-100 rounded-2xl bg-zinc-50/50">
                                     <BuildingOfficeIcon className="w-10 h-10 text-zinc-300 mb-3" />
@@ -477,7 +485,7 @@ function TaskRegistration({ oggetto, mailmittente, usermittente, dataricezione, 
                     </div>
 
                 <div className="mt-8 flex gap-4">
-                    {comingFrom && (
+                    {comingFrom && !EXTERNAL_SOURCES.includes(comingFrom) && (
                         <button
                             type="button"
                             onClick={() => {

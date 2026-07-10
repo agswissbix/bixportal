@@ -11,9 +11,7 @@ import { set } from "lodash";
 
 // INTERFACCE
 interface CompanyProps {
-    recordid?: string | null;
-    email?: string | null;
-    telefono?: string | null;
+    data?: { [key: string]: any } | null;
     reference?: string | null;
 }
 
@@ -33,16 +31,16 @@ async function normalizePhone(phone: string): Promise<string | null> {
     return res.data.normalizedPhone ?? null;
 }
 
-export default function CompanyApp({ recordid, email, telefono, reference }: CompanyProps) {
+export default function CompanyApp({ data, reference }: CompanyProps) {
     return (
         <div className="overflow-y-auto overflow-x-hidden h-screen bg-slate-50">
-            <GenericComponent>{() => <CompanyRegistration recordid={recordid} email={email} telefono={telefono} reference={reference} />}</GenericComponent>
+            <GenericComponent>{() => <CompanyRegistration data={data} reference={reference} />}</GenericComponent>
         </div>
     );
 }
 
-function CompanyRegistration({ recordid, email, telefono, reference }: CompanyProps) {
-    const [companyId, setCompanyId] = useState<string | null>(recordid || null);
+function CompanyRegistration({ data, reference }: CompanyProps) {
+    const [companyId, setCompanyId] = useState<string | null>(reference === 'id' ? (data?.id ?? null) : null);
     const [company, setCompany] = useState<ListItem | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<ListItem[]>([]);
@@ -55,30 +53,30 @@ function CompanyRegistration({ recordid, email, telefono, reference }: CompanyPr
     useEffect(() => {
         switch (reference) {
             case 'id':
-                if (recordid) {
+                if (data?.id) {
                     setFetchedDetails(true);
-                    fetchCompanyDetails(recordid);
+                    fetchCompanyDetails(data.id);
                 }
                 break;
             case 'email':
-                if (email) {
+                if (data?.email) {
                     setFetchedDetails(true);
-                    fetchCompanyByContact(email, null);
+                    fetchCompanyByContact(data.email, null);
                 }
                 break;
             case 'telefono':
-                if (telefono) {
+                if (data?.telefono) {
                     setFetchedDetails(true);
-                    fetchCompanyByContact(null, telefono);
+                    fetchCompanyByContact(null, data.telefono);
                 }
                 break;
         }
-    }, [reference, recordid, email, telefono]);
+    }, [reference, data]);
 
     const fetchCompanyByContact = async (emailToSearch: string | null | undefined, telefonoToSearch: string | null | undefined) => {
         setIsLoading(true);
         try {
-            // Rimuove eventuali apici/spazi attorno al valore (artefatti da copia-incolla dal DB)
+            // Rimuove eventuali apici/spazi attorno al valore
             const clean = (v: string | null | undefined) => (v ?? "").replace(/^['"\s]+|['"\s]+$/g, "");
 
             // Normalizza il telefono col backend (fallback al valore pulito se non normalizzabile)
@@ -300,9 +298,10 @@ function CompanyRegistration({ recordid, email, telefono, reference }: CompanyPr
                             const segments = window.location.pathname.split("/").filter(Boolean);
                             const bixIdx = segments.indexOf("bixApps");
                             const comingFrom = bixIdx !== -1 ? (segments[bixIdx + 1] ?? "company") : "company";
-                            // Full reload cambiando bixApp (root-relative: funziona in locale e in prod)
+                            // Nuovo formato: reference + data (JSON). Il task cercherà l'azienda per id.
+                            const data = { companyRecordId: companyId };
                             window.location.href =
-                                `/bixApps/task?companyRecordId=${encodeURIComponent(companyId ?? "")}&comingFrom=${encodeURIComponent(comingFrom)}`;
+                                `/bixApps/task?reference=id&comingFrom=${encodeURIComponent(comingFrom)}&data=${encodeURIComponent(JSON.stringify(data))}`;
                         }}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
                     >
