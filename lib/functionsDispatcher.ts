@@ -907,7 +907,7 @@ export function useFrontendFunctions() {
             },
           },
         )
-        toast.success("Lettura confermata")
+        toast.success("Lettura confermata ")
         if ((params as any)?.tableid) setRefreshTable((params as any).tableid)
         removeCard((params as any)?.tableid, (params as any)?.recordid)
         return response.data
