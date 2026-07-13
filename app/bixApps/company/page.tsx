@@ -13,14 +13,24 @@ interface CompanyBixAppProps {
 }
 
 export default async function CompanyBixApp(props: CompanyBixAppProps) {
-  const params = await props.params;
   const searchParams = await props.searchParams;
 
-  const email = typeof searchParams.email === 'string' ? searchParams.email : null;
-  const telefono = typeof searchParams.telefono === 'string' ? searchParams.telefono : null;
-  const recordid = typeof searchParams.recordid === 'string' ? searchParams.recordid : null;
+  // Tutti i parametri sono serializzati in un unico JSON nel query param 'data'.
+  let data: { [key: string]: any } = {};
+  if (typeof searchParams.data === 'string') {
+    try {
+      data = JSON.parse(searchParams.data);
+    } catch {
+      data = {};
+    }
+  }
 
+  // 'reference' (fuori da 'data') indica quale campo di 'data' usare per la ricerca.
+  const reference = typeof searchParams.reference === 'string' ? searchParams.reference : null;
+
+  // Passiamo l'intero JSON 'data' + il reference: aggiungere nuovi campi in futuro
+  // non richiede modifiche né alla pagina né all'interfaccia del componente.
   return (
-    <CompanyApp recordid={recordid} email={email} telefono={telefono} />
+    <CompanyApp data={data} reference={reference} />
   );
 }

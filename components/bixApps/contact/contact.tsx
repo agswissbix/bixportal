@@ -10,7 +10,8 @@ import { toast, Toaster } from "sonner";
 
 // INTERFACCE
 interface ContactProps {
-    phoneNumber?: string | null;
+    data?: { [key: string]: any } | null;
+    reference?: string | null;
 }
 
 interface Contact {
@@ -92,7 +93,7 @@ export default function ContactApp(props: ContactProps) {
     );
 }
 
-function ContactDisplay({ phoneNumber }: ContactProps) {
+function ContactDisplay({ data, reference }: ContactProps) {
     const [contact, setContact] = useState<Contact>({});
     const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success">("idle");
 
@@ -109,17 +110,26 @@ function ContactDisplay({ phoneNumber }: ContactProps) {
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
 
-    // Normalizza il numero (chiamata async) e aggiorna lo stato quando arriva la risposta
+    // In base al 'reference' scegliamo quale campo di 'data' usare per la ricerca.
     useEffect(() => {
-        if (!phoneNumber) return;
-        
-        normalizePhone(phoneNumber).then((normalized) => {
-            getContact(normalized).then((cont) => {
-                // Mostriamo il numero normalizzato, non quello grezzo del DB
-                setContact({ ...cont, phone: normalized ?? cont.phone });
-            });
-        });
-    }, [phoneNumber]);
+        switch (reference) {
+            case 'phoneNumber':
+                if (data?.phoneNumber) {
+                    normalizePhone(data.phoneNumber).then((normalized) => {
+                        getContact(normalized).then(async (cont) => {
+                            const normalizedPhone = cont.phone ? await normalizePhone(cont.phone) : null;
+                            const normalizedMobile = cont.mobilePhone ? await normalizePhone(cont.mobilePhone) : null;
+                            setContact({
+                                ...cont,
+                                phone: normalizedPhone ?? cont.phone,
+                                mobilePhone: normalizedMobile ?? cont.mobilePhone,
+                            });
+                        });
+                    });
+                }
+                break;
+        }
+    }, [reference, data]);
 
     async function saveContact(contact:Contact) {
         const body = new FormData();

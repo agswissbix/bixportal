@@ -11,6 +11,7 @@ export const themesSwissbix = [
   "bixhub",
   "royal-blue",
   "alenonvede",
+  "unparqit",
 ]
   
 export const themesPitservice = [

@@ -161,6 +161,64 @@
   --radius: 0.5rem;
 }
 
+.unparqit {
+  --color-primary: #232f4e;
+  --color-primary-hover: #32426c;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors - Muted slate derived from background dark */
+  --color-secondary: #475569;
+  --color-secondary-hover: #334155;
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent color - Muted light green/mint */
+  --color-accent: #8cbfa8;
+  --color-accent-hover: #73aa91;
+  --color-accent-foreground: #1e293b; /* Testo scuro per contrasto su fondo chiaro */
+
+  /* Neutral backgrounds */
+  --background: #ffffff;
+  --foreground: #1e293b;
+  --card-background: #ffffff;
+  --card-border: #e2e8f0;
+  --records-background: #f8fafc;
+
+  /* Navigation and sidebar */
+  --navbar-background: #ffffff;
+  --sidebar-background: linear-gradient(180deg, #232f4e 0%, #1e293b 100%);
+  --sidebar-text: #ffffff;
+
+  /* Table styling */
+  --table-background: #ffffff;
+  --table-border: #e2e8f0;
+  --table-header: #f2f8f5; /* Usa il background menta leggero di unparqit */
+
+  /* Badge styling */
+  --badge-background: #232f4e;
+  --badge-border: #32426c;
+
+  /* shadcn/ui variables (Converted to raw HSL) */
+  --primary: 223 38% 22%;          /* #232f4e */
+  --primary-foreground: 0 0% 100%;  /* #ffffff */
+  
+  --secondary: 215 16% 47%;         /* #64748b (Slate neutro) */
+  --secondary-foreground: 0 0% 100%;/* #ffffff */
+  
+  --muted: 210 40% 98%;             /* #f8fafc */
+  --muted-foreground: 215.4 16.3% 46.9%;
+  
+  --accent: 153 29% 65%;            /* #8cbfa8 */
+  --accent-foreground: 217 33% 17%; /* #1e293b per alto contrasto */
+  
+  --destructive: 0 84.2% 60.2%;     /* #ef4444 */
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 214.3 31.8% 91.4%;      /* #e2e8f0 */
+  --input: 214.3 31.8% 91.4%;       /* #e2e8f0 */
+  --ring: 223 38% 22%;              /* Stesso del primary per coerenza */
+  --radius: 0.5rem;
+}
+
 /* ----------------Pitservice ------------------------------- */
 .pittheme {
   /* Primary brand colors - Verde del logo */
