@@ -28,7 +28,7 @@ export default async function CompanyBixApp(props: CompanyBixAppProps) {
   // 'reference' (fuori da 'data') indica quale campo di 'data' usare per la ricerca.
   const reference = typeof searchParams.reference === 'string' ? searchParams.reference : null;
 
-  // Passiamo l'intero JSON 'data' + il reference: aggiungere nuovi campi in futuro
+  // Passiamo l'intero JSON 'data' + il reference
   // non richiede modifiche né alla pagina né all'interfaccia del componente.
   return (
     <CompanyApp data={data} reference={reference} />

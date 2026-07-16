@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import GenericComponent from "@/components/genericComponent";
 import axiosInstanceClient from "@/utils/axiosInstanceClient";
 import { BuildingOfficeIcon, MagnifyingGlassIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import CardBadgeCompany from "@/components/customBadges/cardBadgeCompany";
-import { tr } from "date-fns/locale";
-import { set } from "lodash";
+import { toast, Toaster } from "sonner";
 
 // INTERFACCE
 interface CompanyProps {
@@ -34,6 +33,7 @@ async function normalizePhone(phone: string): Promise<string | null> {
 export default function CompanyApp({ data, reference }: CompanyProps) {
     return (
         <div className="overflow-y-auto overflow-x-hidden h-screen bg-slate-50">
+            <Toaster richColors position="top-right" />
             <GenericComponent>{() => <CompanyRegistration data={data} reference={reference} />}</GenericComponent>
         </div>
     );
@@ -45,103 +45,136 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<ListItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [fetchedDetails, setFetchedDetails] = useState(false);
+    // Chiave dell'ultimo input già elaborato. Un ref (non uno state) perché deve
+    // sopravvivere al doppio mount di StrictMode in dev, dove lo state non è ancora
+    // aggiornato alla seconda esecuzione dell'effetto.
+    const lastFetchKey = useRef<string | null>(null);
 
     const router = useRouter();
 
     // In base al 'reference' scegliamo quale campo di 'data' usare per la ricerca.
     useEffect(() => {
+        // Elabora ogni input una sola volta: evita il doppio fetch (e doppio toast)
+        // del doppio mount di StrictMode in dev, e un eventuale re-fetch inutile.
+        const key = `${reference}:${JSON.stringify(data)}`;
+        if (lastFetchKey.current === key) return;
+        lastFetchKey.current = key;
+
         switch (reference) {
             case 'id':
                 if (data?.id) {
-                    setFetchedDetails(true);
-                    fetchCompanyDetails(data.id);
+                    runLookup(() => fetchCompanyDetails(data.id));
                 }
                 break;
             case 'email':
                 if (data?.email) {
-                    setFetchedDetails(true);
-                    fetchCompanyByContact(data.email, null);
+                    runLookup(() => fetchCompanyByContact(data.email, null));
                 }
                 break;
             case 'telefono':
                 if (data?.telefono) {
-                    setFetchedDetails(true);
-                    fetchCompanyByContact(null, data.telefono);
+                    runLookup(() => fetchCompanyByContact(null, data.telefono));
                 }
                 break;
+            case 'ticketId':
+                if(data?.ticketId) {
+                    runLookup(() => fetchCompanyByTicketId(data.ticketId));
+                }
         }
     }, [reference, data]);
 
-    const fetchCompanyByContact = async (emailToSearch: string | null | undefined, telefonoToSearch: string | null | undefined) => {
+    // Gestisce in un UNICO posto loading, errori e toast per ogni lookup della switch.
+    // Le funzioni di lookup restano "pure" (fanno la chiamata e aggiornano lo stato):
+    // così ogni nuovo case che passa da runLookup eredita automaticamente questo comportamento.
+    const runLookup = async (fn: () => Promise<void>) => {
         setIsLoading(true);
         try {
-            // Rimuove eventuali apici/spazi attorno al valore
-            const clean = (v: string | null | undefined) => (v ?? "").replace(/^['"\s]+|['"\s]+$/g, "");
-
-            // Normalizza il telefono col backend (fallback al valore pulito se non normalizzabile)
-            const cleanTelefono = clean(telefonoToSearch);
-            const telefono = cleanTelefono ? (await normalizePhone(cleanTelefono)) ?? cleanTelefono : "";
-
-            const body = new FormData();
-            body.append("apiRoute", "get_company_by_contact");
-            body.append("email", clean(emailToSearch));
-            body.append("telefono", telefono);
-
-            const res = await axiosInstanceClient.post("/postApi", body);
-            console.log(res.data);
-            // Il backend restituisce un array: prendiamo solo la prima azienda
-            const firstCompany = Array.isArray(res.data) ? res.data[0] : res.data;
-            if (res && Array.isArray(res.data)) 
-            {
-                let companies = res.data
-                console.log(companies)
-                let companiesList: ListItem[] = []
-                companies.forEach(company => {
-                    let newCompany: ListItem = { id: company['recordid'], name: company['name'] }
-                    companiesList.push(newCompany)
-                });
-
-                if (companiesList.length === 1) {
-                    // Un solo risultato: andiamo direttamente alla scheda (badge)
-                    setCompany(companiesList[0]);
-                    setCompanyId(companiesList[0].id);
-                } else {
-                    // Più risultati (o nessuno): mostriamo la lista per far scegliere
-                    setSearchResults(companiesList);
-                }
+            await fn();
+        } catch (err: any) {
+            // NB: su risposte non-2xx il proxy /postApi ri-avvolge il messaggio Django
+            // sotto la chiave 'error' (non 'message'). Leggiamo 'error' e teniamo 'message'
+            // come fallback per sicurezza.
+            const backendMsg = err?.response?.data?.error || err?.response?.data?.message;
+            // 404 = nessun risultato (record inesistente): caso normale, non un errore.
+            if (err?.response?.status === 404) {
+                toast.info(backendMsg || "Nessun risultato trovato.");
+            } else {
+                console.error("Errore durante il caricamento", err);
+                toast.error(backendMsg || "Errore durante il caricamento.");
             }
-        } catch (err) {
-            console.error("Error fetching company by email", err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchCompanyByContact = async (emailToSearch: string | null | undefined, telefonoToSearch: string | null | undefined) => {
+        // Rimuove eventuali apici/spazi attorno al valore
+        const clean = (v: string | null | undefined) => (v ?? "").replace(/^['"\s]+|['"\s]+$/g, "");
+
+        // Normalizza il telefono col backend (fallback al valore pulito se non normalizzabile)
+        const cleanTelefono = clean(telefonoToSearch);
+        const telefono = cleanTelefono ? (await normalizePhone(cleanTelefono)) ?? cleanTelefono : "";
+
+        const body = new FormData();
+        body.append("apiRoute", "get_company_by_contact");
+        body.append("email", clean(emailToSearch));
+        body.append("telefono", telefono);
+
+        const res = await axiosInstanceClient.post("/postApi", body);
+
+        // Il backend restituisce un array di aziende su match.
+        const companies = Array.isArray(res.data) ? res.data : [];
+
+        const companiesList: ListItem[] = companies.map((company) => ({
+            id: company['recordid'],
+            name: company['name'],
+        }));
+
+        if (companiesList.length === 1) {
+            // Un solo risultato: andiamo direttamente alla scheda (badge)
+            setCompany(companiesList[0]);
+            setCompanyId(companiesList[0].id);
+        } else {
+            // Più risultati: mostriamo la lista per far scegliere
+            setSearchResults(companiesList);
         }
     };
 
     const fetchCompanyDetails = async (id: string) => {
-        setIsLoading(true);
-        try {
-            // Check if there is a specific endpoint for user_company or use generic
-            const body = new FormData();
-            body.append("apiRoute", "get_company_details"); 
-            body.append("id", id);
+        const body = new FormData();
+        body.append("apiRoute", "get_company_details");
+        body.append("id", id);
 
-            const res = await axiosInstanceClient.post("/postApi", body);
+        const res = await axiosInstanceClient.post("/postApi", body);
 
-            // Il backend restituisce i campi "flat" (id, companyName, address, ...)
-            if (res.data && res.data.id) {
-                setCompany({
-                    id: res.data.id,
-                    name: res.data.companyName || 'Dettaglio Azienda',
-                    details: res.data.address || ""
-                });
-            }
-        } catch (err) {
-            console.error("Error fetching company details", err);
-        } finally {
-            setIsLoading(false);
+        // Il backend restituisce i campi "flat" (id, companyName, address, ...)
+        if (res.data && res.data.id) {
+            setCompanyId(res.data.id);   // il badge legge da companyId, non da company
+            setCompany({
+                id: res.data.id,
+                name: res.data.companyName || 'Dettaglio Azienda',
+                details: res.data.address || ""
+            });
         }
     };
+
+    const fetchCompanyByTicketId = async(ticketId: string) => {
+        const body = new FormData();
+        body.append("apiRoute", "get_ticket_by_freshdeskid");
+        body.append("ticketId", ticketId);
+
+        const res = await axiosInstanceClient.post("/postApi", body);
+
+        const id = res.data?.ticket?.['recordidcompany_'];
+        if (!id) {
+            // Il ticket esiste ma non ha un'azienda collegata: NON è un errore,
+            // è una condizione di business -> info specifica di questo lookup.
+            toast.info("Il ticket non ha un'azienda collegata.");
+            return;
+        }
+
+        await fetchCompanyDetails(id);
+    }
 
     const handleSearch = async (query: string) => {
         setSearchQuery(query);
