@@ -600,6 +600,9 @@ export async function POST(request: Request) {
         case "save_contact":
             djangoUrl = "/customapp_swissbix/save_contact/";
             break;
+        case "get_ticket_by_freshdeskid":
+            djangoUrl = "/customapp_swissbix/get_ticket_by_freshdeskid/";
+            break;
 
         // HEENERGY
         case "heenergy_print_pdf":
