@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+"use client";
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import ReactApexChart, { Props as ReactApexChartProps } from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import OverlappingBarChart from './overlappingChart';
+import { AppContext } from "@/context/appContext";
 
 // Estendo Props di ReactApexChart per includere tutti i tipi di series possibili
 interface ExtendedApexOptions extends ApexOptions {
@@ -54,10 +56,16 @@ const getRandomColorFromPalette = () => {
  * Unifica il parsing e il rendering di diversi tipi di grafici.
  */
 export default function GenericChart({ chartType, chartData, view, showDataLabels, hideMeta = false }: Props) {
+    const { user } = useContext(AppContext);
+    const [isMounted, setIsMounted] = useState(false);
     const [resizeKey, setResizeKey] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
     const mountTime = useRef(Date.now());
     const prevSize = useRef({ width: 0, height: 0 });
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -99,6 +107,8 @@ export default function GenericChart({ chartType, chartData, view, showDataLabel
             observer.disconnect();
         };
     }, []);
+
+    if (!isMounted) return null;
 
     if (chartData?.error == "$empty$") {
         return <div className="p-4 text-gray-400"><i>Nessun dato disponibile.</i></div>;

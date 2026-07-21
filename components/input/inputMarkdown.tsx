@@ -1134,6 +1134,7 @@ export default function inputMarkdown({
                                     { name: "Red", color: "#ef4444" },
                                     { name: "Blue", color: "#3b82f6" },
                                     { name: "Green", color: "#22c55e" },
+                                    { name: "Yellow", color: "#eab308" },
                                     { name: "Orange", color: "#f97316" },
                                     { name: "Purple", color: "#a855f7" },
                                 ].map((c) => (
@@ -1204,29 +1205,14 @@ export default function inputMarkdown({
                                     <UnderlineIcon size={18} />
                                 </button>
                                 <button
-                                    type="button"
-                                    onClick={() =>
-                                        editor
-                                            .chain()
-                                            .focus()
-                                            .toggleHighlight()
-                                            .run()
-                                    }
-                                    className={`p-2 rounded-lg ${
-                                        editor.isActive("highlight")
-                                            ? "bg-yellow-400 text-black"
-                                            : "text-slate-600 hover:bg-slate-200"
-                                    }`}>
-                                    <HighlightIcon size={18} />
-                                </button>
-                                <button
                                     onClick={() =>
                                         editor
                                             .chain()
                                             .focus()
                                             .toggleBlockquote()
                                             .run()
-                                    }>
+                                    }
+                                    className={`p-2 rounded-lg hover:bg-slate-200 text-slate-600`}>
                                     <Quote size={18} />
                                 </button>
                                 <button
@@ -1239,6 +1225,45 @@ export default function inputMarkdown({
                                     }`}>
                                     <LinkIcon size={18} />
                                 </button>
+                            </div>
+
+                            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        editor
+                                            .chain()
+                                            .focus()
+                                            .unsetHighlight()
+                                            .run()
+                                    }
+                                    className="p-2 hover:bg-slate-200 text-slate-400 rounded-lg"
+                                    title="Rimuovi Evidenziatore">
+                                    <HighlightIcon size={18} className="opacity-50" />
+                                </button>
+
+                                {[
+                                    { name: "Giallo", color: "#fef08a" },
+                                    { name: "Verde", color: "#bbf7d0" },
+                                    { name: "Azzurro", color: "#bfdbfe" },
+                                    { name: "Rosa", color: "#fecdd3" },
+                                    { name: "Viola", color: "#f3e8ff" },
+                                ].map((h) => (
+                                    <button
+                                        key={h.color}
+                                        type="button"
+                                        onClick={() =>
+                                            editor
+                                                .chain()
+                                                .focus()
+                                                .toggleHighlight({ color: h.color })
+                                                .run()
+                                        }
+                                        className="w-6 h-6 rounded-full border border-white shadow-sm transition-transform hover:scale-125"
+                                        style={{ backgroundColor: h.color }}
+                                        title={`Evidenzia ${h.name}`}
+                                    />
+                                ))}
                             </div>
 
                             <div className="flex items-center bg-slate-100 p-1 rounded-xl">
