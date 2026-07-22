@@ -34,6 +34,7 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
 import Paragraph from "@tiptap/extension-paragraph";
 import Heading from "@tiptap/extension-heading";
+import { HardBreak } from "@tiptap/extension-hard-break";
 import TextAlign from "@tiptap/extension-text-align";
 import {TextStyle} from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
@@ -105,6 +106,7 @@ import {
     UnderlineIcon,
     Palette,
     Baseline,
+    Loader2,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
@@ -254,12 +256,39 @@ const CodeBlockComponent = ({ node, editor, getPos }: any) => {
 interface PropsInterface {
     initialValue?: string;
     onChange?: (val: string) => void;
-    onSaveRequested?: () => void;
+    onSaveRequested?: (closeAfterSave?: boolean) => Promise<void> | void;
     recordId?: string;
 }
 interface ResponseInterface {
     markdownContent: string;
 }
+
+// Shift+Invio produce un nodo hardBreak. tiptap-markdown lo serializza di default
+// come "\" a fine riga (hard break CommonMark): è corretto, ma basta un livello di
+// escaping nel giro salva/ricarica per trasformarlo in "\\" e allora al rientro il
+// backslash resta visibile e l'a capo sparisce. Serializziamo invece <br>, che non
+// contiene caratteri di escape (html: true è già attivo sull'estensione Markdown).
+const CustomHardBreak = HardBreak.extend({
+    addStorage() {
+        return {
+            markdown: {
+                serialize(state: any, node: any, parent: any, index: number) {
+                    // ignora gli hardBreak in coda al blocco (come fa tiptap-markdown)
+                    for (let i = index + 1; i < parent.childCount; i++) {
+                        if (parent.child(i).type !== node.type) {
+                            // dentro le tabelle non può esserci un a capo reale
+                            state.write(state.inTable ? "<br>" : "<br>\n");
+                            return;
+                        }
+                    }
+                },
+                parse: {
+                    // gestito da markdown-it
+                },
+            },
+        };
+    },
+});
 
 const CustomParagraph = Paragraph.extend({
     addStorage() {
@@ -495,6 +524,23 @@ export default function inputMarkdown({
     const [mounted, setMounted] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [isAutosaving, setIsAutosaving] = useState(false);
+    const [isSavingData, setIsSavingData] = useState(false);
+    const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+
+    const handleSaveActionRef = useRef<((closeAfterSave: boolean) => Promise<void>) | null>(null);
+    useEffect(() => {
+        handleSaveActionRef.current = async (closeAfterSave: boolean) => {
+            setIsSavingData(true);
+            try {
+                await onSaveRequested?.(closeAfterSave);
+                setLastSaveTime(new Date());
+                setIsSavingFlash(true);
+                setTimeout(() => setIsSavingFlash(false), 2000);
+            } finally {
+                setIsSavingData(false);
+            }
+        };
+    }, [onSaveRequested]);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const printRef = useRef<HTMLDivElement>(null);
@@ -542,7 +588,9 @@ export default function inputMarkdown({
                 heading: false,
                 paragraph: false,
                 codeBlock: false,
+                hardBreak: false,
             }),
+            CustomHardBreak,
             CustomParagraph,
             CustomHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
             TextAlign.configure({
@@ -824,9 +872,7 @@ export default function inputMarkdown({
             handleKeyDown: (view, event) => {
                 if ((event.ctrlKey || event.metaKey) && event.key === "s") {
                     event.preventDefault();
-                    setIsSavingFlash(true);
-                    onSaveRequested?.();
-                    setTimeout(() => setIsSavingFlash(false), 500);
+                    handleSaveActionRef.current?.(false);
                     return true;
                 }
                 return false;
@@ -840,8 +886,7 @@ export default function inputMarkdown({
         const timer = setTimeout(() => {
             if (lastValueRef.current !== initialValue) {
                 setIsAutosaving(true);
-                onSaveRequested?.();
-                setTimeout(() => setIsAutosaving(false), 1000);
+                handleSaveActionRef.current?.(false).finally(() => setIsAutosaving(false));
             }
         }, 3000);
         return () => clearTimeout(timer);
@@ -1540,23 +1585,34 @@ export default function inputMarkdown({
                                     />
                                 </button>
                                 {isFullScreen ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            onSaveRequested?.();
-                                            setIsSavingFlash(true);
-                                            setTimeout(
-                                                () => setIsSavingFlash(false),
-                                                500
-                                            );
-                                        }}
-                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${
-                                            isSavingFlash
-                                                ? "bg-green-600 text-white scale-105"
-                                                : "bg-blue-600 text-white hover:bg-blue-700"
-                                        }`}>
-                                        <Save size={16} /> <span>SALVA</span>
-                                    </button>
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSaveActionRef.current?.(false)}
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md bg-slate-200 text-slate-700 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                                            disabled={isSavingData}
+                                        >
+                                            {isSavingData ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+                                            <span>SALVA E CONTINUA</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSaveActionRef.current?.(true)}
+                                            disabled={isSavingData}
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                isSavingFlash
+                                                    ? "bg-green-600 text-white scale-105"
+                                                    : "bg-blue-600 text-white hover:bg-blue-700"
+                                            }`}>
+                                            {isSavingData ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+                                            <span>SALVA E CHIUDI</span>
+                                        </button>
+                                        {lastSaveTime && (
+                                            <span className="text-xs text-slate-400 font-medium whitespace-nowrap ml-2">
+                                                Ultimo salvataggio: {lastSaveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </span>
+                                        )}
+                                    </>
                                 ) : null}
                             </div>
                         </div>

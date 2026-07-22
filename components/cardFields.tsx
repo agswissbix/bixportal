@@ -505,7 +505,7 @@ export default function CardFields({
                             onChange={(v) =>
                                 handleInputChange(field.fieldid, v)
                             }
-                            onSaveRequested={() => handleSave()}
+                            onSaveRequested={(closeAfterSave) => handleSave(closeAfterSave)}
                         />
                     ) : field.fieldtype === "SimpleMarkdown" ? (
                         <InputSimpleMarkdown
@@ -513,7 +513,7 @@ export default function CardFields({
                             onChange={(v) =>
                                 handleInputChange(field.fieldid, v)
                             }
-                            onSaveRequested={() => handleSave()}
+                            onSaveRequested={(closeAfterSave) => handleSave(closeAfterSave)}
                         />
                     ) : field.fieldtype === "Parola" ? (
                         <InputWord
@@ -708,7 +708,14 @@ export default function CardFields({
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
   
-  const handleSave = async () => {
+  const handleSave = async (closeAfterSave: boolean = true) => {
+    if (!hasUnsavedChanges) {
+      if (closeAfterSave) {
+        removeCard(tableid, recordid)
+      }
+      return
+    }
+
     if (isSaveDisabled) {
       toast.warning("Compilare tutti i campi obbligatori per poter salvare.")
       return
@@ -750,7 +757,9 @@ export default function CardFields({
       setUpdatedFields({})
       setHasInteracted(false);
       setRefreshTable(tableid)
-      removeCard(tableid, recordid)
+      if (closeAfterSave) {
+        removeCard(tableid, recordid)
+      }
     } catch (error) {
       console.error("Errore durante il salvataggio del record:", error)
       toast.error("Errore durante il salvataggio del record: " + error?.response?.data?.error)
@@ -855,7 +864,7 @@ export default function CardFields({
               ) : (
                 <button
                   type="button"
-                  onClick={handleSave}
+                  onClick={() => handleSave(true)}
                   disabled={isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges}
                   className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 transition-all duration-200 ${
                     isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges
@@ -1002,7 +1011,7 @@ export default function CardFields({
                 ) : (
                   <button
                     type="button"
-                    onClick={handleSave}
+                    onClick={() => handleSave(true)}
                     disabled={isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges}
                     className={`w-full theme-accent focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 transition-all duration-200 ${
                       isSaveDisabled || isCalculating || !isEditable || !hasUnsavedChanges
