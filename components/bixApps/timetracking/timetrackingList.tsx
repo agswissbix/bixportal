@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import axiosInstanceClient from '@/utils/axiosInstanceClient';
 import WidgetBattery from './widgetBattery';
+import BackButton from '@/components/ui/backButton';
 
 const MINUTES_PER_HOUR = 60;
 const DAILY_GOAL_HOURS = 8.0;
@@ -56,7 +57,13 @@ interface ResponseInterface {
     services?: { itemcode: string; itemdesc: string; }[];
 }
 
-export default function TimetrackingList() {
+interface TimetrackingListProps {
+    data?: { [key: string]: any } | null;
+    reference?: string | null;
+    comingFrom?: string | null;
+}
+
+export default function TimetrackingList({ data, reference, comingFrom }: TimetrackingListProps) {
     // FLAG PER LO SVILUPPO
     const isDev = false;
 
@@ -190,6 +197,47 @@ export default function TimetrackingList() {
 
         return () => clearInterval(interval);
     }, []);
+
+    // Pre-seleziona un cliente per la NUOVA voce: prende il nome dell'azienda dal
+    // backend (get_company_details) e imposta selectedClientId (usato al salvataggio)
+    // + searchQuery (il testo visibile nel selettore cliente della modale).
+    const preselectClient = async (companyId: string) => {
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_company_details");
+            body.append("id", companyId);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            const name = res.data?.companyName;
+            if (!name) return;   // azienda inesistente: non pre-selezioniamo nulla
+
+            setSelectedClientId(companyId);
+            setSearchQuery(name);
+        } catch (err) {
+            console.error("Errore nel pre-caricamento del cliente", err);
+        }
+    };
+
+    // In base al 'reference' scegliamo cosa pre-compilare da 'data' (come nelle altre pagine).
+    useEffect(() => {
+        switch (reference) {
+            case 'company':
+                if (data?.companyRecordId) {
+                    preselectClient(data.companyRecordId);
+                    setIsModalOpen(true)
+                }
+                break;
+            case 'contact':
+                if (data?.companyRecordId) {
+                    preselectClient(data.companyRecordId);
+                    setIsModalOpen(true)
+                }
+                if(data?.contactId) {
+                    //Decidere cosa fare col contatto
+                }
+                break
+        }
+    }, [reference, data]);
 
     const activeTrack = useMemo(() => {
         return responseData.timetracking.find((t) => t.status === "Attivo");
@@ -715,6 +763,7 @@ export default function TimetrackingList() {
                 <section
                     id="timesheets"
                     className="py-12 md:py-16 relative">
+                    <BackButton comingFrom={comingFrom} data={data} />
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <h1 className="text-4xl md:text-4xl font-semibold text-gray-800 mb-4 text-center">
                             Timetracking

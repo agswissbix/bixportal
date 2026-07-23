@@ -7,6 +7,9 @@ import { BuildingOfficeIcon, MagnifyingGlassIcon, ArrowRightIcon } from "@heroic
 import { useRouter } from "next/navigation";
 import CardBadgeCompany from "@/components/customBadges/cardBadgeCompany";
 import { toast, Toaster } from "sonner";
+import GoButton from "@/components/ui/goButton"
+import ContactDetail, { Contact } from "./contactDetail"
+import { Phone } from "lucide-react";
 
 // INTERFACCE
 interface CompanyProps {
@@ -45,6 +48,14 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<ListItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Contatti dell'azienda + quello eventualmente aperto in dettaglio.
+    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+    // L'azienda è modificabile solo se siamo arrivati DAL contatto (telefono/email).
+    // Se si parte dall'azienda resta fissa. Tenuto in uno state per invertirlo facilmente.
+    const [isCompanyEditable, setIsCompanyEditable] = useState(false);
+
     // Chiave dell'ultimo input già elaborato. Un ref (non uno state) perché deve
     // sopravvivere al doppio mount di StrictMode in dev, dove lo state non è ancora
     // aggiornato alla seconda esecuzione dell'effetto.
@@ -68,12 +79,12 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
                 break;
             case 'email':
                 if (data?.email) {
-                    runLookup(() => fetchCompanyByContact(data.email, null));
+                    runLookup(() => fetchByEmail(data.email));
                 }
                 break;
-            case 'telefono':
-                if (data?.telefono) {
-                    runLookup(() => fetchCompanyByContact(null, data.telefono));
+            case 'phoneNumber':
+                if (data?.phoneNumber) {
+                    runLookup(() => fetchByPhone(data.phoneNumber));
                 }
                 break;
             case 'ticketId':
@@ -82,6 +93,119 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
                 }
         }
     }, [reference, data]);
+
+    // Quando l'azienda è risolta (da QUALSIASI reference) carichiamo i suoi contatti.
+    // Reagiamo al RISULTATO (companyId), non al reference: così ogni nuovo lookup che
+    // porta a un'azienda eredita la lista contatti senza aggiungere codice.
+    useEffect(() => {
+        if (!companyId) {
+            // NB: NON azzeriamo selectedContact qui: un contatto senza azienda lascia
+            // companyId null, e cancellarlo farebbe sparire il contatto appena trovato.
+            // La selezione viene azzerata dove l'utente esce davvero (vedi "Cerca un'altra azienda").
+            setContacts([]);
+            return;
+        }
+        fetchContacts(companyId);
+    }, [companyId]);
+
+    // Carica i contatti dell'azienda. Il backend restituisce i nomi delle COLONNE DB,
+    // quindi li mappiamo sul tipo Contact usato dal form di dettaglio.
+    const fetchContacts = async (id: string) => {
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_all_contacts_from_company");
+            body.append("companyId", id);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            const rows = res.data?.contacts ?? [];
+
+            setContacts(rows.map((r: any) => ({
+                id: r.recordid_,
+                name: r.name,
+                surname: r.surname,
+                email: r.email,
+                phone: r.phone,
+                mobilePhone: r.mobilephone,
+                companyRecordId: r.recordidcompany_,
+            })));
+        } catch (err) {
+            console.error("Errore nel caricamento dei contatti", err);
+            setContacts([]);
+        }
+    };
+
+    // get_contact_by_phone e get_contact_by_email restituiscono la STESSA forma,
+    // quindi una sola mappatura basta per entrambe.
+    const mapContact = (d: any): Contact => ({
+        id: d.recordid,
+        name: d.name,
+        surname: d.surname,
+        email: d.email,
+        phone: d.phone,
+        mobilePhone: d.mobilePhone,
+        companyRecordId: d.companyRecordId,
+    });
+
+    // Contatto risolto (modalità "contact-first"): lo apriamo in dettaglio e carichiamo
+    // anche la sua azienda. Serve caricarla DAVVERO (non solo companyId) perché la vista
+    // azienda si basa su 'company': senza, tornando indietro si finirebbe sulla ricerca
+    // invece che sulla scheda con la lista completa dei contatti.
+    const selectResolvedContact = async (contact: Contact) => {
+        setSelectedContact(contact);
+        setIsCompanyEditable(true);   // arrivati dal contatto -> azienda modificabile
+
+        if (!contact.companyRecordId) {
+            setCompanyId(null);
+            return;
+        }
+
+        try {
+            await fetchCompanyDetails(contact.companyRecordId);
+        } catch (err) {
+            // Azienda mancante/non valida: mostriamo comunque il contatto, senza scheda.
+            console.error("Azienda del contatto non caricata", err);
+            setCompanyId(null);
+        }
+    };
+
+    // Telefono ed email seguono la STESSA logica: prima si cerca il CONTATTO, e solo
+    // se non esiste si ripiega sull'AZIENDA (anche le aziende hanno telefono ed email).
+    const fetchByPhone = async (phone: string) => {
+        const normalized = (await normalizePhone(phone)) ?? phone;
+
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_contact_by_phone");
+            body.append("phone", normalized);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            await selectResolvedContact(mapContact(res.data));
+            return;
+        } catch (err: any) {
+            // 404 = nessun contatto con quel numero: NON è un errore, si prova l'azienda.
+            // Qualsiasi altro errore va rilanciato e gestito da runLookup.
+            if (err?.response?.status !== 404) throw err;
+        }
+
+        await fetchCompanyByContact(null, phone);
+    };
+
+    const fetchByEmail = async (email: string) => {
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_contact_by_email");
+            body.append("email", email);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            await selectResolvedContact(mapContact(res.data));
+            return;
+        } catch (err: any) {
+            // 404 = nessun contatto con quell'email -> si prova l'azienda (per dominio).
+            if (err?.response?.status !== 404) throw err;
+        }
+
+        await fetchCompanyByContact(email, null);
+    };
 
     // Gestisce in un UNICO posto loading, errori e toast per ogni lookup della switch.
     // Le funzioni di lookup restano "pure" (fanno la chiamata e aggiornano lo stato):
@@ -218,7 +342,9 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
         );
     };
 
-    if(company == null)
+    // Mostriamo la ricerca solo se non abbiamo NÉ un'azienda NÉ un contatto aperto:
+    // un contatto senza azienda deve comunque poter vedere il proprio dettaglio.
+    if(company == null && !selectedContact)
     {
         return (
             <div className="min-h-screen relative overflow-x-hidden selection:bg-blue-100 pb-10">
@@ -304,44 +430,122 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
     }
     else
     {
+        // Col contatto aperto serve più larghezza: il dettaglio mette il badge
+        // azienda in colonna, che a max-w-4xl risulta compresso.
         return (
-            <div className="w-full max-w-4xl mx-auto px-6 py-8 md:py-16 flex flex-col items-center gap-6">
-                <CardBadgeCompany tableid="company" recordid={companyId ?? undefined} />
+            <div className={`w-full ${selectedContact ? "max-w-7xl" : "max-w-4xl"} mx-auto px-6 py-8 md:py-16 flex flex-col items-center gap-6`}>
+                {/* PANORAMICA AZIENDA (ricerca + badge + pulsanti): quando si apre un
+                    contatto il dettaglio la sostituisce, quindi la nascondiamo tutta. */}
+                {!selectedContact && (
+                    <>
+                        {/* Torna alla ricerca: azione secondaria -> stile "ghost". */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setCompany(null);
+                                setCompanyId(null);
+                                // Qui l'utente esce davvero: azzeriamo anche il contatto
+                                // (l'effetto su companyId non lo fa più, vedi sopra).
+                                setSelectedContact(null);
+                                // Torna alla pagina di ricerca rimuovendo i query param (?id / ?data),
+                                // cioè navigando allo stesso path senza query string.
+                                router.push(window.location.pathname);
+                            }}
+                            className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                        >
+                            <MagnifyingGlassIcon className="w-4 h-4" />
+                            Cerca un'altra azienda
+                        </button>
 
-                <div className="flex gap-4">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setCompany(null);
-                            setCompanyId(null);
-                            // Torna alla pagina di ricerca rimuovendo i query param (?id / ?data),
-                            // cioè navigando allo stesso path senza query string.
-                            router.push(window.location.pathname);
-                        }}
-                        className="px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
-                    >
-                        <MagnifyingGlassIcon className="w-5 h-5" />
-                        Cerca un'altra azienda
-                    </button>
+                        <CardBadgeCompany tableid="company" recordid={companyId ?? undefined} />
 
-                    <button
-                        type="button"
-                        onClick={() => {
-                            // Ricava dinamicamente il nome della bixApp dal path (.../bixApps/<app>/...)
-                            const segments = window.location.pathname.split("/").filter(Boolean);
-                            const bixIdx = segments.indexOf("bixApps");
-                            const comingFrom = bixIdx !== -1 ? (segments[bixIdx + 1] ?? "company") : "company";
-                            // Nuovo formato: reference + data (JSON). Il task cercherà l'azienda per id.
-                            const data = { companyRecordId: companyId };
-                            window.location.href =
-                                `/bixApps/task?reference=id&comingFrom=${encodeURIComponent(comingFrom)}&data=${encodeURIComponent(JSON.stringify(data))}`;
-                        }}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all active:scale-95 flex items-center gap-2"
-                    >
-                        <ArrowRightIcon className="w-5 h-5" />
-                        Crea task
-                    </button>
+                        <div className="flex flex-wrap justify-center gap-4 [&>button]:basis-64 [&>button]:justify-center">
+                            <GoButton goingTo="task" reference="id" data={ { companyRecordId: companyId } } />
+
+                            <GoButton goingTo="timetracking" reference="company" data={ { companyRecordId: companyId } } />
+
+                            <GoButton goingTo="timesheet" reference="company" data={ { companyRecordId: companyId } } />
+                        </div>
+                    </>
+                )}
+
+                {/* CONTATTI: lista dell'azienda, oppure il dettaglio di quello aperto. */}
+                <div className="w-full">
+                    {selectedContact ? (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedContact(null)}
+                                className="mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                            >
+                                ← Torna ai contatti
+                            </button>
+
+                            {/* Aperto dall'azienda -> l'azienda NON è modificabile. */}
+                            <ContactDetail
+                                contact={selectedContact}
+                                setContact={setSelectedContact as React.Dispatch<React.SetStateAction<Contact>>}
+                                isCompanyEditable={isCompanyEditable}
+                            />
+                        </>
+                    ) : (
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-200/40 p-6 md:p-8">
+                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">
+                                Contatti ({contacts.length})
+                            </h3>
+
+                            {contacts.length === 0 ? (
+                                <p className="text-sm text-zinc-500 py-4 text-center">
+                                    Nessun contatto collegato a questa azienda.
+                                </p>
+                            ) : (
+                                <div className="divide-y divide-zinc-100">
+                                    {contacts.map((c) => (
+                                        <div
+                                            key={c.id}
+                                            onClick={() => {
+                                                setSelectedContact(c);
+                                                // Aperto dalla lista dell'azienda -> azienda NON modificabile.
+                                                setIsCompanyEditable(false);
+                                            }}
+                                            className="flex items-center justify-between p-3 hover:bg-zinc-50 cursor-pointer transition-colors"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-sm text-zinc-800 truncate">
+                                                    {[c.name, c.surname].filter(Boolean).join(" ") || "(senza nome)"}
+                                                </p>
+                                                {c.email && <p className="text-xs text-zinc-500 truncate">{c.email}</p>}
+                                            </div>
+                                            <ArrowRightIcon className="w-4 h-4 text-zinc-400 shrink-0" />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
+                
+                {selectedContact && (
+                <div className="flex flex-wrap justify-center gap-4 [&>button]:basis-64 [&>button]:justify-center">
+                    <GoButton goingTo="task" reference="contact" data={ 
+                        { 
+                            contactId: selectedContact.id,
+                            companyRecordId: selectedContact.companyRecordId,
+                        } } />
+
+                    <GoButton goingTo="timetracking" reference="contact" data={ 
+                        { 
+                            contactId: selectedContact.id,
+                            companyRecordId: selectedContact.companyRecordId,
+                        } } />
+
+                    <GoButton goingTo="timesheet" reference="contact" data={ 
+                        { 
+                            contactId: selectedContact.id,
+                            companyRecordId: selectedContact.companyRecordId,
+                        } } />
+                </div>
+                )}
             </div>
         );
     }

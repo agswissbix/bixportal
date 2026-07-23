@@ -11,12 +11,15 @@ const isDev = false;
 // INTERFACCE
 interface TimesheetProps {
     recordid?: string | null;
+    reference?: string | null;
+    comingFrom?: string | null
+    data?: { [key: string]: any } | null;
 }
 
-export default function Timesheet({ recordid }: TimesheetProps) {
+export default function Timesheet({ recordid, reference, comingFrom, data }: TimesheetProps) {
     return (
         <div className="overflow-y-auto overflow-x-hidden h-screen">
-            <GenericComponent>{() => <TimesheetRegistration recordid={recordid} />}</GenericComponent>
+            <GenericComponent>{() => <TimesheetRegistration recordid={recordid} data={data} reference={reference} comingFrom={comingFrom} />}</GenericComponent>
         </div>
     );
 }

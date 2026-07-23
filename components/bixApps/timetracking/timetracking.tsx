@@ -9,11 +9,16 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const isDev = false;
 
 // INTERFACCE
+interface timetrackingProps {
+    data?: { [key: string]: any } | null;
+    reference?: string | null;
+    comingFrom?: string | null;
+}
 
-export default function Timetracking() {
+export default function Timetracking({ data, reference, comingFrom }: timetrackingProps) {
     return (
         <div className="overflow-y-auto overflow-x-hidden h-screen">
-            <GenericComponent>{() => <TimetrackingList />}</GenericComponent>
+            <GenericComponent>{() => <TimetrackingList data={data} reference={reference} comingFrom={comingFrom} />}</GenericComponent>
         </div>
     );
 }

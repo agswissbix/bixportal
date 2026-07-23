@@ -9,6 +9,7 @@ import { toast, Toaster } from "sonner";
 import PopUpManager from "@/components/popUpManager";
 import { useRecordsStore } from "@/components/records/recordsStore";
 import { ArrowRightToLine, SaveIcon } from "lucide-react";
+import BackButton from "@/components/ui/backButton"
 
 // HeroIcons v2 (Open Source)
 import * as Icons from "@heroicons/react/24/outline";
@@ -96,9 +97,12 @@ interface ResponseInterface {
 
 interface TimesheetRegistrationProps {
     recordid?: string | null;
+    data?: { [key: string]: any } | null;
+    reference?: string | null;
+    comingFrom?: string | null;
 }
 
-export default function ProfessionalTimesheet({ recordid }: TimesheetRegistrationProps) {
+export default function ProfessionalTimesheet({ recordid, data, reference, comingFrom }: TimesheetRegistrationProps) {
     const { user: contextUser } = useContext(AppContext);
 
     const MAX_DESC_LENGTH = 500;
@@ -154,6 +158,43 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
         qtaPrevista: "1",
         qtaEffettiva: "1",
     });
+
+    // Pre-seleziona il cliente della NUOVA voce: prende il nome dell'azienda dal
+    // backend (get_company_details) e imposta formData.azienda (il ListItem cliente).
+    const preselectClient = async (companyId: string) => {
+        try {
+            const body = new FormData();
+            body.append("apiRoute", "get_company_details");
+            body.append("id", companyId);
+
+            const res = await axiosInstanceClient.post("/postApi", body);
+            const name = res.data?.companyName;
+            if (!name) return;   // azienda inesistente: non pre-selezioniamo nulla
+
+            update("azienda", { id: companyId, name });
+        } catch (err) {
+            console.error("Errore nel pre-caricamento del cliente", err);
+        }
+    };
+
+    // In base al 'reference' scegliamo cosa pre-compilare da 'data' (come nelle altre pagine).
+    useEffect(() => {
+        switch (reference) {
+            case 'company':
+                if (data?.companyRecordId) {
+                    preselectClient(data.companyRecordId);
+                }
+                break;
+            case 'contact':
+            if (data?.companyRecordId) {
+                preselectClient(data.companyRecordId);
+            }
+            if(data?.contactId) {
+                //Decidere cosa fare col contatto
+            }
+            break
+        }
+    }, [reference, data]);
 
     useEffect(() => {
         const fetchDefaultProduct = async () => {
@@ -688,13 +729,15 @@ export default function ProfessionalTimesheet({ recordid }: TimesheetRegistratio
                             position="top-right"
                         />
 
-                        <div className="flex flex-col min-h-[100dvh] bg-[#F9FAFB] text-zinc-900 font-sans pb-24">
+                        <div className="flex flex-col min-h-[100dvh] bg-[#F9FAFB] text-zinc-900 font-sans pb-24 relative">
                             <div className="fixed top-0 left-0 right-0 h-1.5 flex z-[200] bg-white border-b border-zinc-100">
                                 <div
                                     className="h-full bg-orange-500 transition-all duration-500"
                                     style={{ width: `${(step === 12 ? 10 : step > 9 ? 9 : step) / 10 * 100}%` }}
                                 />
                             </div>
+
+                            <BackButton comingFrom={comingFrom} data={data} />
 
                             <main className="flex-1 px-6 pt-12 pb-32 max-w-lg mx-auto w-full">
                                 {/* --- STEP 1-8: FLOW RACCOLTA DATI --- */}

@@ -7,6 +7,7 @@ import CardBadgeCompany from "@/components/customBadges/cardBadgeCompany";
 import { ClipboardDocumentCheckIcon, EnvelopeIcon, UserIcon, CalendarIcon, HashtagIcon, BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { ClockIcon, LinkIcon, PenIcon } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import BackButton from "@/components/ui/backButton";
 
 // INTERFACCE
 interface TaskProps {
@@ -20,29 +21,45 @@ interface CompanyDetails {
     name: string;
 }
 
+// Utente di sys_user (come lo restituisce get_all_users).
+interface SysUser {
+    id: number;
+    firstname: string | null;
+    lastname: string | null;
+    username: string | null;
+}
+
+// firstname/lastname sono nullable: ripieghiamo su username, poi sull'id, così
+// nella tendina non compaiono mai voci vuote.
+const userLabel = (u: SysUser) =>
+    [u.firstname, u.lastname].filter(Boolean).join(" ") || u.username || `Utente ${u.id}`;
+
 // Formatta una Date in stringa YYYY-MM-DD (ora locale) per gli <input type="date">
 const toInputDate = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-// Sorgenti esterne (es. add-in di Outlook) che non hanno una pagina di ritorno nel sito:
-// per queste NON mostriamo il bottone "Torna a ...". Aggiungerne di nuove qui.
-const EXTERNAL_SOURCES = ["email"];
+// --- DURATA -----------------------------------------------------------------
+// In BixData la durata si salva in ORE DECIMALI (0.25 = 15 min); nella tendina
+// la mostriamo in formato leggibile. Per allungare/accorciare la lista basta
+// cambiare queste due costanti.
+const DURATION_STEP = 0.25;   // un quarto d'ora
+const DURATION_MAX = 5;       // ore massime selezionabili
 
-// Costruisce l'URL di ritorno alla bixApp di provenienza, in base a 'comingFrom'.
-// Ogni app può avere il proprio formato: aggiungere qui i nuovi casi.
-function buildBackPath(comingFrom: string | null | undefined, companyRecordId?: string | null): string {
-    const base = `/bixApps/${comingFrom ?? ""}`;
-    
-    switch (comingFrom) {
-        case "company": {
-            if (!companyRecordId) return base;
-            const data = { id: companyRecordId };
-            return `${base}?reference=id&data=${encodeURIComponent(JSON.stringify(data))}`;
-        }
-        default:
-            return `/bixApps/${comingFrom ?? ""}`;
-    }
+// Moltiplichiamo invece di sommare: q * 0.25 è ESATTO in floating point
+// (0.25 = 2^-2), mentre sommare 0.25 ripetutamente darebbe 0.7500000000000001.
+const DURATION_OPTIONS: number[] = [];
+for (let q = 1; q <= DURATION_MAX / DURATION_STEP; q++) {
+    DURATION_OPTIONS.push(q * DURATION_STEP);
 }
+
+// 0.25 -> "15 min" | 1 -> "1 h" | 1.25 -> "1 h 15 min"
+const formatDuration = (hours: number) => {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    if (h === 0) return `${m} min`;
+    if (m === 0) return `${h} h`;
+    return `${h} h ${m} min`;
+};
 
 export default function TaskApp(props: TaskProps) {
     return (
@@ -72,8 +89,12 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
     const [description, setDescription] = useState('');
     const [expiration, setExpiration] = useState<Date>();
     const [plannedDate, setPlannedDate] = useState<Date>();
-    const [duration, setDuration] = useState<Number>();
+    const [duration, setDuration] = useState<number>();
     const [isIdValid, setIsIdValid] = useState(true)
+
+    // "Assegnato a": elenco utenti + id selezionato (salvato nella colonna 'user').
+    const [users, setUsers] = useState<SysUser[]>([]);
+    const [assignedUserId, setAssignedUserId] = useState<number>();
 
     // Ricerca azienda (autocomplete)
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -92,8 +113,37 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
             case 'email':
                 if (mailmittente) fetchCompanyByEmail(mailmittente);
                 break;
+            case 'contact':
+                if (data?.companyRecordId) {
+                    fetchCompanyById(data.companyRecordId)
+                }
+                if(data?.contactId) {
+                    //Decidere cosa fare col contatto
+                }
+                break
         }
     }, [reference, companyRecordId, mailmittente]);
+
+    // Carica gli utenti per la tendina "Assegnato a" e preseleziona chi sta creando
+    // il task (default richiesto: di norma uno crea il task per sé stesso).
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const body = new FormData();
+                body.append("apiRoute", "get_all_users");
+
+                const res = await axiosInstanceClient.post("/postApi", body);
+                setUsers(res.data?.users ?? []);
+
+                const currentId = res.data?.currentUser?.id;
+                // Solo se non è già stato scelto qualcuno (?? non sovrascrive una scelta).
+                if (currentId) setAssignedUserId((prev) => prev ?? currentId);
+            } catch (err) {
+                console.error("Errore nel caricamento degli utenti", err);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     // Pre-compila le date con oggi
     useEffect(() => {
@@ -145,6 +195,7 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
                 expiration: expiration ?? new Date(),
                 plannedDate: plannedDate ?? new Date(),
                 duration: duration ?? 0,
+                assignedUser: assignedUserId ?? "",
                 companyId: companyDetails.id ?? "",
                 object: oggetto ?? "",
                 mailSender: mailmittente ?? "",
@@ -256,6 +307,7 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
              <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
              <div className="absolute top-24 -left-24 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
             
+             <BackButton comingFrom={comingFrom} data={data} />
              <main className="relative z-10 w-full max-w-7xl mx-auto px-6 py-8 md:py-16">
                  <header className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
                     <div className="flex items-center gap-2 text-indigo-500 text-xs font-bold uppercase tracking-widest mb-2">
@@ -417,15 +469,41 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
                                 <div>
                                     <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Durata</div>
 
-                                    <input
-                                        type="number"
+                                    <select
                                         aria-label="Durata"
-                                        min={0}
-                                        step={0.1}
-                                        onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : null)}
+                                        value={duration ?? ""}
+                                        onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : undefined)}
                                         className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
                                     >
-                                    </input>
+                                        <option value="">Nessuna</option>
+                                        {DURATION_OPTIONS.map((h) => (
+                                            // value = ore decimali (quello che finisce in BixData),
+                                            // label = formato leggibile per l'utente.
+                                            <option key={h} value={h}>{formatDuration(h)}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
+                                    <UserIcon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Assegnato a</div>
+
+                                    <select
+                                        aria-label="Assegnato a"
+                                        value={assignedUserId ?? ""}
+                                        onChange={(e) => setAssignedUserId(e.target.value ? Number(e.target.value) : undefined)}
+                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                    >
+                                        {/* Placeholder finché gli utenti non sono caricati. */}
+                                        {assignedUserId == null && <option value="">Caricamento…</option>}
+                                        {users.map((u) => (
+                                            <option key={u.id} value={u.id}>{userLabel(u)}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -484,26 +562,12 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
                         </div>
                     </div>
 
-                <div className="mt-8 flex gap-4">
-                    {comingFrom && !EXTERNAL_SOURCES.includes(comingFrom) && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                // Torna alla bixApp di provenienza (root-relative: funziona in locale e in prod).
-                                window.location.href = buildBackPath(comingFrom, companyRecordId);
-                            }}
-                            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-bold rounded-xl transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2"
-                        >
-                            <BuildingOfficeIcon className="w-4 h-4" />
-                            Torna a {comingFrom}
-                        </button>
-                    )}
-
+                <div className="mt-8">
                     <button
                         type="button"
                         onClick={handleSave}
                         disabled={saved}
-                        className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                        className={`w-full flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                             saved
                                 ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
                                 : "bg-indigo-600 shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] focus:ring-indigo-400"
