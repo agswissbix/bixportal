@@ -21,6 +21,9 @@ interface ContactDetailProps {
     // true  -> l'azienda si può cambiare (barra di ricerca visibile)
     // false -> azienda in sola lettura (solo badge)
     isCompanyEditable?: boolean;
+    // Chiamata dopo un salvataggio riuscito: serve a chi ospita il componente per
+    // ricaricare la lista contatti (altrimenti mostrerebbe i dati vecchi).
+    onSaved?: () => void;
 }
 
 // Riga contatto: input sempre modificabile che scrive nello stato del contatto.
@@ -45,7 +48,7 @@ const ContactField = ({
     </div>
 );
 
-export default function ContactDetail({ contact, setContact, isCompanyEditable = true }: ContactDetailProps) {
+export default function ContactDetail({ contact, setContact, isCompanyEditable = true, onSaved }: ContactDetailProps) {
     const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success">("idle");
 
     // Ricerca azienda (autocomplete)
@@ -77,6 +80,7 @@ export default function ContactDetail({ contact, setContact, isCompanyEditable =
             const res = await axiosInstanceClient.post("/postApi", body);
             if (res.data?.success) {
                 setSaveStatus("success");
+                onSaved?.();   // ricarica la lista contatti nella pagina che ci ospita
             } else {
                 setSaveStatus("idle");
                 toast.error(res.data?.message || "Errore durante il salvataggio del contatto.");

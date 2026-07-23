@@ -486,6 +486,9 @@ function CompanyRegistration({ data, reference }: CompanyProps) {
                                 contact={selectedContact}
                                 setContact={setSelectedContact as React.Dispatch<React.SetStateAction<Contact>>}
                                 isCompanyEditable={isCompanyEditable}
+                                // Dopo il salvataggio ricarichiamo la lista, altrimenti
+                                // tornando indietro mostrerebbe ancora i dati vecchi.
+                                onSaved={() => { if (companyId) fetchContacts(companyId); }}
                             />
                         </>
                     ) : (
