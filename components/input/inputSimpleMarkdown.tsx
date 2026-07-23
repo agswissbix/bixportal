@@ -32,6 +32,9 @@ import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
+import Paragraph from "@tiptap/extension-paragraph";
+import Heading from "@tiptap/extension-heading";
+import TextAlign from "@tiptap/extension-text-align";
 import {TextStyle} from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 
@@ -86,6 +89,7 @@ import {
     Redo,
     LayoutList,
     UnderlineIcon,
+    Loader2,
 } from "lucide-react";
 import { uploadImageService } from "@/utils/mediaUploadService";
 import { toast } from "sonner";
@@ -233,7 +237,7 @@ const CodeBlockComponent = ({ node, editor, getPos }: any) => {
 interface PropsInterface {
     initialValue?: string;
     onChange?: (val: string) => void;
-    onSaveRequested?: () => void;
+    onSaveRequested?: (closeAfterSave?: boolean) => Promise<void> | void;
     recordId?: string;
 }
 interface ResponseInterface {
@@ -264,6 +268,33 @@ export default function inputSimpleMarkdown(props: PropsInterface) {
     )
 }
 
+const CustomParagraph = Paragraph.extend({
+    addStorage() {
+        return {
+            markdown: {
+                serialize(state: any, node: any) {
+                    state.renderInline(node);
+                    state.closeBlock(node);
+                },
+            },
+        };
+    },
+});
+
+const CustomHeading = Heading.extend({
+    addStorage() {
+        return {
+            markdown: {
+                serialize(state: any, node: any) {
+                    state.write(state.repeat("#", node.attrs.level) + " ");
+                    state.renderInline(node);
+                    state.closeBlock(node);
+                },
+            },
+        };
+    },
+});
+
 function InputSimpleMarkdownInner({
     initialValue,
     onChange,
@@ -277,6 +308,23 @@ function InputSimpleMarkdownInner({
     const [mounted, setMounted] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [isAutosaving, setIsAutosaving] = useState(false);
+    const [isSavingData, setIsSavingData] = useState(false);
+    const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+
+    const handleSaveActionRef = useRef<((closeAfterSave: boolean) => Promise<void>) | null>(null);
+    useEffect(() => {
+        handleSaveActionRef.current = async (closeAfterSave: boolean) => {
+            setIsSavingData(true);
+            try {
+                await onSaveRequested?.(closeAfterSave);
+                setLastSaveTime(new Date());
+                setIsSavingFlash(true);
+                setTimeout(() => setIsSavingFlash(false), 2000);
+            } finally {
+                setIsSavingData(false);
+            }
+        };
+    }, [onSaveRequested]);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const printRef = useRef<HTMLDivElement>(null);
@@ -321,9 +369,12 @@ function InputSimpleMarkdownInner({
         immediatelyRender: false,
         extensions: [
             StarterKit.configure({
-                heading: { levels: [1, 2, 3] },
+                heading: false,
+                paragraph: false,
                 codeBlock: false,
             }),
+            CustomParagraph,
+            CustomHeading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
             Markdown.configure({
                 html: true,
                 tightLists: true,
@@ -445,6 +496,7 @@ function InputSimpleMarkdownInner({
         content: responseData.markdownContent,
         onUpdate: ({ editor }) => {
             const markdown = (editor.storage as any).markdown.getMarkdown();
+            
             lastValueRef.current = markdown;
             setResponseData((prev) => ({ ...prev, markdownContent: markdown }));
             updateToc(editor);
@@ -552,9 +604,7 @@ function InputSimpleMarkdownInner({
             handleKeyDown: (view, event) => {
                 if ((event.ctrlKey || event.metaKey) && event.key === "s") {
                     event.preventDefault();
-                    setIsSavingFlash(true);
-                    onSaveRequested?.();
-                    setTimeout(() => setIsSavingFlash(false), 500);
+                    handleSaveActionRef.current?.(false);
                     return true;
                 }
                 return false;
@@ -568,8 +618,7 @@ function InputSimpleMarkdownInner({
         const timer = setTimeout(() => {
             if (lastValueRef.current !== initialValue) {
                 setIsAutosaving(true);
-                onSaveRequested?.();
-                setTimeout(() => setIsAutosaving(false), 1000);
+                handleSaveActionRef.current?.(false).finally(() => setIsAutosaving(false));
             }
         }, 3000);
         return () => clearTimeout(timer);
@@ -1027,23 +1076,34 @@ function InputSimpleMarkdownInner({
                                     />
                                 </button>
                                 {isFullScreen ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            onSaveRequested?.();
-                                            setIsSavingFlash(true);
-                                            setTimeout(
-                                                () => setIsSavingFlash(false),
-                                                500
-                                            );
-                                        }}
-                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${
-                                            isSavingFlash
-                                                ? "bg-green-600 text-white scale-105"
-                                                : "bg-blue-600 text-white hover:bg-blue-700"
-                                        }`}>
-                                        <Save size={16} /> <span>SALVA</span>
-                                    </button>
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSaveActionRef.current?.(false)}
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md bg-slate-200 text-slate-700 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                                            disabled={isSavingData}
+                                        >
+                                            {isSavingData ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+                                            <span>SALVA E CONTINUA</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSaveActionRef.current?.(true)}
+                                            disabled={isSavingData}
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                isSavingFlash
+                                                    ? "bg-green-600 text-white scale-105"
+                                                    : "bg-blue-600 text-white hover:bg-blue-700"
+                                            }`}>
+                                            {isSavingData ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+                                            <span>SALVA E CHIUDI</span>
+                                        </button>
+                                        {lastSaveTime && (
+                                            <span className="text-xs text-slate-400 font-medium whitespace-nowrap ml-2">
+                                                Ultimo salvataggio: {lastSaveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </span>
+                                        )}
+                                    </>
                                 ) : null}
                             </div>
                         </div>

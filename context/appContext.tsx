@@ -85,6 +85,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setActiveServer(activeServer);
         setIsImpersonating(result.is_impersonating || false);
         setImpersonatorUsername(result.impersonator_username || null);
+
+        if (activeServer === 'wegolf' && result.role.toLowerCase() !== 'amministratore' && result.role.toLowerCase() !== 'admin') {
+          console.warn("Accesso negato: l'utente non è amministratore su wegolf.");
+          await logoutUser();
+          setUser(null);
+          setRole(null);
+          setUserName(null);
+          setActiveServer(null);
+          setIsImpersonating(false);
+          setImpersonatorUsername(null);
+          router.push('/login?error=unauthorized');
+          setLoadingAuth(false);
+          return;
+        }
+
         if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname === '/verify-2fa') {
           //TODO CUSTOM TELEFONO AMICO
           if (activeServer==='telefonoamico') {
