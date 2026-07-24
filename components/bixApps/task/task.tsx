@@ -307,8 +307,16 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
              <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
              <div className="absolute top-24 -left-24 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none mix-blend-multiply" />
             
-             <BackButton comingFrom={comingFrom} data={data} />
-             <main className="relative z-10 w-full max-w-7xl mx-auto px-6 py-8 md:py-16">
+             {/* Su MOBILE in-flow (riserva spazio, niente sovrapposizione con l'header
+                 in alto a sinistra); da sm in su torna ASSOLUTO nell'angolo come le altre
+                 pagine. Deve stare fuori da <main> perché l'angolo è quello del viewport,
+                 non del contenitore centrato. */}
+             <BackButton
+                 comingFrom={comingFrom}
+                 data={data}
+                 className="mt-6 ml-6 md:m-0 md:absolute md:top-6 md:left-4 lg:left-8 md:z-20"
+             />
+             <main className="relative z-10 w-full max-w-3xl mx-auto px-6 py-8 md:py-16">
                  <header className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
                     <div className="flex items-center gap-2 text-indigo-500 text-xs font-bold uppercase tracking-widest mb-2">
                         <ClipboardDocumentCheckIcon className="w-4 h-4" />
@@ -322,252 +330,259 @@ function TaskRegistration({ data, reference, comingFrom }: TaskProps) {
                     </p>
                 </header>
 
+                {/* AZIENDA COLLEGATA — la scheda azienda sta DA SOLA in cima (come nella
+                    pagina company). La ricerca per cambiarla è invece dentro al form, più
+                    sotto, insieme agli altri campi. */}
+                <div className="mb-8">
+                    {isLoadingCompany ? (
+                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-100 rounded-2xl bg-zinc-50/50">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
+                            <div className="text-sm font-bold text-zinc-500">Ricerca azienda in corso...</div>
+                        </div>
+                    ) : companyDetails ? (
+                        <CardBadgeCompany tableid="company" recordid={companyDetails.id} />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-100 rounded-2xl bg-zinc-50/50">
+                            <BuildingOfficeIcon className="w-10 h-10 text-zinc-300 mb-3" />
+                            <div className="text-sm font-medium text-zinc-500 text-center">
+                                {mailmittente
+                                    ? "Nessuna azienda associata a questa email."
+                                    : "In attesa di un'email mittente per cercare l'azienda."}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-200/40 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 p-8 md:p-10">
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
-                        {/* Sezione Dettagli Mail */}
-                        <div className="space-y-6">
-                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Informazioni Task</h3>
-                            
+                    <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-6">Informazioni Task</h3>
+
+                    <div className="space-y-6">
                             {comingFrom === "email" && (
-                            <>
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
-                                    <HashtagIcon className="w-5 h-5" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                {/* Oggetto: a tutta larghezza (assorbe il numero dispari di info). */}
+                                <div className="flex items-start gap-4 sm:col-span-2">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                                        <HashtagIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Oggetto</div>
+                                        <div className="text-sm font-semibold text-zinc-800 mt-0.5">{oggetto || "Nessun oggetto specificato"}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Oggetto</div>
-                                    <div className="text-sm font-semibold text-zinc-800 mt-0.5">{oggetto || "Nessun oggetto specificato"}</div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
-                                    <UserIcon className="w-5 h-5" />
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
+                                        <UserIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">User Mittente</div>
+                                        <div className="text-sm font-semibold text-zinc-800 mt-0.5">{usermittente || "N/A"}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">User Mittente</div>
-                                    <div className="text-sm font-semibold text-zinc-800 mt-0.5">{usermittente || "N/A"}</div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
-                                    <EnvelopeIcon className="w-5 h-5" />
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                                        <EnvelopeIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Email Mittente</div>
+                                        <div className="text-sm font-semibold text-zinc-800 mt-0.5 break-all">{mailmittente || "N/A"}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Email Mittente</div>
-                                    <div className="text-sm font-semibold text-zinc-800 mt-0.5 break-all">{mailmittente || "N/A"}</div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                                    <CalendarIcon className="w-5 h-5" />
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                        <CalendarIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Data Ricezione</div>
+                                        <div className="text-sm font-semibold text-zinc-800 mt-0.5">{dataricezione || "N/A"}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Data Ricezione</div>
-                                    <div className="text-sm font-semibold text-zinc-800 mt-0.5">{dataricezione || "N/A"}</div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-                                    <LinkIcon className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Link alla mail</div>
-                                    {linkToMail ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => window.open(linkToMail, "_blank", "noopener,noreferrer")}
-                                            className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-sm font-bold rounded-lg transition-colors"
-                                        >
-                                            <EnvelopeIcon className="w-4 h-4" />
-                                            Apri la mail
-                                        </button>
-                                    ) : (
-                                        <div className="text-sm font-mono text-zinc-600 mt-0.5 break-all">N/A</div>
-                                    )}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                        <LinkIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Link alla mail</div>
+                                        {linkToMail ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => window.open(linkToMail, "_blank", "noopener,noreferrer")}
+                                                className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-sm font-bold rounded-lg transition-colors"
+                                            >
+                                                <EnvelopeIcon className="w-4 h-4" />
+                                                Apri la mail
+                                            </button>
+                                        ) : (
+                                            <div className="text-sm font-mono text-zinc-600 mt-0.5 break-all">N/A</div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            </>
                             )}
 
+                            {/* Descrizione: a TUTTA LARGHEZZA (flex-1 + w-full), textarea più alta. */}
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
                                     <PenIcon className="w-5 h-5" />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Descrizione</div>
-
-                                    <textarea 
+                                    <textarea
                                         name="description"
                                         value={description ?? ""}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                                    >    
-
-                                    </textarea>
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                                    <HashtagIcon className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Priorità</div>
-
-                                    <select
-                                        aria-label="Priorità"
-                                        value={priority ?? ""}
-                                        onChange={(e) => setPriority(e.target.value)}
-                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                                    >
-
-                                        <option value="1.Richiesta di Davide">Richiesta di Davide</option>
-                                        <option value="2.Alta">Alta</option>
-                                        <option value="3.Media">Media</option>
-                                        <option value="4.Bassa">Bassa</option>
-                                        <option value="5.Richiesta di Mauro">Richiesta di Mauro</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                                    <CalendarIcon className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Data di scadenza</div>
-
-                                    <input
-                                        type="date"
-                                        name="expiration"
-                                        value={expiration ? toInputDate(expiration) : ""}
-                                        onChange={(e) => setExpiration(e.target.value ? new Date(e.target.value) : undefined)}
-                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                                    />
-
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mt-4">Data pianificata</div>
-
-                                    <input
-                                        type="date"
-                                        name="plannedDate"
-                                        value={plannedDate ? toInputDate(plannedDate) : ""}
-                                        onChange={(e) => setPlannedDate(e.target.value ? new Date(e.target.value) : undefined)}
-                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                        rows={3}
+                                        className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                                    <ClockIcon className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Durata</div>
-
-                                    <select
-                                        aria-label="Durata"
-                                        value={duration ?? ""}
-                                        onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : undefined)}
-                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                                    >
-                                        <option value="">Nessuna</option>
-                                        {DURATION_OPTIONS.map((h) => (
-                                            // value = ore decimali (quello che finisce in BixData),
-                                            // label = formato leggibile per l'utente.
-                                            <option key={h} value={h}>{formatDuration(h)}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
-                                    <UserIcon className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Assegnato a</div>
-
-                                    <select
-                                        aria-label="Assegnato a"
-                                        value={assignedUserId ?? ""}
-                                        onChange={(e) => setAssignedUserId(e.target.value ? Number(e.target.value) : undefined)}
-                                        className="mt-1 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                                    >
-                                        {/* Placeholder finché gli utenti non sono caricati. */}
-                                        {assignedUserId == null && <option value="">Caricamento…</option>}
-                                        {users.map((u) => (
-                                            <option key={u.id} value={u.id}>{userLabel(u)}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Sezione Azienda Collegata */}
-                        <div className="space-y-6">
-                            <h3 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2 mb-4">Azienda Collegata</h3>
-                            
-                            {isLoadingCompany ? (
-                                <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-100 rounded-2xl bg-zinc-50/50">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
-                                    <div className="text-sm font-bold text-zinc-500">Ricerca azienda per email in corso...</div>
-                                </div>
-                            ) : companyDetails ? (
-                                <CardBadgeCompany tableid="company" recordid={companyDetails.id} />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-100 rounded-2xl bg-zinc-50/50">
-                                    <BuildingOfficeIcon className="w-10 h-10 text-zinc-300 mb-3" />
-                                    <div className="text-sm font-medium text-zinc-500 text-center">
-                                        {mailmittente 
-                                            ? "Nessuna azienda associata a questa email." 
-                                            : "In attesa di un'email mittente per cercare l'azienda."}
+                            {/* Gli altri campi su 2 colonne (flex-1 + w-full così riempiono la cella). */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                        <HashtagIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Priorità</div>
+                                        <select
+                                            aria-label="Priorità"
+                                            value={priority ?? ""}
+                                            onChange={(e) => setPriority(e.target.value)}
+                                            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                        >
+                                            <option value="1.Richiesta di Davide">Richiesta di Davide</option>
+                                            <option value="2.Alta">Alta</option>
+                                            <option value="3.Media">Media</option>
+                                            <option value="4.Bassa">Bassa</option>
+                                            <option value="5.Richiesta di Mauro">Richiesta di Mauro</option>
+                                        </select>
                                     </div>
                                 </div>
-                            )}
 
-                            <div className="relative" ref={searchRef}>
-                                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Azienda</div>
-                                <input
-                                    type="text"
-                                    value={companyDetails?.name ?? ""}
-                                    onChange={e => {
-                                        setCompanyDetails({ id: companyDetails?.id ?? "", name: e.target.value });
-                                        searchCompanies(e.target.value);
-                                    }}
-                                    onFocus={() => { if (searchResults.length > 0) setShowResults(true); }}
-                                    className="w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
-                                    placeholder="Cerca Azienda..."
-                                />
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                        <ClockIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Durata</div>
+                                        <select
+                                            aria-label="Durata"
+                                            value={duration ?? ""}
+                                            onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : undefined)}
+                                            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                        >
+                                            <option value="">Nessuna</option>
+                                            {DURATION_OPTIONS.map((h) => (
+                                                // value = ore decimali (quello che finisce in BixData),
+                                                // label = formato leggibile per l'utente.
+                                                <option key={h} value={h}>{formatDuration(h)}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
 
-                                {showResults && searchResults.length > 0 && (
-                                    <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                        {searchResults.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                onClick={() => handleSelectCompany(item)}
-                                                className="p-3 hover:bg-zinc-50 cursor-pointer border-b border-zinc-100 last:border-0"
-                                            >
-                                                <p className="font-bold text-sm text-zinc-800">{item.name}</p>
-                                                {item.details && <p className="text-xs text-zinc-500">{item.details}</p>}
+                                {/* Le due date sulla STESSA riga (pianificata poi scadenza). */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                        <CalendarIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Data pianificata</div>
+                                        <input
+                                            type="date"
+                                            name="plannedDate"
+                                            value={plannedDate ? toInputDate(plannedDate) : ""}
+                                            onChange={(e) => setPlannedDate(e.target.value ? new Date(e.target.value) : undefined)}
+                                            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                        <CalendarIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Data di scadenza</div>
+                                        <input
+                                            type="date"
+                                            name="expiration"
+                                            value={expiration ? toInputDate(expiration) : ""}
+                                            onChange={(e) => setExpiration(e.target.value ? new Date(e.target.value) : undefined)}
+                                            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0">
+                                        <UserIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Assegnato a</div>
+                                        <select
+                                            aria-label="Assegnato a"
+                                            value={assignedUserId ?? ""}
+                                            onChange={(e) => setAssignedUserId(e.target.value ? Number(e.target.value) : undefined)}
+                                            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                        >
+                                            {/* Placeholder finché gli utenti non sono caricati. */}
+                                            {assignedUserId == null && <option value="">Caricamento…</option>}
+                                            {users.map((u) => (
+                                                <option key={u.id} value={u.id}>{userLabel(u)}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Azienda: ricerca per CAMBIARE l'azienda (la scheda è in cima). */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                                        <BuildingOfficeIcon className="w-5 h-5" />
+                                    </div>
+                                    <div className="relative flex-1" ref={searchRef}>
+                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Azienda</div>
+                                        <input
+                                            type="text"
+                                            value={companyDetails?.name ?? ""}
+                                            onChange={e => {
+                                                setCompanyDetails({ id: companyDetails?.id ?? "", name: e.target.value });
+                                                searchCompanies(e.target.value);
+                                            }}
+                                            onFocus={() => { if (searchResults.length > 0) setShowResults(true); }}
+                                            className="mt-1 w-full text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                            placeholder="Cerca Azienda..."
+                                        />
+
+                                        {showResults && searchResults.length > 0 && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                {searchResults.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        onClick={() => handleSelectCompany(item)}
+                                                        className="p-3 hover:bg-zinc-50 cursor-pointer border-b border-zinc-100 last:border-0"
+                                                    >
+                                                        <p className="font-bold text-sm text-zinc-800">{item.name}</p>
+                                                        {item.details && <p className="text-xs text-zinc-500">{item.details}</p>}
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
-                        </div>
                     </div>
 
-                <div className="mt-8">
+                <div className="mt-8 flex justify-center">
                     <button
                         type="button"
                         onClick={handleSave}
                         disabled={saved}
-                        className={`w-full flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                        className={`w-64 flex items-center justify-center gap-2 px-6 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                             saved
                                 ? "bg-emerald-600 shadow-emerald-600/20 cursor-default focus:ring-emerald-400"
                                 : "bg-indigo-600 shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] focus:ring-indigo-400"

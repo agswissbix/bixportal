@@ -9,7 +9,6 @@ import CardBadgeCompany from "@/components/customBadges/cardBadgeCompany";
 import { toast, Toaster } from "sonner";
 import GoButton from "@/components/ui/goButton"
 import ContactDetail, { Contact } from "./contactDetail"
-import { Phone } from "lucide-react";
 
 // INTERFACCE
 interface CompanyProps {
